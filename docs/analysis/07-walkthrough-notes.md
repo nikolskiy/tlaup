@@ -7,7 +7,28 @@ Each note says where it came up. "Decided" means the maintainer agreed explicitl
 ## 0. First steps
 
 1. **Install `gh` and log in before anything else.** Several items depend on it (release script CI check, repository settings). (Roadmap, milestone 2, branch model)
-2. **After `gh` works, verify everything the reports could not check**: branch and tag protection or rulesets, `pypi` environment protection rules, default `GITHUB_TOKEN` permissions, secret scanning and push protection, Dependabot alerts, which Python CI actually uses, causes of the failed release runs (v0.3.0, v0.4.0, Test on `dcdd909`). (Packaging report, sections 4.7, 8, 11)
+2. **After `gh` works, verify everything the reports could not check**: branch and tag protection or rulesets, `pypi` environment protection rules, default `GITHUB_TOKEN` permissions, secret scanning and push protection, Dependabot alerts, which Python CI actually uses, causes of the failed release runs (v0.3.0, v0.4.0, Test on `dcdd909`). (Packaging report, sections 4.7, 8, 11) Done 2026-11-14; results below.
+
+### Verified with `gh` on 2026-11-14
+
+Read-only checks against `nikolskiy/tlaplus-cli`; no setting was changed.
+
+| Item | Finding |
+| --- | --- |
+| Branch protection on `main` | None ("Branch not protected"). |
+| Rulesets (branches and tags) | None. Version tags can be moved or deleted. |
+| `pypi` environment | Exists, but no protection rules, no deployment branch or tag policy, and admins can bypass. Any ref can deploy to it. |
+| Default workflow token permissions | Read-only, and workflows cannot approve pull requests. Good. |
+| Allowed actions | All actions allowed; SHA pinning not required. |
+| Secret scanning | Enabled, with push protection enabled. No alerts. Non-provider patterns and validity checks disabled. |
+| Dependabot alerts | Disabled. |
+| Dependabot security updates | Disabled. |
+| Private vulnerability reporting | Disabled. Relevant to the suggested two-line `SECURITY.md`, which would point to it. |
+| Code scanning | No analysis configured. |
+| Which Python CI uses | Not determinable: GitHub returns HTTP 410 for all run logs, including the latest run (2026-08-13); log retention has expired. Still inferred as 3.13 via `uv` and `.python-version`. |
+| Causes of failed runs | Logs expired, and step data is gone for older runs. What remains: v0.8.0 failed at "Run tests" (publish skipped). v0.2.0, v0.3.0 and v0.4.0 failed in `build-release` (publish skipped), step unknown. v0.1.3 to v0.1.6 built successfully and failed in `pypi-publish`, which confirms the orphaned GitHub Releases. Test also failed on `main` at `4d8035f`, `e23492e`, `529a2ba`, `dcdd909`, `12d716e` and `b97c97f`. |
+
+Consequences for the roadmap: the Dependabot note (32) needs alerts switched on as well as security updates; the tag ruleset and the `pypi` environment policy (deploy only from `v*` tags, optional required reviewer) are not in place yet; private vulnerability reporting needs enabling if `SECURITY.md` is added. A future failure diagnosis will need logs captured before the retention window closes.
 
 ## 1. How the work is done
 
@@ -156,6 +177,6 @@ For the completeness pass to include or clarify:
 - UI printing from domain code and the 21 hand-written error prints (architecture finding 6).
 - Small organisation items from architecture finding 8 (tiny files, two registration styles, misnamed modules, hard-coded values that config pretends to control).
 - Pre-commit: move pytest to pre-push, add a format hook, whole-project mypy; widen `poe clean`; `.gitignore` gaps; align Python versions; a two-line `SECURITY.md`.
-- PyPI environment protection, tag ruleset, annotated or signed tags, secret scanning on GitHub (verify after `gh`, note 2).
+- PyPI environment protection, tag ruleset, annotated or signed tags. Verified 2026-11-14 that none of the protections exist yet; secret scanning and push protection are already on (note 2).
 - Whether CommunityModules builds are triggered by upstream TLC builds (would tighten date matching).
 - An override that fails to load should be reported clearly.
