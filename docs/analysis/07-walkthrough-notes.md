@@ -1,0 +1,161 @@
+# Walkthrough notes and decisions
+
+Recorded 2026-11-10 to 2026-11-14 during a spoken walkthrough of the analysis commit (`acd12fd`: summary, roadmap, reports 01-06). These are the maintainer's notes and decisions. Nothing here has been applied to the roadmap or the code yet.
+
+Each note says where it came up. "Decided" means the maintainer agreed explicitly; "Raised, not decided" at the end lists points that came up but were not settled, for the completeness pass to clarify.
+
+## 0. First steps
+
+1. **Install `gh` and log in before anything else.** Several items depend on it (release script CI check, repository settings). (Roadmap, milestone 2, branch model)
+2. **After `gh` works, verify everything the reports could not check**: branch and tag protection or rulesets, `pypi` environment protection rules, default `GITHUB_TOKEN` permissions, secret scanning and push protection, Dependabot alerts, which Python CI actually uses, causes of the failed release runs (v0.3.0, v0.4.0, Test on `dcdd909`). (Packaging report, sections 4.7, 8, 11)
+
+## 1. How the work is done
+
+3. **Ship everything as one release instead of staged milestone versions.** Few users, so a big change from 0.8 to 0.9 is fine. Still land the CI and test fixes from milestone 2 early, even without publishing. Milestone 3 needs its design note first and is the most likely to hold the batch up. (Roadmap, milestone 1b)
+4. **Four-stage agent pipeline**:
+   1. A completeness pass over all six reports, the roadmap and these notes, making sure everything is on the roadmap. Obvious decisions go straight in; uncertain ones are clarified by the maintainer. This pass also picks up small items not settled one by one (error message wording, help text, smaller defects).
+   2. An agent designs or confirms solutions for each roadmap item, in light of all decisions. This replaces the earlier "planning review" note and covers every fix proposed during the walkthrough that goes beyond the reports.
+   3. An agent plans work packages, each with all the context it needs, without implementing.
+   4. Separate worker agents do the building.
+   (UX report, error messages)
+5. **Redesign the testing approach from scratch.** Decide where tests give most value, whether the existing unit tests are worth keeping and in what form, and how tests are written from now on. (Testing report, summary)
+   - Check whether one approach can cover the whole program (preferred); if not, choose an approach per part. The report's per-part techniques are input: golden TLC output for the parser, property-based tests for the value parser, snapshots for rendering, recorded GitHub responses for downloads, a fake `java` replaying recordings for end-to-end runs, a Java and TLC matrix for integration.
+   - Lean on documentation tests and example tests rather than many small unit tests.
+   - Consider human-readable scenarios (behave or pytest-bdd, Gherkin "given / when / then") for CLI behaviour. Cost: step definitions to maintain; less suited to parser internals.
+   - Anti-patterns to avoid, all from the testing report: patches that never take effect (import-by-name, the no-op `mock_load_config`, wrong patch targets in module tests); over-mocking until only a list index is under test; invented TLC output; assertions on Rich internals and help-text wording; checking messages instead of resulting state; wall-clock and mtime dependence; tautological tests; shared state leaking between tests (direct `os.environ` edits, `lru_cache` config, mutually exclusive `shutil.which` fixtures, module-level runners); real `java` and `git` launched by unit tests with unchecked results; tests writing to and deleting from the real config and cache; duplicated tests and three copies of GitHub fixtures; integration tests with broken skip guards, Linux-only jar discovery and no assertions on parsed results; no markers, no branch coverage, no threshold.
+   - Coverage policy from the report: branch coverage on, a `fail_under` near the current 83 percent, coverage only in the full-suite task, randomised order, warnings as errors.
+6. **Thinking session on usage statistics**, carefully and without sending data from users' machines without consent. (UX report, command layout; docs site)
+   - A script that collects download numbers: PyPI (pypistats or the public BigQuery dataset; PyPI's own API no longer gives counts), GitHub release asset download counts, and GitHub repository traffic (views and clones, kept only 14 days, so save regularly).
+   - Later, a docs site as an indirect signal: visits and returning visitors to specific pages, compared with installs, using a cookie-less counter (GoatCounter, Plausible).
+
+## 2. Roadmap rewording
+
+7. **Guiding principle**: broaden it. The tool brings the TLA+ tools together and helps them work together: version management including rolling builds, managing your own modules (add, list, remove), running TLC and the other tools. Reproducibility and rolling builds are important but not the only thing. (Roadmap, documentation track)
+8. **Decision D1**: package and binary are both `tlaup`, so it is clear what is where. (Roadmap, milestone 1b, new name)
+   - Claim `tlaup` on PyPI now, before someone else takes it. Release under `tlaup` first.
+   - `tlaplus-cli` becomes a thin wrapper package that depends on `tlaup`, so only one copy of the code is maintained. Its PyPI description says "now called tlaup" in the first line.
+   - Drop the `tla` command right away, with no deprecated alias. Document the change in the changelog and on the GitHub release page.
+9. **Decision D3**: the live display is a reporter built on the separate parser package (see note 12). It is one of several reporters: a live terminal one, one for AI, maybe others later such as writing to a file. Its consequence column should stop describing the display as coupled to parser correctness. (Merit report, what to drop)
+10. **The VS Code extension is an inspiration, not a parity target.** It was the example of nicer TLC output; the tool can go beyond it, and missing some of its features is fine. (Roadmap, milestone 1)
+11. **Risks section**:
+    - Risk 1, upstream ships an official `tla`: add how the tool would hand off to it (see note 20).
+    - Risk 2, 1b delaying reproducibility: matters less with a single release.
+    - Risk 4: reword around building from source; if upstream attaches jars to its CalVer tags, building from source can be skipped.
+    - Risk 6, Maven snapshot retention: remove (Maven is dropped, note 21).
+
+## 3. Architecture and design
+
+12. **Parser as its own package.** An ordinary dependency, not something fetched per TLC version at runtime. One parser release handles several TLC versions by reading the version TLC prints at startup. Golden files live in the parser package, filed by TLC version. Start as a separate package in the same repository; move it to its own repository later if editors or other tools use it. (Roadmap, risk 5)
+13. **Parser rule: never lose output.** Anything it does not recognise is shown exactly as TLC printed it. Also check whether TLC can write traces as JSON itself (`-dumpTrace json`, unverified), which would avoid value parsing for traces. (Roadmap, risk 5)
+14. **Reporters.** TLC output goes through reporters that read the parsed result and run events. Terminal and JSON first; an AI-facing reporter later as a plug-in; possibly file or others. Reporters never parse; the result carries everything any reporter needs, such as file and line for errors. (Merit report, AI tools)
+15. **Thin tool commands (milestone 1b design guideline).** Keep `sany`, `pcal` and `repl` thin, with no logic beyond reading their output. Launch everything through the shared Java launcher. Check which jar build is running, so the tool can switch to upstream's own entry point when it exists and fall back for older jars. (Roadmap, risk 1)
+16. **Community modules as pinned release downloads.** Download the published release jars, not compiled from a checkout. The tool picks the release built against the user's TLC build by date (published after that TLC build and before the next one), and writes that choice into the project file; after that everyone reads the file. On a TLC upgrade the tool picks again and updates the file. `modules add` stays for the user's own modules. Background checked during the walkthrough: CommunityModules releases have empty notes, their build compiles against whatever the `rolling` jar is at that moment, releases happen on every push to their main branch, and the workflow has a `repository_dispatch` trigger (possibly fired by upstream TLC builds; not confirmed). (Merit report, conclusions)
+17. **Config layering** goes on the roadmap: packaged defaults, then the user file, then the project file, then environment variables, then flags. Config commands keep working when the file is broken. No config file is written until the user actually changes a setting. (Architecture report, config)
+18. **Apalache and TLAPS** move from "not planned" to "after this roadmap". Leave room for other distributions in the storage layout during milestone 3, since the on-disk layout is the expensive part to change. The examples runner skips models that need unsupported tools and reports them as skipped, not failed. (Roadmap, not planned)
+19. **After this roadmap**: Homebrew tap, aimed at macOS users who have Java but do not use Python. (Packaging report, channels)
+20. **Hand-off to an official upstream command**: the tool supplies jar, classpath, lock and modules; upstream's entry point can run on top of it (see note 15). (Roadmap, risk 1)
+21. **Milestone 3, fetching old rolling builds**: drop the mirror option (it was never the plan) and drop Maven (unclear retention, and the Maven jar is stripped of bundled dependencies, so not the same bytes). Single fallback: build from source at the CalVer tag when an old build cannot be downloaded, with the needed Java build tools fetched automatically. Remove that logic if upstream starts publishing a jar per tag. Use the official sources and the local cache only. (Roadmap, risks 4 and 6)
+22. **Drop installs from a file address (URL installs)** for now; maybe reintroduce later. Removes the colon timestamps, the upgrade mis-split, `meta sync` overwriting URL installs and the plain-HTTP path. Existing URL-installed builds on disk are left alone but not listed or pinned, with a message saying why. (UX report, versions)
+
+## 4. Additions to milestones
+
+### Milestone 1
+
+23. Problems to fix, not previously on the roadmap (code quality report):
+    - Every `OSError` during a run is reported as "'java' not found" (for example `BrokenPipeError` when piping `--raw` into `head`). (M2)
+    - The violated-invariant text is hidden when a trace exists; currently masked by the trace parsing bug. (M12)
+    - A `--cfg` file outside the project root is passed to TLC by name only, so TLC can read a different file. (M13)
+    - Only the first page of tags and releases is read; "latest stable" depends on API order; with only prereleases it silently installs one while saying "stable". (M7)
+    - The project-root heuristic counts a parent with `lib/`, `modules/` or `classes/`, so a spec under `~/work` with `~/lib` pulls unrelated jars onto the classpath. (M17)
+    - `config edit` rejects `$EDITOR` values with arguments (such as `code --wait`), has no Windows default, and does not re-validate after editing. (M18)
+24. Safety section additions (code quality report, low findings):
+    - Concurrent installs collide: pin and metadata writes are not atomic and there is no locking. (L10)
+    - A failed uninstall exits 0 and still moves the pin; the disambiguation prompt accepts negative indexes. (L12)
+    - Spec names with dots are mangled by `with_suffix`; any existing file, such as a `.cfg`, is accepted as the spec. (L14)
+25. Problem descriptions only, solutions to come from pipeline stage 2:
+    - The run-cache fingerprint covers the default `.cfg` only, not a `--cfg` file or extended modules. (L15)
+    - The module build strips `//` comments with a regex that corrupts string literals; `javac` runs with no `-encoding` and no timeout. (L17)
+    - Unknown config keys are silently ignored, so typos have no effect and no warning. (L8)
+26. Downloads: refuse unencrypted addresses and any redirect to an unencrypted address. After download, compare the commit the jar reports about itself (`-version` banner revision) with the expected commit. (M9, M6)
+27. First-run section:
+    - Print nothing (no "Starting TLC") until the checks pass.
+    - Remove the legacy fallback jar path so it is never shown as the expected location.
+    - Disable Typer's decorated crash reports for users; add a `--debug` option that shows the full traceback.
+    - One first-run prompt that asks stable or rolling and then installs it (merges D4 with the auto-install offer).
+28. Java handling (code quality L5, L6, L7; UX report):
+    - A Java options variable named for the tool (`TLAUP_` prefix) and a repeatable flag, both adding to the configured options instead of replacing them.
+    - Use the standard `JAVA_HOME` when set, falling back to `PATH`.
+    - One Java start per run: read the TLC version from saved metadata instead of launching Java, remember the Java version check. Report a timeout as a timeout, not "not installed".
+29. Startup cost item: skip the `git rev-parse` call on normal installs, load heavy libraries only in the commands that need them, one Java start per run. (Packaging 2.1, quality L20)
+
+### Milestone 2
+
+30. Remove the Nix flake: it was a one-off and never kept up to date. Replace the roadmap's Nix item and remove the Nix install line from the README. (Summary; milestone 2)
+31. Branch model and CI:
+    - CI runs on every push to `main` and on pull requests; the integration job runs on every push too.
+    - Integration matrix trimmed to Java 11 and 25 (oldest and newest), against both pinned TLC builds; widen later if other versions need support. GitHub-hosted runners, macOS included (free for public repositories).
+32. Dependencies:
+    - Dependabot security alerts and security updates on.
+    - A monthly Dependabot run that groups all version updates into one pull request, instead of one per release.
+    - Refresh the lock file before each release and let CI run before tagging.
+    - Keep `uv sync --locked` and read-only workflow permissions (confirmed).
+33. Build fixes as their own items: `setuptools>=77.0.3`, a real Pydantic minimum, remove the `rich<14` cap (kept even though the flake goes), delete the redundant `MANIFEST.in`, and one CI check that installs the newest allowed dependency versions. (Packaging 1.1, 1.2, 1.3)
+34. Release workflow security: the full three-job split (read-only build, PyPI publish with id-token only, release page with write access and no project code), `persist-credentials: false` on checkout, pin by SHA or replace the actions with write access (`gh release create` instead of the third-party release action), `timeout-minutes` on every job. (Packaging 4.5)
+35. Release pages:
+    - Each GitHub release page gets that version's changelog section as its text.
+    - Backfill existing release pages from the changelog.
+    - PyPI's changelog link points at the GitHub releases page. No "what's new" section in the README.
+36. Changelog and versioning process: use `uv version --bump` behind a task so `pyproject.toml` and `uv.lock` move together; the release script checks for a proper `## [X.Y.Z] - date` heading. Leave history alone except marking 0.4.0 and 0.8.0 as never published and correcting the two wrong 0.3.1 entries (cache path, `--all`). Do not move old tags. The rename is a natural fresh start. (Packaging 2.2, 2.3)
+37. PyPI and GitHub metadata: keywords, missing classifiers (Console, Developers, Science/Research, a QA or scientific topic, Typing :: Typed), fix the questionable "Build Tools" topic, GitHub topics, absolute README links, pipx and uvx install options. (Packaging 1.1)
+38. Windows: not officially supported and no Windows CI, but write code that should work there, and say exactly that in the README. Change the "OS Independent" classifier to Linux and macOS. (Code quality M15, M16)
+
+### Milestone 3
+
+39. Fix the `tools meta sync` bug explicitly (matches by tag name only, so an older rolling build gets the current build's metadata). (Code quality M5)
+40. Folder names without colons for any remaining non-tag installs (largely moot once URL installs are dropped). (Code quality M16)
+
+### Milestone 4
+
+41. JSON output: research the tlaplus/Examples repository's manifest format before designing the schema, and aim for compatible results (outcome vocabulary, state counts). (Roadmap, milestone 4)
+42. Exit codes: a separate exit code for the tool's own setup errors; move the version flag to `-V` so `-v` can mean verbose. (UX 3.4, 2.2)
+43. Later idea: run the examples straight from the Examples repository's manifest. (Roadmap, milestone 4)
+
+### Commands and rename
+
+44. During the rename, review the layout of every command so it follows the most common CLI patterns and users can guess commands from other tools. No aliases for old command names. Starting point: the UX report's suggested tree (doctor, one cache command, config path/show/get/set, completion). (UX 2.2)
+45. Fold the version-typing items into that review: accept versions without the `v`, shortcuts `latest`, `stable`, `rolling`, fix the "Tag/SHA" column label, a command that shows what is pinned. (UX 2.3)
+46. Shell completion goes on the roadmap. (Packaging 7, UX 7)
+
+### Documentation
+
+47. README quick start shown as an animated terminal recording (asciinema or VHS, which renders a GIF that plays on GitHub and PyPI). (Roadmap, documentation track)
+48. README and concepts page present the broader purpose (note 7), with rolling builds as one important part.
+49. Mechanisms so docs and changelog stay right:
+    - Changelog: an Unreleased section; the entry written in the same commit as the change; fixed headings including Breaking and Removed; a before and after line for every rename or removal; the release script checks the heading; CI warns when code changes without a changelog change.
+    - Generate the CLI reference from the code and fail CI when the checked-in copy drifts.
+    - Run the README quick start commands in CI.
+    - Each example gets a short README and runs in CI with its expected result.
+    - A project instructions file for AI agents (such as `CLAUDE.md`) and a contributing guide for people, holding these conventions.
+50. No docs site (MkDocs) yet; reconsider later, partly as a usage signal (note 6).
+
+### Dropped
+
+51. Docker image: dropped; reconsider only if users of non-GitHub CI systems ask. The GitHub Action covers the main CI case.
+
+## Raised, not decided
+
+For the completeness pass to include or clarify:
+
+- Error message wording fixes from the UX report section 4 (spec-not-found locations, "did you mean v1.8.0", rate-limit hint, next-step hints, contradictory install messages, javac classpath).
+- Help text defects from UX section 7 (upgrade meaning, modules wording and expected layout, install defaults, jargon, `--yes` scope, inconsistent summaries).
+- Missing docs pages not on the roadmap: install page, custom modules guide, CI recipe, architecture notes; troubleshooting should mention proxy and custom CA support via truststore.
+- Environment overrides for the tool's home, config and cache folders.
+- Editor-friendly diagnostics (`path:line:col: severity: message`), GitHub Actions annotations, JUnit output; candidates for reporters.
+- Destructive confirmations: single-version uninstall does not confirm; `modules add` silently replaces a module with the same name.
+- UX smaller defects: upgrade by name compares only the first of several builds; installing a newer rolling build beside an older one does not move the pin; stale legacy cache file.
+- UI printing from domain code and the 21 hand-written error prints (architecture finding 6).
+- Small organisation items from architecture finding 8 (tiny files, two registration styles, misnamed modules, hard-coded values that config pretends to control).
+- Pre-commit: move pytest to pre-push, add a format hook, whole-project mypy; widen `poe clean`; `.gitignore` gaps; align Python versions; a two-line `SECURITY.md`.
+- PyPI environment protection, tag ruleset, annotated or signed tags, secret scanning on GitHub (verify after `gh`, note 2).
+- Whether CommunityModules builds are triggered by upstream TLC builds (would tighten date matching).
+- An override that fails to load should be reported clearly.
