@@ -1,0 +1,40 @@
+$ java -cp tla2tools.jar pcal.trans Pcal.tla   # first
+pcal.trans Version 1.11 of 31 December 2020
+Parsing completed.
+Translation completed.
+New file Pcal.tla written.
+New file Pcal.cfg written.
+[exit=0]
+echo "CONSTANT Foo" >> Pcal.cfg; cp Pcal.tla Pcal.tla.afterfirst
+$ java -cp tla2tools.jar pcal.trans Pcal.tla   # second, no change
+pcal.trans Version 1.11 of 31 December 2020
+Parsing completed.
+Translation completed.
+New file Pcal.tla written.
+New file Pcal.cfg written.
+[exit=0]
+-- cfg after second:
+SPECIFICATION Spec
+\* Add statements after this line.
+\* user edit
+-- .old equals first translation?
+yes
+-- SANY on translated (no change):
+****** SANY2 Version 2.1 created 24 February 2014
+Semantic processing of module Naturals
+Semantic processing of module Pcal
+-- edit the algorithm (x+1 -> x+2 in A) without retranslating, then SANY
+6:  A: x := x + 2;
+****** SANY2 Version 2.1 created 24 February 2014
+!! WARNING: The PlusCal algorithm in module Pcal has changed since its last translation.
+Semantic processing of module Naturals
+Semantic processing of module Pcal
+[exit=0]
+-- same with -error-codes:
+[exit=255]
+-- edit the translation only
+****** SANY2 Version 2.1 created 24 February 2014
+!! WARNING: The TLA+ translation in module Pcal has changed since its last translation.
+Semantic processing of module Naturals
+Semantic processing of module Pcal
+[exit=0]

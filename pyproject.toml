@@ -73,6 +73,8 @@ testpaths = ["tests/unit"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+# Helper scripts kept with captured investigation data, not project code.
+extend-exclude = ["tests/fixtures/research"]
 
 [tool.ruff.lint]
 select = [

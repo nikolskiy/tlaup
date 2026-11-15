@@ -1,0 +1,15 @@
+$ java -cp tla2tools.jar tla2sany.xml.XMLExporter ParseErr.tla
+
+Fatal errors while parsing TLA+ spec in file ParseErr.tla
+
+tla2sany.semantic.AbortException
+*** Abort messages: 1
+
+In module ParseErr
+
+Could not parse module ParseErr from file ParseErr.tla
+
+
+Exception in thread "main" tla2sany.xml.XMLExportingException: spec null is malformed - does not have a root module
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:110)
+[exit=1]

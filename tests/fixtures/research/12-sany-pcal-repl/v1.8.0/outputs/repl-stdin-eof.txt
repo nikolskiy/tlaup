@@ -1,0 +1,18 @@
+$ printf "1+1\n2*3\n{1,2,3} \\cup {4}\nx\nFoo(\n:q\n" | java -cp tla2tools.jar tlc2.REPL
+Nov 14, 2026 10:24:26 PM org.jline.utils.Log logr
+WARNING: Unable to create a system terminal, creating a dumb terminal (enable debug logging for more information)
+Welcome to the TLA+ REPL!
+TLC2 Version 2026.11.15.002146
+Enter a constant-level TLA+ expression.
+(tla+) 2
+(tla+) 6
+(tla+) {1, 2, 3, 4}
+(tla+) Error evaluating expression: 'x'
+[line 6, col 14 to line 6, col 14 of module tlarepl
+
+Unknown operator: `x'.]
+(tla+) Error evaluating expression: '1+'
+[In module tlarepl
+
+Could not parse module tlarepl from file tlarepl.tla]
+(tla+) [exit=0]

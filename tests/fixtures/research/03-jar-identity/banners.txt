@@ -1,0 +1,13 @@
+# java -cp <jar> tlc2.TLC   (no arguments; exit code 1, banner is first line)
+## v174
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+## rolling
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+# java -cp <jar> tlc2.TLC -nowarning -tool  (banner is message 2262; same version text in both jars)
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+# echo TLCGet("revision") | java -cp rolling tlc2.REPL
+Enter a constant-level TLA+ expression.
+(tla+) [count |-> 9089, timestamp |-> 1794702106, date |-> "2026-11-15T00:21:46.50Z", tag |-> "bc1b506", calver |-> "2026.11.15.002146"]
+(tla+) 

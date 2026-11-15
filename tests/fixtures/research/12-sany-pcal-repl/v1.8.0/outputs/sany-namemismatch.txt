@@ -1,0 +1,20 @@
+$ java -cp tla2tools.jar tla2sany.SANY NameMismatch.tla
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q12/work-v1.8.0/NameMismatch.tla
+
+Fatal errors while parsing TLA+ spec in file NameMismatch.tla
+
+Unknown location
+
+File name 'NameMismatch' does not match the name 'Other' of the top level module it contains.
+*** Errors: 1
+
+Unknown location
+
+File name 'NameMismatch' does not match the name 'Other' of the top level module it contains.
+
+
+
+[exit=255]

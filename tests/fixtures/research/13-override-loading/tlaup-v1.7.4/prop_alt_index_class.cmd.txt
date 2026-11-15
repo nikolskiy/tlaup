@@ -1,0 +1,1 @@
+java -XX:+IgnoreUnrecognizedVMOptions -XX:+UseParallelGC -DTLA-Library=<scratch>/tp/prop_alt_index_class/modules -cp <scratch>/xdg/cache/tlaup/tools/v1.7.4-5a47802/tla2tools.jar tlc2.TLC -metadir <scratch>/xdg/cache/tlaup/run/tlc/spec_349b08b4 spec.tla

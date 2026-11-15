@@ -1,0 +1,11 @@
+$ java -cp tla2tools.jar pcal.trans PcalSemErr.tla
+pcal.trans Version 1.11 of 31 December 2020
+Parsing completed.
+
+Unrecoverable error:
+ -- Assignment to undeclared variable y
+    at line 6, column 6.
+
+[exit=255]
+-- files before: PcalSemErr.tla 
+-- files after:  PcalSemErr.tla 

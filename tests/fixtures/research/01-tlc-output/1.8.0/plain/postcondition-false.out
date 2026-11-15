@@ -1,0 +1,30 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 106 and seed -7214722791998119111 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 996098] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q01/run/Post.tla
+Parsing file /tmp/tlc-16467177628392035903/Naturals.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-16467177628392035903/TLC.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-16467177628392035903/_TLCTrace.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-16467177628392035903/Sequences.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-16467177628392035903/FiniteSets.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-16467177628392035903/TLCExt.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-16467177628392035903/Integers.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module Post
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module Post
+Starting... (2026-11-14 22:27:11)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-14 22:27:11.
+Error: Postcondition Post at line 8, col 9 to line 8, col 31 of module Post is false.
+3 states generated, 3 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 3.
+Finished in 01s at (2026-11-14 22:27:11)

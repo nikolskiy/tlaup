@@ -1,0 +1,14 @@
+{
+  "assets": [
+    {
+      "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/rolling/tla2tools.jar",
+      "digest": "sha256:7e53aa636dac8a3cb0533f343115c0548e03fc0ce5edc7739becf58d3d0fb84f",
+      "id": 749270023,
+      "name": "tla2tools.jar",
+      "size": 4510884,
+      "updated_at": "2026-11-15T00:32:15Z"
+    }
+  ],
+  "published": "2026-10-23T14:04:03Z",
+  "tag": "rolling"
+}

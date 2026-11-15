@@ -1,0 +1,30 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running Random Simulation with seed 7 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 995736] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit).
+Parsing file <tmp>/q01/run/Success.tla
+Parsing file /tmp/tlc-13786309051164275539/Naturals.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-13786309051164275539/_TLCTrace.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-13786309051164275539/TLC.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-13786309051164275539/TLCExt.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-13786309051164275539/Sequences.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-13786309051164275539/FiniteSets.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-13786309051164275539/Integers.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module Success
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module Success
+Starting... (2026-11-14 22:27:07)
+Computed 1 initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-14 22:27:07.
+Progress: 61 states checked, 3 traces generated (trace length: mean=20, var(x)=0, sd=0)
+The number of states generated: 61
+Simulation using seed 7 and aril 0
+Finished in 00s at (2026-11-14 22:27:07)

@@ -1,0 +1,27 @@
+✔ Success: Model checking completed successfully.
+⚠ Warning: Found 1 warning(s).
+  Failed to match NoSuchOp operator override from Ovr with signature: public static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.NoSuchOp(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue) (no such operator).
+
+i Info: Duration: 1108ms
+Starting TLC model checker (version TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)).
+Parsing file <scratch>/tp/annot_op_missing/spec.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/TLC.tla
+Parsing file <scratch>/tp/annot_op_missing/modules/Ovr.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Ovr
+Semantic processing of module spec
+<<"Inv sees", 1003, 1030>>
+
+State Space Progress:
+
+  Diameter      Found         Distinct        Queue          Date       Time    
+ ────────── ────────────── ────────────── ──────────────  ────────── ────────── 
+          1              2              1              0  2026-11-14 22:29:09   
+ ────────── ────────────── ────────────── ──────────────  ────────── ────────── 
+exit=0

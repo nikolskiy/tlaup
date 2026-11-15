@@ -1,0 +1,37 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 122 and seed -3616678343967653548 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 996432] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q01/run/Stack.tla
+Parsing file /tmp/tlc-899536528685561131/Naturals.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-899536528685561131/_TLCTrace.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-899536528685561131/TLC.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-899536528685561131/TLCExt.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-899536528685561131/Sequences.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-899536528685561131/FiniteSets.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-899536528685561131/Integers.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module Stack
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module Stack
+Starting... (2026-11-14 22:27:14)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-14 22:27:14.
+Error: This was a Java StackOverflowError. It was probably the result
+of an incorrect recursive function definition that caused TLC to enter
+an infinite loop when trying to compute the function or its application
+to an element in its putative domain.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+x = 0
+
+1 states generated, 1 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 1.
+Finished in 01s at (2026-11-14 22:27:15)

@@ -1,0 +1,22 @@
+$ printf "cst\nquit\n" | java -cp tla2tools.jar tla2sany.SANY -d Good.tla
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q12/work-v1.8.0/Good.tla
+Parsing file /tmp/tlc-7940590239565812537/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+Semantic processing of module Good
+Linting of module Good
+
+
+*** TLA+ semantic graph exploration tool v 1.0 (DRJ)
+
+>>
+External Module Table:
+| Module: *ModuleNode: Naturals    uid: 304  kind: ModuleKind  errors: none
+| Module: *ModuleNode: Good    uid: 379  kind: ModuleKind  errors: none
+| | Context Entry: x  380 
+| | Context Entry: Init  384 
+| | Context Entry: Next  391 
+| | Context Entry: Spec  398 
+>>[rc=0]

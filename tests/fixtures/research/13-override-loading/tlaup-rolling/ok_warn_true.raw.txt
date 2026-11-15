@@ -1,0 +1,38 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 36 and seed -5641489725877933501 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory [pid: 1004443] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <scratch>/tp/ok_warn_true/spec.tla
+Parsing file /tmp/tlc-14119644177104612723/Naturals.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-14119644177104612723/TLC.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file <scratch>/tp/ok_warn_true/modules/Ovr.tla
+Parsing file /tmp/tlc-14119644177104612723/_TLCTrace.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-14119644177104612723/Sequences.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-14119644177104612723/FiniteSets.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-14119644177104612723/TLCExt.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-14119644177104612723/Integers.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Ovr
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module spec
+Linting of module Ovr
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module spec
+Starting... (2026-11-14 22:29:33)
+Loading Add2 operator override from tlc2.overrides.TLCOverrides with signature: <Java Method: public static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue)>.
+Computing initial states...
+<<"Inv sees", 3, 30>>
+Finished computing initial states: 1 distinct state generated at 2026-11-14 22:29:33.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 5.4E-20
+2 states generated, 1 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 1.
+The average outdegree of the complete state graph is 0 (minimum is 0, the maximum 0 and the 95th percentile is 0).
+Finished in 00s at (2026-11-14 22:29:33)
+exit=0

@@ -1,0 +1,20 @@
+success | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> Success | exit=0
+violation | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> Violation | exit=12
+deadlock | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> Deadlock | exit=11
+liveness-back-to-state | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> LiveBack | exit=13
+liveness-stuttering | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> LiveStutter | exit=13
+sany-semantic-error | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> SanyError | exit=150
+parse-error | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> ParseError | exit=150
+assertion-failure | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> Assertion | exit=14
+coverage | java -cp tla2tools.jar tlc2.TLC -tool -coverage 1 -metadir <metadir> Success | exit=0
+workers-4 | java -cp tla2tools.jar tlc2.TLC -tool -workers 4 -metadir <metadir> Success | exit=0
+simulate | java -cp tla2tools.jar tlc2.TLC -tool -simulate num=3 -depth 20 -seed 7 -metadir <metadir> Success | exit=0
+multi-error-continue | java -cp tla2tools.jar tlc2.TLC -tool -continue -metadir <metadir> MultiError | exit=11
+postcondition-false | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> Post | exit=10
+stack-overflow | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> Stack | exit=255
+java-override-exception | java -cp tla2tools.jar:classes/v1.8.0 tlc2.TLC -tool  -metadir <metadir> Boom | exit=75
+java-override-stack-trace | java -cp tla2tools.jar:classes/v1.8.0 tlc2.TLC -tool  -metadir <metadir> BoomTrace | exit=75
+print-output | java -cp tla2tools.jar tlc2.TLC -tool -continue -metadir <metadir> Print | exit=11
+big-states | java -cp tla2tools.jar tlc2.TLC -tool -workers 4 -metadir <metadir> Big | exit=0
+version-bad-option | java -cp tla2tools.jar tlc2.TLC -tool -version -metadir <metadir>  | exit=1
+print-marker | java -cp tla2tools.jar tlc2.TLC -tool  -metadir <metadir> PrintMarker | exit=11

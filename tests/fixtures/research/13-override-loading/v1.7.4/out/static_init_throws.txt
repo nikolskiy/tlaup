@@ -1,0 +1,60 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 103 and seed -8615317919317096070 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory [pid: 996823] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <repo>/tests/fixtures/research/13-override-loading/v1.7.4/cases/static_init_throws/spec.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/TLC.tla
+Parsing file <repo>/tests/fixtures/research/13-override-loading/v1.7.4/cases/static_init_throws/modules/Ovr.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Ovr
+Semantic processing of module spec
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-11-14 22:27:20)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 1000:1 @!@!@
+TLC threw an unexpected exception.
+This was probably caused by an error in the spec or model.
+See the User Output or TLC Console for clues to what happened.
+The exception was a java.lang.ExceptionInInitializerError
+java.lang.ExceptionInInitializerError
+	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized0(Native Method)
+	at java.base/jdk.internal.misc.Unsafe.ensureClassInitialized(Unsafe.java:1169)
+	at java.base/jdk.internal.reflect.MethodHandleAccessorFactory.ensureClassInitialized(MethodHandleAccessorFactory.java:341)
+	at java.base/jdk.internal.reflect.MethodHandleAccessorFactory.newConstructorAccessor(MethodHandleAccessorFactory.java:104)
+	at java.base/jdk.internal.reflect.ReflectionFactory.newConstructorAccessor(ReflectionFactory.java:138)
+	at java.base/java.lang.reflect.Constructor.acquireConstructorAccessor(Constructor.java:546)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:496)
+	at java.base/java.lang.reflect.ReflectAccess.newInstance(ReflectAccess.java:79)
+	at java.base/jdk.internal.reflect.ReflectionFactory.newInstance(ReflectionFactory.java:189)
+	at java.base/java.lang.Class.newInstance(Class.java:715)
+	at tlc2.tool.impl.SpecProcessor.processSpec(SpecProcessor.java:580)
+	at tlc2.tool.impl.SpecProcessor.<init>(SpecProcessor.java:165)
+	at tlc2.tool.impl.Spec.<init>(Spec.java:96)
+	at tlc2.tool.impl.Tool.<init>(Tool.java:131)
+	at tlc2.tool.impl.Tool.<init>(Tool.java:126)
+	at tlc2.tool.impl.Tool.<init>(Tool.java:121)
+	at tlc2.tool.impl.FastTool.<init>(FastTool.java:47)
+	at tlc2.TLC.process(TLC.java:1064)
+	at tlc2.TLC.main(TLC.java:290)
+Caused by: java.lang.RuntimeException: boom in static init
+	at tlc2.overrides.TLCOverrides.<clinit>(TLCOverrides.java:6)
+	... 19 more
+
+@!@!@ENDMSG 1000 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 988ms at (2026-11-14 22:27:20)
+@!@!@ENDMSG 2186 @!@!@

@@ -1,0 +1,1 @@
+{"counterexample":{"action":[],"state":[[1,{"x":{"s":"a<b>&c='d' é 日本 \"q\" \\ \t","t":[[1,2]]}}]]},"vars":["x"]}

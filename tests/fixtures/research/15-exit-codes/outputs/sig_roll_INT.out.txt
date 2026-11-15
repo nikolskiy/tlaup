@@ -1,0 +1,27 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 106 and seed 2155961311748856310 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 984739] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <repo>/tests/fixtures/research/15-exit-codes/specs/Long.tla
+Parsing file /tmp/tlc-15824221387235198577/Naturals.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-15824221387235198577/_TLCTrace.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-15824221387235198577/TLC.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-15824221387235198577/TLCExt.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-15824221387235198577/Sequences.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-15824221387235198577/FiniteSets.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-15824221387235198577/Integers.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module Long
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module Long
+Starting... (2026-11-14 22:25:21)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-14 22:25:22.
+Progress(3858401) at 2026-11-14 22:25:25: 3,858,388 states generated (3,858,388 s/min), 3,858,327 distinct states found (3,858,327 ds/min), 0 states left on queue.

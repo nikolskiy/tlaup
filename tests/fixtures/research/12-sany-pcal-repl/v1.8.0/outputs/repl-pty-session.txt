@@ -1,0 +1,9 @@
+$ (printf "1+1\n"; sleep; printf "Len(<<1,2>>)\n"; sleep; printf "\004") | script -qec "java -cp tla2tools.jar tlc2.REPL" /dev/null   # run on a pty; Ctrl-D (EOT) ends it
+1+1^M
+Welcome to the TLA+ REPL!^M
+TLC2 Version 2026.11.15.002146^M
+Enter a constant-level TLA+ expression.^M
+^[[?2004h>....2^M
+^[[?2004h>....3^M
+^[[?2004h>...."abcdef"^M
+^[[?2004h>....EXIT=0^M

@@ -1,0 +1,24 @@
+✔ Success: Model checking completed successfully.
+i Info: Duration: 699ms
+Starting TLC model checker (version TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)).
+Parsing file <scratch>/tp/prop_alt_index_class/spec.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/TLC.tla
+Parsing file <scratch>/tp/prop_alt_index_class/modules/Ovr.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Ovr
+Semantic processing of module spec
+<<"Inv sees", 1003, 1030>>
+
+State Space Progress:
+
+  Diameter      Found         Distinct        Queue          Date       Time    
+ ────────── ────────────── ────────────── ──────────────  ────────── ────────── 
+          1              2              1              0  2026-11-14 22:29:26   
+ ────────── ────────────── ────────────── ──────────────  ────────── ────────── 
+exit=0

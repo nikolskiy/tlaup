@@ -1,0 +1,5 @@
+$ printf "1+1\nx\n" | java -cp tla2tools.jar tlc2.TLC -repl
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Error: Error: unrecognized option: -repl
+Usage: java tlc2.TLC [-option] inputfile
+[exit=1]

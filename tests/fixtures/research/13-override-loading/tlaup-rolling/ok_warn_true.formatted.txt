@@ -1,0 +1,26 @@
+✔ Success: Model checking completed successfully.
+i Info: Duration: 481ms
+Starting TLC model checker (version TLC2 Version 2026.11.15.002146 (rev: bc1b506)).
+Parsing file <scratch>/tp/ok_warn_true/spec.tla
+Parsing file /tmp/tlc-14650648540366982536/Naturals.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-14650648540366982536/TLC.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file <scratch>/tp/ok_warn_true/modules/Ovr.tla
+Parsing file /tmp/tlc-14650648540366982536/Sequences.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-14650648540366982536/FiniteSets.tla (jar:file:<scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Ovr
+Semantic processing of module spec
+Linting of module Ovr
+Linting of module spec
+<<"Inv sees", 3, 30>>
+
+State Space Progress:
+
+  Diameter      Found         Distinct        Queue          Date       Time    
+ ────────── ────────────── ────────────── ──────────────  ────────── ────────── 
+          1              2              1              0  2026-11-14 22:29:32   
+ ────────── ────────────── ────────────── ──────────────  ────────── ────────── 
+exit=0

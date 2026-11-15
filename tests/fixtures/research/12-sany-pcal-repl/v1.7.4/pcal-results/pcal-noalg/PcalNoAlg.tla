@@ -1,0 +1,3 @@
+---- MODULE PcalNoAlg ----
+EXTENDS Naturals
+====

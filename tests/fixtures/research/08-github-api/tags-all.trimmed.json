@@ -1,0 +1,458 @@
+[
+ {
+  "name": "v1.8.0",
+  "commit_sha": "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"
+ },
+ {
+  "name": "v1.7.4",
+  "commit_sha": "5a47802b5c391f59ecdd44117981f4ff8c0656ba"
+ },
+ {
+  "name": "v1.7.3",
+  "commit_sha": "3ea322254974cd39a4dd336fff12b203a6743dd1"
+ },
+ {
+  "name": "v1.7.2",
+  "commit_sha": "3c7caa56d1186bfa8e1640b42000894d93e26c52"
+ },
+ {
+  "name": "v1.7.1",
+  "commit_sha": "be99a7d2fcf43a3c771f4678483ffa328ab37db0"
+ },
+ {
+  "name": "v1.7.0",
+  "commit_sha": "eb3ff99d167cc3216b4e9f6f822c112aba9597c5"
+ },
+ {
+  "name": "v1.6.1",
+  "commit_sha": "e7ca63b080317fcf4a799842c4f7700dceda1dad"
+ },
+ {
+  "name": "v1.6.0",
+  "commit_sha": "0cae24f399ef687032220bceb9926806ad14de3b"
+ },
+ {
+  "name": "v1.5.7",
+  "commit_sha": "bfdbe00e3d0638b46a29ca408c91c0e17d832661"
+ },
+ {
+  "name": "v1.5.6",
+  "commit_sha": "2cf41975209078368ae974e1af519c1aeb1cf4be"
+ },
+ {
+  "name": "v1.5.5",
+  "commit_sha": "fafcc24987755cc21bb607a592efd99dbc860a43"
+ },
+ {
+  "name": "v1.5.4",
+  "commit_sha": "14252e906d0630ae605b81780380ee06b76ad102"
+ },
+ {
+  "name": "v1.5.3",
+  "commit_sha": "3c9e4bea8fbf2a64f3447130801b71f68b9823ef"
+ },
+ {
+  "name": "v1.5.2",
+  "commit_sha": "84b958360575beb3c7bff01ec5d5f33979d23ab5"
+ },
+ {
+  "name": "v1.5.1",
+  "commit_sha": "daa02f3ad6b0f554177cc3a94da4589ae2f9125b"
+ },
+ {
+  "name": "v1.5.0",
+  "commit_sha": "d49729bb263386304c50da49fea07803336769ac"
+ },
+ {
+  "name": "v1.5.0rc1",
+  "commit_sha": "cce4468d0049c77f5fddcc24120c6028fab69ccf"
+ },
+ {
+  "name": "v1.4.8",
+  "commit_sha": "6639bd91f4bb4f2233c05720ecea1814686d6739"
+ },
+ {
+  "name": "v1.4.7",
+  "commit_sha": "6104ed8a52bd993ce0bcfa5cf8f9712447f407f0"
+ },
+ {
+  "name": "v1.4.6",
+  "commit_sha": "72a50eb5a0f9fa35d751ca5419adab66a44f7f7a"
+ },
+ {
+  "name": "v1.4.5",
+  "commit_sha": "ca535c99dc165d45390330f82411ffdf17386f5c"
+ },
+ {
+  "name": "v1.4.4",
+  "commit_sha": "540a037a7fc747b0905306d9707736ad2d1450d8"
+ },
+ {
+  "name": "v1.4.3c",
+  "commit_sha": "6373ac34001bec72c1d182d4db7789b96467ce02"
+ },
+ {
+  "name": "v1.4.3b",
+  "commit_sha": "c0b016acdad783a5880e1847fc8920c4f0551cb9"
+ },
+ {
+  "name": "v1.4.3a",
+  "commit_sha": "10e76ca4659a7d986145bd36118d115a2db29d64"
+ },
+ {
+  "name": "v1.4.2",
+  "commit_sha": "c072301ff89e481ec8373de94b9edf66a84b1127"
+ },
+ {
+  "name": "v1.4.1",
+  "commit_sha": "7ce3b8d88ea86d6059cb7b91f7ed64f0e2a8959e"
+ },
+ {
+  "name": "v1.4.0",
+  "commit_sha": "9a3879ada2672f229255d6320eefb722d29e94e3"
+ },
+ {
+  "name": "v1.3.1",
+  "commit_sha": "a401ad39044e5014cb07a9588611041c1d55596d"
+ },
+ {
+  "name": "rolling",
+  "commit_sha": "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"
+ },
+ {
+  "name": "2026.11.15.002146",
+  "commit_sha": "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"
+ },
+ {
+  "name": "2026.11.06.222357",
+  "commit_sha": "d8fb231de4e4b5d02c1b2ed1ac759c086f694021"
+ },
+ {
+  "name": "2026.11.06.182551",
+  "commit_sha": "c058b21a5013c31281312d3f029bcbb5c98e3748"
+ },
+ {
+  "name": "2026.11.06.100558",
+  "commit_sha": "3ec1cc4f8c24fca53ce16f2bb254d91e9337af49"
+ },
+ {
+  "name": "2026.11.06.005304",
+  "commit_sha": "3ec1cc4f8c24fca53ce16f2bb254d91e9337af49"
+ },
+ {
+  "name": "2026.11.03.180953",
+  "commit_sha": "309e489a512e8017f1cdc8388fa6a5e8a01cf597"
+ },
+ {
+  "name": "2026.11.02.164701",
+  "commit_sha": "dc6a944429fe3e26104d38f9ff792d2d5d83f307"
+ },
+ {
+  "name": "2026.11.02.143702",
+  "commit_sha": "29980f0891892fba6e74125b420e1e59a50254d2"
+ },
+ {
+  "name": "2026.11.02.140006",
+  "commit_sha": "696d8fee17f9c83510bc609aa25d4b08285b19ff"
+ },
+ {
+  "name": "2026.10.30.154139",
+  "commit_sha": "090e85c31a6d7fb3d34a33a9f1a46310cdc2aa7f"
+ },
+ {
+  "name": "2026.10.28.014557",
+  "commit_sha": "56d37a9b7bf529086fd961160e0b8975e224eafc"
+ },
+ {
+  "name": "2026.10.28.003840",
+  "commit_sha": "ef3417b06cf2e99cae4c70cf3f4e5cf8bd5e8d4a"
+ },
+ {
+  "name": "2026.10.26.231022",
+  "commit_sha": "fad899c74ca87a38322c1a0fc4a7d72a7a0fba33"
+ },
+ {
+  "name": "2026.10.26.225603",
+  "commit_sha": "dd05ab6706193c6680b1edff27c862a77961ebeb"
+ },
+ {
+  "name": "2026.10.26.223007",
+  "commit_sha": "dd05ab6706193c6680b1edff27c862a77961ebeb"
+ },
+ {
+  "name": "2026.10.26.192531",
+  "commit_sha": "4aff8e3a88963d765acbca2bd954ef19a07275a5"
+ },
+ {
+  "name": "2026.10.24.013619",
+  "commit_sha": "2ef2af8c767b76e5db5cba2878f027ac07aad36c"
+ },
+ {
+  "name": "2026.10.23.135453",
+  "commit_sha": "2ef2af8c767b76e5db5cba2878f027ac07aad36c"
+ },
+ {
+  "name": "2026.10.23.035525",
+  "commit_sha": "606dfa48298a1b36c4ee4625c705041c35bd7393"
+ },
+ {
+  "name": "2026.10.20.183001",
+  "commit_sha": "d2e1472884d292df7b0ed788712b1af262edc16e"
+ },
+ {
+  "name": "2026.10.15.145915",
+  "commit_sha": "932d35ec2b9fdb3d3e4d0a3321689c634a1f6b43"
+ },
+ {
+  "name": "2026.10.13.164326",
+  "commit_sha": "210df3af8aff4f6032bf9be459d5a911d079da6d"
+ },
+ {
+  "name": "2026.10.13.011403",
+  "commit_sha": "210df3af8aff4f6032bf9be459d5a911d079da6d"
+ },
+ {
+  "name": "2026.10.13.000515",
+  "commit_sha": "5737c4758703f9fc4ef4ce1ff5dd912fe37d78d3"
+ },
+ {
+  "name": "2026.10.06.014338",
+  "commit_sha": "94d0c5070852b37b801bb8998c436383ab7ee37b"
+ },
+ {
+  "name": "2026.10.05.225551",
+  "commit_sha": "ed3aed8f3b611b4e740ccb7d65aa5b4be3bb1995"
+ },
+ {
+  "name": "2026.10.05.160859",
+  "commit_sha": "610da1d073754ea8e0dd3c2af3eae8011d20191a"
+ },
+ {
+  "name": "2026.10.04.025638",
+  "commit_sha": "1813307068bbc5759a441df820f3f548948d6b7a"
+ },
+ {
+  "name": "2026.10.03.231403",
+  "commit_sha": "1813307068bbc5759a441df820f3f548948d6b7a"
+ },
+ {
+  "name": "2026.10.03.211638",
+  "commit_sha": "1813307068bbc5759a441df820f3f548948d6b7a"
+ },
+ {
+  "name": "2026.10.03.210119",
+  "commit_sha": "1813307068bbc5759a441df820f3f548948d6b7a"
+ },
+ {
+  "name": "2026.10.02.163556",
+  "commit_sha": "1813307068bbc5759a441df820f3f548948d6b7a"
+ },
+ {
+  "name": "2026.10.02.152454",
+  "commit_sha": "dfd4f7ff9e31f66bca9329c19b726bf3d21f6e4e"
+ },
+ {
+  "name": "2026.10.02.140004",
+  "commit_sha": "0a20a0bfb1170c2d5009b04c14c52974a5ba3596"
+ },
+ {
+  "name": "2026.10.01.171037",
+  "commit_sha": "cc6d7039eb105bcb9e6ea81d887b3c9f0ad28801"
+ },
+ {
+  "name": "2026.10.01.163609",
+  "commit_sha": "7621b643012ee016d6c775db17db65899dd74925"
+ },
+ {
+  "name": "2026.10.01.024053",
+  "commit_sha": "0dab95e3b6a93dd36654f9b4e3801706d0f506e8"
+ },
+ {
+  "name": "2026.10.01.003433",
+  "commit_sha": "d17f1d35eb109ddda268a81afa1479cb916ad2e1"
+ },
+ {
+  "name": "2026.09.30.233859",
+  "commit_sha": "3bae5591b95920fbe3f80668185ac8f70d6ceb20"
+ },
+ {
+  "name": "2026.09.30.212317",
+  "commit_sha": "0d41dfe3e79968c963fbd723018518c1e289045a"
+ },
+ {
+  "name": "2026.09.30.172419",
+  "commit_sha": "240fd525d11d4b1fea9b06142444c5972452222d"
+ },
+ {
+  "name": "2026.09.30.153528",
+  "commit_sha": "3e955e9fe7a87e104a66749b328087664eef0be4"
+ },
+ {
+  "name": "2026.09.30.135409",
+  "commit_sha": "341472c7e9e46a310ab82369fca223c2e5234db0"
+ },
+ {
+  "name": "2026.09.30.131340",
+  "commit_sha": "bdf9e1415da7c1f065d80706ac242ae9aefdca83"
+ },
+ {
+  "name": "2026.09.25.163503",
+  "commit_sha": "8f4bc8b73ad1202774a6bf70143436f8ba50aab0"
+ },
+ {
+  "name": "2026.09.25.020137",
+  "commit_sha": "5d5360599f3df7d919c44647af65d5bfa57562fb"
+ },
+ {
+  "name": "2026.09.23.154203",
+  "commit_sha": "4260e471245fce04ad5610bae7125bdc9ef7eec6"
+ },
+ {
+  "name": "2026.09.22.222048",
+  "commit_sha": "35d40c91a2ff4cfcc145ac382dffddf57f16766f"
+ },
+ {
+  "name": "2026.09.22.182543",
+  "commit_sha": "ef5b3c33bdf1598728e6445c3e24d030d24ca28b"
+ },
+ {
+  "name": "2026.09.22.174218",
+  "commit_sha": "afd3e0f9a411c944369f646f81e98625b72cacad"
+ },
+ {
+  "name": "2026.09.17.032053",
+  "commit_sha": "142d0ba85e54a937c0fc5e1503941bd4cf46b684"
+ },
+ {
+  "name": "2026.09.17.015347",
+  "commit_sha": "078405c22df8037571860457b2d078e8281bd851"
+ },
+ {
+  "name": "2026.09.16.235201",
+  "commit_sha": "d4047b7b6229b5ba44004a3ff9bea1bdbaeff156"
+ },
+ {
+  "name": "2026.09.16.163541",
+  "commit_sha": "957faa04d0ab43e6ac17c28f68073e77684077ce"
+ },
+ {
+  "name": "2026.09.16.160502",
+  "commit_sha": "2df1029b759b09caf0653fcb93f11936c7221324"
+ },
+ {
+  "name": "2026.09.15.164612",
+  "commit_sha": "8585374d947d57305b5c8e1408fec0d4a908980c"
+ },
+ {
+  "name": "2026.09.15.141423",
+  "commit_sha": "80352a83ec2056ca09200c4ab54df6e2942ad65e"
+ },
+ {
+  "name": "2026.09.14.200039",
+  "commit_sha": "5dbdb429af21d9cf8e6e2a5e134f820b92d55641"
+ },
+ {
+  "name": "2026.09.12.025210",
+  "commit_sha": "867aefb69ffc2452031292587b389d1fc3eb43ff"
+ },
+ {
+  "name": "2026.09.11.161002",
+  "commit_sha": "867aefb69ffc2452031292587b389d1fc3eb43ff"
+ },
+ {
+  "name": "2026.09.11.160459",
+  "commit_sha": "97c2d66032b242c521d07193ee72270138ae0db2"
+ },
+ {
+  "name": "2026.09.10.191157",
+  "commit_sha": "c3af5e2dcc6e54860e96b8e7adf7509d3f685d25"
+ },
+ {
+  "name": "2026.09.10.133702",
+  "commit_sha": "8ab94b6c45c5a34a8264410b6204c17d37de9006"
+ },
+ {
+  "name": "2026.09.09.213036",
+  "commit_sha": "ede5b88221f942cd1113758e9aa3b30097a3a856"
+ },
+ {
+  "name": "2026.09.09.201538",
+  "commit_sha": "94db4a640af6976dc94388b074fee501774a86c1"
+ },
+ {
+  "name": "2026.09.09.162536",
+  "commit_sha": "4ad12e85c481347d1bcdd008d438058f7b8293e3"
+ },
+ {
+  "name": "2026.09.09.150548",
+  "commit_sha": "c918bed2e22451479f8d30b9afdc898bd08b0e5d"
+ },
+ {
+  "name": "2026.09.09.124804",
+  "commit_sha": "65fbace6afaa8145360b4d8a5e16ce241cde905b"
+ },
+ {
+  "name": "2026.09.08.173248",
+  "commit_sha": "b123b22654942bd7f8b1bcadcc47da4ee2cf4c0e"
+ },
+ {
+  "name": "2026.09.04.170753",
+  "commit_sha": "b123b22654942bd7f8b1bcadcc47da4ee2cf4c0e"
+ },
+ {
+  "name": "2026.09.03.193042",
+  "commit_sha": "123953936cefb4f01c050e505298aab33a6d7bdb"
+ },
+ {
+  "name": "2026.09.01.002747",
+  "commit_sha": "95b800c676b3312ce97d7478d1081cd468ece75c"
+ },
+ {
+  "name": "2026.09.01.001517",
+  "commit_sha": "11ea787cbd9d51a5d94bdec1a9bc62181a54d5df"
+ },
+ {
+  "name": "2026.08.21.155922",
+  "commit_sha": "9787e65714c37d94eebab40774bff401bd9f616d"
+ },
+ {
+  "name": "2026.07.31.184830",
+  "commit_sha": "30cc3601321c3fc02e044d0ecb5c58d8921e18df"
+ },
+ {
+  "name": "2026.07.18.145032",
+  "commit_sha": "30cc3601321c3fc02e044d0ecb5c58d8921e18df"
+ },
+ {
+  "name": "2026.07.15.134331",
+  "commit_sha": "227f61b983d0203a06db8184da45aed421e8f1b8"
+ },
+ {
+  "name": "2026.05.26.235334",
+  "commit_sha": "4ba7d8811289fb8e95dac4d5e554c05216ba3100"
+ },
+ {
+  "name": "2026.05.18.174321",
+  "commit_sha": "8ba10270ada087116a5ce27e3dc19b6327410dbf"
+ },
+ {
+  "name": "2026.05.12.170007",
+  "commit_sha": "8033878629f370d854a953f250b98b76ce7994a2"
+ },
+ {
+  "name": "2026.05.12.162145",
+  "commit_sha": "5d411bfabdd2d7d4c0dc3b8b34494c5fd55f74c6"
+ },
+ {
+  "name": "2026.05.04.141011",
+  "commit_sha": "209713870170c7da34d4a9a51439ab3ade6e5040"
+ },
+ {
+  "name": "2026.04.29.170100",
+  "commit_sha": "cc6b616cf7e7384a8335e74f36c446a0cede5bad"
+ },
+ {
+  "name": "2026.04.27.203507",
+  "commit_sha": "e3142ca3b733c1f2fd0f4d5503fa5feb080c8d81"
+ }
+]

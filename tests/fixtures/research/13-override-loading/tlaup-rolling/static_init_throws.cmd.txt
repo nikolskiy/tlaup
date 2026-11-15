@@ -1,0 +1,1 @@
+java -XX:+IgnoreUnrecognizedVMOptions -XX:+UseParallelGC -DTLA-Library=<scratch>/tp/static_init_throws/modules -Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides -cp <scratch>/xdg/cache/tlaup/tools/rolling-bc1b506/tla2tools.jar tlc2.TLC -metadir <scratch>/xdg/cache/tlaup/run/tlc/spec_b538f5f5 spec.tla

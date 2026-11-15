@@ -1,0 +1,60 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 64 and seed -3617984983390672702 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 995230] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q01/run/Success.tla
+Parsing file /tmp/tlc-13836279930067675408/Naturals.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-13836279930067675408/_TLCTrace.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-13836279930067675408/TLC.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-13836279930067675408/TLCExt.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-13836279930067675408/Sequences.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-13836279930067675408/FiniteSets.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-13836279930067675408/Integers.tla (jar:file:<tmp>/q01/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module Success
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module Success
+Starting... (2026-11-14 22:27:04)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-14 22:27:04.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 8.7E-18
+The coverage statistics at 2026-11-14 22:27:04 (see https://explain.tlapl.us/module-coverage-statistics for how to interpret the following statistics).
+<x line 3, col 11 to line 3, col 11 of module Success>: 4
+<y line 3, col 14 to line 3, col 14 of module Success>: 4
+<Init line 5, col 1 to line 5, col 4 of module Success>: 1:1
+  line 5, col 9 to line 5, col 22 of module Success: 1
+<Next line 6, col 1 to line 6, col 4 of module Success (6 12 6 40)>: 3:12
+  line 6, col 12 to line 6, col 16 of module Success: 12
+  |line 6, col 12 to line 6, col 12 of module Success: 16
+  line 6, col 21 to line 6, col 30 of module Success: 12
+  line 6, col 35 to line 6, col 40 of module Success: 12
+<Next line 6, col 1 to line 6, col 4 of module Success (7 12 7 40)>: 12:12
+  line 7, col 12 to line 7, col 16 of module Success: 12
+  |line 7, col 12 to line 7, col 12 of module Success: 16
+  line 7, col 21 to line 7, col 30 of module Success: 12
+  line 7, col 35 to line 7, col 40 of module Success: 12
+<Next line 6, col 1 to line 6, col 4 of module Success (8 12 8 47)>: 0:1
+  line 8, col 12 to line 8, col 16 of module Success: 17
+  |line 8, col 12 to line 8, col 12 of module Success: 16
+  line 8, col 21 to line 8, col 25 of module Success: 5
+  |line 8, col 21 to line 8, col 21 of module Success: 4
+  line 8, col 30 to line 8, col 47 of module Success: 1
+<TypeOK line 4, col 1 to line 4, col 6 of module Success>
+  line 4, col 11 to line 4, col 34 of module Success: 16
+<Inv line 10, col 1 to line 10, col 3 of module Success>
+  line 10, col 8 to line 10, col 17 of module Success: 16
+End of statistics.
+26 states generated, 16 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 7.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2).
+Finished in 00s at (2026-11-14 22:27:04)

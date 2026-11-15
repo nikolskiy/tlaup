@@ -1,0 +1,17 @@
+$ java -cp tla2tools.jar tla2sany.xml.XMLExporter SemErr.tla
+Semantic errors:
+
+*** Errors: 2
+
+line 4, col 13 to line 4, col 13 of module SemErr
+
+Unknown operator: `y'.
+
+
+line 5, col 22 to line 5, col 24 of module SemErr
+
+Unknown operator: `Foo'.
+
+
+ERROR: Failed to parse module.
+[exit=2]

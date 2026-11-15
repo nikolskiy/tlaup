@@ -1,0 +1,30 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 75 and seed -7677700072112949867 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory [pid: 1003964] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <scratch>/tp/eval_throws_runtime/spec.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/TLC.tla
+Parsing file <scratch>/tp/eval_throws_runtime/modules/Ovr.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Ovr
+Semantic processing of module spec
+Starting... (2026-11-14 22:29:23)
+Loading Add2 operator override from tlc2.overrides.TLCOverrides with signature: <Java Method: public static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue)>.
+Computing initial states...
+Error: Attempted to apply the operator overridden by the Java method
+public static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue),
+but it produced the following error:
+boom in override body
+Error: The error occurred when TLC was evaluating the nested
+expressions at the following positions:
+0. Line 4, column 9 to line 4, column 22 in spec
+1. Line 4, column 13 to line 4, column 22 in spec
+
+
+0 states generated, 0 distinct states found, 0 states left on queue.
+Finished in 00s at (2026-11-14 22:29:23)
+exit=75

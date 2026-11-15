@@ -1,0 +1,7 @@
+$ java -cp tla2tools.jar tla2sany.SANY Nope.tla
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+File does not exist: <tmp>/q12/work-v1.8.0/./Nope.tla while looking in these directories: <tmp>/q12/work-v1.8.0, , classpath:/tla2sany/StandardModules, classpath:/
+Cannot find the specified file Nope.tla.
+[exit=255]

@@ -1,0 +1,35 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 108 and seed -3830956636231120074 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: N] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file SPECS/NextEval.tla
+Parsing file /tmp/tlc-1418912282100950238/Naturals.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-1418912282100950238/_TLCTrace.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-1418912282100950238/TLC.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-1418912282100950238/TLCExt.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-1418912282100950238/Sequences.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-1418912282100950238/FiniteSets.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-1418912282100950238/Integers.tla (jar:file:<tmp>/q15/jars/roll/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Integers
+Semantic processing of module TLCExt
+Semantic processing of module _TLCTrace
+Semantic processing of module NextEval
+Linting of module TLCExt
+Linting of module _TLCTrace
+Linting of module NextEval
+Starting... (2026-11-14 22:24:00)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-14 22:24:01.
+Error: The second argument of \div is 0.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+x = 0
+
+Error: The error occurred when TLC was evaluating the nested
+expressions at the following positions:
+0. Line 5, column 9 to line 5, column 21 in NextEval
+1. L

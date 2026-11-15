@@ -1,0 +1,2 @@
+v=$1; label=$2; src=$3; shift 3; d=$S/pw-$v/$label; rm -rf $d; mkdir -p $d; cp $S/in/$src $d/; cd $d; ls | sort > ../$label.before
+ { echo "\$ java -cp tla2tools.jar pcal.trans $*"; java -cp $S/jar-$v/tla2tools.jar pcal.trans "$@" 2>&1 </dev/null; echo "[exit=$?]"; echo "-- files before: $(cat ../$label.before|tr '\n' ' ')"; echo "-- files after:  $(ls|sort|tr '\n' ' ')"; } > $S/out-$v/$label.txt; cat $S/out-$v/$label.txt

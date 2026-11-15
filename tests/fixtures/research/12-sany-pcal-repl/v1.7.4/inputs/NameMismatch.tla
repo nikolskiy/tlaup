@@ -1,0 +1,3 @@
+---- MODULE Other ----
+VARIABLE x
+====

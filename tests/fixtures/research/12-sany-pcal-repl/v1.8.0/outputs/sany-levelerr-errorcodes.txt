@@ -1,0 +1,25 @@
+$ java -cp tla2tools.jar tla2sany.SANY -error-codes LevelErr.tla
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q12/work-v1.8.0/LevelErr.tla
+Parsing file /tmp/tlc-13032399629157635992/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+Semantic processing of module LevelErr
+Semantic errors:
+
+*** Errors: 2
+
+line 6, col 8 to line 6, col 10 of module LevelErr
+
+Level error in applying operator ':
+The level of argument 1 exceeds the maximum level allowed by the operator.
+
+
+line 4, col 1 to line 4, col 12 of module LevelErr
+
+Level error: assumptions must be level 0 (Constant), 
+but this one has level 1.
+
+
+[exit=4]

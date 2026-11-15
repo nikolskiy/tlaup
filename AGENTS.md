@@ -7,7 +7,7 @@
 Read these before planning or changing anything:
 
 1. `docs/analysis/00-summary.md`: what the six analysis reports found, with links to each report.
-2. `docs/roadmap.md`: the single source of truth. It holds the purpose, how the work is done (a five-stage agent pipeline: completeness pass, investigation, design in waves, work packages, workers, with review gates between stages), the decisions (D1 to D27), the milestones and the investigation list. Ticked items are done; dated notes record partial progress.
+2. `docs/roadmap.md`: the single source of truth. It holds the purpose, how the work is done (a five-stage agent pipeline: completeness pass, investigation, design in waves, work packages, workers, with review gates between stages), the decisions (D1 to D28), the milestones and the investigation list. Ticked items are done; dated notes record partial progress.
 
 The completeness pass (pipeline stage 1) was reviewed and signed off on 2026-11-14. `docs/analysis/07-walkthrough-notes.md` is history: every decision in it is restated in the roadmap, nothing in it needs reading, and where the two differ the roadmap is right. Later stages read only the roadmap and the design documents. Stages 3 and 4 end with a review by a fresh agent and the maintainer's sign-off; do not start the next stage without it. Each worker pull request needs green CI and a separate agent's review before it merges.
 

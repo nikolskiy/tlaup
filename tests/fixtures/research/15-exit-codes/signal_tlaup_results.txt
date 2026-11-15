@@ -1,0 +1,30 @@
+[int-parent] tlaup pid 995556 (pgid 995556), java pid 995781, java ppid 995556
+  tlaup returncode = 143  (negative = killed by that signal; shell $? would be 128+n)
+  java 995781 after tlaup exit: GONE
+[int-group] tlaup pid 996852 (pgid 996852), java pid 997016, java ppid 996852
+  tlaup returncode = 143  (negative = killed by that signal; shell $? would be 128+n)
+  java 997016 after tlaup exit: GONE
+[int-parent-twice] tlaup pid 997509 (pgid 997509), java pid 997705, java ppid 997509
+  tlaup returncode = 130  (negative = killed by that signal; shell $? would be 128+n)
+  java 997705 after tlaup exit: GONE
+[term-group] tlaup pid 998166 (pgid 998166), java pid 998321, java ppid 998166
+  tlaup returncode = -15  (negative = killed by that signal; shell $? would be 128+n)
+  java 998321 after tlaup exit: GONE
+[int-group] tlaup pid 1001288 (pgid 1001288), java pid 1001417, java ppid 1001288
+  tlaup returncode = 130  (negative = killed by that signal; shell $? would be 128+n)
+  java 1001417 after tlaup exit: GONE
+[int-group] tlaup pid 1001965 (pgid 1001965), java pid 1002106, java ppid 1001965
+  tlaup returncode = 130  (negative = killed by that signal; shell $? would be 128+n)
+  java 1002106 after tlaup exit: GONE
+[int-parent raw] tlaup pid 1002552 (pgid 1002552), java pid 1002620, java ppid 1002552
+  tlaup returncode = 143  (negative = killed by that signal; shell $? would be 128+n)
+  java 1002620 after tlaup exit: GONE
+[term-parent raw] tlaup pid 1003096 (pgid 1003096), java pid 1003163, java ppid 1003096
+  tlaup returncode = -15  (negative = killed by that signal; shell $? would be 128+n)
+  java 1003163 after tlaup exit: ALIVE stat=Sl
+  java cputime 00:00:17 -> 00:00:22, ppid now 1
+  killed leftover java 1003163
+[int-group raw] tlaup pid 1004051 (pgid 1004051), java pid 1004114, java ppid 1004051
+  tlaup returncode = 143  (negative = killed by that signal; shell $? would be 128+n)
+  java 1004114 after tlaup exit: GONE
+[term-parent] first run: tlaup returncode=-15, java ALIVE (ppid 1, cputime 21s->26s over 5 s), killed by hand

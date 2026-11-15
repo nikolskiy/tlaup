@@ -1,0 +1,7 @@
+$ java -cp tla2tools.jar pcal.trans
+pcal.trans Version 1.11 of 31 December 2020
+
+Unrecoverable error:
+ -- Command-line error: No arguments specified..
+
+[exit=255]

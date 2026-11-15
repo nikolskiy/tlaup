@@ -1,0 +1,20 @@
+TLCGet("revision")
+1+1
+2*3
+{1,2,3} \\cup {4}
+x
+1+
+1+1
+1 + 2
+"abc" \\o "def"
+1+1
+exit
+3*3
+1+1
+:q
+3*3
+1+1
+quit
+3*3
+EXTENDS Naturals
+7 \\div 2

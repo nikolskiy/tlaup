@@ -1,0 +1,57 @@
+Observed metadir trees (names relative to the -metadir folder; sizes in bytes). Collected 2026-11-14 on Linux, Java 25.0.5.
+v1.7.4 = TLC 2.19 of 08 August 2024 (rev 5a47802). rolling/v1.8.0 = TLC 2026.11.15.002146 (rev bc1b506), identical jar (sha256 7e53aa63...).
+Spec Slow: one worker, 4001 states, about 110 s, -checkpoint 1.
+
+[v1.7.4, Slow, running at t=75s, after the first checkpoint]
+26-11-14-22-32-49/queue.chkpt 32
+26-11-14-22-32-49/Slow-0.chkpt 16
+26-11-14-22-32-49/Slow_0.fp 0
+26-11-14-22-32-49/Slow-0.st 32768
+26-11-14-22-32-49/Slow_1.fp 0
+26-11-14-22-32-49/Slow.st 0
+26-11-14-22-32-49/Slow.st.chkpt 0
+26-11-14-22-32-49/vars.chkpt 7728
+
+[v1.8.0, Slow, running at t=75s, after the first checkpoint]
+26-11-14-22-32-49.706/queue.chkpt 32
+26-11-14-22-32-49.706/settings.chkpt 88
+26-11-14-22-32-49.706/Slow-0.chkpt 16
+26-11-14-22-32-49.706/Slow_0.fp 0
+26-11-14-22-32-49.706/Slow-0.st 32768
+26-11-14-22-32-49.706/Slow_1.fp 0
+26-11-14-22-32-49.706/Slow.st 0
+26-11-14-22-32-49.706/Slow.st.chkpt 0
+26-11-14-22-32-49.706/vars.chkpt 12543
+
+[both versions, Slow, normal finish, with or without -checkpoint]
+(the -metadir folder is empty: the timestamped folder was deleted by TLC)
+
+[v1.7.4, Viol (invariant violated at depth 4), exit 12]
+(the -metadir folder is empty)
+
+[v1.8.0, Viol, exit 12]
+26-11-14-22-24-19.862/Viol-1.st 0
+26-11-14-22-24-19.862/Viol-0.st 0
+26-11-14-22-24-19.862/Viol_0.fp 0
+26-11-14-22-24-19.862/Viol_1.fp 0
+26-11-14-22-24-19.862/Viol.st 0
+
+[v1.8.0, MidViol (2.8M-state spec, violation at depth 100), exit 12, workers 2]
+67 files left: MidViol-0.st 14326702, MidViol-1.st 14608789, MidViol_0.fp 0, MidViol_1.fp 0, MidViol.st 0,
+plus about 62 numbered queue pool files (212992 bytes each, names are plain integers such as 200, 201)
+[v1.7.4, same run]: empty
+
+[both versions, MidViol with -checkpoint 1, violation while queue not empty, exit 12]
+v1.7.4 (13 files): MidViol-0.chkpt 16, MidViol_0.fp 0, MidViol-0.st 14320839, MidViol-1.chkpt 16, MidViol_1.fp 0,
+  MidViol-1.st 14611363, MidViol.st 0, MidViol.st.chkpt 0, queue.chkpt 260670, vars.chkpt 6845, plus 3 numbered pool files
+v1.8.0 (14 files): same plus settings.chkpt 86 (vars.chkpt 12499)
+
+[SIGTERM (exit 143) and SIGINT (exit 130) at t=20s, no checkpoint, Slow]
+v1.7.4: 26-11-14-22-37-41/{Slow-0.st 0, Slow_0.fp 0, Slow_1.fp 0, Slow.st 0}
+v1.8.0: 26-11-14-22-37-41.232/{Slow-0.st 0, Slow_0.fp 0, Slow_1.fp 0, Slow.st 0}
+No cleanup, no message about the folder.
+
+[SIGTERM at t=70s with -checkpoint 1 (checkpoint completed at t=63s)]
+Same files as the "running after the first checkpoint" lists above; Slow-0.st 29484 (v1.7.4) / 28860 (v1.8.0).
+`-recover <that timestamped folder>` resumed ("Recovery completed. 2268 states examined. 1 states on queue." / 2220), finished, exit 0,
+reused the same folder (no new timestamp folder) and deleted it at the end.

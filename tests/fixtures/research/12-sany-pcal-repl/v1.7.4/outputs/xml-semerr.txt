@@ -1,0 +1,149 @@
+$ java -cp tla2tools.jar tla2sany.xml.XMLExporter SemErr.tla
+Semantic processing of module Naturals
+Semantic processing of module SemErr
+Semantic errors:
+
+*** Errors: 2
+
+line 4, col 13 to line 4, col 13 of module SemErr
+
+Unknown operator: `y'.
+
+
+line 5, col 22 to line 5, col 24 of module SemErr
+
+Unknown operator: `Foo'.
+
+
+
+failed for node.toString(): In module --TLA+ BUILTINS--
+ with error 
+java.lang.IllegalArgumentException: unsupported kind: 0 in xml export
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1424)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1315)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1326)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1392)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.ModuleNode.getSymbolElement(ModuleNode.java:1244)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:145)
+failed for node.toString(): In module --TLA+ BUILTINS--
+ with error 
+java.lang.IllegalArgumentException: unsupported kind: 0 in xml export
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1424)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1315)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1326)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1392)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.ModuleNode.getSymbolElement(ModuleNode.java:1244)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:145)
+failed for node.toString(): line 4, col 9 to line 4, col 13 of module SemErr
+ with error 
+java.lang.IllegalArgumentException: unsupported kind: 0 in xml export
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1424)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1315)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1326)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1392)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.ModuleNode.getSymbolElement(ModuleNode.java:1244)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:145)
+failed for node.toString(): line 4, col 1 to line 4, col 13 of module SemErr
+ with error 
+java.lang.IllegalArgumentException: unsupported kind: 0 in xml export
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1424)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1315)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1326)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1392)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.ModuleNode.getSymbolElement(ModuleNode.java:1244)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:145)
+failed for node.toString(): line 1, col 1 to line 6, col 4 of module SemErr
+ with error 
+java.lang.IllegalArgumentException: unsupported kind: 0 in xml export
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1424)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1315)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1326)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1392)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.ModuleNode.getSymbolElement(ModuleNode.java:1244)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:145)
+Exception in thread "main" java.lang.IllegalArgumentException: unsupported kind: 0 in xml export
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1424)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1315)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpApplNode.getLevelElement(OpApplNode.java:1326)
+	at tla2sany.semantic.LevelNode.getSemanticElement(LevelNode.java:333)
+	at tla2sany.semantic.SemanticNode.export(SemanticNode.java:379)
+	at tla2sany.semantic.OpDefNode.getSymbolElement(OpDefNode.java:1392)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.semantic.ModuleNode.getSymbolElement(ModuleNode.java:1244)
+	at tla2sany.semantic.SymbolNode.exportDefinition(SymbolNode.java:138)
+	at tla2sany.xml.SymbolContext.put(SymbolContext.java:60)
+	at tla2sany.semantic.SymbolNode.export(SymbolNode.java:177)
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:145)
+[exit=1]

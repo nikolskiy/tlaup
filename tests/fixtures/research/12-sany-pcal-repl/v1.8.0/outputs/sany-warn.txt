@@ -1,0 +1,23 @@
+$ java -cp tla2tools.jar tla2sany.SANY Warn.tla
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q12/work-v1.8.0/Warn.tla
+Parsing file /tmp/tlc-10596098787398818392/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+Semantic processing of module Warn
+Semantic errors:
+
+*** Errors: 2
+
+line 6, col 9 to line 6, col 22 of module Warn
+
+[] followed by action not of form [A]_v.
+
+
+line 7, col 10 to line 7, col 19 of module Warn
+
+<> followed by action not of form <<A>>_v.
+
+
+[exit=0]

@@ -1,0 +1,4 @@
+$ printf "1+1\n2*3\n{1,2,3} \\cup {4}\nx\nFoo(\n:q\n" | java -cp tla2tools.jar tlc2.REPL
+Error: Could not find or load main class tlc2.REPL
+Caused by: java.lang.ClassNotFoundException: tlc2.REPL
+[exit=1]

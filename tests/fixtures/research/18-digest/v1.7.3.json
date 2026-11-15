@@ -1,0 +1,14 @@
+{
+  "assets": [
+    {
+      "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.7.3/tla2tools.jar",
+      "digest": null,
+      "id": 183489970,
+      "name": "tla2tools.jar",
+      "size": 2274370,
+      "updated_at": "2024-08-02T17:12:32Z"
+    }
+  ],
+  "published": "2024-08-05T19:53:43Z",
+  "tag": "v1.7.3"
+}
