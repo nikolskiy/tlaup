@@ -53,8 +53,18 @@ Consequences for the roadmap: the Dependabot note (32) needs alerts switched on 
 
 7. **Guiding principle**: broaden it. The tool brings the TLA+ tools together and helps them work together: version management including rolling builds, managing your own modules (add, list, remove), running TLC and the other tools. Reproducibility and rolling builds are important but not the only thing. (Roadmap, documentation track)
 8. **Decision D1**: package and binary are both `tlaup`, so it is clear what is where. (Roadmap, milestone 1b, new name)
-   - Claim `tlaup` on PyPI now, before someone else takes it. Release under `tlaup` first.
-   - `tlaplus-cli` becomes a thin wrapper package that depends on `tlaup`, so only one copy of the code is maintained. Its PyPI description says "now called tlaup" in the first line.
+   - Claim `tlaup` on PyPI now, before someone else takes it. A pending publisher does not reserve the name; only the first upload does, and PyPI discourages empty placeholders, so the claim is a small real release. (Name still free on PyPI and TestPyPI on 2026-11-14.)
+   - Move to a new GitHub repository, `tlaup`, instead of renaming the old one (decided 2026-11-14; replaces the earlier thin-wrapper idea). Order:
+     1. Create the new repository and set its minimal settings first: rules on `main`, a ruleset protecting `v*` tags, the `pypi` environment limited to `v*` tags, Dependabot alerts and security updates, private vulnerability reporting, secret scanning with push protection.
+     2. Add a pending trusted publisher for `tlaup` on PyPI pointing at the new repository, workflow `release.yml`, environment `pypi` (maintainer, in the PyPI web interface).
+     3. Push the existing history into the new repository (not a fresh copy), so commits, tags and the changelog carry over. Stars, open issues and GitHub's rename redirect are lost; acceptable with few users.
+     4. First `tlaup` release: today's code with only the name changed, continuing the numbering (0.8.2), so 0.9 stays the big release.
+     5. All roadmap work then happens in the new repository.
+   - Retire `tlaplus-cli` with one final maintenance release from the old repository, then archive that repository:
+     - the package depends on `tlaup`, so upgrading moves users over without action;
+     - the old command prints a one-line notice: now called `tlaup`, install that instead;
+     - the PyPI description says the same in its first line, and the status classifier becomes `Development Status :: 7 - Inactive`;
+     - after publishing, mark the project as archived on PyPI. Do not yank old versions (it breaks pinned installs and helps no one).
    - Drop the `tla` command right away, with no deprecated alias. Document the change in the changelog and on the GitHub release page.
 9. **Decision D3**: the live display is a reporter built on the separate parser package (see note 12). It is one of several reporters: a live terminal one, one for AI, maybe others later such as writing to a file. Its consequence column should stop describing the display as coupled to parser correctness. (Merit report, what to drop)
 10. **The VS Code extension is an inspiration, not a parity target.** It was the example of nicer TLC output; the tool can go beyond it, and missing some of its features is fine. (Roadmap, milestone 1)
