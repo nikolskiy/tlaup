@@ -1,3 +1,4 @@
+from contextlib import chdir
 from pathlib import Path
 
 import pytest
@@ -20,7 +21,7 @@ from tlaup.cli import app
 def test_resolution_scenarios(
     mock_tlc_env, tmp_path, runner, scenario, spec_arg, setup_paths, expected_exit, expected_in_args, expected_in_output
 ):
-    with runner.isolated_filesystem(temp_dir=tmp_path):
+    with chdir(tmp_path):
         for path in setup_paths:
             p = Path(path)
             if path.endswith("/"):

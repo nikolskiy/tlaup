@@ -64,9 +64,9 @@ def _show_diagnostic_info(spec: str, spec_name: str) -> None:
 
 # PLR0912: This command handler orchestrates multiple output types (errors, warnings, results, progress);
 # splitting it would fragment the CLI's primary user-facing logic.
-# PLR0913: CLI command function accepts options as parameters.
+# PLR0913, PLR0917: CLI command function accepts options as parameters.
 # PLR0915: Too many statements.
-def tlc(  # noqa: PLR0912, PLR0913, PLR0915
+def tlc(  # noqa: PLR0912, PLR0913, PLR0915, PLR0917
     spec: str | None = typer.Argument(
         None,
         help="Name of the TLA+ specification (without .tla extension).",

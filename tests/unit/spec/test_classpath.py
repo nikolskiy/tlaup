@@ -1,3 +1,5 @@
+from contextlib import chdir
+
 from tlaup.cli import app
 
 
@@ -9,7 +11,7 @@ def test_tlc_classpath_includes_project_classes(mock_tlc_env, tmp_path, base_set
     (spec_dir / "queue.tla").write_text("MODULE queue\n===\n")
     (project_dir / "classes").mkdir()
 
-    with runner.isolated_filesystem(temp_dir=tmp_path):
+    with chdir(tmp_path):
         result = runner.invoke(app, ["tlc", str(spec_dir / "queue.tla")])
 
     assert result.exit_code == 0
@@ -31,7 +33,7 @@ def test_tlc_classpath_includes_lib_jars(mock_tlc_env, tmp_path, base_settings, 
     extra_jar = lib_dir / "extra.jar"
     extra_jar.write_bytes(b"fake")
 
-    with runner.isolated_filesystem(temp_dir=tmp_path):
+    with chdir(tmp_path):
         result = runner.invoke(app, ["tlc", str(spec_dir / "queue.tla")])
 
     assert result.exit_code == 0
@@ -51,7 +53,7 @@ def test_tlc_tla_library_set_when_modules_dir_exists(mock_tlc_env, tmp_path, bas
     modules_dir = project_dir / "modules"
     modules_dir.mkdir()
 
-    with runner.isolated_filesystem(temp_dir=tmp_path):
+    with chdir(tmp_path):
         result = runner.invoke(app, ["tlc", str(spec_dir / "queue_test.tla")])
 
     assert result.exit_code == 0
@@ -66,7 +68,7 @@ def test_tlc_no_project_dirs_no_extra_classpath(mock_tlc_env, tmp_path, base_set
     spec_dir.mkdir()
     (spec_dir / "simple.tla").write_text("MODULE simple\n===\n")
 
-    with runner.isolated_filesystem(temp_dir=tmp_path):
+    with chdir(tmp_path):
         result = runner.invoke(app, ["tlc", str(spec_dir / "simple.tla")])
 
     assert result.exit_code == 0

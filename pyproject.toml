@@ -105,6 +105,7 @@ ignore = [
 "tests/*" = [
     "ARG001", # Unused arguments are common in tests (fixtures)
     "PLR0913", # Many arguments are common in tests (fixtures)
+    "PLR0917", # Many positional arguments are common in tests (fixtures)
 ]
 
 [tool.bandit]
