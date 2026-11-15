@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from tlaplus_cli.tlc.runner import build_tlc_command, resolve_cfg_file, run_tlc
+from tlaup.tlc.runner import build_tlc_command, resolve_cfg_file, run_tlc
 
 
 def test_run_tlc_keyboard_interrupt(mocker):
@@ -22,10 +22,10 @@ def test_run_tlc_keyboard_interrupt(mocker):
     mock_process.stdout = side_effect()
 
     mocker.patch("subprocess.Popen", return_value=mock_process)
-    mocker.patch("tlaplus_cli.tlc.runner.load_config")
-    mocker.patch("tlaplus_cli.tlc.runner.validate_java_version")
-    mocker.patch("tlaplus_cli.tlc.runner.resolve_spec_file", return_value=(MagicMock(), "Spec"))
-    mocker.patch("tlaplus_cli.tlc.runner.build_tlc_command", return_value=["java", "tlc2.TLC", "Spec"])
+    mocker.patch("tlaup.tlc.runner.load_config")
+    mocker.patch("tlaup.tlc.runner.validate_java_version")
+    mocker.patch("tlaup.tlc.runner.resolve_spec_file", return_value=(MagicMock(), "Spec"))
+    mocker.patch("tlaup.tlc.runner.build_tlc_command", return_value=["java", "tlc2.TLC", "Spec"])
 
     callback = MagicMock()
 
@@ -43,11 +43,11 @@ def test_build_tlc_command_includes_metadir(tmp_path, mocker):
     spec_file = tmp_path / "MySpec.tla"
     spec_file.write_text("---- MODULE MySpec ----\n====\n")
 
-    mocker.patch("tlaplus_cli.tlc.runner.get_tlc_jar_path", return_value=tmp_path / "tla2tools.jar")
+    mocker.patch("tlaup.tlc.runner.get_tlc_jar_path", return_value=tmp_path / "tla2tools.jar")
     (tmp_path / "tla2tools.jar").touch()
 
-    mocker.patch("tlaplus_cli.tlc.runner.resolve_spec_file", return_value=(spec_file, "MySpec.tla"))
-    mocker.patch("tlaplus_cli.tlc.runner.find_project_root", return_value=None)
+    mocker.patch("tlaup.tlc.runner.resolve_spec_file", return_value=(spec_file, "MySpec.tla"))
+    mocker.patch("tlaup.tlc.runner.find_project_root", return_value=None)
 
     cmd = build_tlc_command(str(spec_file))
 
@@ -94,11 +94,11 @@ def test_build_tlc_command_with_cfg(tmp_path, mocker):
     cfg_file = tmp_path / "MySpec-v1.cfg"
     cfg_file.write_text("SPECIFICATION Spec\n")
 
-    mocker.patch("tlaplus_cli.tlc.runner.get_tlc_jar_path", return_value=tmp_path / "tla2tools.jar")
+    mocker.patch("tlaup.tlc.runner.get_tlc_jar_path", return_value=tmp_path / "tla2tools.jar")
     (tmp_path / "tla2tools.jar").touch()
 
-    mocker.patch("tlaplus_cli.tlc.runner.resolve_spec_file", return_value=(spec_file, "MySpec.tla"))
-    mocker.patch("tlaplus_cli.tlc.runner.find_project_root", return_value=None)
+    mocker.patch("tlaup.tlc.runner.resolve_spec_file", return_value=(spec_file, "MySpec.tla"))
+    mocker.patch("tlaup.tlc.runner.find_project_root", return_value=None)
 
     cmd = build_tlc_command(str(spec_file), cfg="MySpec-v1")
 

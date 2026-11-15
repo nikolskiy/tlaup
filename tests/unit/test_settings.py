@@ -1,6 +1,6 @@
 import os
 
-from tlaplus_cli.config.schema import JavaConfig
+from tlaup.config.schema import JavaConfig
 
 
 def test_java_config_default_opts():

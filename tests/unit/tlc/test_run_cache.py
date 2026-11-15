@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-from tlaplus_cli.tlc.run_cache import (
+from tlaup.tlc.run_cache import (
     clear_tlc_run_cache,
     compute_spec_hash,
     get_spec_run_dir,
@@ -29,7 +29,7 @@ def test_compute_spec_hash(tmp_path: Path) -> None:
 
 def test_get_spec_run_dir_and_stale_cleanup(tmp_path: Path, mocker: Any) -> None:
     tlc_run_dir = tmp_path / "cache" / "run" / "tlc"
-    mocker.patch("tlaplus_cli.tlc.run_cache.get_tlc_run_dir", return_value=tlc_run_dir)
+    mocker.patch("tlaup.tlc.run_cache.get_tlc_run_dir", return_value=tlc_run_dir)
 
     spec_file = tmp_path / "Spec.tla"
     spec_file.write_text("MODULE Spec")
@@ -48,7 +48,7 @@ def test_get_spec_run_dir_and_stale_cleanup(tmp_path: Path, mocker: Any) -> None
 
 def test_clear_tlc_run_cache(tmp_path: Path, mocker: Any) -> None:
     tlc_run_dir = tmp_path / "cache" / "run" / "tlc"
-    mocker.patch("tlaplus_cli.tlc.run_cache.get_tlc_run_dir", return_value=tlc_run_dir)
+    mocker.patch("tlaup.tlc.run_cache.get_tlc_run_dir", return_value=tlc_run_dir)
 
     run_dir = tlc_run_dir / "Spec_11223344"
     run_dir.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,4 @@
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 def test_tlc_list_shows_remote(mock_github_api, mock_cache, mock_load_config, runner):
@@ -52,7 +52,7 @@ def test_tlc_list_enhanced(mock_github_api, mock_cache, mock_load_config, make_i
 def test_list_shows_url_installed_version(
     mock_github_api, mock_cache, mock_load_config, make_installed_version, runner
 ):
-    """URL-installed version (timestamp tag) appears correctly in tla tools list."""
+    """URL-installed version (timestamp tag) appears correctly in tlaup tools list."""
     ts = "2026-04-06T12:51:28Z"
     make_installed_version("v1.9.0", ts)
 
@@ -64,7 +64,7 @@ def test_list_shows_url_installed_version(
 
 
 def test_tools_help_shows_list_help_text(runner):
-    """Test 'tla tools --help' displays help text for 'list' subcommand."""
+    """Test 'tlaup tools --help' displays help text for 'list' subcommand."""
     result = runner.invoke(app, ["tools", "--help"])
     assert result.exit_code == 0
     assert "list" in result.stdout

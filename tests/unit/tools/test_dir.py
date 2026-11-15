@@ -1,4 +1,4 @@
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 def test_tools_dir(mock_load_config, mock_cache, runner):

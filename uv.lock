@@ -1165,8 +1165,8 @@ wheels = [
 ]
 
 [[package]]
-name = "tlaplus-cli"
-version = "0.8.1"
+name = "tlaup"
+version = "0.8.2"
 source = { editable = "." }
 dependencies = [
     { name = "platformdirs" },

@@ -5,6 +5,6 @@ This directory contains the `SequencesExt` module (and its direct dependencies),
 ## Important Note
 
 > [!NOTE]
-> This module was extracted from the standard [CommunityModules](https://github.com/tlaplus/CommunityModules) repository and is included here primarily as an **example of a complex module** and for **integration testing** of `tlaplus-cli`'s Dynamic Override Discovery features.
+> This module was extracted from the standard [CommunityModules](https://github.com/tlaplus/CommunityModules) repository and is included here primarily as an **example of a complex module** and for **integration testing** of `tlaup`'s Dynamic Override Discovery features.
 >
 > **In production, it is highly recommended to use the actual CommunityModules instead.**

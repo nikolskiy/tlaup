@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.8.2] - 2026-11-14
+
+The project is renamed from `tlaplus-cli` to `tlaup` and moves to a new repository, github.com/nikolskiy/tlaup. Apart from the name, the code is the same as 0.8.1.
+
+### Breaking
+- The PyPI package is now `tlaup` (was `tlaplus-cli`). Install with `uv tool install tlaup`; uninstall the old package first with `uv tool uninstall tlaplus-cli`.
+- The command is now `tlaup` (was `tla`). There is no `tla` alias: `tla tools install` becomes `tlaup tools install`, `tla tlc spec` becomes `tlaup tlc spec`.
+- The Python import package is now `tlaup` (was `tlaplus_cli`).
+
+### Removed
+- The Nix flake. It was never kept up to date.
+
+### Unchanged
+- Installed toolsets, custom modules, the run cache and the config file stay in the same folders, so nothing needs to be reinstalled.
+
 ## [0.8.1] - 2026-08-13
 
 ### Fixed

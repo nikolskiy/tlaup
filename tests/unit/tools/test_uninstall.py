@@ -1,4 +1,4 @@
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 def test_uninstall_pinned_falls_back_to_latest(mock_load_config, mock_cache, make_installed_version, runner):

@@ -4,8 +4,8 @@ import time
 
 import requests
 
-from tlaplus_cli.cli import app
-from tlaplus_cli.versioning import FetchStatus, fetch_remote_versions
+from tlaup.cli import app
+from tlaup.versioning import FetchStatus, fetch_remote_versions
 
 # The generalized fetch_remote_versions uses asset-specific cache names
 DEFAULT_CACHE = "github_cache_tla2tools_jar.json"

@@ -1,6 +1,6 @@
 import importlib.metadata
 
-from tlaplus_cli.versioning.app_version import (
+from tlaup.versioning.app_version import (
     get_app_version,
     get_git_commit_hash,
     is_editable_install,
@@ -60,8 +60,8 @@ def test_is_editable_install_package_not_found(mocker):
 
 
 def test_get_app_version_editable(mocker, tmp_path):
-    mocker.patch("tlaplus_cli.versioning.app_version.is_editable_install", return_value=True)
-    mocker.patch("tlaplus_cli.versioning.app_version.get_git_commit_hash", return_value="abcdef1")
+    mocker.patch("tlaup.versioning.app_version.is_editable_install", return_value=True)
+    mocker.patch("tlaup.versioning.app_version.get_git_commit_hash", return_value="abcdef1")
     mock_meta = mocker.patch("importlib.metadata.metadata")
     mock_meta.return_value = {"Version": "0.7.0"}
 
@@ -70,8 +70,8 @@ def test_get_app_version_editable(mocker, tmp_path):
 
 
 def test_get_app_version_release(mocker):
-    mocker.patch("tlaplus_cli.versioning.app_version.is_editable_install", return_value=False)
-    mocker.patch("tlaplus_cli.versioning.app_version.get_git_commit_hash", return_value=None)
+    mocker.patch("tlaup.versioning.app_version.is_editable_install", return_value=False)
+    mocker.patch("tlaup.versioning.app_version.get_git_commit_hash", return_value=None)
     mock_meta = mocker.patch("importlib.metadata.metadata")
     mock_meta.return_value = {"Version": "0.7.0"}
 

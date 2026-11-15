@@ -1,6 +1,6 @@
 import pytest
 
-from tlaplus_cli.project import find_project_root
+from tlaup.project import find_project_root
 
 
 @pytest.mark.parametrize(

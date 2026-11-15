@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from tlaplus_cli.cli import app
-from tlaplus_cli.cmd.tlc import TlcFormatter
-from tlaplus_cli.tlc.models import CheckState
+from tlaup.cli import app
+from tlaup.cmd.tlc import TlcFormatter
+from tlaup.tlc.models import CheckState
 
 
 def find_real_tla2tools_jar() -> Path | None:
@@ -32,7 +32,7 @@ def test_community_modules_integration(
     """
     Integration test for CommunityModules and SequencesExt.
     1. Locates the real tla2tools.jar from user's cache and copies it to mock cache tools dir.
-    2. Runs 'tla modules add' on the local CommunityModules repository.
+    2. Runs 'tlaup modules add' on the local CommunityModules repository.
     3. Runs TLC on the SequencesExtTest fixture.
     4. Verifies that Java overrides are loaded successfully and the spec succeeds.
     """
@@ -69,9 +69,9 @@ def test_community_modules_integration(
     proj_root = Path(__file__).parent.parent.parent
     spec_dir = proj_root / "docs" / "examples" / "spec"
     base_settings.workspace.root = str(proj_root / "docs" / "examples")
-    mocker.patch("tlaplus_cli.tlc.runner.load_config", return_value=base_settings)
-    mocker.patch("tlaplus_cli.cmd.modules.add.load_config", return_value=base_settings)
-    mocker.patch("tlaplus_cli.tlc.runner.validate_java_version")
+    mocker.patch("tlaup.tlc.runner.load_config", return_value=base_settings)
+    mocker.patch("tlaup.cmd.modules.add.load_config", return_value=base_settings)
+    mocker.patch("tlaup.tlc.runner.validate_java_version")
 
     # 3. Add the sequences-ext module using 'modules add' command
     repo_seq_dir = proj_root / "docs" / "examples" / "sequences-ext"
@@ -96,7 +96,7 @@ def test_community_modules_integration(
         captured_result = result
         original_update_logs(self, layout, result)
 
-    mocker.patch("tlaplus_cli.cmd.tlc.TlcFormatter.update_logs", mock_update_logs)
+    mocker.patch("tlaup.cmd.tlc.TlcFormatter.update_logs", mock_update_logs)
 
     res_tlc = runner.invoke(app, ["tlc", "SequencesExtTest"])
     assert res_tlc.exit_code == 0, f"TLC run failed: {res_tlc.stdout}"

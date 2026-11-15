@@ -1,4 +1,4 @@
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 def test_tlc_classpath_includes_project_classes(mock_tlc_env, tmp_path, base_settings, runner, mock_cache):

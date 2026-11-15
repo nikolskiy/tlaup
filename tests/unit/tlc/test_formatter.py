@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from rich.table import Table
 
-from tlaplus_cli.tlc.components import (
+from tlaup.tlc.components import (
     HeaderComponent,
     LogsComponent,
     StatsTableComponent,
@@ -12,8 +12,8 @@ from tlaplus_cli.tlc.components import (
     StatusInfoComponent,
     TlcDisplayComposer,
 )
-from tlaplus_cli.tlc.formatter import LogDeduplicator, StatusInfoRenderable, TlcFormatter
-from tlaplus_cli.tlc.models import (
+from tlaup.tlc.formatter import LogDeduplicator, StatusInfoRenderable, TlcFormatter
+from tlaup.tlc.models import (
     CheckState,
     CheckStatus,
     CoverageItem,
@@ -21,7 +21,7 @@ from tlaplus_cli.tlc.models import (
     ModelCheckResult,
     TlaValue,
 )
-from tlaplus_cli.tlc.sany import SanyMessage
+from tlaup.tlc.sany import SanyMessage
 
 
 def test_log_deduplicator():

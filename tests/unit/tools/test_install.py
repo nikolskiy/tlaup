@@ -1,6 +1,6 @@
 import requests
 
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 def test_tlc_install(mock_github_api, mock_download, mock_load_config, runner):
@@ -127,7 +127,7 @@ def test_install_from_url_success(mock_cache, mock_load_config, mocker, runner):
         return version_dir
 
     mocker.patch(
-        "tlaplus_cli.cmd.tools.install.download_version_from_url",
+        "tlaup.cmd.tools.install.download_version_from_url",
         side_effect=_fake_download_url,
     )
 
@@ -145,7 +145,7 @@ def test_install_from_url_no_version_segment(mock_cache, mock_load_config, mocke
     url = "https://example.com/latest/tla2tools.jar"
 
     mocker.patch(
-        "tlaplus_cli.cmd.tools.install.download_version_from_url",
+        "tlaup.cmd.tools.install.download_version_from_url",
         side_effect=ValueError(
             'could not extract a version name from the URL. The URL must contain a version segment (e.g. "v1.8.0").'
         ),
@@ -174,7 +174,7 @@ def test_install_from_url_does_not_move_existing_pin(mock_cache, mock_load_confi
         return version_dir
 
     mocker.patch(
-        "tlaplus_cli.cmd.tools.install.download_version_from_url",
+        "tlaup.cmd.tools.install.download_version_from_url",
         side_effect=_fake_download_url,
     )
 
@@ -189,7 +189,7 @@ def test_install_from_url_network_error(mock_cache, mock_load_config, mocker, ru
     url = "https://example.com/v1.9.0/tla2tools.jar"
 
     mocker.patch(
-        "tlaplus_cli.cmd.tools.install.download_version_from_url",
+        "tlaup.cmd.tools.install.download_version_from_url",
         side_effect=requests.RequestException("connection refused"),
     )
 

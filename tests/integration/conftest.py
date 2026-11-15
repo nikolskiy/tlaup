@@ -3,9 +3,9 @@ import subprocess
 
 import pytest
 
-from tlaplus_cli.cmd.modules.add import find_override_classes
-from tlaplus_cli.java.classpath import ClasspathResolver, ResolveMode
-from tlaplus_cli.tlc.compiler import get_tlc_jar_path
+from tlaup.cmd.modules.add import find_override_classes
+from tlaup.java.classpath import ClasspathResolver, ResolveMode
+from tlaup.tlc.compiler import get_tlc_jar_path
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def setup_naming_env_fixture(mocker):
         settings.workspace.spec_dir = "spec"
         settings.workspace.classes_dir = str(classes_dir)
 
-        mocker_local.patch("tlaplus_cli.tlc.runner.load_config", return_value=settings)
+        mocker_local.patch("tlaup.tlc.runner.load_config", return_value=settings)
 
     return _setup
 

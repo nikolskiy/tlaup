@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 def test_tlc_path_pinned_with_metadata(mock_load_config, mock_cache, installed_v180, runner):

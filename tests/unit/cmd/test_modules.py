@@ -1,26 +1,26 @@
 import json
 import subprocess
 
-from tlaplus_cli.cli import app
-from tlaplus_cli.config import loader as config
+from tlaup.cli import app
+from tlaup.config import loader as config
 
 
 def test_modules_add_success(mocker, tmp_path, runner):
-    """Test that 'tla modules add' compiles Java files and copies dependencies to the cache."""
+    """Test that 'tlaup modules add' compiles Java files and copies dependencies to the cache."""
     # Setup directories
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.add.get_modules_dir", return_value=modules_cache_dir)
-    mocker.patch("tlaplus_cli.java.classpath.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.add.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.java.classpath.get_modules_dir", return_value=modules_cache_dir)
 
     # Mock tool jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaplus_cli.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
 
     # Mock compiler subprocess.run to avoid actual execution but let it pretend success
     mocker.patch("subprocess.run")
@@ -80,19 +80,19 @@ def test_modules_add_success(mocker, tmp_path, runner):
 
 
 def test_modules_add_compilation_failure(mocker, tmp_path, runner):
-    """Test that 'tla modules add' removes the cached directory if compilation fails."""
+    """Test that 'tlaup modules add' removes the cached directory if compilation fails."""
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.add.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.add.get_modules_dir", return_value=modules_cache_dir)
 
     # Mock tool jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaplus_cli.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
 
     # Mock compiler to throw CalledProcessError
     err = subprocess.CalledProcessError(
@@ -122,14 +122,14 @@ def test_modules_add_compilation_failure(mocker, tmp_path, runner):
 
 
 def test_modules_list(mocker, tmp_path, runner):
-    """Test that 'tla modules list' outputs a clean table of cached modules."""
+    """Test that 'tlaup modules list' outputs a clean table of cached modules."""
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.list.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.list.get_modules_dir", return_value=modules_cache_dir)
 
     # Pre-populate two cached modules
     mod_a = modules_cache_dir / "mod-a"
@@ -149,14 +149,14 @@ def test_modules_list(mocker, tmp_path, runner):
 
 
 def test_modules_remove(mocker, tmp_path, runner):
-    """Test that 'tla modules remove' deletes the module directory from cache."""
+    """Test that 'tlaup modules remove' deletes the module directory from cache."""
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.remove.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.remove.get_modules_dir", return_value=modules_cache_dir)
 
     # Pre-populate module
     mod = modules_cache_dir / "to-remove"
@@ -175,11 +175,11 @@ def test_modules_remove_nonexistent(mocker, tmp_path, runner):
     """Test removing a nonexistent module shows error."""
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.remove.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.remove.get_modules_dir", return_value=modules_cache_dir)
 
     result = runner.invoke(app, ["modules", "remove", "missing"])
     assert result.exit_code == 1
@@ -187,20 +187,20 @@ def test_modules_remove_nonexistent(mocker, tmp_path, runner):
 
 
 def test_modules_path_view(mocker, tmp_path, runner):
-    """Test that 'tla modules path' displays resolved paths for cached modules."""
+    """Test that 'tlaup modules path' displays resolved paths for cached modules."""
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.path.get_modules_dir", return_value=modules_cache_dir)
-    mocker.patch("tlaplus_cli.java.classpath.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.path.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.java.classpath.get_modules_dir", return_value=modules_cache_dir)
 
     # Set up tools jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaplus_cli.cmd.modules.path.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.cmd.modules.path.get_tlc_jar_path", return_value=tla2tools)
 
     # Pre-populate a module
     mod = modules_cache_dir / "my-cached-mod"
@@ -221,20 +221,20 @@ def test_modules_path_view(mocker, tmp_path, runner):
 
 
 def test_modules_path_empty_no_project_leaks(mocker, tmp_path, runner):
-    """Test that 'tla modules path' displays 'None' when cache is empty, ignoring project-local folders."""
+    """Test that 'tlaup modules path' displays 'None' when cache is empty, ignoring project-local folders."""
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.path.get_modules_dir", return_value=modules_cache_dir)
-    mocker.patch("tlaplus_cli.java.classpath.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.path.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.java.classpath.get_modules_dir", return_value=modules_cache_dir)
 
     # Set up tools jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaplus_cli.cmd.modules.path.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.cmd.modules.path.get_tlc_jar_path", return_value=tla2tools)
 
     # Mock a project-local classes folder in the current workspace (simulate repo root classes/)
     (tmp_path / "classes").mkdir()
@@ -247,19 +247,19 @@ def test_modules_path_empty_no_project_leaks(mocker, tmp_path, runner):
 
 
 def test_modules_add_nested_overrides(mocker, tmp_path, runner):
-    """Test that 'tla modules add' successfully compiles Java files nested under modules/tlc2/overrides."""
+    """Test that 'tlaup modules add' successfully compiles Java files nested under modules/tlc2/overrides."""
     config.load_config.cache_clear()
     config_dir = tmp_path / "config"
-    mocker.patch("tlaplus_cli.config.loader.config_dir", return_value=config_dir)
+    mocker.patch("tlaup.config.loader.config_dir", return_value=config_dir)
 
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.cmd.modules.add.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.cmd.modules.add.get_modules_dir", return_value=modules_cache_dir)
 
     # Mock tool jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaplus_cli.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
 
     # Mock compiler subprocess.run
     mocker.patch("subprocess.run")

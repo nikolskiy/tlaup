@@ -1,6 +1,6 @@
 import os
 
-from tlaplus_cli.java.classpath import ClasspathResolver, ResolveMode, SubdirType
+from tlaup.java.classpath import ClasspathResolver, ResolveMode, SubdirType
 
 
 def test_resolve_runtime_order(base_settings, tmp_path):
@@ -143,7 +143,7 @@ def test_cached_modules_resolved(base_settings, tmp_path, mocker):
     # Mock get_modules_dir to point to our tmp_path / "modules"
     modules_cache_dir = tmp_path / "modules"
     modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaplus_cli.java.classpath.get_modules_dir", return_value=modules_cache_dir)
+    mocker.patch("tlaup.java.classpath.get_modules_dir", return_value=modules_cache_dir)
 
     # Set up mock module 'module-a'
     mod_a = modules_cache_dir / "module-a"

@@ -2,13 +2,13 @@ import re
 
 from typer.testing import CliRunner
 
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 runner = CliRunner()
 
 
 def test_tlc_help_coverage():
-    """Test that tla tlc --help displays description and options."""
+    """Test that tlaup tlc --help displays description and options."""
     result = runner.invoke(app, ["tlc", "--help"], env={"NO_COLOR": "1", "TERM": "dumb"})
     assert result.exit_code == 0
     output = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", result.output)
@@ -19,8 +19,8 @@ def test_tlc_help_coverage():
 
 
 def test_tlc_cleanup_command(mocker):
-    """Test tla tlc --cleanup purges run cache."""
-    mock_clear = mocker.patch("tlaplus_cli.cmd.tlc.clear_tlc_run_cache")
+    """Test tlaup tlc --cleanup purges run cache."""
+    mock_clear = mocker.patch("tlaup.cmd.tlc.clear_tlc_run_cache")
     result = runner.invoke(app, ["tlc", "--cleanup"])
     assert result.exit_code == 0
     assert "TLC run cache cleared successfully." in result.output
@@ -28,7 +28,7 @@ def test_tlc_cleanup_command(mocker):
 
 
 def test_tlc_missing_spec_argument():
-    """Test tla tlc without spec argument shows missing argument error."""
+    """Test tlaup tlc without spec argument shows missing argument error."""
     result = runner.invoke(app, ["tlc"])
     assert result.exit_code == 1
     assert "Missing argument 'SPEC'." in result.output

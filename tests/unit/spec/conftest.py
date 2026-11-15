@@ -5,16 +5,16 @@ import pytest
 
 @pytest.fixture
 def mock_tlc_env(mocker, tmp_path, base_settings):
-    mocker.patch("tlaplus_cli.tlc.runner.load_config", return_value=base_settings)
-    mocker.patch("tlaplus_cli.tlc.runner.validate_java_version")
+    mocker.patch("tlaup.tlc.runner.load_config", return_value=base_settings)
+    mocker.patch("tlaup.tlc.runner.validate_java_version")
 
     pinned_dir = (tmp_path / "tools" / "v1.8.0").absolute()
     pinned_dir.mkdir(parents=True)
     (pinned_dir / "tla2tools.jar").write_bytes(b"fake")
-    mocker.patch("tlaplus_cli.tlc.compiler.get_pinned_version_dir", return_value=pinned_dir)
+    mocker.patch("tlaup.tlc.compiler.get_pinned_version_dir", return_value=pinned_dir)
 
     # Patch subprocess.Popen instead of subprocess.run
-    mock_popen = mocker.patch("tlaplus_cli.tlc.runner.subprocess.Popen")
+    mock_popen = mocker.patch("tlaup.tlc.runner.subprocess.Popen")
 
     # Configure the mock process
     mock_process = MagicMock()

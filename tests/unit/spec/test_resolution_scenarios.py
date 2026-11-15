@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,4 @@
-from tlaplus_cli.cli import app
+from tlaup.cli import app
 
 
 def test_tlc_pin(mock_load_config, mock_cache, installed_v180, runner):

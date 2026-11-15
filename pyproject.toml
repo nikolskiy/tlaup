@@ -3,8 +3,8 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tlaplus-cli"
-version = "0.8.1"
+name = "tlaup"
+version = "0.8.2"
 description = "TLA+ tools: download TLC, compile custom modules, run model checker"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -33,21 +33,21 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nikolskiy/tlaplus-cli"
-Repository = "https://github.com/nikolskiy/tlaplus-cli"
-Issues = "https://github.com/nikolskiy/tlaplus-cli/issues"
-Changelog = "https://github.com/nikolskiy/tlaplus-cli/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/nikolskiy/tlaup"
+Repository = "https://github.com/nikolskiy/tlaup"
+Issues = "https://github.com/nikolskiy/tlaup/issues"
+Changelog = "https://github.com/nikolskiy/tlaup/blob/main/CHANGELOG.md"
 
 [project.scripts]
-tla = "tlaplus_cli.cli:main"
+tlaup = "tlaup.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["tlaplus_cli*"]
+include = ["tlaup*"]
 
 [tool.setuptools.package-data]
-tlaplus_cli = ["py.typed"]
-"tlaplus_cli.resources" = ["*.yaml"]
+tlaup = ["py.typed"]
+"tlaup.resources" = ["*.yaml"]
 
 [dependency-groups]
 dev = [
@@ -67,7 +67,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov=tlaplus_cli --cov-report=term-missing"
+addopts = "--cov=tlaup --cov-report=term-missing"
 testpaths = ["tests/unit"]
 
 [tool.ruff]
@@ -114,7 +114,7 @@ skips = ["B404", "B603", "B607"]
 check = "pre-commit run --all-files"
 lint = ["lint-ruff", "lint-bandit", "type-check"]
 lint-ruff = "ruff check ."
-lint-bandit = "bandit -c pyproject.toml -r src/tlaplus_cli"
+lint-bandit = "bandit -c pyproject.toml -r src/tlaup"
 type-check = "mypy ."
 fix = ["format", "lint-fix"]
 format = "ruff format ."

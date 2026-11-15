@@ -1,7 +1,7 @@
 from typer.testing import CliRunner
 
-from tlaplus_cli.cli import app
-from tlaplus_cli.config.schema import TlcConfig
+from tlaup.cli import app
+from tlaup.config.schema import TlcConfig
 
 runner = CliRunner()
 

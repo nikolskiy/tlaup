@@ -1,7 +1,7 @@
 import json
 import subprocess
 
-from tlaplus_cli.versioning import (
+from tlaup.versioning import (
     RemoteVersion,
     write_version_metadata,
     write_version_metadata_from_url,
@@ -13,7 +13,7 @@ def test_write_version_metadata(tmp_path, mocker):
     version_dir = tmp_path / "v1.8.0-aaaaaaa"
     version_dir.mkdir()
 
-    mock_run = mocker.patch("tlaplus_cli.versioning.metadata.subprocess.run")
+    mock_run = mocker.patch("tlaup.versioning.metadata.subprocess.run")
     mock_run.return_value.stdout = "TLC2 Version 2.18 of 27 March 2026 (revision 1.8.0)\n"
     mock_run.return_value.returncode = 0
 
@@ -54,7 +54,7 @@ def test_write_version_metadata(tmp_path, mocker):
 
 def test_write_version_metadata_from_url_creates_file(tmp_path, mocker):
 
-    mock_run = mocker.patch("tlaplus_cli.versioning.metadata.subprocess.run")
+    mock_run = mocker.patch("tlaup.versioning.metadata.subprocess.run")
     mock_run.return_value.stdout = "TLC2 Version 2.20\nSome extra line"
 
     write_version_metadata_from_url(
@@ -82,7 +82,7 @@ def test_write_version_metadata_from_url_creates_file(tmp_path, mocker):
 def test_write_version_metadata_from_url_handles_subprocess_failure(tmp_path, mocker):
 
     mocker.patch(
-        "tlaplus_cli.versioning.metadata.subprocess.run",
+        "tlaup.versioning.metadata.subprocess.run",
         side_effect=subprocess.SubprocessError("java not found"),
     )
 
