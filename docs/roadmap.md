@@ -102,7 +102,7 @@ Tests
 
 CI and release
 
-- [ ] Move to trunk plus tags (decision D2): merge or confirm `dev` equals `main`, remove the `dev` branch and worktree, run the test workflow on every push and pull request, protect `v*` tags (tag ruleset in place since 2026-11-14). (S) [packaging 10.1](analysis/05-packaging-ci-release.md)
+- [x] Move to trunk plus tags (decision D2). Done 2026-11-14 with the move to this repository: only `main` exists, there is no `dev` branch or worktree, the test workflow runs on every push to `main` and on every pull request, and a ruleset protects `v*` tags from moving or deletion. Annotated or signed tags are part of the `release.sh` item below. [packaging 10.1](analysis/05-packaging-ci-release.md)
 - [ ] Integration job with a matrix over Java 11, 17, 21, 25 and pinned TLC builds; cache the jar. (M) [packaging 10.10](analysis/05-packaging-ci-release.md)
 - [ ] Python 3.11 and newest, plus one macOS job. (M) [packaging 10.11](analysis/05-packaging-ci-release.md)
 - [ ] Harden `scripts/release.sh`: require `main`, clean tree, green CI, annotated tag, atomic push. (S-M) [packaging 10.2](analysis/05-packaging-ci-release.md)
@@ -156,7 +156,7 @@ Do these when the behaviour above is pinned down by tests, not before. Some will
 - [ ] README rewrite: prerequisites, five-line quick start with expected output, full command table, config location, exit codes. Currently covers about a third of the commands. (S) [ux 10.3](analysis/06-cli-ux-and-docs.md)
 - [ ] Concepts page explaining the rolling-release problem and what this tool does about it. (S-M)
 - [ ] Run guide for `docs/examples`, plus one pure TLA+ example with a violated invariant. (S)
-- [ ] Changelog: add an Unreleased section, mark 0.4.0 and 0.8.0 as not published, correct the 0.3.1 entries. (S)
+- [ ] Changelog: add an Unreleased section (added 2026-11-14), mark 0.4.0 and 0.8.0 as not published, correct the 0.3.1 entries. (S)
 - [ ] Configuration reference, troubleshooting, contributing guide. (M)
 
 ## Deliberately not planned
