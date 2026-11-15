@@ -8,7 +8,9 @@ Read these before planning or changing anything:
 
 1. `docs/analysis/00-summary.md`: what the six analysis reports found, with links to each report.
 2. `docs/roadmap.md`: the decisions (D1 to D5) and the milestones. Ticked items are done; dated notes record partial progress.
-3. `docs/analysis/07-walkthrough-notes.md`: decisions made with the maintainer after the reports. Where a note and the roadmap disagree, the note is newer and wins. Note 4 describes how the work is done: a four-stage agent pipeline (completeness pass, solution design, work packages, workers). The "Raised, not decided" list at the end is input for the completeness pass.
+3. `docs/analysis/07-walkthrough-notes.md`: decisions made with the maintainer after the reports. Note 4 describes how the work is done: a five-stage agent pipeline (completeness pass, investigation, design in waves, work packages, workers) with review gates between stages. The "Raised, not decided" list at the end is input for the completeness pass.
+
+Until the completeness pass (pipeline stage 1) is finished, the notes are newer than the roadmap and win where they disagree. Once it is finished, the roadmap is the single source of truth, the notes are history, and later stages read only the roadmap and the design documents. Stages 1, 3 and 4 end with a review by a fresh agent and the maintainer's sign-off; do not start the next stage without it. Each worker pull request needs green CI and a separate agent's review before it merges.
 
 The analysis reports describe release 0.8.1. Line numbers in them may drift as code changes; check the source before relying on one.
 

@@ -50,11 +50,29 @@ History was pushed with author and committer emails, and the author email in `py
 ## 1. How the work is done
 
 3. **Ship everything as one release instead of staged milestone versions.** Few users, so a big change from 0.8 to 0.9 is fine. Still land the CI and test fixes from milestone 2 early, even without publishing. Milestone 3 needs its design note first and is the most likely to hold the batch up. (Roadmap, milestone 1b)
-4. **Four-stage agent pipeline**:
-   1. A completeness pass over all six reports, the roadmap and these notes, making sure everything is on the roadmap. Obvious decisions go straight in; uncertain ones are clarified by the maintainer. This pass also picks up small items not settled one by one (error message wording, help text, smaller defects).
-   2. An agent designs or confirms solutions for each roadmap item, in light of all decisions. This replaces the earlier "planning review" note and covers every fix proposed during the walkthrough that goes beyond the reports.
-   3. An agent plans work packages, each with all the context it needs, without implementing.
-   4. Separate worker agents do the building.
+4. **Agent pipeline** (four stages decided during the walkthrough; revised 2026-11-14 to five stages with review gates, design in waves and one source of truth):
+   1. **Completeness pass.** One agent reads all six reports, the roadmap and these notes, and makes sure everything is on the roadmap. Obvious decisions go straight in; uncertain ones are clarified by the maintainer. This pass also picks up small items not settled one by one (error message wording, help text, smaller defects) and the "Raised, not decided" list at the end of these notes. Any factual question it finds that needs checking before a decision or a design (upstream behaviour, real tool output, what an API returns) is added to the stage 2 list below instead of being guessed. When it is done, the roadmap is the single authoritative document and these notes are frozen as history: later stages read the roadmap, not the notes.
+   2. **Investigation.** Small spikes that answer the factual questions the design depends on, before anything is designed on assumptions. No product code is written. Each answer records its evidence (links, commands run, captured output) in the roadmap item it serves, and says plainly when a question could not be answered. Contacting upstream (an issue, a discussion post) is the maintainer's call; the spike only searches what already exists. Questions collected from these notes, the roadmap and the reports; the completeness pass adds any new ones it finds:
+      - Real TLC output for each supported version (success, violation, deadlock, liveness, SANY and parse errors, assertion failure, coverage), captured as golden-file fixtures. First item of milestone 1.
+      - Whether TLC can write traces as JSON itself (`-dumpTrace json`), which would avoid value parsing for traces. (Note 13)
+      - How to tell which jar build is running, and the state of upstream's official command (open PR 1371) and its entry point, for the hand-off. (Notes 15 and 20)
+      - Whether upstream TLC builds fire the CommunityModules `repository_dispatch` trigger, which would tighten matching module releases to TLC builds by date. (Note 16, raised list)
+      - Whether upstream attaches, or plans to attach, a jar to each CalVer tag; search existing issues and discussions. (Note 21, roadmap risks)
+      - Building `tla2tools.jar` from source at a CalVer tag: build tool, required Java version, time taken, network access needed, and whether the result matches the published jar byte for byte. (Note 21)
+      - The tag and asset race on rolling builds: whether the jar can change while a download or a version lookup is in progress. (Merit 3.3, reasoned from code, not reproduced)
+      - GitHub tags and releases API ordering and pagination, which "latest stable" currently depends on. (Quality M7)
+      - Current state of `nightly.tlapl.us`, and whether a setup GitHub Action, a jbang alias or a mise plugin for TLA+ tools already exists, before building the GitHub Action in milestone 4. (Merit, not verified)
+      - The tlaplus/Examples manifest format: outcome vocabulary and state counts, as input to the JSON schema. (Note 41; milestone 4, so it can wait for the second design wave)
+      - Sources for download numbers: pypistats or the BigQuery dataset, GitHub release asset counts, repository traffic. Input for the usage statistics session. (Note 6)
+
+      Behaviour on macOS and Windows (quality M15 and M16, packaging "OS Independent") is not a spike: the CI matrix in milestone 2 answers it.
+   3. **Design, in waves.** An agent designs or confirms solutions for each roadmap item, in light of all decisions and the investigation results. This replaces the earlier "planning review" note and covers every fix proposed during the walkthrough that goes beyond the reports. The testing approach (note 5) is designed first, since every work package writes tests. The first wave designs milestones 1, 1b and 2 in full and only sketches milestones 3 to 5; those are designed in a later wave, after the first wave is built, because building it will change what the lockfile and structure work needs. Milestone 3 still needs its design note (note 3).
+   4. **Work packages.** An agent cuts the designed work into packages without implementing: each states its goal, the files it touches, its dependencies on other packages, the tests that must pass, and all the context a worker needs, so a worker never has to read the analysis.
+   5. **Workers.** Separate agents build one package each, in its own worktree, ending in a pull request. If a worker finds the design wrong or incomplete, it stops and reports instead of improvising; the fix goes into the design and the package before work continues.
+
+   Review gates: after stages 1, 3 and 4, a fresh agent that did not produce the output reviews it against its inputs (for stage 1, the reports against the roadmap; for stage 3, the decisions against the design), and the maintainer signs off before the next stage starts. Each stage 5 pull request needs green CI and a review by a separate agent before it merges.
+
+   Models (suggested): the most capable model at high effort for stages 1, 3 and 4, since their output steers everything after them and their token volume is small. Stage 2 does not need the most capable model: its questions are narrow and factual (fetch, read, run, record), and the recorded evidence lets stage 3 check any answer that looks doubtful, so a mid-tier model, with several spikes in parallel, gives the same result for less. Workers can use a mid-tier model for clearly specified packages and the most capable model for the hard ones, such as the TLC output parser and the lockfile. Mechanical lookups inside a stage, such as checking that a line reference still points at the right code, can go to a cheaper subagent.
    (UX report, error messages)
 5. **Redesign the testing approach from scratch.** Decide where tests give most value, whether the existing unit tests are worth keeping and in what form, and how tests are written from now on. (Testing report, summary)
    - Check whether one approach can cover the whole program (preferred); if not, choose an approach per part. The report's per-part techniques are input: golden TLC output for the parser, property-based tests for the value parser, snapshots for rendering, recorded GitHub responses for downloads, a fake `java` replaying recordings for end-to-end runs, a Java and TLC matrix for integration.
@@ -121,7 +139,7 @@ History was pushed with author and committer emails, and the author email in `py
     - Concurrent installs collide: pin and metadata writes are not atomic and there is no locking. (L10)
     - A failed uninstall exits 0 and still moves the pin; the disambiguation prompt accepts negative indexes. (L12)
     - Spec names with dots are mangled by `with_suffix`; any existing file, such as a `.cfg`, is accepted as the spec. (L14)
-25. Problem descriptions only, solutions to come from pipeline stage 2:
+25. Problem descriptions only, solutions to come from the design stage (pipeline stage 3, note 4):
     - The run-cache fingerprint covers the default `.cfg` only, not a `--cfg` file or extended modules. (L15)
     - The module build strips `//` comments with a regex that corrupts string literals; `javac` runs with no `-encoding` and no timeout. (L17)
     - Unknown config keys are silently ignored, so typos have no effect and no warning. (L8)
