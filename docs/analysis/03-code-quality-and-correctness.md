@@ -1,6 +1,6 @@
 # 03 - Code quality, correctness and robustness review
 
-Scope: all of `src/tlaplus_cli` (about 4300 lines) at commit `bac6ba1` (branch `dev`, release 0.8.1).
+Scope: all of `src/tlaup` (about 4300 lines) at commit `fb4a5e0` (branch `dev`, release 0.8.1).
 Review date: 2026-11-09. No source, config or test file was modified.
 
 ## How claims were verified
@@ -22,8 +22,8 @@ Tooling results (all read-only):
 |---|---|
 | `ruff check .` | All checks passed |
 | `mypy .` (strict) | No issues in 56 source files |
-| `bandit -c pyproject.toml -r src/tlaplus_cli` | No findings |
-| `ruff format --check .` | **7 files would be reformatted** (`src/tlaplus_cli/cmd/tlc.py`, `src/tlaplus_cli/tlc/runner.py`, 5 test files) |
+| `bandit -c pyproject.toml -r src/tlaup` | No findings |
+| `ruff format --check .` | **7 files would be reformatted** (`src/tlaup/cmd/tlc.py`, `src/tlaup/tlc/runner.py`, 5 test files) |
 
 Severity counts: 7 high, 18 medium, 20 low.
 
@@ -32,7 +32,7 @@ Severity counts: 7 high, 18 medium, 20 low.
 ## High severity
 
 ### H1. Error traces are never parsed from real TLC output
-- **Where**: `src/tlaplus_cli/tlc/parser.py:195` (state header regex), `:223` (variable regex).
+- **Where**: `src/tlaup/tlc/parser.py:195` (state header regex), `:223` (variable regex).
 - **Problem**: the header regex is `^(\d+): <(.*)> line (\d+), col ... of module (\w+).*$`, which expects
   the source location *after* the closing `>`. Real TLC prints it *inside* the brackets, and the initial
   state has no location at all:
@@ -55,7 +55,7 @@ Severity counts: 7 high, 18 medium, 20 low.
 - **Confidence**: high. **Reproduced.**
 
 ### H2. SANY errors are shredded into many bogus messages
-- **Where**: `src/tlaplus_cli/tlc/runner.py:246` together with `src/tlaplus_cli/tlc/sany.py:78-89`, `:68-76`.
+- **Where**: `src/tlaup/tlc/runner.py:246` together with `src/tlaup/tlc/sany.py:78-89`, `:68-76`.
 - **Problem**: three interacting defects.
   1. `SanyParser.get_errors()` flushes the in-progress message as a side effect, and the runner calls it
      after *every* output line. The location line is flushed with an empty message before its text arrives.
@@ -72,7 +72,7 @@ Severity counts: 7 high, 18 medium, 20 low.
 - **Confidence**: high. **Reproduced.**
 
 ### H3. `tla tools uninstall --all` stops after removing the pinned version
-- **Where**: `src/tlaplus_cli/cmd/tools/uninstall.py:95`.
+- **Where**: `src/tlaup/cmd/tools/uninstall.py:95`.
 - **Problem**: `any(_remove_path(p, pinned_dir) for p in targets)` uses a generator with side effects;
   `any()` short-circuits at the first `True`, which is the pinned directory.
 - **Failure scenario**: three installed versions, newest pinned (the normal state, since the list is sorted
@@ -82,7 +82,7 @@ Severity counts: 7 high, 18 medium, 20 low.
 - **Confidence**: high. **Reproduced.**
 
 ### H4. No integrity or sanity check on downloaded jars, and an interrupted download looks installed
-- **Where**: `src/tlaplus_cli/versioning/downloader.py:17-38`, `:48-66`; `src/tlaplus_cli/cmd/tools/install.py:64-69`.
+- **Where**: `src/tlaup/versioning/downloader.py:17-38`, `:48-66`; `src/tlaup/cmd/tools/install.py:64-69`.
 - **Problems**:
   1. No checksum, signature, size or even ZIP-magic check. Whatever a 200 response returns is written as
      `tla2tools.jar`, reported as "Successfully installed", auto-pinned, and then *executed* immediately by
@@ -102,8 +102,8 @@ Severity counts: 7 high, 18 medium, 20 low.
   **unverified**), `os.replace`, and treat a directory without a jar plus metadata as not installed.
 
 ### H5. Run-cache cleanup deletes other specs' (possibly live) TLC metadirs
-- **Where**: `src/tlaplus_cli/tlc/run_cache.py:29-40`, `:49`; `src/tlaplus_cli/cmd/modules/add.py:139`;
-  `src/tlaplus_cli/cmd/modules/remove.py:18`.
+- **Where**: `src/tlaup/tlc/run_cache.py:29-40`, `:49`; `src/tlaup/cmd/modules/add.py:139`;
+  `src/tlaup/cmd/modules/remove.py:18`.
 - **Problem**: stale directories are matched by `name.startswith(f"{stem}_")` across the *global*
   `~/.cache/tla/run/tlc`. The hash includes the absolute path, so:
   - two projects that both have `Spec.tla` delete each other's run directory on every run;
@@ -119,7 +119,7 @@ Severity counts: 7 high, 18 medium, 20 low.
   vanishes was not executed.
 
 ### H6. Unknown or unregistered TLC message codes are silently dropped, including errors
-- **Where**: `src/tlaplus_cli/tlc/parser.py:120-122`.
+- **Where**: `src/tlaup/tlc/parser.py:120-122`.
 - **Problem**: `if not code_obj or code_obj.type == Ignore: return` runs *before* the severity suffix
   (`STARTMSG code:severity`) is consulted, so a message with severity 1 (error) and an unregistered code
   vanishes.
@@ -135,7 +135,7 @@ Severity counts: 7 high, 18 medium, 20 low.
   the end-to-end postcondition run was not executed.
 
 ### H7. TLC output printed through Rich markup: text is swallowed or the CLI crashes
-- **Where**: `src/tlaplus_cli/cmd/tlc.py:175` (`live.console.print(log.strip())`), TTY mode only.
+- **Where**: `src/tlaup/cmd/tlc.py:175` (`live.console.print(log.strip())`), TTY mode only.
 - **Problem**: raw TLC/user output is passed to `Console.print` with markup enabled. Anything that looks
   like `[lowercase...]` is consumed as a style tag.
 - **Failure scenario**: a spec calling `PrintT([a |-> x, b |-> "s"])`. TLC prints `[a |-> 0, b |-> "s"]` as
@@ -169,7 +169,7 @@ All **reproduced** unless noted.
   (`runner.py:196-203`, `:225-232`) raises `UnicodeDecodeError`, which is not caught. (**Code reading.**)
 
 ### M2. Every `OSError` during a run is reported as "'java' not found"
-- **Where**: `src/tlaplus_cli/tlc/runner.py:217-219`, `:265-267`.
+- **Where**: `src/tlaup/tlc/runner.py:217-219`, `:265-267`.
 - **Problem**: the `except (SubprocessError, OSError)` wraps the whole streaming loop *and the callback*.
 - **Failure scenario**: `tla tlc Spec --raw | head -5` raises `BrokenPipeError` on stdout, which is reported
   as "'java' not found. Please install Java." with exit 1. Any `OSError` raised while rendering does the
@@ -177,7 +177,7 @@ All **reproduced** unless noted.
 - **Confidence**: high. **Code reading.**
 
 ### M3. No SIGTERM handling; the JVM is orphaned
-- **Where**: `src/tlaplus_cli/tlc/runner.py:196-216`, `:225-264`.
+- **Where**: `src/tlaup/tlc/runner.py:196-216`, `:225-264`.
 - **Problem**: no signal handling exists anywhere in `src/`. Only `KeyboardInterrupt` is handled.
 - **Failure scenario**: a CI step timeout or `kill <pid>` sends SIGTERM to `tla`. Python exits; the `java`
   child is not terminated and, since Java's `PrintStream` swallows write errors, it keeps model checking
@@ -188,9 +188,9 @@ All **reproduced** unless noted.
 - **Confidence**: medium-high. **Code reading**, not executed.
 
 ### M4. Version directory naming is parsed inconsistently
-- **Where**: `src/tlaplus_cli/versioning/resolver.py:87` (split on first `-`),
-  `src/tlaplus_cli/cmd/tools/upgrade.py:30` (split on last `-`),
-  `src/tlaplus_cli/versioning/downloader.py:47`, `:79`.
+- **Where**: `src/tlaup/versioning/resolver.py:87` (split on first `-`),
+  `src/tlaup/cmd/tools/upgrade.py:30` (split on last `-`),
+  `src/tlaup/versioning/downloader.py:47`, `:79`.
 - **Failure scenarios**:
   - URL-installed and pinned build `v1.8.0-2026-04-06T12:51:28Z`: `tla tools upgrade` printed
     "Error: Version v1.8.0-2026-04 not found on remote." (**Reproduced.**)
@@ -204,7 +204,7 @@ All **reproduced** unless noted.
   `meta-tla2tools.json`.
 
 ### M5. `tla tools meta sync` writes the wrong metadata
-- **Where**: `src/tlaplus_cli/cmd/tools/meta/sync.py:24-29`.
+- **Where**: `src/tlaup/cmd/tools/meta/sync.py:24-29`.
 - **Problem**: metadata is matched by tag name only.
 - **Failure scenario**: an older rolling build `v1.8.0-aaaaaaa` gets the `sha`, `published_at` and
   `download_url` of the current remote build `bbbbbbb`. URL-installed builds have their `download_url`
@@ -213,7 +213,7 @@ All **reproduced** unless noted.
 - **Confidence**: high. **Code reading.**
 
 ### M6. Rolling-release identity is only loosely tied to the downloaded bytes
-- **Where**: `src/tlaplus_cli/versioning/api.py:44-73`, `:87-96`.
+- **Where**: `src/tlaup/versioning/api.py:44-73`, `:87-96`.
 - **Problem**: the sha comes from the *tags* endpoint, the jar from the release asset URL (identical for
   every rolling build), fetched in separate requests and cached for an hour.
 - **Failure scenario**: the tag moves or the asset is re-uploaded between the tag fetch (or cache write)
@@ -225,7 +225,7 @@ All **reproduced** unless noted.
 - **Confidence**: medium. **Unverified** as to how often it happens.
 
 ### M7. No pagination; "latest stable" depends on API ordering
-- **Where**: `src/tlaplus_cli/versioning/api.py:25-31`; `src/tlaplus_cli/cmd/tools/install.py:61`.
+- **Where**: `src/tlaup/versioning/api.py:25-31`; `src/tlaup/cmd/tools/install.py:61`.
 - **Problem**: only the first page (30 items) of tags and releases is read. `install` without a version
   picks the first non-prerelease in whatever order the tags endpoint returns; nothing sorts by semver or
   date, even though `_parse_semver` exists in `resolver.py`. If all listed versions are prereleases it
@@ -233,7 +233,7 @@ All **reproduced** unless noted.
 - **Confidence**: medium. Ordering behaviour **unverified**.
 
 ### M8. GitHub API: unauthenticated only, no retries, opaque rate-limit failure
-- **Where**: `src/tlaplus_cli/versioning/api.py:27-34`.
+- **Where**: `src/tlaup/versioning/api.py:27-34`.
 - **Problem**: no `GITHUB_TOKEN` support, no `Accept` or `User-Agent` header on API calls (the download
   sets one), no retry or backoff. A 403/429 rate-limit response becomes a generic "Failed to fetch remote
   versions" warning.
@@ -244,14 +244,14 @@ All **reproduced** unless noted.
 - **Confidence**: high for behaviour (**code reading**); frequency unverified.
 
 ### M9. Plain-HTTP jar URLs accepted
-- **Where**: `src/tlaplus_cli/versioning/resolver.py:14`; `src/tlaplus_cli/versioning/downloader.py:19-24`.
+- **Where**: `src/tlaup/versioning/resolver.py:14`; `src/tlaup/versioning/downloader.py:19-24`.
 - **Problem**: `tla tools install http://...` downloads and then executes a jar over cleartext. Redirects
   are followed without restriction, including https to http. Combined with H4 (no verification) this is
   code execution for a network attacker.
 - **Confidence**: high. **Code reading.**
 
 ### M10. `tla modules remove` and `tla modules add` can delete outside the module they name
-- **Where**: `src/tlaplus_cli/cmd/modules/remove.py:11-17`; `src/tlaplus_cli/cmd/modules/add.py:57-62`.
+- **Where**: `src/tlaup/cmd/modules/remove.py:11-17`; `src/tlaup/cmd/modules/add.py:57-62`.
 - **Failure scenarios**:
   - `tla modules remove ../tools` deleted the entire tools directory and printed
     "Module '../tools' successfully deleted from cache." (**Reproduced** in the scratch cache.)
@@ -264,7 +264,7 @@ All **reproduced** unless noted.
 - **Confidence**: high.
 
 ### M11. Function-valued variables are parsed incorrectly
-- **Where**: `src/tlaplus_cli/tlc/values.py:139-140`.
+- **Where**: `src/tlaup/tlc/values.py:139-140`.
 - **Problem**: `(` is handled by parsing a single following token.
 - **Failure scenario**: `parse_variable_value("f", ["(n1 :> 0 @@ n2 :> 1)"])` returns
   `TlaValue(key="f", value="n1")` with no children (**reproduced**). Nested inside a set or sequence, the
@@ -275,14 +275,14 @@ All **reproduced** unless noted.
 - **Confidence**: high.
 
 ### M12. Error text is hidden when a trace exists (latent)
-- **Where**: `src/tlaplus_cli/cmd/tlc.py:263-269`.
+- **Where**: `src/tlaup/cmd/tlc.py:263-269`.
 - **Problem**: when `err.error_trace` is non-empty only the trace is printed; `err.lines`
   ("Invariant Inv is violated.") is skipped and is not printed anywhere else.
 - **Currently masked by H1.** **Code reading.**
 - **Related**: `ErrorInfo` lines keep their trailing newline, so the fallback path prints double-spaced.
 
 ### M13. `-config` argument can point TLC at a different file than the one validated
-- **Where**: `src/tlaplus_cli/tlc/runner.py:77-80`.
+- **Where**: `src/tlaup/tlc/runner.py:77-80`.
 - **Problem**: when the resolved cfg is not under the project root (or there is no project root), only
   `cfg_file.name` is passed, dropping its directory.
 - **Failure scenario**: spec in `./specs/A.tla`, `--cfg alt.cfg` found in the current directory
@@ -291,8 +291,8 @@ All **reproduced** unless noted.
 - **Confidence**: medium. **Code reading**; TLC's relative-path resolution not executed.
 
 ### M14. Quadratic, discarded rendering work on every output line
-- **Where**: `src/tlaplus_cli/cmd/tlc.py:160-161`, `:206-207`; `src/tlaplus_cli/tlc/formatter.py:276-336`;
-  `src/tlaplus_cli/tlc/components.py:89-107`, `:116-136`.
+- **Where**: `src/tlaup/cmd/tlc.py:160-161`, `:206-207`; `src/tlaup/tlc/formatter.py:276-336`;
+  `src/tlaup/tlc/components.py:89-107`, `:116-136`.
 - **Problem**: `formatter.update(layout, res)` runs for every line ("Keep tests happy") but `layout` is
   never displayed. Each call re-deduplicates all `output_lines` and rebuilds a Rich `Table` of all progress
   rows.
@@ -302,19 +302,19 @@ All **reproduced** unless noted.
 - **Confidence**: high for the code path; impact not measured.
 
 ### M15. Unicode output assumptions on Windows (unverified)
-- **Where**: `src/tlaplus_cli/ui.py:6-21`; `src/tlaplus_cli/cmd/tlc.py:226-237` (`print` of `─`);
-  `src/tlaplus_cli/cmd/tools/list.py:34`.
+- **Where**: `src/tlaup/ui.py:6-21`; `src/tlaup/cmd/tlc.py:226-237` (`print` of `─`);
+  `src/tlaup/cmd/tools/list.py:34`.
 - **Risk**: with stdout or stderr redirected under a legacy code page (cp1252, cp437), `print("─...")` can
   raise `UnicodeEncodeError`. **Unverified**, no Windows host available.
 
 ### M16. URL installs cannot work on Windows (unverified)
-- **Where**: `src/tlaplus_cli/versioning/metadata.py:14`; `src/tlaplus_cli/versioning/downloader.py:79-80`.
+- **Where**: `src/tlaup/versioning/metadata.py:14`; `src/tlaup/versioning/downloader.py:79-80`.
 - **Risk**: the directory name embeds an ISO timestamp with colons (`v1.8.0-2026-04-06T12:51:28Z`), which
   are illegal in Windows file names. `mkdir` should fail with `OSError`, reported as "Failed to download".
   **Code reading**; not run on Windows.
 
 ### M17. Project-root heuristic can pull unrelated jars onto the classpath
-- **Where**: `src/tlaplus_cli/project/core.py:6-8`, `:27-29`; `src/tlaplus_cli/java/classpath.py:129-134`.
+- **Where**: `src/tlaup/project/core.py:6-8`, `:27-29`; `src/tlaup/java/classpath.py:129-134`.
 - **Problem**: a directory counts as project root if it, *or its parent*, has `classes/`, `modules/` or
   `lib/`.
 - **Failure scenario**: a spec at `~/work/Spec.tla` where `~/lib` exists. The root becomes `~`, TLC's cwd
@@ -322,7 +322,7 @@ All **reproduced** unless noted.
 - **Confidence**: medium. **Code reading.**
 
 ### M18. `tla config edit` rejects `$EDITOR` values with arguments
-- **Where**: `src/tlaplus_cli/cmd/config/edit.py:22-27`.
+- **Where**: `src/tlaup/cmd/config/edit.py:22-27`.
 - **Failure scenario**: `EDITOR="code --wait"` (or `"true --wait"`, **reproduced**) gives
   "Editor '...' not found in PATH". No Windows default (`vim`). The config is not re-validated after
   editing, which feeds M1.
@@ -352,14 +352,14 @@ All **reproduced** unless noted.
 | L17 | `cmd/modules/add.py:33-34`, `:106` | Comment stripping (`//.*`) corrupts string literals containing `//`. javac runs with no `-encoding` and no timeout. | Code reading |
 | L18 | `__init__.py:6` | `truststore.inject_into_ssl()` is a process-global side effect of importing the package (the package ships `py.typed`, inviting library use). | Code reading |
 | L19 | `config/loader.py:57`, `versioning/paths.py:12-17` | Installed jars, the pin and compiled modules live in the OS *cache* directory, which cleaners may purge. | Design |
-| L20 | `cli.py:7-14` | Startup cost: `tla --help` took about 0.33 s wall; importing `tlaplus_cli.cli` about 240 ms, of which truststore/urllib3 about 113 ms, pydantic schema about 57 ms, requests about 32 ms. All command modules are imported eagerly; network and Rich imports could be deferred into the commands that need them. | Measured |
+| L20 | `cli.py:7-14` | Startup cost: `tla --help` took about 0.33 s wall; importing `tlaup.cli` about 240 ms, of which truststore/urllib3 about 113 ms, pydantic schema about 57 ms, requests about 32 ms. All command modules are imported eagerly; network and Rich imports could be deferred into the commands that need them. | Measured |
 
 ---
 
 ## Typing, lint and CI configuration
 
 - **Formatting is not enforced.** `ruff format --check` fails on 7 files, including
-  `src/tlaplus_cli/cmd/tlc.py` and `src/tlaplus_cli/tlc/runner.py`. Neither `.pre-commit-config.yaml` nor
+  `src/tlaup/cmd/tlc.py` and `src/tlaup/tlc/runner.py`. Neither `.pre-commit-config.yaml` nor
   `poe lint` (used by CI) runs it.
 - **Typing escape hatches despite `strict = true`**: `layout: Any` throughout `formatter.py:270-323`;
   `update_stats/logs/clock` are annotated `Layout` but receive `TlcDisplay` (`formatter.py:325-336`);

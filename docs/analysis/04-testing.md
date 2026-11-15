@@ -1,6 +1,6 @@
 # 04 - Test suite and testing strategy review
 
-Scope: `tests/` (4 conftests, 40 unit test files, 3 integration test files, fixtures) against `src/tlaplus_cli` (about 4300 lines, 2711 statements) on branch `dev` at `bac6ba1` (0.8.1). Exploration only; nothing in source, config, or tests was modified.
+Scope: `tests/` (4 conftests, 40 unit test files, 3 integration test files, fixtures) against `src/tlaup` (about 4300 lines, 2711 statements) on branch `dev` at `fb4a5e0` (0.8.1). Exploration only; nothing in source, config, or tests was modified.
 
 ## 1. Summary
 
@@ -29,7 +29,7 @@ The decisive failure output:
 E   assert 'Compilation failed!' in "Copying subfolders (lib, modules, test, tlc2)...\nError: tla2tools.jar not found. Run 'tla tools install' first.\n"
 ```
 
-Cause: the tests patch `tlaplus_cli.tlc.compiler.get_tlc_jar_path` (`tests/unit/cmd/test_modules.py:23`, `:95`), but `cmd/modules/add.py:13` does `from tlaplus_cli.tlc.compiler import get_tlc_jar_path`, so the patch has no effect and the real cache is consulted.
+Cause: the tests patch `tlaup.tlc.compiler.get_tlc_jar_path` (`tests/unit/cmd/test_modules.py:23`, `:95`), but `cmd/modules/add.py:13` does `from tlaup.tlc.compiler import get_tlc_jar_path`, so the patch has no effect and the real cache is consulted.
 
 ### 2.2 Unit suite, sandbox with an empty fake pinned jar
 
@@ -107,7 +107,7 @@ Line coverage 86 % (2711 stmts, 348 missed with the fake jar); **branch coverage
 ## 4. Test quality
 
 **Patches that do nothing (most serious).**
-- `tests/conftest.py:49-52` `mock_load_config` patches `tlaplus_cli.config.loader.load_config`, but every consumer imports the function by name (`cli.py:13`, `cmd/tlc.py:8`, `tlc/runner.py:8`, `cmd/tools/{install,list,upgrade}.py`, `cmd/tools/meta/sync.py`, `cmd/modules/{add,path}.py`, `cmd/check_java.py`, `cmd/config/edit.py`). About 45 tests request this fixture and still run against the real, `lru_cache`d config. `cli.py:46` calls `load_config()` in the root callback on every `runner.invoke`.
+- `tests/conftest.py:49-52` `mock_load_config` patches `tlaup.config.loader.load_config`, but every consumer imports the function by name (`cli.py:13`, `cmd/tlc.py:8`, `tlc/runner.py:8`, `cmd/tools/{install,list,upgrade}.py`, `cmd/tools/meta/sync.py`, `cmd/modules/{add,path}.py`, `cmd/check_java.py`, `cmd/config/edit.py`). About 45 tests request this fixture and still run against the real, `lru_cache`d config. `cli.py:46` calls `load_config()` in the root callback on every `runner.invoke`.
 - `tests/unit/cmd/test_modules.py:23`, `:95` (see 2.1).
 - `tests/conftest.py:55-66` `mock_cache` works only by enumerating importing modules by hand with `create=True`, which hides typos and silently misses new importers (`tlc/run_cache` is reached only via `versioning.paths`, which is why run dirs leak when `mock_cache` is not requested).
 

@@ -1,6 +1,6 @@
 # 02 - Architecture and code organization
 
-Scope: all of `src/tlaplus_cli` (about 4300 lines, read in full) at commit `bac6ba1` (0.8.1), plus the test fixtures where they show how the structure affects testability. Exploration only; nothing in the source tree was changed. Line numbers refer to that commit.
+Scope: all of `src/tlaup` (about 4300 lines, read in full) at commit `fb4a5e0` (0.8.1), plus the test fixtures where they show how the structure affects testability. Exploration only; nothing in the source tree was changed. Line numbers refer to that commit.
 
 Two claims below were checked by running code rather than by reading: the ineffective `mock_download` patch (finding 3) was confirmed with a one-off interpreter check. Everything else is from reading; where a consequence is inferred rather than observed, it says so.
 
@@ -75,7 +75,7 @@ Observations:
 Evidence:
 
 - `cmd/tlc.py:157-195` (TTY callback) and `cmd/tlc.py:203-238` (non-TTY callback) are the same 35 lines with `live.console.print` swapped for `print`. Four `nonlocal` counters track streaming state by hand.
-- Both callbacks call `formatter.update(layout, res)` under the comment "Keep tests happy by updating the formatter" (`cmd/tlc.py:160-161, 206-207`). The `layout` object is never rendered anywhere. It exists so that tests which patch `tlaplus_cli.cmd.tlc.TlcFormatter.update_logs` (four occurrences in `tests/`) keep passing.
+- Both callbacks call `formatter.update(layout, res)` under the comment "Keep tests happy by updating the formatter" (`cmd/tlc.py:160-161, 206-207`). The `layout` object is never rendered anywhere. It exists so that tests which patch `tlaup.cmd.tlc.TlcFormatter.update_logs` (four occurrences in `tests/`) keep passing.
 - As a result the following production code is reachable only from tests or from that unrendered layout: `_Section`, `TlcDisplay`, `create_layout`, `update`, `_has_child`, `_ensure_layout_structure`, `update_header/stats/logs/clock`, `StatusInfoRenderable` (`tlc/formatter.py:27-67, 270-348`); `HeaderComponent`, `StatusInfoComponent`, `LogsComponent`, `StatsTableComponent` (`tlc/components.py:38-136`).
 - Never referenced from `src/` at all: `StatusFooterComponent` (`components.py:139-183`, a near copy of `StatusFooterRenderable` at 245-287), `TlcDisplayComposer` (186-199), the `TlcComponent` protocol (30-35, used only by the composer), `TlcFormatter.info_dedup` (`formatter.py:82`), `_show_diagnostic_info` (`cmd/tlc.py:42-62`), and the `--refresh-interval` option, which is accepted and ignored (`cmd/tlc.py:85-89`; `TlcConfig.refresh_interval` at `config/schema.py:29` is likewise unread).
 - The elapsed-time and status-text logic is written three times (`components.py:54-71`, `142-163`, `251-272`).
@@ -116,7 +116,7 @@ Evidence:
 
 - `cache_dir()` and `config_dir()` live in `config/loader.py:45-57`. Every derived location lives in `versioning/paths.py:8-25`: tools, custom modules, run dir, TLC run dir, GitHub cache. The same file also holds pin state (28-43, 78-89), the migration (46-75), and fetch-cache clearing (92-97). It is the application's path registry under a misleading name, which is why `java.classpath`, `tlc.run_cache`, and `cmd/modules/*` import "versioning".
 - Because every consumer does `from ... import cache_dir`, tests must patch each import site. `tests/conftest.py:56-65` patches `cache_dir` in five modules, four of them with `create=True`, including `cmd.tools.install`, which does not import `cache_dir` at all, so that patch creates an attribute nothing reads. Across `tests/` there are 161 patch calls; the most common targets are `config.loader.config_dir` (15), `tlc.runner.load_config` (12), `tlc.runner.validate_java_version` (11).
-- The patch-by-import-site pattern has already produced silently ineffective fixtures. `tests/unit/tools/conftest.py:57` patches `tlaplus_cli.versioning.download_version`, but `cmd/tools/install.py:8-16` bound the name at import time. Verified in an interpreter: after the patch, `tlaplus_cli.cmd.tools.install.download_version` is still the real function. Those tests pass because `mock_github_api` patches `requests.get` on the shared module object, so the real downloader runs against a `MagicMock` response. `mock_load_config` (`tests/conftest.py:50`, patching `config.loader.load_config`) has the same shape and by the same mechanism cannot affect `cmd` modules that imported the name.
+- The patch-by-import-site pattern has already produced silently ineffective fixtures. `tests/unit/tools/conftest.py:57` patches `tlaup.versioning.download_version`, but `cmd/tools/install.py:8-16` bound the name at import time. Verified in an interpreter: after the patch, `tlaup.cmd.tools.install.download_version` is still the real function. Those tests pass because `mock_github_api` patches `requests.get` on the shared module object, so the real downloader runs against a `MagicMock` response. `mock_load_config` (`tests/conftest.py:50`, patching `config.loader.load_config`) has the same shape and by the same mechanism cannot affect `cmd` modules that imported the name.
 - `load_config()` is an `lru_cache` singleton (`config/loader.py:13`) that also creates the file on first call (`ensure_config`, 68-75). The root callback calls it for every command (`cli.py:46`). Two consequences: state leaks between tests unless the cache is cleared, and an invalid config file makes every command fail in the callback, including `tla config edit`, the command a user would use to fix it (inferred from reading).
 - Config evolution is not handled. `Settings` requires `tla`, `workspace`, and `tlc` (`config/schema.py:47-49`), the user file is a one-time full copy of the default, and there is no merge with packaged defaults or schema version. Any new required key in a later release invalidates existing user configs. Defaults are also stated twice (`TlcConfig` and `JavaConfig` defaults versus `resources/default_config.yaml:19-28`).
 - `JAVA_OPTS` is applied inside a pydantic `before` validator (`config/schema.py:36-43`), so environment reading is hidden in the schema, only fires when a `java` key is present in the file (inferred), and would be written back to disk by `save_config`.
@@ -217,7 +217,7 @@ Suggestion on sequencing: do not build a generic plug-in framework. Extract the 
 A direction, not a prescription; the names are illustrative.
 
 ```
-tlaplus_cli/
+tlaup/
   cli.py                 root callback builds Settings + AppPaths, runs migrations once
   ui.py                  the only place that prints, plus a progress adapter
   errors.py              small domain exception family mapped to exit codes

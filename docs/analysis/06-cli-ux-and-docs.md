@@ -1,7 +1,7 @@
 # 06 - CLI UX and Documentation Review
 
-Scope: command-line user experience and documentation of `tla` (tlaplus-cli 0.8.1, branch `dev`, commit `bac6ba1`).
-Method: read `src/tlaplus_cli/cmd/`, `tlc/formatter.py`, `tlc/components.py`, `tlc/runner.py`, `config/`, `versioning/`; ran `--help` on every command; exercised first-run and error paths with `XDG_CONFIG_HOME` and `XDG_CACHE_HOME` pointed at a scratch directory (nothing was installed, downloaded, pinned or removed; the real `~/.config/tla` and `~/.cache/tla` were only listed and read).
+Scope: command-line user experience and documentation of `tla` (tlaplus-cli 0.8.1, branch `dev`, commit `fb4a5e0`).
+Method: read `src/tlaup/cmd/`, `tlc/formatter.py`, `tlc/components.py`, `tlc/runner.py`, `config/`, `versioning/`; ran `--help` on every command; exercised first-run and error paths with `XDG_CONFIG_HOME` and `XDG_CACHE_HOME` pointed at a scratch directory (nothing was installed, downloaded, pinned or removed; the real `~/.config/tla` and `~/.cache/tla` were only listed and read).
 
 What was not exercised: a real TLC run (no jar in the scratch cache), `tla tools list` against the network, the interactive prompts, and TTY-only rendering. Statements about those are from reading the code and are marked "(code reading)".
 
@@ -37,7 +37,7 @@ tla [-v|--version]
   config    edit [EDITOR] | list
 ```
 
-Root help (`tla --help`) lists commands in registration order, not by importance or alphabetically: `tlc, check-java, modules, tools, fetch-cache, config` (`src/tlaplus_cli/cli.py:51-57`).
+Root help (`tla --help`) lists commands in registration order, not by importance or alphabetically: `tlc, check-java, modules, tools, fetch-cache, config` (`src/tlaup/cli.py:51-57`).
 
 ### 2.2 Naming and grouping
 
@@ -287,7 +287,7 @@ For AI coding agents specifically: an agent needs (a) one command that never pro
 
 ### 6.1 The file
 
-`src/tlaplus_cli/resources/default_config.yaml` (28 lines) is copied verbatim to `<user_config_dir>/tla/config.yaml` on first run (`config/loader.py:68-75`); on Linux `~/.config/tla/config.yaml`.
+`src/tlaup/resources/default_config.yaml` (28 lines) is copied verbatim to `<user_config_dir>/tla/config.yaml` on first run (`config/loader.py:68-75`); on Linux `~/.config/tla/config.yaml`.
 
 | Key | Used? | Notes |
 |---|---|---|
@@ -455,7 +455,7 @@ Contents: four module sets (`QueueModule`, `module-set-a`, `module-set-b`, `sequ
 |---|---|---|
 | Concepts: the rolling release | The tool's main reason to exist. Explain: upstream re-publishes the `v1.8.0` prerelease with a new commit; the same tag therefore means different jars over time; tlaplus-cli stores `tag-shortsha`; `upgrade` = move to the newest build of the same tag; `install` with no args skips prereleases; how to tell which build you have (`tla tlc --version`); what is and is not reproducible | `docs/concepts/versions.md` |
 | Installation and prerequisites | Java 11+, JDK for overrides, uv/pipx/Nix, verifying with `tla check-java`, first `tools install` | `docs/install.md` + README quick start |
-| Command reference | Auto-generate from Typer (`typer tlaplus_cli.cli utils docs`) so it cannot drift again | `docs/reference/cli.md` |
+| Command reference | Auto-generate from Typer (`typer tlaup.cli utils docs`) so it cannot drift again | `docs/reference/cli.md` |
 | Configuration reference | Every key, default, env var, file location per OS | `docs/reference/configuration.md` |
 | Exit codes and output modes | CI authors need this | `docs/reference/exit-codes.md` |
 | Custom modules guide | Directory layout, how overrides are discovered (`implements ITLCOverrides`, service file), global vs project-local `modules/`/`classes/`/`lib/`, precedence order from `ClasspathResolver` | `docs/guides/modules.md` |

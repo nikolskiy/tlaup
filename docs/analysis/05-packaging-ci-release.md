@@ -1,6 +1,6 @@
 # 05 - Packaging, distribution, CI and release
 
-Scope: `tlaplus-cli` 0.8.1 at commit `bac6ba1` (branch `dev`, identical to `main`), reviewed 2026-11-09.
+Scope: `tlaplus-cli` 0.8.1 at commit `fb4a5e0` (branch `dev`, identical to `main`), reviewed 2026-11-09.
 Read-only review. Nothing in the repository was changed apart from this file.
 
 ## How this was checked
@@ -77,9 +77,9 @@ Dev group (`pyproject.toml:52-67`): `pre-commit>=3.5.0,<4.0.0` is behind (4.x ha
 
 Built from a clean export of `HEAD`:
 
-- **Wheel** (`tlaplus_cli-0.8.1-py3-none-any.whl`, about 60 KB): the `tlaplus_cli` package, `tlaplus_cli/py.typed`, `tlaplus_cli/resources/default_config.yaml`, `dist-info` with `licenses/LICENSE` and the `tla` entry point. No tests, no docs, no examples, no jar. Correct.
-- **sdist** (about 46 KB): `LICENSE`, `MANIFEST.in`, `README.md`, `pyproject.toml`, `setup.cfg` (generated), `src/tlaplus_cli/**`, egg-info. No `tests/`, no `docs/`, no `CHANGELOG.md`, no `uv.lock`, no `flake.nix`.
-- The default config resource is included through `pyproject.toml:48-50` and loaded with `importlib.resources` (`src/tlaplus_cli/config/loader.py:64`), which is the robust approach (it fixed the 0.3.3 bug noted at `CHANGELOG.md:125`).
+- **Wheel** (`tlaup-0.8.1-py3-none-any.whl`, about 60 KB): the `tlaup` package, `tlaup/py.typed`, `tlaup/resources/default_config.yaml`, `dist-info` with `licenses/LICENSE` and the `tla` entry point. No tests, no docs, no examples, no jar. Correct.
+- **sdist** (about 46 KB): `LICENSE`, `MANIFEST.in`, `README.md`, `pyproject.toml`, `setup.cfg` (generated), `src/tlaup/**`, egg-info. No `tests/`, no `docs/`, no `CHANGELOG.md`, no `uv.lock`, no `flake.nix`.
+- The default config resource is included through `pyproject.toml:48-50` and loaded with `importlib.resources` (`src/tlaup/config/loader.py:64`), which is the robust approach (it fixed the 0.3.3 bug noted at `CHANGELOG.md:125`).
 - Sizes match PyPI's 0.8.1 files within a few bytes (60689 and 46049 on PyPI), so the published artifacts have the same shape.
 
 `MANIFEST.in` (4 lines) is **redundant but harmless**. Every line duplicates something setuptools already does: `LICENSE` is auto-included via license-files defaults, `README.md` via `readme =`, the YAML and `py.typed` via `[tool.setuptools.package-data]`. It can be deleted; the sdist stays identical. If kept, it is one more place to forget when adding a resource.
@@ -93,7 +93,7 @@ Optional: downstream packagers (nixpkgs, Debian, conda-forge) generally prefer a
 ### 2.1 Source of truth
 
 - Static `version = "0.8.1"` at `pyproject.toml:7`.
-- Runtime reads it from installed metadata: `src/tlaplus_cli/cli.py:26-27` and `src/tlaplus_cli/versioning/app_version.py:50-54`. There is no `__version__` constant to drift. Good.
+- Runtime reads it from installed metadata: `src/tlaup/cli.py:26-27` and `src/tlaup/versioning/app_version.py:50-54`. There is no `__version__` constant to drift. Good.
 - Derived copies:
   - `uv.lock:1169` is in sync (0.8.1), maintained by `uv`.
   - `flake.nix:29` says `0.6.0` and has been wrong for three releases (0.7.0, 0.8.0, 0.8.1; verified by reading `flake.nix` at each tag). See section 5.
@@ -112,7 +112,7 @@ Manually. `scripts/release.sh` only reads the version (`scripts/release.sh:13`);
 - No `[Unreleased]` section is kept at HEAD now, and no compare-link footer.
 - At several tags the top heading was still `## [Unreleased]` above the release section (v0.2.0 to v0.5.0, v0.7.0). The script's check at `scripts/release.sh:23` is only `grep -q "\[VERSION\]"`, which passes if the string appears anywhere in the file.
 - Dates drift from tags: 0.4.0 says 2026-04-20, tagged 2026-04-24; 0.3.5 says 2026-04-19, tagged 2026-04-18.
-- The tag `v0.6.0` points at a commit titled "Release 0.5.0" (`3049502`).
+- The tag `v0.6.0` points at a commit titled "Release 0.5.0" (`edb6bc5`).
 - 0.8.1's only entry (`CHANGELOG.md:11`) is a test fix that does not change the shipped wheel at all, an artefact of the burned 0.8.0.
 
 ### 2.4 Semver adherence
@@ -178,7 +178,7 @@ Cross-referencing tags, the public Actions run list, GitHub Releases and PyPI:
 | v0.1.3 to v0.1.6 | (older than the 30 runs inspected) | yes | **no** | GitHub Release created, PyPI upload failed. `CHANGELOG.md:215` confirms "invalid PyPI classifier ... caused upload failures". Four orphaned GitHub Releases. |
 | v0.2.0 | not inspected | no | no | Burned. |
 | v0.3.0 | failure | no | no | Burned. Test on `main` also failed. |
-| v0.3.1 | success | yes | yes | The Test workflow on the **same commit** (`dcdd909`) failed while Release succeeded: both run the same suite, so the suite or its network setup was flaky. |
+| v0.3.1 | success | yes | yes | The Test workflow on the **same commit** (`6681e42`) failed while Release succeeded: both run the same suite, so the suite or its network setup was flaky. |
 | v0.4.0 | failure | no | no | Burned. Yet documented at `CHANGELOG.md:92`. |
 | v0.8.0 | failure at "Run tests" | no | no | Burned. Yet documented at `CHANGELOG.md:13`. Fixed 11 minutes later as 0.8.1. |
 | all others | success | yes | yes | |
@@ -224,7 +224,7 @@ With CI running on `dev` (section 4), the commit being tagged has already passed
 ### 4.1 Triggers
 
 - `push` to `main` and `pull_request` only (`test.yml:3-7`).
-- Development happens on `dev`. Locally `dev` has **no upstream configured**; the remote `dev` branch exists but is stale at `8902f55` (2026-06-17) while local `dev` is at `bac6ba1`. All 30 most recent workflow runs are `push` events on `main` or tags; there are no pull-request runs.
+- Development happens on `dev`. Locally `dev` has **no upstream configured**; the remote `dev` branch exists but is stale at `b316c69` (2026-06-17) while local `dev` is at `fb4a5e0`. All 30 most recent workflow runs are `push` events on `main` or tags; there are no pull-request runs.
 - Net effect: CI never runs on work in progress. It runs once per release, simultaneously with the release job. This is the root cause of section 3.4. It also means work between releases (for example 5 commits from 2026-08-05 to 2026-08-13) existed only on the maintainer's disk.
 
 Fix: add `dev` to `branches:` (or use `branches: ["**"]`) and push `dev` routinely.
@@ -234,7 +234,7 @@ Fix: add `dev` to `branches:` (or use `branches: ["**"]`) and push `dev` routine
 - One OS (`ubuntu-latest`), one Python, one Java (17).
 - Python selection is muddled. `actions/setup-python` is given `python-version-file: "pyproject.toml"` (`test.yml:22-24`), which reads `requires-python = ">=3.11"` and installs some version satisfying it. `uv` then independently honours `.python-version` (`3.13`) for the project environment. Which interpreter actually runs the tests is **unverified** (logs not accessible); most likely 3.13 via uv, making the `setup-python` step redundant.
 - The classifiers advertise 3.11, 3.12 and 3.13 (`pyproject.toml:27-29`); at most one of them is tested. The Nix package uses 3.12 (`flake.nix:26`), which CI does not cover either.
-- The tool's own minimum Java is 11 (`src/tlaplus_cli/resources/default_config.yaml:25`); CI tests only 17.
+- The tool's own minimum Java is 11 (`src/tlaup/resources/default_config.yaml:25`); CI tests only 17.
 - macOS is a primary platform for the TLA+ audience and is untested. Windows is claimed by "OS Independent" and untested.
 
 Proportionate matrix: Python 3.11 and newest (3.13 or 3.14) on Ubuntu, plus one macOS job on a single Python. Use `uv sync --locked --python ${{ matrix.python }}` and delete the `setup-python` step. That is 3 jobs of about 30 to 40 seconds each (the current job takes about 25 to 40 seconds by the run timestamps).
@@ -278,7 +278,7 @@ Whether Dependabot **security alerts** are enabled in repo settings is **unverif
 
 ## 5. The Nix flake
 
-`flake.nix` (104 lines), added 2026-06-03 (`43046a8`), advertised in `README.md:37-40`.
+`flake.nix` (104 lines), added 2026-06-03 (`c4fef9d`), advertised in `README.md:37-40`.
 
 | Finding | Evidence | Severity |
 |---|---|---|
@@ -286,18 +286,18 @@ Whether Dependabot **security alerts** are enabled in repo settings is **unverif
 | **Version hard-coded and stale.** | `flake.nix:29` `version = "0.6.0"`; unchanged at tags v0.7.0, v0.8.0, v0.8.1. | Medium. The store path and `nix profile list` say 0.6.0. `tla --version` still prints the right number because it reads the wheel metadata built from `pyproject.toml`. |
 | **Dependency constraint conflict with nixpkgs.** | `pyproject.toml:18` requires `rich<14.0.0`; `nixos-unstable` currently has rich `15.0.0` (also typer 0.27.2, pydantic 2.13.4, both within range). `buildPythonApplication` with `pyproject = true` runs the runtime dependency check hook, which fails on unsatisfied version constraints. | High. Confirmed by the trial build below. |
 | Not tested in CI. | No Nix step in either workflow. | Medium. This is why the two items above went unnoticed. |
-| `jre_headless` on PATH. | `flake.nix:57`. | `tla modules add` invokes `javac` (`src/tlaplus_cli/cmd/modules/add.py:106`). Whether nixpkgs' `jre_headless` includes `javac` depends on the nixpkgs revision (**unverified**). Use `pkgs.jdk_headless` to state the intent. |
+| `jre_headless` on PATH. | `flake.nix:57`. | `tla modules add` invokes `javac` (`src/tlaup/cmd/modules/add.py:106`). Whether nixpkgs' `jre_headless` includes `javac` depends on the nixpkgs revision (**unverified**). Use `pkgs.jdk_headless` to state the intent. |
 | `--prefix PATH`. | `flake.nix:57`. | The bundled Java shadows whatever Java the user selected. `--suffix` would make it a fallback, which better suits a tool that has a `check-java` command and configurable JVM options. |
 | Misleading comment and no-op setting. | `flake.nix:48-51`: `dontPatchShebangs = false` is the default and has nothing to do with YAML resources. | Cosmetic. Delete. |
-| No checks at all. | `doCheck = false` (`flake.nix:54`), no `pythonImportsCheck`, no `checks` output. | Low. Add `pythonImportsCheck = [ "tlaplus_cli" ];` and expose the package under `checks` so `nix flake check` does something. |
+| No checks at all. | `doCheck = false` (`flake.nix:54`), no `pythonImportsCheck`, no `checks` output. | Low. Add `pythonImportsCheck = [ "tlaup" ];` and expose the package under `checks` so `nix flake check` does something. |
 | Python mismatch. | Package and dev shell use `python312` (`flake.nix:26`, `:77`); `.python-version` says 3.13; CI tests (probably) 3.13. | Low. The Nix build uses an interpreter nothing else tests. |
 | `src = ./.` | `flake.nix:32`. | Fine for a flake (only git-tracked files are copied), but it copies the 576 KB example jar and tests into the source derivation. Harmless. |
 
-**Trial build result: the flake does not build today (verified).** `nix build --no-link --no-write-lock-file .#default` on x86_64-linux at `bac6ba1`, against the current `nixos-unstable`, builds the wheel and then fails:
+**Trial build result: the flake does not build today (verified).** `nix build --no-link --no-write-lock-file .#default` on x86_64-linux at `fb4a5e0`, against the current `nixos-unstable`, builds the wheel and then fails:
 
 ```
 Running phase: pythonRuntimeDepsCheckHook
-Checking runtime dependencies for tlaplus_cli-0.8.1-py3-none-any.whl
+Checking runtime dependencies for tlaup-0.8.1-py3-none-any.whl
   - rich<14.0.0,>=13.7.0 not satisfied by version 15.0.0
 ... /nix/store/...-tlaplus-cli-0.6.0.drv   (exit 1)
 ```
@@ -311,7 +311,7 @@ Fixes, all small:
 ```nix
 version = (pkgs.lib.importTOML ./pyproject.toml).project.version;
 pythonRelaxDeps = [ "rich" ];        # or fix the pin in pyproject.toml, which is better
-pythonImportsCheck = [ "tlaplus_cli" ];
+pythonImportsCheck = [ "tlaup" ];
 ```
 
 plus `nix flake lock`, commit `flake.lock`, and a CI job (`DeterminateSystems/nix-installer-action` or `cachix/install-nix-action`, then `nix build` and `nix flake check`; about 2 to 4 minutes uncached). A weekly `nix flake update` PR can be automated later; until then update the lock at release time.
@@ -362,7 +362,7 @@ Audience: people writing TLA+ specs. They already need a JVM. Many are on macOS;
 | nixpkgs | Low to medium. Gives `nix-shell -p tlaplus-cli` and binary caching. | PR and review cycle; needs the dependency caps fixed and ideally tests in the sdist. | Maintainer duty on nixpkgs bumps. | Defer until the flake is healthy and the tool is past alpha. |
 | Standalone binaries (PyInstaller, Nuitka, PyApp) | Low. The user needs Java regardless, so "no runtime required" is not achievable; `uv tool install` is already a one-liner. | 1 to 2 days for a 3-OS build matrix. | macOS signing and notarization, Windows SmartScreen, per-OS bugs. | Not worth it. |
 | conda-forge | Low to medium (scientific users; conda can also supply `openjdk`). | Feedstock PR. | Bot-driven bumps. | Defer. |
-| Shell completions | Not a channel, but relevant to packaging: `add_completion=False` at `src/tlaplus_cli/cli.py:20` disables Typer's completion install. Homebrew and Nix packages normally ship completions. | Small. | None. | Consider when adding Homebrew. |
+| Shell completions | Not a channel, but relevant to packaging: `add_completion=False` at `src/tlaup/cli.py:20` disables Typer's completion install. Homebrew and Nix packages normally ship completions. | Small. | None. | Consider when adding Homebrew. |
 
 ---
 
@@ -401,14 +401,14 @@ Gaps, all minor:
 
 - `result` and `result-*` (symlinks left by `nix build`), `.direnv/`.
 - `htmlcov/`, `coverage.xml`.
-- Editor directories (`.vscode/`, `.idea/`); the history mentions a VS Code setting fix (`00f61f0`).
+- Editor directories (`.vscode/`, `.idea/`); the history mentions a VS Code setting fix (`7dbfbed`).
 - `lib/*.jar` (`.gitignore:17`) contains a slash, so it is anchored to the repo root and does not match example `lib/` directories. That is evidently intended (the example jar is tracked) but worth a comment.
 
 ### 9.2 Stale artifacts in the working tree (all untracked and ignored)
 
-- `dist/tlaplus_cli-0.3.1*` from 2026-04-05, seven releases old.
-- `build/lib/tlaplus_cli/` and `build/bdist.linux-x86_64/`, a stale copy of the package from in-tree setuptools builds.
-- `src/tlaplus_cli.egg-info/` (2026-08-13).
+- `dist/tlaup-0.3.1*` from 2026-04-05, seven releases old.
+- `build/lib/tlaup/` and `build/bdist.linux-x86_64/`, a stale copy of the package from in-tree setuptools builds.
+- `src/tlaup.egg-info/` (2026-08-13).
 - `.coverage`, `.mypy_cache`, `.pytest_cache`, `.ruff_cache`, and `docs/examples/spec/states`.
 
 Risks: a stale `build/lib` is the classic way removed modules get resurrected into a locally built setuptools wheel. Releases are built on clean CI runners so published artifacts are not affected, but `poe check-release` builds locally and `poe clean` only removes `dist` (`pyproject.toml:126`). The stale tree is also why mypy needs `exclude = ["build", ...]` (`pyproject.toml:142`). Recommendation: make `clean` remove `dist build src/*.egg-info`, and delete the current leftovers by hand.
@@ -494,7 +494,7 @@ Not recommended: standalone binaries (Java is required anyway), SBOM generation 
 - Default `GITHUB_TOKEN` permissions for the repository.
 - Whether GitHub secret scanning, push protection and Dependabot alerts are enabled.
 - Which Python interpreter CI actually uses (logs are not readable unauthenticated).
-- The cause of the failed runs for v0.3.0, v0.4.0 and the `dcdd909` Test run (only step conclusions were visible; for v0.8.0 the failing step was "Run tests", consistent with the 0.8.1 changelog entry).
+- The cause of the failed runs for v0.3.0, v0.4.0 and the `6681e42` Test run (only step conclusions were visible; for v0.8.0 the failing step was "Run tests", consistent with the 0.8.1 changelog entry).
 - Whether v0.1.3 to v0.1.6 were ever on PyPI and later removed. PyPI's API lists 0.1.7 as the earliest release and the changelog mentions upload failures, so "never uploaded" is the most likely reading.
 - Behaviour on macOS and Windows.
 - Whether `jre_headless` in current nixpkgs provides `javac`.

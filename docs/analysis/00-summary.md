@@ -1,6 +1,8 @@
 # Project analysis: summary
 
-Date: 2026-11-09. Analysed at commit `bac6ba1` (release 0.8.1). Exploration only; no code was changed.
+> Moved 2026-11-14 from the old `tlaplus-cli` repository, which is archived. The reports describe `tlaplus-cli` 0.8.1 and its `tla` command as they were. Source paths and commit ids have been updated to this repository (`src/tlaup`, rewritten history); the code they point at is unchanged apart from the rename. CI runs, release runs and GitHub settings mentioned in the reports belong to the old repository.
+
+Date: 2026-11-09. Analysed at commit `fb4a5e0` (release 0.8.1). Exploration only; no code was changed.
 
 Six independent reviews were run, one per area. Each report stands alone:
 

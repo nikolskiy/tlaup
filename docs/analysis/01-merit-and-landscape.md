@@ -1,6 +1,6 @@
 # tlaplus-cli: merit and landscape assessment
 
-Date of assessment: 2026-11-09. Code state: branch `dev` at `bac6ba1` (release 0.8.1).
+Date of assessment: 2026-11-09. Code state: branch `dev` at `fb4a5e0` (release 0.8.1).
 
 Legend used throughout:
 
@@ -27,7 +27,7 @@ All from reading the source. **[V]**
 
 | Area | Behaviour | Where |
 |---|---|---|
-| Version discovery | Calls GitHub `/tags` and `/releases` (first 30 each), joins them by tag name, keeps releases that have a `tla2tools.jar` asset. Result cached for one hour, with stale-cache fallback when offline. | `src/tlaplus_cli/versioning/api.py` |
+| Version discovery | Calls GitHub `/tags` and `/releases` (first 30 each), joins them by tag name, keeps releases that have a `tla2tools.jar` asset. Result cached for one hour, with stale-cache fallback when offline. | `src/tlaup/versioning/api.py` |
 | Build identity | A build is `<tag name>-<first 7 chars of the commit the tag points to>`, for example `v1.8.0-d8fb231`. That is the install directory name. | `versioning/downloader.py`, `versioning/schema.py` |
 | Metadata | `meta-tla2tools.json` stores tag, full SHA, `published_at`, `download_url`, prerelease flag, and the first line of `tlc2.TLC -version`. No checksum of the jar. | `versioning/metadata.py` |
 | Pinning | One global pin: a text file in the user cache holding a directory name. No per-project pin, no lockfile. | `versioning/paths.py`, `cmd/tools/pin.py` |
@@ -247,7 +247,7 @@ Verified with a direct request on 2026-11-09:
 - READMEs of younes-io/tla, drbh/tlaplus-rs, pmer/tla-bin, hwayne/tlacli, kokjinsam/asdf-tlaplus, sonoisa/tlaplus-mcp, richashworth/tlaplus-mcp, tangruize/tlc-cmd, tlaplus/vscode-tlaplus (README and `package.json`)
 - Mailing list threads and PR: `https://groups.google.com/g/tlaplus/c/ohE2v4BEs8M`, `https://groups.google.com/g/tlaplus/c/RhOG4eyHxLs`, `https://github.com/tlaplus/tlaplus/pull/1371` (read through an automated page summary, and the first thread was truncated, so later replies may be missing)
 - AUR and Homebrew: `aur.archlinux.org/rpc`, `formulae.brew.sh/api`
-- Project facts: source files under `src/tlaplus_cli/`, GitHub and PyPI APIs
+- Project facts: source files under `src/tlaup/`, GitHub and PyPI APIs
 
 Not verified:
 

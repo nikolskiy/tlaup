@@ -1,6 +1,6 @@
 # Roadmap
 
-Drafted 2026-11-09 from the [project analysis](analysis/00-summary.md), against release 0.8.1. This is a proposal, not a commitment: nothing here has been implemented or tested, and effort sizes are rough estimates carried over from the reviews (S = hours, M = one to three days, L = a week or more).
+Drafted 2026-11-09 from the [project analysis](analysis/00-summary.md), against release 0.8.1. The project has since moved from `tlaplus-cli` to this repository and was renamed to `tlaup` in 0.8.2 (2026-11-14); items finished since then are ticked with the date. This is a proposal, not a commitment: nothing here has been implemented or tested, and effort sizes are rough estimates carried over from the reviews (S = hours, M = one to three days, L = a week or more).
 
 ## Guiding principle
 
@@ -19,7 +19,7 @@ Made on 2026-11-10. They shape several milestones below.
 
 | # | Question | Decision | Consequence |
 | --- | --- | --- | --- |
-| D1 | Keep the `tla` binary name? | **Rename the binary to `tlaup`; keep the `tlaplus-cli` package name.** | `tla` collides with a crates.io project, `tla-cli`, an asdf shim, and open upstream PR 1371. Ship the new name with `tla` kept as a deprecated alias for one or two releases. See [merit 6.4](analysis/01-merit-and-landscape.md). |
+| D1 | Keep the `tla` binary name? | **Rename package, command and repository to `tlaup`; retire `tlaplus-cli`.** Revised 2026-11-14 (walkthrough notes 8). | `tla` collides with a crates.io project, `tla-cli`, an asdf shim, and open upstream PR 1371. Done in 0.8.2 with no `tla` alias; the final `tlaplus-cli` release forwards to `tlaup` with a notice. See [merit 6.4](analysis/01-merit-and-landscape.md). |
 | D2 | Branch model? | **Trunk plus tags.** | Retire the `dev` branch and worktree; CI runs on every push to `main` and on pull requests; releases are tags on green commits. See [packaging 6](analysis/05-packaging-ci-release.md). |
 | D3 | Rich live display: finish, freeze, or remove? | **Finish it.** The analysis recommended freezing. | The unrendered layout gets wired up rather than deleted, which adds work to milestone 1b and keeps the display coupled to parser correctness. See [architecture 1](analysis/02-architecture-and-organization.md). |
 | D4 | Default version when none is pinned? | **Ask on first run** between stable and rolling. | Needs a flag and an environment variable so CI and scripts never hit the prompt. |
@@ -27,7 +27,7 @@ Made on 2026-11-10. They shape several milestones below.
 
 ## Milestone 1: a runner you can trust (0.9.0)
 
-Goal: `tla tlc` shows correct results for real TLC output, and no command destroys data it was not asked to.
+Goal: `tlaup tlc` shows correct results for real TLC output, and no command destroys data it was not asked to.
 
 Runner correctness
 
@@ -56,7 +56,7 @@ First-run failures
 - [ ] Forward SIGTERM to the JVM; exit 130 on Ctrl-C. (S) [quality M3](analysis/03-code-quality-and-correctness.md)
 - [ ] When nothing is pinned, ask once between stable and rolling (decision D4); a flag and an environment variable answer it without a prompt; error with a hint when stdin is not a terminal. (S-M)
 
-Exit criteria: golden-file tests pass for both TLC versions; a spec with a violated invariant shows its full trace; `tla tlc Spec -- -workers 4 -deadlock` runs; no listed failure path prints a traceback.
+Exit criteria: golden-file tests pass for both TLC versions; a spec with a violated invariant shows its full trace; `tlaup tlc Spec -- -workers 4 -deadlock` runs; no listed failure path prints a traceback.
 
 ## Milestone 1b: other tools, live display, new name (0.10.0)
 
@@ -76,7 +76,7 @@ Other tools (decision D5)
 
 Live display (decision D3)
 
-- [ ] Remove the duplicated `tla tlc` callback and decide on one render path (`cmd/tlc.py:157-238`). (S-M) [architecture 1](analysis/02-architecture-and-organization.md)
+- [ ] Remove the duplicated `tlaup tlc` callback and decide on one render path (`cmd/tlc.py:157-238`). (S-M) [architecture 1](analysis/02-architecture-and-organization.md)
 - [ ] Render the existing layout on a terminal; fall back to plain streamed output when stdout is not a terminal or `--raw` is given. (M)
 - [ ] Make `--refresh-interval` and the matching config key take effect. (S) [ux 10.7](analysis/06-cli-ux-and-docs.md)
 - [ ] Fix the per-line re-rendering cost. (S-M) [quality M14](analysis/03-code-quality-and-correctness.md)
@@ -85,9 +85,9 @@ Live display (decision D3)
 New name (decision D1)
 
 - [x] Choose the command name: `tlaup`. On 2026-11-10 the name was unused on PyPI, crates.io, npm and Homebrew.
-- [ ] Ship the `tlaup` entry point; keep `tla` as an alias that prints a deprecation notice; update README, help text, examples and the flake. (S-M)
+- [x] Ship the `tlaup` entry point; update README, help text and examples. Done 2026-11-14 in 0.8.2: package, command and import package renamed, new repository, no `tla` alias, flake removed rather than updated (walkthrough notes 8 and 30).
 
-Exit criteria: `sany`, `pcal` and `repl` run against the pinned jar; a long TLC run shows a live status on a terminal and clean line output when piped; `tlaup` works and `tla` warns.
+Exit criteria: `sany`, `pcal` and `repl` run against the pinned jar; a long TLC run shows a live status on a terminal and clean line output when piped; `tlaup` works (done in 0.8.2).
 
 ## Milestone 2: a feedback loop that catches this (0.9.x, alongside milestone 1)
 
@@ -97,21 +97,21 @@ Tests
 
 - [ ] Autouse fixture that points home, config and cache directories at a temporary path; remove the no-op `mock_load_config`; unit suite passes on a machine with nothing installed. (S-M) [testing 9.2](analysis/04-testing.md)
 - [ ] Block real network and unmocked subprocess calls in unit tests. (S) [testing 9.5](analysis/04-testing.md)
-- [ ] End-to-end tests of `tla tlc` using a fake `java` that replays golden files, covering exit codes, raw mode and Ctrl-C. Target: `cmd/tlc.py` above 80 percent from 45. (M) [testing 9.4](analysis/04-testing.md)
+- [ ] End-to-end tests of `tlaup tlc` using a fake `java` that replays golden files, covering exit codes, raw mode and Ctrl-C. Target: `cmd/tlc.py` above 80 percent from 45. (M) [testing 9.4](analysis/04-testing.md)
 - [ ] Mark integration tests and fix their dead skip guards. (S) [testing 9.3](analysis/04-testing.md)
 
 CI and release
 
-- [ ] Move to trunk plus tags (decision D2): merge or confirm `dev` equals `main`, remove the `dev` branch and worktree, run the test workflow on every push and pull request, protect `v*` tags. (S) [packaging 10.1](analysis/05-packaging-ci-release.md)
+- [ ] Move to trunk plus tags (decision D2): merge or confirm `dev` equals `main`, remove the `dev` branch and worktree, run the test workflow on every push and pull request, protect `v*` tags (tag ruleset in place since 2026-11-14). (S) [packaging 10.1](analysis/05-packaging-ci-release.md)
 - [ ] Integration job with a matrix over Java 11, 17, 21, 25 and pinned TLC builds; cache the jar. (M) [packaging 10.10](analysis/05-packaging-ci-release.md)
 - [ ] Python 3.11 and newest, plus one macOS job. (M) [packaging 10.11](analysis/05-packaging-ci-release.md)
 - [ ] Harden `scripts/release.sh`: require `main`, clean tree, green CI, annotated tag, atomic push. (S-M) [packaging 10.2](analysis/05-packaging-ci-release.md)
 - [ ] Restructure `release.yml`: build and test, then publish to PyPI, then create the GitHub Release; fail if the tag does not match `pyproject.toml`; attach only wheel and sdist. (M) [packaging 10.9](analysis/05-packaging-ci-release.md)
-- [ ] Enforce `ruff format --check`; add Dependabot; `uv sync --locked`; read-only workflow permissions. (S) [packaging 10.6](analysis/05-packaging-ci-release.md)
+- [ ] Enforce `ruff format --check`; add Dependabot; `uv sync --locked`; read-only workflow permissions. Since 2026-11-14: Dependabot alerts and security updates on, read-only workflow permissions confirmed. (S) [packaging 10.6](analysis/05-packaging-ci-release.md)
 
 Nix
 
-- [ ] Drop the `rich<14` cap, derive the flake version from `pyproject.toml`, commit `flake.lock`, add a `nix build` CI job. (S-M) [packaging 10.4](analysis/05-packaging-ci-release.md)
+- [x] Nix flake removed in 0.8.2 (2026-11-14) instead of fixed (walkthrough note 30). The `rich<14` cap stays a separate item. [packaging 10.4](analysis/05-packaging-ci-release.md)
 
 Exit criteria: a clean checkout passes unit tests with no jar installed and no writes outside temporary directories; a pull request that breaks trace parsing fails CI; a release cannot be tagged from a red commit.
 
@@ -121,7 +121,7 @@ Goal: a repository can declare its TLA+ toolchain and get the same bytes everywh
 
 - [ ] Version identity as a type, not a parsed directory name; one place composes and parses it. Prerequisite for the rest. (M) [architecture 4](analysis/02-architecture-and-organization.md)
 - [ ] Record SHA-256 for every installed jar; verify against the `digest` field the GitHub releases API now returns. (M) [merit 6.4.1](analysis/01-merit-and-landscape.md)
-- [ ] Project file discovered by walking up from the spec, holding the pinned build and its digest; `tla tools install --locked` fails loudly on mismatch; `tools pin --local`; environment and flag overrides. (M-L) [ux 10.12](analysis/06-cli-ux-and-docs.md)
+- [ ] Project file discovered by walking up from the spec, holding the pinned build and its digest; `tlaup tools install --locked` fails loudly on mismatch; `tools pin --local`; environment and flag overrides. (M-L) [ux 10.12](analysis/06-cli-ux-and-docs.md)
 - [ ] Adopt upstream's `rolling` release and immutable CalVer tags for naming builds. (M) [merit](analysis/01-merit-and-landscape.md)
 - [ ] Decide how to re-fetch an older rolling build. Options, cheapest first: timestamped Maven snapshots if retention allows (unverified), a small mirror repository that republishes each rolling jar as an immutable release, or build from source at the CalVer tag. (L, needs investigation) [merit 6.4.2](analysis/01-merit-and-landscape.md)
 - [ ] Per-project override modules and community-modules version in the same file; only declared modules go on the classpath. (M) [merit 6.4.6](analysis/01-merit-and-landscape.md)
@@ -134,7 +134,7 @@ Exit criteria: clone a repository with a lock file on a fresh machine, run one i
 
 Goal: CI pipelines, editors and coding agents can consume results without scraping.
 
-- [ ] `--json` for `tla tlc` serialising the parsed result (status, exit code meaning, errors, traces, SANY diagnostics, statistics, coverage), plus `tools list`, `modules list`, `tools path`. Publish a schema. (M) [ux 10.11](analysis/06-cli-ux-and-docs.md)
+- [ ] `--json` for `tlaup tlc` serialising the parsed result (status, exit code meaning, errors, traces, SANY diagnostics, statistics, coverage), plus `tools list`, `modules list`, `tools path`. Publish a schema. (M) [ux 10.11](analysis/06-cli-ux-and-docs.md)
 - [ ] Results on stdout, diagnostics on stderr; `--quiet`, `--verbose`, `--color`; honour `NO_COLOR`. (M) [ux 10.14](analysis/06-cli-ux-and-docs.md)
 - [ ] Non-interactive version selection: accept `tag@sha` everywhere, error instead of prompting when stdin is not a terminal, `--yes` covers every prompt. (S) [ux 10.4](analysis/06-cli-ux-and-docs.md)
 - [ ] Documented exit codes. (S) [ux 10.5](analysis/06-cli-ux-and-docs.md)

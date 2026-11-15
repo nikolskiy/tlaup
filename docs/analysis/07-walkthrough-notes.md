@@ -1,17 +1,17 @@
 # Walkthrough notes and decisions
 
-Recorded 2026-11-10 to 2026-11-14 during a spoken walkthrough of the analysis commit (`acd12fd`: summary, roadmap, reports 01-06). These are the maintainer's notes and decisions. Nothing here has been applied to the roadmap or the code yet.
+Recorded 2026-11-10 to 2026-11-14 during a spoken walkthrough of the analysis commit (`b922ab5`: summary, roadmap, reports 01-06). These are the maintainer's notes and decisions. Nothing here has been applied to the roadmap or the code yet.
 
 Each note says where it came up. "Decided" means the maintainer agreed explicitly; "Raised, not decided" at the end lists points that came up but were not settled, for the completeness pass to clarify.
 
 ## 0. First steps
 
-1. **Install `gh` and log in before anything else.** Several items depend on it (release script CI check, repository settings). (Roadmap, milestone 2, branch model)
-2. **After `gh` works, verify everything the reports could not check**: branch and tag protection or rulesets, `pypi` environment protection rules, default `GITHUB_TOKEN` permissions, secret scanning and push protection, Dependabot alerts, which Python CI actually uses, causes of the failed release runs (v0.3.0, v0.4.0, Test on `dcdd909`). (Packaging report, sections 4.7, 8, 11) Done 2026-11-14; results below.
+1. **Done 2026-11-14.** **Install `gh` and log in before anything else.** Several items depend on it (release script CI check, repository settings). (Roadmap, milestone 2, branch model)
+2. **After `gh` works, verify everything the reports could not check**: branch and tag protection or rulesets, `pypi` environment protection rules, default `GITHUB_TOKEN` permissions, secret scanning and push protection, Dependabot alerts, which Python CI actually uses, causes of the failed release runs (v0.3.0, v0.4.0, Test on `6681e42`). (Packaging report, sections 4.7, 8, 11) Done 2026-11-14; results below.
 
 ### Verified with `gh` on 2026-11-14
 
-Read-only checks against `nikolskiy/tlaplus-cli`; no setting was changed.
+Read-only checks against the old `nikolskiy/tlaplus-cli` repository; no setting was changed there.
 
 | Item | Finding |
 | --- | --- |
@@ -26,9 +26,26 @@ Read-only checks against `nikolskiy/tlaplus-cli`; no setting was changed.
 | Private vulnerability reporting | Disabled. Relevant to the suggested two-line `SECURITY.md`, which would point to it. |
 | Code scanning | No analysis configured. |
 | Which Python CI uses | Not determinable: GitHub returns HTTP 410 for all run logs, including the latest run (2026-08-13); log retention has expired. Still inferred as 3.13 via `uv` and `.python-version`. |
-| Causes of failed runs | Logs expired, and step data is gone for older runs. What remains: v0.8.0 failed at "Run tests" (publish skipped). v0.2.0, v0.3.0 and v0.4.0 failed in `build-release` (publish skipped), step unknown. v0.1.3 to v0.1.6 built successfully and failed in `pypi-publish`, which confirms the orphaned GitHub Releases. Test also failed on `main` at `4d8035f`, `e23492e`, `529a2ba`, `dcdd909`, `12d716e` and `b97c97f`. |
+| Causes of failed runs | Logs expired, and step data is gone for older runs. What remains: v0.8.0 failed at "Run tests" (publish skipped). v0.2.0, v0.3.0 and v0.4.0 failed in `build-release` (publish skipped), step unknown. v0.1.3 to v0.1.6 built successfully and failed in `pypi-publish`, which confirms the orphaned GitHub Releases. Test also failed on `main` at `73b0199`, `770c0b7`, `5213351`, `6681e42`, `029faa9` and `bfaffdf`. |
 
 Consequences for the roadmap: the Dependabot note (32) needs alerts switched on as well as security updates; the tag ruleset and the `pypi` environment policy (deploy only from `v*` tags, optional required reviewer) are not in place yet; private vulnerability reporting needs enabling if `SECURITY.md` is added. A future failure diagnosis will need logs captured before the retention window closes.
+
+### This repository's settings, set 2026-11-14
+
+Created as `nikolskiy/tlaup` (note 8) with these settings from the start:
+
+| Item | Setting |
+| --- | --- |
+| `main` | Ruleset: no deletion, no force push. No required pull requests or checks yet. |
+| `v*` tags | Ruleset: no deletion, no moving. No bypass, not even for admins. |
+| `pypi` environment | Deploys only from `v*` tags. No required reviewer yet; admin bypass is on, which only matters once a reviewer is added. |
+| PyPI | Trusted publisher for `tlaup`: this repository, `release.yml`, environment `pypi`. |
+| Dependabot | Alerts and security updates on. |
+| Private vulnerability reporting | On. |
+| Secret scanning | On, with push protection. |
+| Workflow token | Read-only default, cannot approve pull requests. |
+
+History was pushed with author and committer emails, and the author email in `pyproject.toml`, rewritten to the GitHub noreply address, because GitHub blocks pushes that expose a private email. Every commit id therefore differs from the old repository.
 
 ## 1. How the work is done
 
@@ -52,20 +69,20 @@ Consequences for the roadmap: the Dependabot note (32) needs alerts switched on 
 ## 2. Roadmap rewording
 
 7. **Guiding principle**: broaden it. The tool brings the TLA+ tools together and helps them work together: version management including rolling builds, managing your own modules (add, list, remove), running TLC and the other tools. Reproducibility and rolling builds are important but not the only thing. (Roadmap, documentation track)
-8. **Decision D1**: package and binary are both `tlaup`, so it is clear what is where. (Roadmap, milestone 1b, new name)
+8. **Decision D1**: package and binary are both `tlaup`, so it is clear what is where. Status 2026-11-14: steps 1 to 5 below are done and `tlaup` 0.8.2 is on PyPI; retiring `tlaplus-cli` is in progress. (Roadmap, milestone 1b, new name)
    - Claim `tlaup` on PyPI now, before someone else takes it. A pending publisher does not reserve the name; only the first upload does, and PyPI discourages empty placeholders, so the claim is a small real release. (Name still free on PyPI and TestPyPI on 2026-11-14.)
    - Move to a new GitHub repository, `tlaup`, instead of renaming the old one (decided 2026-11-14; replaces the earlier thin-wrapper idea). Order:
-     1. Create the new repository and set its minimal settings first: rules on `main`, a ruleset protecting `v*` tags, the `pypi` environment limited to `v*` tags, Dependabot alerts and security updates, private vulnerability reporting, secret scanning with push protection.
-     2. Add a pending trusted publisher for `tlaup` on PyPI pointing at the new repository, workflow `release.yml`, environment `pypi` (maintainer, in the PyPI web interface).
-     3. Push the existing history into the new repository (not a fresh copy), so commits, tags and the changelog carry over. Stars, open issues and GitHub's rename redirect are lost; acceptable with few users.
-     4. First `tlaup` release: today's code with only the name changed, continuing the numbering (0.8.2), so 0.9 stays the big release.
-     5. All roadmap work then happens in the new repository.
+     1. Done. Create the new repository and set its minimal settings first: rules on `main`, a ruleset protecting `v*` tags, the `pypi` environment limited to `v*` tags, Dependabot alerts and security updates, private vulnerability reporting, secret scanning with push protection.
+     2. Done. Add a pending trusted publisher for `tlaup` on PyPI pointing at the new repository, workflow `release.yml`, environment `pypi` (maintainer, in the PyPI web interface).
+     3. Done, with emails rewritten (see the settings table under note 2). Push the existing history into the new repository (not a fresh copy), so commits, tags and the changelog carry over. Stars, open issues and GitHub's rename redirect are lost; acceptable with few users.
+     4. Done: 0.8.2 released 2026-11-14, after refreshing the lock file (note 32). First `tlaup` release: today's code with only the name changed, continuing the numbering (0.8.2), so 0.9 stays the big release.
+     5. All roadmap work then happens in the new repository. The analysis and these notes moved here too; the old repository's `dev` branch was not pushed.
    - Retire `tlaplus-cli` with one final maintenance release from the old repository, then archive that repository:
      - the package depends on `tlaup`, so upgrading moves users over without action;
-     - the old command prints a one-line notice: now called `tlaup`, install that instead;
+     - the old command prints a one-line notice (now called `tlaup`, install that instead) and then runs the same command through `tlaup`, so existing scripts keep working (decided 2026-11-14; a `uv tool` install does not expose a dependency's own command);
      - the PyPI description says the same in its first line, and the status classifier becomes `Development Status :: 7 - Inactive`;
      - after publishing, mark the project as archived on PyPI. Do not yank old versions (it breaks pinned installs and helps no one).
-   - Drop the `tla` command right away, with no deprecated alias. Document the change in the changelog and on the GitHub release page.
+   - Done in 0.8.2. Drop the `tla` command right away, with no deprecated alias. Document the change in the changelog and on the GitHub release page.
 9. **Decision D3**: the live display is a reporter built on the separate parser package (see note 12). It is one of several reporters: a live terminal one, one for AI, maybe others later such as writing to a file. Its consequence column should stop describing the display as coupled to parser correctness. (Merit report, what to drop)
 10. **The VS Code extension is an inspiration, not a parity target.** It was the example of nicer TLC output; the tool can go beyond it, and missing some of its features is fine. (Roadmap, milestone 1)
 11. **Risks section**:
@@ -121,17 +138,17 @@ Consequences for the roadmap: the Dependabot note (32) needs alerts switched on 
 
 ### Milestone 2
 
-30. Remove the Nix flake: it was a one-off and never kept up to date. Replace the roadmap's Nix item and remove the Nix install line from the README. (Summary; milestone 2)
+30. **Done 2026-11-14 in 0.8.2.** Remove the Nix flake: it was a one-off and never kept up to date. Replace the roadmap's Nix item and remove the Nix install line from the README. (Summary; milestone 2)
 31. Branch model and CI:
     - CI runs on every push to `main` and on pull requests; the integration job runs on every push too.
     - Integration matrix trimmed to Java 11 and 25 (oldest and newest), against both pinned TLC builds; widen later if other versions need support. GitHub-hosted runners, macOS included (free for public repositories).
 32. Dependencies:
-    - Dependabot security alerts and security updates on.
+    - Dependabot security alerts and security updates on. Done 2026-11-14 in this repository.
     - A monthly Dependabot run that groups all version updates into one pull request, instead of one per release.
-    - Refresh the lock file before each release and let CI run before tagging.
+    - Refresh the lock file before each release and let CI run before tagging. Done for 0.8.2; it cleared all 44 alerts and needed two small fixes (Typer 0.29's test runner has no `isolated_filesystem`; ruff 0.17's new PLR0917 rule).
     - Keep `uv sync --locked` and read-only workflow permissions (confirmed).
 33. Build fixes as their own items: `setuptools>=77.0.3`, a real Pydantic minimum, remove the `rich<14` cap (kept even though the flake goes), delete the redundant `MANIFEST.in`, and one CI check that installs the newest allowed dependency versions. (Packaging 1.1, 1.2, 1.3)
-34. Release workflow security: the full three-job split (read-only build, PyPI publish with id-token only, release page with write access and no project code), `persist-credentials: false` on checkout, pin by SHA or replace the actions with write access (`gh release create` instead of the third-party release action), `timeout-minutes` on every job. (Packaging 4.5)
+34. Release workflow security: the full three-job split (read-only build, PyPI publish with id-token only, release page with write access and no project code), `persist-credentials: false` on checkout, pin by SHA or replace the actions with write access (`gh release create` instead of the third-party release action), `timeout-minutes` on every job. (Packaging 4.5) The 0.8.2 release page also shows why: it carries a stray `default.gitignore` asset because the release action uploads everything in `dist/`, including the `.gitignore` that `uv build` writes there.
 35. Release pages:
     - Each GitHub release page gets that version's changelog section as its text.
     - Backfill existing release pages from the changelog.
@@ -186,7 +203,7 @@ For the completeness pass to include or clarify:
 - UX smaller defects: upgrade by name compares only the first of several builds; installing a newer rolling build beside an older one does not move the pin; stale legacy cache file.
 - UI printing from domain code and the 21 hand-written error prints (architecture finding 6).
 - Small organisation items from architecture finding 8 (tiny files, two registration styles, misnamed modules, hard-coded values that config pretends to control).
-- Pre-commit: move pytest to pre-push, add a format hook, whole-project mypy; widen `poe clean`; `.gitignore` gaps; align Python versions; a two-line `SECURITY.md`.
-- PyPI environment protection, tag ruleset, annotated or signed tags. Verified 2026-11-14 that none of the protections exist yet; secret scanning and push protection are already on (note 2).
+- Pre-commit: move pytest to pre-push, add a format hook, whole-project mypy; widen `poe clean`; `.gitignore` gaps; align Python versions; a two-line `SECURITY.md` (private vulnerability reporting is now on, note 2).
+- Annotated or signed tags, and a required reviewer on the `pypi` environment. The environment tag policy and the tag ruleset are in place in this repository since 2026-11-14 (note 2).
 - Whether CommunityModules builds are triggered by upstream TLC builds (would tighten date matching).
 - An override that fails to load should be reported clearly.
