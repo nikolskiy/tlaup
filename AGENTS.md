@@ -1,16 +1,15 @@
 # Instructions for AI agents
 
-`tlaup` is a command-line tool for TLA+: it installs and pins `tla2tools.jar` builds, compiles Java operator-override modules, and runs TLC with formatted output. Its purpose is a reproducible TLA+ toolchain, the same jar and modules on every machine. It was called `tlaplus-cli` (command `tla`) until 0.8.2; that project is archived and only forwards to this one.
+`tlaup` is a command-line tool for TLA+: it installs and pins `tla2tools.jar` builds, compiles Java operator-override modules, and runs TLC with formatted output. Its purpose is to bring the TLA+ tools together and help them work together; a reproducible toolchain, the same jar and modules on every machine, is an important part of that but not all of it. It was called `tlaplus-cli` (command `tla`) until 0.8.2; that project is archived and only forwards to this one.
 
 ## Start here
 
 Read these before planning or changing anything:
 
 1. `docs/analysis/00-summary.md`: what the six analysis reports found, with links to each report.
-2. `docs/roadmap.md`: the decisions (D1 to D5) and the milestones. Ticked items are done; dated notes record partial progress.
-3. `docs/analysis/07-walkthrough-notes.md`: decisions made with the maintainer after the reports. Note 4 describes how the work is done: a five-stage agent pipeline (completeness pass, investigation, design in waves, work packages, workers) with review gates between stages. The "Raised, not decided" list at the end is input for the completeness pass.
+2. `docs/roadmap.md`: the single source of truth. It holds the purpose, how the work is done (a five-stage agent pipeline: completeness pass, investigation, design in waves, work packages, workers, with review gates between stages), the decisions (D1 to D27), the milestones and the investigation list. Ticked items are done; dated notes record partial progress.
 
-Until the completeness pass (pipeline stage 1) is finished, the notes are newer than the roadmap and win where they disagree. Once it is finished, the roadmap is the single source of truth, the notes are history, and later stages read only the roadmap and the design documents. Stages 1, 3 and 4 end with a review by a fresh agent and the maintainer's sign-off; do not start the next stage without it. Each worker pull request needs green CI and a separate agent's review before it merges.
+The completeness pass (pipeline stage 1) was reviewed and signed off on 2026-11-14. `docs/analysis/07-walkthrough-notes.md` is history: every decision in it is restated in the roadmap, nothing in it needs reading, and where the two differ the roadmap is right. Later stages read only the roadmap and the design documents. Stages 3 and 4 end with a review by a fresh agent and the maintainer's sign-off; do not start the next stage without it. Each worker pull request needs green CI and a separate agent's review before it merges.
 
 The analysis reports describe release 0.8.1. Line numbers in them may drift as code changes; check the source before relying on one.
 
@@ -20,6 +19,7 @@ The analysis reports describe release 0.8.1. Line numbers in them may drift as c
 - `src/tlaup/resources/default_config.yaml`: packaged defaults. Its top-level `tla:` key holds upstream TLA+ download URLs; it is not the application name.
 - `tests/unit/`: the default test suite. `tests/integration/`: needs Java and an installed jar, not run in CI yet.
 - `docs/examples/`: example specs, some with custom Java modules.
+- `docs/research/`: investigation results (pipeline stage 2), one file per question, indexed by its `README.md`. Created when stage 2 runs.
 
 Config, toolsets, modules and the run cache live in the platform's user folders under the name `tlaup` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`), set by `_APP_NAME` in `src/tlaup/config/loader.py`.
 
@@ -47,7 +47,8 @@ CI (`.github/workflows/test.yml`) runs lint and unit tests on every push to `mai
 - Commit and push only when the maintainer asks.
 - Commits use the GitHub noreply address `nikolskiy@users.noreply.github.com`. GitHub rejects pushes that expose a private email.
 - Every user-visible change gets a `CHANGELOG.md` entry in the same commit, under `## [Unreleased]`, using the Keep a Changelog headings plus `Breaking` and `Removed`. For a rename or removal, say what it was and what it is now.
-- No aliases or compatibility shims for old names, commands or folders. The project prefers clean breaks while it has few users (walkthrough notes 8 and 44).
+- No aliases, compatibility shims or migrations for old names, commands, folders or layouts. The project prefers clean breaks while it has few users (roadmap decision D14).
+- From 0.9.0 on, minor versions carry breaking changes and features, and patch versions carry only fixes (roadmap decision D27).
 - Line length is 120; target Python is 3.11; mypy runs in strict mode on `src`.
 - Keep documentation plain and specific: say what was checked and what was not.
 
