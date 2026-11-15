@@ -19,3 +19,37 @@ lib/*.jar
 # Compiled classes
 classes/
 states/
+
+# Machine and personal files (also refused by the no-machine-files hook)
+hs_err_pid*.log
+replay_pid*.log
+*.hprof
+*.jfr
+core
+core.[0-9]*
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.ppk
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+.netrc
+.pypirc
+.bash_history
+.zsh_history
+.python_history
+history.repl
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.sw[op]
+**/.claude/settings.local.json

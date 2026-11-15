@@ -50,6 +50,8 @@ CI (`.github/workflows/test.yml`) runs lint and unit tests on every push to `mai
 - No aliases, compatibility shims or migrations for old names, commands, folders or layouts. The project prefers clean breaks while it has few users (roadmap decision D14).
 - From 0.9.0 on, minor versions carry breaking changes and features, and patch versions carry only fixes (roadmap decision D27).
 - Line length is 120; target Python is 3.11; mypy runs in strict mode on `src`.
+- When `detect-secrets` flags something, check the value. If it is a false positive, exclude only that value or that exact line shape (an `exclude_lines` pattern in `.secrets.baseline`), never a whole file or folder. Linters such as ruff may skip a folder.
+- Never commit personal or machine-specific data: home folder paths, agent scratch paths, IP or MAC addresses, email addresses other than GitHub noreply ones, shell prompts showing a user and host, or local network host names. Use placeholders such as `<repo>` and `<tmp>` in captured output. The `no-*` hooks in `.pre-commit-config.yaml` check for them; an exception names the exact value in the hook's pattern (as `127.0.0.1` and `git@github.com` are) and is only for a value that is the same on every machine or is a public address. The `no-machine-files` hook and `.gitignore` also refuse whole files that carry such data: JVM crash logs, heap dumps, `.env` files, keys, stored credentials, shell and REPL history, editor settings and `.claude/settings.local.json`.
 - Keep documentation plain and specific: say what was checked and what was not.
 
 ## Releases

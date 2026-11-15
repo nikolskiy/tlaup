@@ -7,6 +7,88 @@ repos:
         language: system
         types: [text]
 
+      # Machine-specific data has no place in this public repository. Each
+      # pattern lists its exceptions by name; add a new one only for a value
+      # that is the same on every machine.
+      # The patterns and their examples live in this file, so it is excluded.
+      - id: no-home-paths
+        name: No home folder or agent scratch paths
+        # /home/x, /Users/x, /root/, macOS /var/folders/x, /run/user/N,
+        # C:\Users\, and Claude Code scratch folders /tmp/claude-N.
+        language: pygrep
+        entry: '(?<![\w.])(?:/home|/Users|/var/folders|/run/user)/[A-Za-z0-9._-]+|(?<![\w.])/root/|(?<!\w)[A-Za-z]:[\\/]+Users[\\/]|/tmp/claude-[0-9]+'
+        types: [text]
+        exclude: ^\.pre-commit-config\.yaml$
+
+      - id: no-ip-addresses
+        name: No IP addresses
+        # IPv4 except 127.0.0.1 and version pins such as >=6.0.12.12; IPv6 in
+        # full form or compressed with a digit and a group of 3+ characters,
+        # so Python slices such as a[1::2] do not match.
+        language: pygrep
+        entry: '(?<![\w.<>=~])(?!127\.0\.0\.1(?!\w|\.\d))(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\w|\.\d)|(?<![\w:])(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}(?![\w:])|(?<![\w:])(?=[0-9A-Fa-f:]*\d)(?=[0-9A-Fa-f:]*[0-9A-Fa-f]{3})(?:[0-9A-Fa-f]{1,4}:){1,6}(?::[0-9A-Fa-f]{1,4}){1,6}(?![\w:])'
+        types: [text]
+        exclude: ^\.pre-commit-config\.yaml$
+
+      - id: no-mac-addresses
+        name: No MAC addresses
+        # aa:bb:cc:dd:ee:ff, or aa-bb-cc-dd-ee-ff with at least one hex letter,
+        # so TLC metadir timestamps such as 26-11-14-22-32-49 do not match.
+        language: pygrep
+        entry: '(?<![\w:])[0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5}(?![\w:])|(?<![\w-])(?=[0-9-]{0,16}[A-Fa-f])[0-9A-Fa-f]{2}(?:-[0-9A-Fa-f]{2}){5}(?![\w-])'
+        types: [text]
+        exclude: ^\.pre-commit-config\.yaml$
+
+      - id: no-email-addresses
+        name: No email addresses
+        # Allowed: GitHub noreply addresses, GitHub's SSH address git@github.com,
+        # and two public upstream service addresses quoted from the TLA+ build
+        # workflow.
+        language: pygrep
+        entry: '(?<![\w.%+-])(?!(?:github@upload\.tlapl\.us|tlaplus-action@github\.com|git@github\.com)(?!\.?[\w-]))[A-Za-z0-9._%+-]+@(?![\w-]+\.users\.noreply\.github\.com(?!\.?[\w-])|users\.noreply\.github\.com(?!\.?[\w-]))[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}'
+        types: [text]
+        exclude: ^\.pre-commit-config\.yaml$
+
+      - id: no-shell-prompts
+        name: No shell prompts with user and host
+        # user@host:~ or user@host:/path, and [user@host dir]$ as pasted from
+        # a terminal.
+        language: pygrep
+        entry: '(?<![\w.-])[a-z_][a-z0-9_-]*@[A-Za-z0-9-]+:[~/]|\[[a-z_][a-z0-9_-]*@[A-Za-z0-9-]+ [^\]]*\][$#]'
+        types: [text]
+        exclude: ^\.pre-commit-config\.yaml$
+
+      - id: no-local-hostnames
+        name: No local network host names
+        # Names ending in .local, .lan, .internal, .localdomain, .intranet,
+        # .corp or .home.arpa. Not when followed by a word character, a bracket
+        # or a dot and a word character, so Java packages such as
+        # jdk.internal.reflect and code such as threading.local() pass.
+        language: pygrep
+        entry: '(?<![\w.-])[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.(?:local|lan|internal|localdomain|intranet|corp|home\.arpa)(?![\w(\[-]|\.\w)'
+        types: [text]
+        exclude: ^\.pre-commit-config\.yaml$
+
+      - id: no-machine-files
+        name: No crash logs, dumps, credentials or personal settings
+        # Refuses whole files that carry machine or personal details. The
+        # same names are in .gitignore; this also stops a forced add.
+        language: fail
+        entry: 'This kind of file holds machine or personal details and must not be committed:'
+        files: |
+          (?x)(^|/)(
+            hs_err_pid\d+\.log | replay_pid\d+\.log      # JVM crash logs: full environment
+            | [^/]+\.(hprof|jfr)                         # heap dumps, flight recordings
+            | core(\.\d+)?                               # core dumps
+            | \.env(\.(?!example$)[^/]+)?                # .env files, except .env.example
+            | [^/]+\.(pem|key|p12|pfx|jks|keystore|ppk)  # keys and keystores
+            | id_(rsa|dsa|ecdsa|ed25519)(\.pub)?         # SSH keys
+            | \.netrc | \.pypirc                         # stored credentials
+            | \.(bash|zsh|python)_history | history\.repl  # shell, Python and TLA+ REPL history
+            | \.idea/.* | \.vscode/.* | \.DS_Store | Thumbs\.db | [^/]+\.sw[op]  # editor and OS files
+            | \.claude/settings\.local\.json             # personal Claude Code settings
+          )$
+
       - id: check-added-large-files
         name: Check for added large files
         entry: uv run check-added-large-files
