@@ -69,7 +69,7 @@ History was pushed with author and committer emails, and the author email in `py
 ## 2. Roadmap rewording
 
 7. **Guiding principle**: broaden it. The tool brings the TLA+ tools together and helps them work together: version management including rolling builds, managing your own modules (add, list, remove), running TLC and the other tools. Reproducibility and rolling builds are important but not the only thing. (Roadmap, documentation track)
-8. **Decision D1**: package and binary are both `tlaup`, so it is clear what is where. Status 2026-11-14: steps 1 to 5 below are done and `tlaup` 0.8.2 is on PyPI; retiring `tlaplus-cli` is in progress. (Roadmap, milestone 1b, new name)
+8. **Decision D1**: package and binary are both `tlaup`, so it is clear what is where. Status 2026-11-14: steps 1 to 5 below are done and `tlaup` 0.8.2 is on PyPI. `tlaplus-cli` 0.8.3, the forwarding release, is on PyPI and the old repository is archived; marking the PyPI project as archived is left to the maintainer. (Roadmap, milestone 1b, new name)
    - Claim `tlaup` on PyPI now, before someone else takes it. A pending publisher does not reserve the name; only the first upload does, and PyPI discourages empty placeholders, so the claim is a small real release. (Name still free on PyPI and TestPyPI on 2026-11-14.)
    - Move to a new GitHub repository, `tlaup`, instead of renaming the old one (decided 2026-11-14; replaces the earlier thin-wrapper idea). Order:
      1. Done. Create the new repository and set its minimal settings first: rules on `main`, a ruleset protecting `v*` tags, the `pypi` environment limited to `v*` tags, Dependabot alerts and security updates, private vulnerability reporting, secret scanning with push protection.
@@ -77,7 +77,7 @@ History was pushed with author and committer emails, and the author email in `py
      3. Done, with emails rewritten (see the settings table under note 2). Push the existing history into the new repository (not a fresh copy), so commits, tags and the changelog carry over. Stars, open issues and GitHub's rename redirect are lost; acceptable with few users.
      4. Done: 0.8.2 released 2026-11-14, after refreshing the lock file (note 32). First `tlaup` release: today's code with only the name changed, continuing the numbering (0.8.2), so 0.9 stays the big release.
      5. All roadmap work then happens in the new repository. The analysis and these notes moved here too; the old repository's `dev` branch was not pushed.
-   - Retire `tlaplus-cli` with one final maintenance release from the old repository, then archive that repository:
+   - Done 2026-11-14 except the PyPI archive flag. Retire `tlaplus-cli` with one final maintenance release from the old repository, then archive that repository:
      - the package depends on `tlaup`, so upgrading moves users over without action;
      - the old command prints a one-line notice (now called `tlaup`, install that instead) and then runs the same command through `tlaup`, so existing scripts keep working (decided 2026-11-14; a `uv tool` install does not expose a dependency's own command);
      - the PyPI description says the same in its first line, and the status classifier becomes `Development Status :: 7 - Inactive`;
