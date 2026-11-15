@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Breaking
+- Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tools install` and `tlaup modules add` again. The old `tla` folders are not touched and can be deleted.
+
 ## [0.8.2] - 2026-11-14
 
 The project is renamed from `tlaplus-cli` to `tlaup` and moves to a new repository, github.com/nikolskiy/tlaup. Apart from the name, the code is the same as 0.8.1.

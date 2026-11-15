@@ -3,7 +3,8 @@
 Command-line tool for working with TLA+ specifications and the TLC model checker.
 
 > **Formerly `tlaplus-cli`.** The project, the PyPI package and the command were renamed to `tlaup` in 0.8.2.
-> The old `tla` command is gone; use `tlaup` instead. Installed toolsets, modules and config are kept where they were.
+> The old `tla` command is gone; use `tlaup` instead. From the next release `tlaup` keeps its toolsets, modules and config in its own `tlaup` folders,
+> so install toolsets and add modules again. Nothing is moved over; the old `tla` folders (on Linux `~/.config/tla` and `~/.cache/tla`) can be deleted.
 
 ## Project Goals
 

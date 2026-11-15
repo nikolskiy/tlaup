@@ -7,7 +7,7 @@ import yaml
 
 from tlaup.config.schema import Settings
 
-_APP_NAME = "tla"
+_APP_NAME = "tlaup"
 
 
 @lru_cache(maxsize=1)

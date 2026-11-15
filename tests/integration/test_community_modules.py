@@ -10,7 +10,7 @@ from tlaup.tlc.models import CheckState
 
 
 def find_real_tla2tools_jar() -> Path | None:
-    real_tools_dir = Path.home() / ".cache" / "tla" / "tools"
+    real_tools_dir = Path.home() / ".cache" / "tlaup" / "tools"
     if real_tools_dir.is_dir():
         for jar_path in real_tools_dir.glob("**/tla2tools.jar"):
             if jar_path.exists():

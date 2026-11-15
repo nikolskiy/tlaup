@@ -20,7 +20,7 @@ def test_modules_add_success(mocker, tmp_path, runner):
     # Mock tool jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaup.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.cmd.modules.add.get_tlc_jar_path", return_value=tla2tools)
 
     # Mock compiler subprocess.run to avoid actual execution but let it pretend success
     mocker.patch("subprocess.run")
@@ -92,7 +92,7 @@ def test_modules_add_compilation_failure(mocker, tmp_path, runner):
     # Mock tool jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaup.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.cmd.modules.add.get_tlc_jar_path", return_value=tla2tools)
 
     # Mock compiler to throw CalledProcessError
     err = subprocess.CalledProcessError(
@@ -259,7 +259,7 @@ def test_modules_add_nested_overrides(mocker, tmp_path, runner):
     # Mock tool jar
     tla2tools = tmp_path / "tla2tools.jar"
     tla2tools.touch()
-    mocker.patch("tlaup.tlc.compiler.get_tlc_jar_path", return_value=tla2tools)
+    mocker.patch("tlaup.cmd.modules.add.get_tlc_jar_path", return_value=tla2tools)
 
     # Mock compiler subprocess.run
     mocker.patch("subprocess.run")
