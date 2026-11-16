@@ -1,0 +1,203 @@
+# 21. Milestone 1b: sany, pcal, repl
+
+Covers "Other tools (decision D5)". Relies on decisions D5, D22, D29, D30, D45 and research [12](../research/12-sany-pcal-repl.md) and [3](../research/03-jar-identity-and-upstream-cli.md). Everything runs through the launcher ([20 G3](20-groundwork.md#g3-java-launcher)) and uses the preflight steps of `tlc` in the same order ([11 R11](11-runner.md#r11-preflight)): the spec (for `sany` and `pcal`), then the tool build, then Java.
+
+The three commands share one small shape, in `tlaup/tools/`:
+
+```python
+@dataclass(frozen=True)
+class ToolInvocation:
+    build: Build; java: JavaRuntime
+    main_class: str
+    spec: Path | None
+    cwd: Path | None
+    classpath: tuple[Path, ...]; tla_library: tuple[Path, ...]; jvm_options: tuple[str, ...]
+    args: tuple[str, ...]
+    warnings: tuple[str, ...]          # from finding Java (13 J2, J3)
+
+def resolve_tool_invocation(tool: Literal["sany", "pcal", "repl"], spec: str | None, *,
+                            java_opts: Sequence[str], extra_args: Sequence[str],
+                            paths: AppPaths, settings: Settings, env: Mapping[str, str], cwd: Path,
+                            get_build: Callable[[], Build]) -> ToolInvocation
+def build_tool_command(inv: ToolInvocation) -> JavaInvocation      # pure
+```
+
+`resolve_tool_invocation` is the preflight of these commands: first the checks that need only the command line (the Java options, and for `sany` the refusal of `-d`, S1), so a usage error comes before any prompt ([11 R11](11-runner.md#r11-preflight), step 0); then `resolve_spec` ([11 R5](11-runner.md#r5-spec-names)) when the tool takes one, then `get_build()`, then the capability check (is this tool in this build: `ToolNotInBuild`, code 3), then `require_java`. The capability is stored with the build ([12 V5](12-tools-and-downloads.md#v5-download-and-verify)) and needs no Java, so it is checked as part of the build step and `java` is not started, not even for its version, when the build cannot run the tool. This agrees with decision D45's order (spec, cfg, build, Java): the capability is a fact about the build. `tlc` has no such check, since every build has TLC, so [11 R11](11-runner.md#r11-preflight) is unchanged. As for `tlc`, it takes the pieces it needs and not the whole context, and `get_build` is the command's wrapper round `ensure_tools` ([20 G1](20-groundwork.md#g1-tlc-invocation)).
+
+**Signals.** Each of the three commands runs its tool inside `signals_held` ([20 G3](20-groundwork.md#g3-java-launcher)), entered after the preflight and held until the command has printed what it prints. `sany` and `pcal` enter it plainly and use `run_streaming`, so they behave as a parsed `tlc` run does: the first SIGINT, SIGTERM or SIGHUP terminates the tool, a second one or the grace period kills it, a signal before the tool exists means it is not started, and the command exits with the signal's code from [02 X1](02-cross-cutting.md#x1-exit-codes) (130, 143, 129) whatever the tool returned. The diagnostics the parser had completed by then are printed; no summary line is. What an interrupted PlusCal translator leaves in the `.tla` file is the translator's business and was not tried. `repl` enters the block with `leave_interrupt=True` (S3): a Ctrl-C is never tlaup's to act on, also in the instant between entering the block and the REPL's start, where it is simply dropped and the REPL starts; SIGTERM and SIGHUP in that instant are recorded and the REPL is not started.
+
+All three accept `--java-opt` ([13 J1](13-modules-and-java.md#j1-java-options)) and `--auto-install` ([12 V9](12-tools-and-downloads.md#v9-first-run-prompt)), and pass the tool's own arguments (everything after `--`) to the tool unchanged.
+
+## S1 sany
+
+Roadmap: "`sany` command: parse a spec and report diagnostics with file, line and column. Reuses the fixed SANY parser."
+
+**Problem.** There is no way to check a spec for syntax and semantic errors with the pinned jar short of starting a model-checking run, and SANY's own exit code says 0 for a spec with semantic errors.
+
+**Facts (research 12).** SANY has no machine-readable diagnostics. Its error lines carry a module name and a line and column, never a file; some errors have no location. Semantic and level errors exit 0; parse errors, a missing module and a missing file exit 255. Rolling builds have `-error-codes`, which makes semantic errors exit 4; v1.7.4 rejects it. Output is on stdout, with one exception: for a missing module v1.7.4 writes one line to stderr. The captures were made with the two streams joined (`2>&1`), so they do not record which line that is. The runs were made in the spec's folder with the file name and the jar alone on the classpath. With `-d` and no input SANY prints its prompt in a loop for ever (143 MB before the research run was killed).
+
+**Design.** `tlaup sany SPEC [-- SANY arguments]`.
+
+1. Preflight: the command line (step 7), spec ([11 R5](11-runner.md#r5-spec-names)), build, Java.
+2. Run `tla2sany.SANY <extra args> <Spec.tla>` with the working folder set to the spec's folder, and the same classpath and `-DTLA-Library` a TLC run of that spec would get, so that modules resolve the same way in both commands.
+
+   **Waiting on question 27.** Research 12 ran standalone SANY with the jar alone; whether it honours `-DTLA-Library` and extra classpath entries the way TLC does was not run. If it does not, `tlaup sany` cannot see registered modules, the help says so, and step 2 passes the jar alone.
+3. SANY's two streams are read through one pipe (`run_streaming(..., merge_stderr=True)`, [20 G3](20-groundwork.md#g3-java-launcher)), which is how the research captured them, and fed to a `SanyParser` ([10 P8](10-parser.md#p8-sany-output)). The parser then sees the lines in the order SANY wrote them, and the v1.7.4 line that goes to stderr is not lost or reordered.
+
+   The parser gives every line it is fed a class; the table of classes is P8's and is the authority, and this command only routes by it:
+
+   | The line is | The command |
+   | --- | --- |
+   | Part of a diagnostic | Prints nothing for the line; the diagnostic is printed whole (step 4) |
+   | SANY's banner, or a progress line (`Parsing file ...`, `Semantic processing of module ...`) | Writes it to stderr as SANY wrote it (D30: progress) |
+   | Blank | Drops it |
+   | Anything else, which is every line the parser does not recognise | Writes it to stdout as SANY wrote it (D9: nothing TLC or SANY printed is lost) |
+
+   The command decides nothing about a line itself: it never matches SANY's text. If P8 names its classes differently or has more of them, each of them falls in one of these four rows, and a class P8 adds later is routed as "anything else" until this table says otherwise.
+
+   **Waiting on question 22** for the two streams recorded apart. If the stderr line turns out not to be part of the diagnostic, the streams can be read separately like TLC's; nothing else in the item changes.
+4. Print each diagnostic on stdout in the editor form (D22, D30):
+
+   ```
+   SemErr.tla:4:13: error: Unknown operator: `y'.
+   ParseErr.tla:4:9: error: Was expecting "Expression or Instance"; Encountered "Beginning of definition" at line 4, column 9 and token "=="
+   MissingMod.tla: error: Cannot find source file for module NoSuchModule imported in module MissingMod.
+   Pcal.tla: warning: The PlusCal algorithm in module Pcal has changed since its last translation.
+   ```
+
+   The path is the file SANY announced for the diagnostic's module, written relative to the folder tlaup was started from when it is beneath it, else absolute. A diagnostic whose module was not announced gets the spec's own path. A diagnostic with no location has no `:line:col`. The lines of a message are joined with `; `, as SANY wrote them, so one diagnostic is one line for tools that read this format; what the parser keeps apart from the message (the residual stack of a parse error) follows indented.
+5. A last line on stderr: `1 error, 0 warnings` or `no errors`.
+6. **Exit code** (D29): 150 if any diagnostic has severity `error`; otherwise SANY's own code. A warning alone does not change the code. The severity is the parser's (P8). No `-error-codes` is added: one rule for both builds, from the parsed output.
+
+   One case needs saying: SANY prints its warning-level message 4802 ("Non-unique fields in constructor.") under "Semantic errors" with nothing in the text to tell it from an error (research 12). Whether the parser classes it as a warning by its text is P8's rule and one of the golden cases of S5; what TLC itself returns for a spec whose only finding is that message is part of question 22.
+7. **`-d` is refused.** `tlaup sany SPEC -- -d` is a `UsageError`: the command runs SANY with no input, where `-d` loops for ever. The hint names the way to run it: with Java directly, on the jar `tlaup tools path` prints, or with the generic exec command once milestone 4 adds it. This is the only SANY argument tlaup looks at, and it is looked at before anything else is checked, so the refusal comes before a first-run prompt.
+
+   The refusal matches an argument that is exactly `-d`. Matching more loosely, on any dash group that holds a `d`, would refuse `-error-codes`. Whether SANY also takes `-D`, or grouped flags such as `-dl`, as the same switch was not run. **Waiting on question 22**; if it does, those spellings are refused too, and until then one of them would start the loop the refusal exists to prevent.
+
+One spec per invocation in the first wave. SANY accepts several files, but they can be in different folders and step 2 depends on the folder.
+
+**Thin, as decision D5 asks.** The command has no logic beyond reading SANY's output: it does not decide which messages matter, filter warnings, or re-check anything. The one judgement it makes is the exit code, which the research shows SANY's own cannot provide.
+
+**Rejected.** `-error-codes` on builds that have it: two behaviours to test, and a parse error is 255 with it anyway. `tla2sany.xml.XMLExporter` for structure: it gives errors as the same text, and fails on v1.7.4 with Java 25 (research 12). Several specs per call: see above; `xargs` or a shell loop does it. Reading stdout only: drops the v1.7.4 stderr line, and the replayed golden file, which holds both streams, would still pass. Passing `-d` through: floods the terminal until killed.
+
+**Tests.** `sany.feature`, in-process, with the fake `java` replaying the SANY golden outputs: a good spec gives exit 0 and an empty stdout; two semantic errors give two lines in the editor form and exit 150 although the replayed exit code is 0; a parse error gives one line and 150; a missing module gives a line with no position and 150, on the replay of each build; the PlusCal warning alone gives a warning line and exit 0; `-- -bogus` passes through and SANY's 255 with its own text comes back; `-- -d` exits 2 and starts nothing, also with no build installed (no prompt); the banner and progress lines of a replay are on stderr and not on stdout. The Java command logged has the file name as its last argument, and the fake `java` logs the folder it was started in, which is the spec's folder (this needs the fake to record its working folder, [01 T4](01-testing.md#t4-fakes-at-the-edges)). The replays carry `<tmp>` in place of the capture's folders, so the features assert the message, the position and the file name; the rule for the path in front (relative when beneath the starting folder) is a unit test of the formatting function with hand-built diagnostics. Integration: real SANY on both builds, including the missing module on v1.7.4, which is the run that shows the stderr line is not lost, and a spec that extends a registered module (question 27).
+
+**Changelog.** Added: "`tlaup sany SPEC` runs the SANY parser and prints its findings as `path:line:col: severity: message`. It exits 150 when the spec has errors."
+
+**Depends on.** G3, P8, R5, R11. **Risks.** SANY leaves an empty temporary folder per run on rolling builds (research 12); tlaup does not clean the system's temporary folder. With the two streams joined, a line the JVM itself writes to stderr (a warning about an option) reaches the parser, is not recognised, and is printed on stdout with SANY's other unrecognised lines.
+
+## S2 pcal
+
+Roadmap: "`pcal` command: run the PlusCal translator; passthrough for its flags."
+
+**Problem.** The translator is in the pinned jar and nothing in tlaup can start it.
+
+**Facts (research 12).** `pcal.trans` rewrites the `.tla` file in place, moves the previous file to `X.old`, and writes `X.cfg` unless `-nocfg`. An existing `X.cfg` is rewritten with no backup: the lines after its marker line are kept; in a cfg with no marker line the user's lines survive under a new marker but the generated `SPECIFICATION` line is dropped. Success is exit 0, failure 255, all text on stdout (stderr was empty in every run). Errors give a line and column but no file, and end in two full stops. `-writeAST` exits 255 after succeeding. It does not check TLA+ expressions inside the algorithm.
+
+**Design.** `tlaup pcal SPEC [-- translator arguments]`.
+
+1. Preflight: spec, build, Java.
+2. Run `pcal.trans <extra args> <Spec.tla>` in the spec's folder, with the jar alone on the classpath, the two streams read through one pipe as for `sany`.
+3. Feed the output to a `PcalParser`:
+
+   ```python
+   @dataclass
+   class PcalResult:
+       version: str | None
+       files_written: list[str]              # from "New file X written."
+       labels_added: list[tuple[str, int, int]]
+       diagnostics: list[Diagnostic]         # tool="pcal"
+       other: list[str]                      # lines not recognised, kept
+   ```
+
+   Recognised: the banner; `Parsing completed.`; `Translation completed.`; `New file X written.`; `Unrecoverable error:` followed by ` -- <message>` and optionally `line L, column C.` or `at line L, column C.`; `The following label was added:` and its lines.
+4. Print: each diagnostic on stdout in the editor form with the spec's path (`Pcal.tla:6:20: error: Expected "do" but found ":="`), the doubled full stop trimmed; unrecognised lines as written. On success a note on stderr per file: `Pcal.tla translated (previous version saved as Pcal.old)`, `Pcal.cfg written`.
+5. **Exit code**: the translator's, unchanged (D29), including 255 after `-writeAST`.
+
+`pcal` changes the user's files. That is what the command is for, and decision D23 adds no prompts. The first lines of the help text say what is written: the spec is rewritten in place and the previous version kept as `SPEC.old`; `SPEC.cfg` is written or rewritten with no backup, and `-- -nocfg` leaves it alone. tlaup adds no `-nocfg` itself.
+
+**Rejected.** Passing the output straight through with no parser: the roadmap asks for golden tests of PlusCal output, and the editor form is what lets an editor jump to the error. Copying the spec, translating the copy and comparing: logic the tool does not have upstream. Adding `-nocfg` by default to protect a hand-written cfg: changes what the translator does for everyone, and a first translation would then produce no cfg.
+
+**Tests.** `pcal.feature`, in-process, with the fake `java` replaying the pcal golden outputs: success gives exit 0 and the two notes; a syntax error gives one editor-form line and 255; `-- -nocfg` is in the logged command. The fake does not write files; that the three files appear, and what happens to an existing cfg with and without the marker line, is an integration test on a copy of a PlusCal spec, on both builds.
+
+**Changelog.** Added: "`tlaup pcal SPEC` runs the PlusCal translator. It rewrites the spec in place and keeps the previous version as `SPEC.old`, as the translator does. It also writes `SPEC.cfg`, replacing an existing one without a backup; pass `-- -nocfg` to keep yours."
+
+**Depends on.** G3, P2, R5. **Risks.** The `chksum` and the order of `VARIABLES` in the translation differ between builds (research 12); tlaup does not read the translated file, so only the golden outputs differ per build. Only two cases of an existing cfg were run by the research (with the marker line, and without).
+
+## S3 repl
+
+Roadmap: "`repl` command: interactive, so no output parsing; the terminal is passed straight through."
+
+**Problem.** The REPL is in rolling builds and nothing in tlaup can start it.
+
+**Facts (research 12, 3).** `tlc2.REPL` is in rolling builds and absent from v1.7.4, where starting it ends with the JVM's "Could not find or load main class" and exit 1. It works with piped input and exits 0 at end of input. It writes its history to `~/.tlaplus/history.repl`.
+
+**Design.** `tlaup repl [-- arguments]`.
+
+1. Preflight: the build, its capability, then Java. If the build lacks the capability `repl` ([00](00-overview.md#what-a-build-can-do)): `ToolNotInBuild` (code 3), "the pinned build v1.7.4@5a47802 has no REPL" / "install a rolling build: `tlaup tools install rolling`".
+2. Inside `signals_held(leave_interrupt=True)`: `run_passthrough(..., forward_interrupt=False)` of `tlc2.REPL` in the folder tlaup was started from, with the same classpath and `-DTLA-Library` as a TLC run without a spec (the registered modules and the config paths).
+3. Exit with the REPL's code.
+
+Nothing is read or parsed. tlaup does not act on Ctrl-C while the REPL runs: in a terminal the REPL receives it itself and decides what it means, and tlaup's handler only keeps tlaup alive until the REPL ends ([20 G3](20-groundwork.md#g3-java-launcher) says why this is a handler and not "ignore"). The handler records nothing: after any number of Ctrl-C, a REPL that is quit normally exits with its own code, not 130, and a SIGTERM that comes later is treated as the first signal. SIGTERM and SIGHUP are forwarded. The history file is the REPL's own and stays where upstream puts it; the help text names it.
+
+**Rejected.** Reading the REPL's output to add colour or history of tlaup's own: it is an interactive program with its own line editor. Forwarding SIGINT as for `tlc --raw`: the REPL would be terminated by a Ctrl-C meant to cancel a line.
+
+**Tests.** `repl.feature`. In-process: with v1.7.4 pinned, exit 3 and `java` was not started. Real process (the child inherits the real file descriptors, which the in-process runner does not capture): with a rolling build, tlaup is started with `1+1` on its stdin and a fake `java` that copies its stdin to its stdout; the scenario sees the text on tlaup's stdout and the fake's exit code. One more real-process scenario sends SIGTERM to tlaup and asserts the fake has exited. That a Ctrl-C left to the REPL is not recorded is a unit test of the launcher (G3: after a SIGINT with `forward_interrupt=False` the outcome has the child's own code, and a SIGTERM after it terminates and gives 143); from outside the process "SIGINT, then end of input" could be written only with a step that signals and then closes stdin, which the step list does not have. Integration: real REPL with piped `1+1` prints `2`, exit 0, with `--java-opt=-Duser.home=<a temporary folder>` so the history file is not written to the real home folder (the JVM does not take its home from the `HOME` variable).
+
+**Changelog.** Added: "`tlaup repl` starts the TLA+ REPL of the pinned build (rolling builds only)."
+
+**Depends on.** G3, V1. **Risks.** How the REPL behaves on a real terminal (prompt, history keys, Ctrl-C) was not tested by the research; tlaup passes the terminal through and adds nothing, so whatever it does is upstream's behaviour. A SIGINT sent to tlaup alone, not from the terminal, does not reach the REPL.
+
+## S4 Keeping them thin
+
+Roadmap: "Keep all three thin: no logic beyond reading their output, everything through the shared launcher. Check which jar build is running, so the tool can switch to upstream's own entry point when it exists and fall back for older jars."
+
+**Problem.** TLC's main class is a setting today (`tlc.java_class`) and is also written out in `versioning/metadata.py`; nothing records what a build can do. Three more commands would add three more names and three more guesses.
+
+**Facts (research 3).** Upstream's proposed command (pull request 1371) is an unmerged shell script outside the jar; the maintainers asked for a new Java entry point first and nothing has happened since April 2026. There is nothing to hand off to.
+
+**Design.**
+
+- **One table of entry points**, `tlaup.tools.ENTRY_POINTS`: `{"tlc": "tlc2.TLC", "sany": "tla2sany.SANY", "pcal": "pcal.trans", "repl": "tlc2.REPL"}`. Nothing else names a main class.
+- **Which build is running** is known without starting it: the capabilities stored with the build at install, decided from the jar's file list and manifest ([12 V5](12-tools-and-downloads.md#v5-download-and-verify)). Research 3 recommends exactly this: test for a class in the jar, not a version string.
+- **The hand-off, when upstream ships an entry point**: add a capability (the new class is in the jar) and make the table's lookup prefer it for builds that have it. The commands, the launcher and the parsers do not change. Until upstream picks a class name, nothing more can be designed (research 3, open follow-up).
+- **What "thin" forbids**: a command of this group does not add tool flags of its own beyond `--java-opt` and `--auto-install`; does not reinterpret the tool's result except the `sany` exit code; does not look at the tool's arguments except to refuse `sany -d`; does not write files; does not retry.
+
+**Rejected.** Comparing version strings to decide what a build has: research 3 advises against it, and rolling builds have no version to compare. Designing the hand-off now against pull request 1371: it is a shell script outside the jar and may never merge.
+
+**Tests.** A unit test asserts every value of `ENTRY_POINTS` is a class present in the recorded file list of the rolling jar, and that `tlc2.REPL` is absent from v1.7.4's. The file lists are captured once into `tests/unit/data/` (class names only).
+
+**Changelog.** None.
+
+**Depends on.** V1, V5, G3. **Risks.** An upstream rename of a main class breaks the command for builds after it; the unit test catches it only when the recorded file list is refreshed, and the weekly integration run ([30 I1](30-ci-and-release.md#i1-integration-job)) catches it on the live rolling build.
+
+## S5 Golden files for SANY and PlusCal
+
+Roadmap: "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each."
+
+**Problem.** The SANY parser has two known defects and no test against real output; PlusCal output has no parser at all.
+
+**Design.** Most of the captures exist for both builds (research 12) and move to `tests/parse/golden/sany/<build>/` and `pcal/<build>/` ([01 T3](01-testing.md#t3-golden-files)). Each case gets facts and a full expected result, as for TLC:
+
+| Tool | Cases |
+| --- | --- |
+| SANY | success; parse error; several parse errors (only the first is reported); two semantic errors; level errors; the warning-level message 4802 printed under "Semantic errors"; missing module; missing file; file name differs from module name; the PlusCal "changed since last translation" warning in both spellings; no arguments on rolling (usage text, 255). |
+| PlusCal | success; `-nocfg`; syntax error; assignment to an undeclared variable; no algorithm; missing label; `-label -reportLabels`; missing file; unknown option; `-writeAST`. |
+
+**Waiting on question 22** for three things the existing captures do not give:
+
+- The "changed since last translation" warning exists only inside a composite, hand-annotated file (`pcal-retranslate-and-lint.txt`, several commands in one file); it has to be captured again as one SANY run per build before it can be a golden case.
+- There is no `-help` capture for SANY; the usage text comes from the no-arguments capture. A `-help` case is added only if the re-capture makes one.
+- The captures hold the two streams joined. That is what `tlaup sany` and `tlaup pcal` read (S1, step 3), so the existing files are valid inputs; the re-capture adds the streams apart for the missing-module case so S1's choice can be checked.
+
+Passthrough is tested in the three feature files (an argument after `--` appears in the logged Java command unchanged, in order).
+
+The REPL has no golden files: its output is not parsed.
+
+**Rejected.** Hand-written SANY output as golden input: the two known parser defects came from guessing at the format. Cutting the composite capture apart by hand: the file is annotated and has lines filtered out, so the pieces would not be what SANY printed.
+
+**Tests.** The golden cases are the tests; they follow T3's rules (facts per case, a full expected result, an update flag).
+
+**Changelog.** None.
+
+**Depends on.** T3, P8, S2. **Risks.** Rolling's SANY text can change with any upstream commit; the weekly integration run shows it, and the golden folder for a new build is a new capture, not an edit.

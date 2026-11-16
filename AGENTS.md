@@ -7,7 +7,9 @@
 Read these before planning or changing anything:
 
 1. `docs/analysis/00-summary.md`: what the six analysis reports found, with links to each report.
-2. `docs/roadmap.md`: the single source of truth. It holds the purpose, how the work is done (a five-stage agent pipeline: completeness pass, investigation, design in waves, work packages, workers, with review gates between stages), the decisions (D1 to D28), the milestones and the investigation list. Ticked items are done; dated notes record partial progress.
+2. `docs/roadmap.md`: the single source of truth. It holds the purpose, how the work is done (a five-stage agent pipeline: completeness pass, investigation, design in waves, work packages, workers, with review gates between stages), the decisions (D1 to D45), the milestones and the investigation list. Ticked items are done; dated notes record partial progress.
+
+3. `docs/design/README.md`: the index of the design documents (pipeline stage 3, first wave), written 2026-11-15, reviewed three times by fresh agents (twice that day, once on 2026-11-16) and revised after each; it awaits the maintainer's sign-off. It lists the decisions made in the wave, where the design departs from the roadmap, and what waits on an investigation; `review-2026-11-15.md` beside it holds the review's findings. Read `00-overview.md`, `01-testing.md`, `02-cross-cutting.md` and the document for the area you work on.
 
 The completeness pass (pipeline stage 1) was reviewed and signed off on 2026-11-14. `docs/analysis/07-walkthrough-notes.md` is history: every decision in it is restated in the roadmap, nothing in it needs reading, and where the two differ the roadmap is right. Later stages read only the roadmap and the design documents. Stages 3 and 4 end with a review by a fresh agent and the maintainer's sign-off; do not start the next stage without it. Each worker pull request needs green CI and a separate agent's review before it merges.
 
@@ -19,7 +21,8 @@ The analysis reports describe release 0.8.1. Line numbers in them may drift as c
 - `src/tlaup/resources/default_config.yaml`: packaged defaults. Its top-level `tla:` key holds upstream TLA+ download URLs; it is not the application name.
 - `tests/unit/`: the default test suite. `tests/integration/`: needs Java and an installed jar, not run in CI yet.
 - `docs/examples/`: example specs, some with custom Java modules.
-- `docs/research/`: investigation results (pipeline stage 2), one file per question, indexed by its `README.md`. Created when stage 2 runs.
+- `docs/research/`: investigation results (pipeline stage 2), one file per question, indexed by its `README.md`.
+- `docs/design/`: design documents (pipeline stage 3), one per area, indexed by its `README.md`. They describe the code as it will be, not as it is: the packages, commands and test layout they name do not exist until the work packages are built.
 
 Config, toolsets, modules and the run cache live in the platform's user folders under the name `tlaup` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`), set by `_APP_NAME` in `src/tlaup/config/loader.py`.
 
