@@ -81,7 +81,7 @@ Roadmap: "Enforce `ruff format --check`; `uv sync --locked`; an explicit read-on
 
 **Design.**
 
-- **Format first.** One commit, `style: apply ruff format`, formats the whole tree and nothing else, before any other work package branches off ([00, order of work](00-overview.md#order-of-work)). From then on `ruff format --check .` runs in the `lint` job and as a pre-commit hook (H1). `AGENTS.md` loses its sentence that formatting is not enforced. The commit's hash goes into `.git-blame-ignore-revs`.
+- **Format first.** One commit, `style: apply ruff format`, formats the whole tree and nothing else, before any other work package branches off ([00, order of work](00-overview.md#order-of-work)). From then on `ruff format --check .` runs in the `lint` job and as a pre-commit hook (H1). [`docs/contributing/development.md`](../contributing/development.md) loses its section saying that formatting is not enforced. The commit's hash goes into `.git-blame-ignore-revs`.
 - Every `uv sync` in a workflow has `--locked`.
 - Every workflow starts with `permissions: contents: read`; a job that needs more says so itself (L2).
 - Every job has `timeout-minutes` (10 for lint and build, 15 for unit, 30 for integration).
@@ -174,7 +174,7 @@ Roadmap: "Release pages: each page gets that version's changelog section as its 
 
 Roadmap: "A `poe` task around `uv version --bump`, so `pyproject.toml` and `uv.lock` move together."
 
-**Design.** `poe bump` takes `patch`, `minor` or `major`, runs `uv version --bump <part>` (which updates the lock file too) and prints the new version and the next step ("rename `## [Unreleased]` in CHANGELOG.md to `## [X.Y.Z] - <today>`"). It does not edit the changelog or commit. The "Releases" section of `AGENTS.md` is updated to name the task.
+**Design.** `poe bump` takes `patch`, `minor` or `major`, runs `uv version --bump <part>` (which updates the lock file too) and prints the new version and the next step ("rename `## [Unreleased]` in CHANGELOG.md to `## [X.Y.Z] - <today>`"). It does not edit the changelog or commit. [`docs/contributing/releasing.md`](../contributing/releasing.md) is updated to name the task.
 
 ## L5 PyPI environment
 
@@ -186,11 +186,11 @@ A maintainer action in the repository settings: environment `pypi`, required rev
 
 Roadmap: "Before each release, refresh the lock file and let CI run before tagging."
 
-A step of the release procedure, written into `AGENTS.md`: `uv lock --upgrade`, commit, push, wait for green, then L1. The weekly `deps-newest` run (I3) means the refresh is rarely a surprise.
+A step of the release procedure, written into [`docs/contributing/releasing.md`](../contributing/releasing.md): `uv lock --upgrade`, commit, push, wait for green, then L1. The weekly `deps-newest` run (I3) means the refresh is rarely a surprise.
 
 ## L7 Version rule
 
-Roadmap: "Follow the version rule of decision D27 from 0.9.0 on." Already in `AGENTS.md`. `poe bump` (L4) makes the choice explicit each time; nothing else to build.
+Roadmap: "Follow the version rule of decision D27 from 0.9.0 on." Already in the [conventions](../contributing/conventions.md#compatibility-and-versions). `poe bump` (L4) makes the choice explicit each time; nothing else to build.
 
 ## B1 Dependabot
 

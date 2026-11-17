@@ -205,7 +205,7 @@ Items 4, 5 and 6 can run in parallel; so can 8, 9 and 10 once 7 is in.
 
 ## What every package must respect
 
-- The conventions in `AGENTS.md`: a changelog entry in the same commit as each user-visible change; no aliases, shims or migrations (D14); no personal or machine data in captured output.
+- The [conventions](../contributing/conventions.md): a changelog entry in the same commit as each user-visible change; no aliases, shims or migrations (D14); no personal or machine data in captured output.
 - The exit codes of [02 X1](02-cross-cutting.md#x1-exit-codes) and the stream rule of [02 X2](02-cross-cutting.md#x2-stdout-and-stderr).
 - The test rules of [01 T12](01-testing.md#t12-rules-for-writing-tests).
 - Decision D15: no Windows CI, but write code so it should work there. Use `os.pathsep` and `pathlib`; no `:` in folder names; signal code guarded by `hasattr(signal, ...)`; executables found with `shutil.which`, which adds `.exe`.

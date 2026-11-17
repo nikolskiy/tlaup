@@ -581,7 +581,7 @@ The unit suite has 185 test functions in 43 files; the integration suite 4. The 
 
 **Behaviour with no test today that the new suite must have** (from the triage): `validate_java_version` raising; "stable" skipping prereleases; an unknown version; the offline and cached states of `tools list`; `render_error_trace` and the value diff; the stopped state after Ctrl-C; finding override classes.
 
-**`AGENTS.md` changes with the suite.** Its Layout section names `tests/unit/` as the default suite and its Commands section gives `uv run pytest tests/integration`. The first testing work package updates both in the same pull request: the folders become `tests/features`, `tests/parse`, `tests/unit`, `tests/integration`, and the integration command becomes `uv run poe test-integration` with `TLAUP_TEST_JARS`.
+**The development guide changes with the suite.** [`docs/contributing/development.md`](../contributing/development.md) names `tests/unit/` as the default suite in its code map and gives `uv run pytest tests/integration` in its commands. The first testing work package updates both in the same pull request: the folders become `tests/features`, `tests/parse`, `tests/unit`, `tests/integration`, and the integration command becomes `uv run poe test-integration` with `TLAUP_TEST_JARS`.
 
 ## T12 Rules for writing tests
 
@@ -599,7 +599,7 @@ Each is checked in review; rules 2 and 3 are also enforced mechanically.
 
 ## Order of work
 
-1. Folder overrides (F2), the isolation fixture (T2), the fakes (T4), the pytest settings (T10), deletion of the dead tests (T11), the `AGENTS.md` update. No product behaviour changes. This is the early part of milestone 2.
+1. Folder overrides (F2), the isolation fixture (T2), the fakes (T4), the pytest settings (T10), deletion of the dead tests (T11), the development guide update. No product behaviour changes. This is the early part of milestone 2.
 2. The golden move and `facts.py` (T3), failing. Then the parser work of [10](10-parser.md) makes them pass.
 3. The step vocabulary and the first `tools` features (T5), as each area is rewritten. The error mapping inside the application (F10) comes before the first feature that asserts an exit code.
 4. Integration tests (T9) with the launcher (G3) and the runner.
