@@ -1,6 +1,6 @@
 # Design documents (pipeline stage 3, first wave)
 
-Written 2026-11-15 by the stage 3 design agent, from the [roadmap](../roadmap.md) and the [investigation results](../research/README.md). Status: **reviewed three times by fresh agents, on 2026-11-15 and 2026-11-16, and revised after each; awaiting the maintainer's sign-off**. The first review found it not ready; the second check, of the revision, found it ready after small fixes with one blocker, and those fixes are in. A third check on 2026-11-16, of the second round's fixes only, again found it ready after small fixes, with sixteen findings; those are worked in too, and that third revision has not been read by a fresh agent. The findings and what became of each are in [review-2026-11-15.md](review-2026-11-15.md). Nothing here has been built or tested; every design is a plan. No product code was changed by this stage.
+Written 2026-11-15 by the stage 3 design agent, from the [roadmap](../roadmap.md) and the [investigation results](../research/README.md). Status: **reviewed three times by fresh agents, on 2026-11-15 and 2026-11-16, and revised after each; awaiting the maintainer's sign-off**. The first review found it not ready; the second check, of the revision, found it ready after small fixes with one blocker, and those fixes are in. A third check on 2026-11-16, of the second round's fixes only, again found it ready after small fixes, with sixteen findings; those are worked in too, and that third revision has not been read by a fresh agent. The findings and what became of each are in [review-2026-11-15.md](review-2026-11-15.md). Nothing here has been built or tested; every design is a plan. No product code was changed by this stage. On 2026-11-16 [03](03-run-stages-and-specs.md) was added after the third check: a walk-through of one TLC run, and the plan for a formal check of the design before stage 4 (decision D46). No fresh agent has read it.
 
 The first wave designs milestones 1, 1b and 2 in full and sketches milestones 3 to 5. Where a design and the roadmap differ, the difference is listed under "Where the design departs from the roadmap" below, so the review can check each one.
 
@@ -11,6 +11,7 @@ The first wave designs milestones 1, 1b and 2 in full and sketches milestones 3 
 | [00-overview.md](00-overview.md) | The shared pieces every item builds on, in one picture: packages, the run pipeline, the order of work. |
 | [01-testing.md](01-testing.md) | The testing approach (decision D16) and the testing items of milestone 2. Designed first. |
 | [02-cross-cutting.md](02-cross-cutting.md) | Exit codes, stdout and stderr, the version syntax, what "rolling" means and how it sorts. |
+| [03-run-stages-and-specs.md](03-run-stages-and-specs.md) | Added 2026-11-16, not reviewed yet: the components and one TLC run through them, stage by stage; the TLA+ specs and stateful property tests that check the design before stage 4 (decision D46). |
 | [10-parser.md](10-parser.md) | Milestone 1, parser: the `tlaup_parse` package, traces, values, SANY, never losing output. |
 | [11-runner.md](11-runner.md) | Milestone 1, runner: signals, the cfg path, run folders, overrides, passthrough, preflight, project root. |
 | [12-tools-and-downloads.md](12-tools-and-downloads.md) | Milestone 1: the version store, install, uninstall, pin, GitHub, the first-run prompt, removing old layouts. |
@@ -24,7 +25,7 @@ The first wave designs milestones 1, 1b and 2 in full and sketches milestones 3 
 | [review-2026-11-15.md](review-2026-11-15.md) | The stage 3 review: the findings of three fresh agents and what became of each. |
 | [40-later-milestones.md](40-later-milestones.md) | Milestones 3 to 5: direction, open questions, what the first wave leaves room for. Sketch only. |
 
-Reading order for a reviewer: 00, 01, 02, then any area. A work-package agent (stage 4) reads 00, 01, 02 and the area it is cutting.
+Reading order for a reviewer: 00, 01, 02, 03, then any area. A work-package agent (stage 4) reads 00, 01, 02, 03 and the area it is cutting.
 
 ## How an item is written
 
@@ -66,6 +67,7 @@ Settled with the maintainer on 2026-11-15 and written into the roadmap's decisio
 | D43 | `tools uninstall NAME` with several builds asks which on a terminal; with `--yes` or no terminal it removes all. | [12 V3](12-tools-and-downloads.md#v3-uninstall) |
 | D44 | Dependabot opens one grouped pull request per ecosystem. | [30 B1](30-ci-and-release.md#b1-dependabot) |
 | D45 | The preflight checks spec, cfg, tool build, Java, in that order; `--show-command` never prompts or installs. | [11 R11](11-runner.md#r11-preflight) |
+| D46 | Before stage 4, TLA+ specs of the run folders, the tools store and the launcher's signals are checked with TLC, and each is mirrored by a Hypothesis stateful test that the work packages use as their test first. Settled 2026-11-16. | [03](03-run-stages-and-specs.md#part-2-tla-specs-of-the-design) |
 
 ## Decisions the design agent made
 
