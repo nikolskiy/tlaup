@@ -74,7 +74,7 @@ def isolated(tmp_path, monkeypatch) -> Isolated:
     monkeypatch.setenv("COLUMNS", "100")
     monkeypatch.setenv("LINES", "40")
     monkeypatch.setenv("PATH", str(fake_bin_dir(tmp_path)))  # only the fakes (T4)
-    monkeypatch.setenv("TLAUP_TOOLS_REPOSITORY",             # a closed local port: a request that is not
+    monkeypatch.setenv("TLAUP_TOOL_REPOSITORY",             # a closed local port: a request that is not
                        "https://127.0.0.1:9/repos/tlaplus/tlaplus")  # recorded fails at once (T4, Network)
     monkeypatch.chdir(tmp_path / "work")
     tlaup.context.reset()                                    # the one process-wide cache
@@ -218,11 +218,11 @@ Roadmap: "Unit tests cannot reach the network or start an unmocked subprocess."
 
   | Line | Fields | Written |
   | --- | --- | --- |
-  | `start` | The process id, the fake's own path, the argument list, the working folder, and the main class (or `-version`). | First thing, before any output. |
+  | `start` | The process id, the fake's own path, the argument list, the working folder, the main class (or `-version`), and whether its stdout is a pipe. | First thing, before any output. |
   | `signal` | The signal's name. | When a signal arrives, also one the fake ignores. |
   | `exit` | The exit code. | Last thing, on every way out the fake controls. |
 
-  The working folder is there for [21 S1](21-other-tools.md#s1-sany) (SANY is started in the spec's folder) and the fake's own path for [13 J2](13-modules-and-java.md#j2-finding-java) (which of two `java`s ran). With no file set, the fake exits 127 with "fake java: no script", so an unplanned Java start fails loudly.
+  The working folder is there for [21 S1](21-other-tools.md#s1-sany) (SANY is started in the spec's folder), the fake's own path for [13 J2](13-modules-and-java.md#j2-finding-java) (which of two `java`s ran), and the pipe flag for T12 rule 10 (a parsed run gives the child a pipe; `run_passthrough` gives it tlaup's own stdout, which in-process is not one). With no file set, the fake exits 127 with "fake java: no script", so an unplanned Java start fails loudly.
 - **`javac`**: copies prepared class files for the sources it is given into the `-d` folder, or prints a recorded compiler error and exits 1. The class files are real: compiled once from the override sources in `tests/fakes/java-src/` with `javac --release 11`, committed, with the compiler version noted in a README beside them.
 - **`git`**: prints a fixed short hash. Used only by the version test for editable installs.
 - **`editor`**: reads the file named by `TLAUP_FAKE_EDITOR` (JSON: the text to put in the file it is given, or nothing to leave it alone, and an exit code), logs its argument list, and acts on it.
@@ -253,7 +253,7 @@ A fixture `github(recording="releases")` removes the closed-port repository addr
 
 Recordings are captured with `scripts/record_github.py`, a developer tool that needs the network and trims each response to the fields tlaup reads, keeping the status and the headers.
 
-**Real processes and the network.** `responses` and `pytest-socket` work inside the pytest process only. A scenario that runs tlaup as a real process (T5) is kept off the network in two ways. By rule: such a scenario starts from a store that already holds what it needs and exercises nothing that asks GitHub; anything that downloads is tested in-process. By construction: the isolation fixture points `TLAUP_TOOLS_REPOSITORY` at a closed port on the local machine and removes the proxy variables, so a request made by mistake is refused at once and the scenario fails on the resulting error instead of reaching GitHub. Not tried.
+**Real processes and the network.** `responses` and `pytest-socket` work inside the pytest process only. A scenario that runs tlaup as a real process (T5) is kept off the network in two ways. By rule: such a scenario starts from a store that already holds what it needs and exercises nothing that asks GitHub; anything that downloads is tested in-process. By construction: the isolation fixture points `TLAUP_TOOL_REPOSITORY` at a closed port on the local machine and removes the proxy variables, so a request made by mistake is refused at once and the scenario fails on the resulting error instead of reaching GitHub. Not tried.
 
 ### Time
 
@@ -273,7 +273,7 @@ Roadmap: "The `tlaup tlc` command path is tested end to end: exit codes, raw mod
 tests/features/
   tlc_run.feature  tlc_errors.feature  tlc_signals.feature  tlc_raw.feature  tlc_show_command.feature  tlc_live.feature
   sany.feature  pcal.feature  repl.feature
-  tools_install.feature  tools_uninstall.feature  tools_pin.feature  tools_upgrade.feature  tools_list.feature
+  tool_install.feature  tool_uninstall.feature  tool_pin.feature  tool_upgrade.feature  tool_list.feature
   first_run.feature  modules.feature  config.feature  cache.feature  doctor.feature  errors.feature
 tests/steps/
   given.py  when.py  then.py      the whole step vocabulary
@@ -366,7 +366,7 @@ Notes on the steps whose meaning is not plain from their words:
 
    The five scenarios of [02 X1](02-cross-cutting.md#x1-exit-codes) rule 8 use these steps, in `errors.feature` and `tlc_errors.feature`, and each asserts 141:
    - `java prints 100000 lines`, then `tlaup tlc Spec` whose reader closes after 1 line; also no `Traceback`, and the java process has exited ([11 R1](11-runner.md#r1-run-errors-reported-as-what-they-are)). The path through the launcher and the reporter.
-   - `tlaup tools list`, two builds installed, with stdout on a closed pipe; also no `Traceback`. The path through tlaup's own console.
+   - `tlaup tool list`, two builds installed, with stdout on a closed pipe; also no `Traceback`. The path through tlaup's own console.
    - `tlaup --help` with stdout on a closed pipe; also no `Traceback`. Typer prints help through a console tlaup does not own; `main()` turns its exit into 141 ([14 F10](14-config-and-cli.md#f10-no-tracebacks)).
    - An unknown option with stdout and stderr on a closed pipe.
    - An unknown option with stdout on the null device and stderr on a closed pipe.
@@ -376,11 +376,13 @@ Notes on the steps whose meaning is not plain from their words:
 4. **A terminal**: the `in a terminal` steps run the process as the leader of a new session on a pty, with the window size set, `TERM=xterm-256color` in place of the fixture's `TERM=dumb`, and `COLUMNS` and `LINES` removed (T2). Both streams and stdin are on the pty unless one stream is redirected to a file. The answers of `and answer` are typed into the pty, so prompts are tested on a real terminal with no seam in the product. `press Ctrl-C` writes the interrupt character to the pty, so the terminal itself sends SIGINT to tlaup and to the fake `java`, which is what a user's Ctrl-C does; the step first feeds the terminal emulator as bytes arrive and waits, with a timeout of ten seconds each, until the screen has shown the first text and then the second ([22 O4](22-reporters.md#o4-live-display) uses it to prove the display is redrawn while TLC is silent). In the `and then an elapsed time <n> seconds later` form the second wait is for a screen that still shows the first text and whose `elapsed HH:MM:SS` value is at least `<n>` seconds greater than the value on the screen where the first text was first seen; two values read from the screen are compared, so the step does not depend on how long the process took to get there. `the terminal showed the layout` asserts only the enter sequence, one frame with the four panel titles and the leave sequence; `the last layout frame contains` reads the last screen before the leave sequence (22 O4). The `Then: the terminal` steps read what was written to the pty; how a screen is rebuilt from it is in 22 O4.
 5. **An environment variable the interpreter reads at start**, such as `PYTHONIOENCODING` ([11 R3](11-runner.md#r3-non-utf-8-output)); set in-process it has no effect.
 
+The in-process step refuses situations 1 and 5 itself, so the choice is not left to each scenario (T12 rule 10).
+
 Real processes cannot use `responses`; T4 says how they are kept off the network. A real-process scenario therefore cannot count requests; "nothing was asked of GitHub" shows there as the outcome, since a request would be refused at the closed port and change the exit code. Coverage counts real processes through coverage's subprocess support (T10).
 
 **Prompts have one mechanism.** `Ui.__init__(stdout, stderr, stdin, *, color, env, interactive=None)`: `Ui.ask` writes the question to stderr and reads one line from the `stdin` stream it was given; the end of input raises `CannotAsk`; no Typer or Rich prompt is used ([14 F6](14-config-and-cli.md#f6-messages)). Tests reach a prompt in exactly two ways, and nothing else is built into the product for them:
 
-- *A prompt alone* is a feature scenario on a real terminal: `I run "tlaup tools uninstall rolling" in a terminal 100 by 30 and answer "-1, 7, 2"`. The answers "no", the invalid answers that are asked again, and the "which build" question are of this kind.
+- *A prompt alone* is a feature scenario on a real terminal: `I run "tlaup tool uninstall rolling" in a terminal 100 by 30 and answer "-1, 7, 2"`. The answers "no", the invalid answers that are asked again, and the "which build" question are of this kind.
 - *A prompt whose answer leads to the network* (first run answered "yes", then a download) is plain pytest: the function is called with `Ui(io.StringIO(), io.StringIO(), io.StringIO("2\n"), color=False, env={}, interactive=True)` and `responses` serves the download. A real process cannot be served recordings, and in-process `CliRunner` has no terminal, so no scenario can do both.
 
 `interactive=True` and the `stdin` argument are constructor arguments production code also passes (worked out from the real streams when `interactive` is `None`); there is no stream that pretends to be a terminal and no patched function.
@@ -429,7 +431,7 @@ Roadmap: "Download and GitHub failure modes are tested." Plain pytest in `tests/
 | List shuffled | The same "stable" is chosen (research 8). |
 | All releases are prereleases | "stable" is `VersionNotFound`; never the first entry. |
 | Redirect to `http://` | Refused before the request is made. |
-| Token set | Sent to `api.github.com` and to a host listed in `tools.token_hosts`, and to no other (a repository setting naming another host gets no token; decision D41); absent from the asset download and from every log line and `--debug` output. |
+| Token set | Sent to `api.github.com` and to a host listed in `tool.token_hosts`, and to no other (a repository setting naming another host gets no token; decision D41); absent from the asset download and from every log line and `--debug` output. |
 | `--force` reinstall fails | The old build is still there and still pinned. |
 | Two installs of one build at once (two threads, a barrier) | One build folder, valid metadata, no error. |
 
@@ -468,7 +470,7 @@ One helper for every comparison against a stored file:
 def assert_matches(actual: str, expected: Path, request) -> None
 ```
 
-It compares after normalising line endings, shows a unified diff on mismatch, and rewrites the file when pytest runs with `--update-expected`. Used for: the full parsed results (T3), reporter output ([22 O6](22-reporters.md#o6-snapshot-tests)), the printed Java command, `tools list` tables, and the generated CLI reference ([23 C5](23-command-layout.md#c5-help-and-the-cli-reference)). Expected files live beside the tests that use them, under `expected/`.
+It compares after normalising line endings, shows a unified diff on mismatch, and rewrites the file when pytest runs with `--update-expected`. Used for: the full parsed results (T3), reporter output ([22 O6](22-reporters.md#o6-snapshot-tests)), the printed Java command, `tool list` tables, and the generated CLI reference ([23 C5](23-command-layout.md#c5-help-and-the-cli-reference)). Expected files live beside the tests that use them, under `expected/`.
 
 A file updated with `--update-expected` is a change to review, not a formality: the reviewer of the pull request reads the diff of every expected file.
 
@@ -494,7 +496,7 @@ Roadmap: "Integration tests: registered markers with strict checking; working sk
 | --- | --- |
 | Every golden case whose spec needs no Java class | The facts of `facts.py` for the case and the jar's release line hold for the live run, and the exit code equals `cases.toml` of the matched folder. |
 | A failing spec, a trace, a SANY error, a coverage run | Named in the roadmap; covered by the row above (`violation`, `sany-semantic-error`, `coverage`). |
-| `modules add` on `docs/examples/QueueModule`, then `tlc queue` | On a build that honours the overrides property: success. On v1.7.4: the warning of [11 R7](11-runner.md#r7-override-modules-that-do-not-load) and the spec's own assertion failure (research 13). |
+| `module add` on `docs/examples/QueueModule`, then `tlc queue` | On a build that honours the overrides property: success. On v1.7.4: the warning of [11 R7](11-runner.md#r7-override-modules-that-do-not-load) and the spec's own assertion failure (research 13). |
 | `sany` on a good and a bad spec; `pcal` on a copy of a PlusCal spec | Diagnostics with file, line and column; exit codes of D29; the three files `pcal` leaves. |
 | `repl` with piped input (builds that have it) | Exit 0 and the value `2` for `1+1`. |
 | Signals with the real JVM | Ctrl-C gives 130 and SIGTERM 143 and no `java` process is left. |
@@ -564,7 +566,7 @@ The unit suite has 185 test functions in 43 files; the integration suite 4. The 
 
 | Today | Becomes |
 | --- | --- |
-| `tools/test_install.py` (the six pin-state tests; its other eight tests, which assert on mocked download calls, become scenarios of `tools_install.feature` where they describe behaviour and are otherwise covered by T6), `test_pin.py`, `test_uninstall.py`, `test_upgrade.py`, `test_path.py`, `test_dir.py`, `test_list.py`, `test_fetch_cache.py` | `tools_*.feature`, `cache.feature`. The pin-state assertions become `Then the pinned build is ...`. |
+| `tools/test_install.py` (the six pin-state tests; its other eight tests, which assert on mocked download calls, become scenarios of `tool_install.feature` where they describe behaviour and are otherwise covered by T6), `test_pin.py`, `test_uninstall.py`, `test_upgrade.py`, `test_path.py`, `test_dir.py`, `test_list.py`, `test_fetch_cache.py` | `tools_*.feature`, `cache.feature`. The pin-state assertions become `Then the pinned build is ...`. |
 | `cmd/test_modules.py` | `modules.feature`, with the fake `javac`; the command line given to `javac` is asserted, which it is not today. |
 | `cmd/test_tlc_cmd.py`, `test_tlc_show_command.py`, `tlc/test_raw.py`, `tlc/test_runner.py`, `tlc/test_tlc_version.py`, `spec/test_resolution_scenarios.py` | `tlc_*.feature`. |
 | `test_cli.py`, `test_config.py`, `test_config_suite.py` | `config.feature`, `errors.feature`. |
@@ -585,7 +587,7 @@ The unit suite has 185 test functions in 43 files; the integration suite 4. The 
 
 ## T12 Rules for writing tests
 
-Each is checked in review; rules 2 and 3 are also enforced mechanically.
+Each is checked in review; rules 2, 3 and 10 are also enforced mechanically.
 
 1. **Test through a boundary.** The command line; the `tlaup_parse` API; a pure function given real files in a temporary folder; a reporter given events and in-memory consoles; or a piece that sits on an edge (the launcher, `run_tlc`, the GitHub client, the run-folder locks), driven with that edge's fake. Anything else, in particular a function in the middle called with hand-built internals of another function, is tested through one of these.
 2. **No patching of our own code.** `pytest-mock` is removed from the dependencies, and ruff's banned-API rule (`TID251`) forbids `unittest.mock.patch` in `tests/`. `monkeypatch.setattr`, `setitem` and `delattr` on anything under `tlaup` or `tlaup_parse` are the same thing by another name; ruff cannot tell the target, so a pre-commit check fails on those three calls anywhere in `tests/` outside `conftest.py`, and review covers the conftests. `monkeypatch` stays for the environment and the working folder. Doubles exist only at the three edges of T1.
@@ -596,6 +598,11 @@ Each is checked in review; rules 2 and 3 are also enforced mechanically.
 7. **Environment through `monkeypatch` only.** Never assign to `os.environ`.
 8. **No module-level state** in test files: no shared runner object, no cached settings.
 9. **One fixture, one job.** A fixture that needs another edge's fake asks for it by name; fixtures do not overlap.
+10. **In-process unless one of T5's five situations applies.** A command-line scenario runs in-process (`I run "<command>"`) unless it is in one of the five situations of T5, and then it uses the real-process step that situation names; nobody decides case by case. Situations 2 to 4 are visible in the scenario's own words (a pipe, a signal, a terminal step). The other two are not, so the in-process step checks them and fails the scenario, naming the step to use instead:
+    - **Passthrough.** After the command, the step reads the fake `java`'s log; a `start` line whose stdout was not a pipe means the command reached `run_passthrough`, and the scenario fails with "this command passes the terminal through; use `as a process`". Under pytest's default capture, tlaup's stdout is a temporary file, so the check holds; with capture switched off and the test run's own output piped, it would not fire, and the scenario would fail on its empty output instead. Not tried. A scenario where passthrough is refused before Java starts (the REPL on v1.7.4, exit 3) has no such line and stays in-process.
+    - **Startup-only variables.** Before the command, the step fails if the scenario set, with `the environment variable "<name>" is "<value>"`, a variable the interpreter reads only when it starts: any name beginning with `PYTHON`, and `LC_ALL`, `LC_CTYPE` and `LANG`, which set the encoding of Python's own streams. The list is one constant in the steps module.
+
+    The check sits in the test steps and reads only the fake's log and the scenario's own settings, so the product has no seam for it (rule 2). Added at the stage 3 sign-off, 2026-11-18.
 
 ## Order of work
 

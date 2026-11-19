@@ -89,7 +89,7 @@ def get_context() -> AppContext     # built once per process
 def reset() -> None                 # for tests (01 T2)
 ```
 
-The root callback builds it from the environment and the root options and stores it on Typer's context object; commands read it from there and pass pieces down. `settings` is loaded lazily, so `tlaup --help` and a command that reads no setting, such as `tlaup tools path`, do not import the settings schema or `yaml` ([14 F9](14-config-and-cli.md#f9-startup-cost)). pydantic itself is not kept out: Typer 0.29.1 imports it when any command runs, though not for `--help` (tried). This is the only process-wide cache.
+The root callback builds it from the environment and the root options and stores it on Typer's context object; commands read it from there and pass pieces down. `settings` is loaded lazily, so `tlaup --help` and a command that reads no setting, such as `tlaup tool path`, do not import the settings schema or `yaml` ([14 F9](14-config-and-cli.md#f9-startup-cost)). pydantic itself is not kept out: Typer 0.29.1 imports it when any command runs, though not for `--help` (tried). This is the only process-wide cache.
 
 ## The run pipeline
 
@@ -161,12 +161,12 @@ The two guessed rules are exact for the builds decision D19 supports. A user on 
 
 ```
 <config>/config.yaml                 written only when the user changes a setting (D10)
-<cache>/tools/<build-id>/            tla2tools.jar, build.json                      12 V1
-<cache>/tools/pin                    the pinned build's id
-<cache>/tools/.lock
-<cache>/modules/<name>/              classes/, lib/, modules/, tlc2/, module.json   13 M2
-<cache>/modules/.tmp/<random>/      a module being built; moved into place on success
-<cache>/modules/.lock
+<cache>/tool/<build-id>/            tla2tools.jar, build.json                      12 V1
+<cache>/tool/pin                    the pinned build's id
+<cache>/tool/.lock
+<cache>/module/<name>/              classes/, lib/, modules/, tlc2/, module.json   13 M2
+<cache>/module/.tmp/<random>/      a module being built; moved into place on success
+<cache>/module/.lock
 <cache>/runs/<run-id>/               run.json and TLC's own folder                  11 R6
 <cache>/runs/<run-id>.lock           held for the length of the run; beside the folder, not in it
 <cache>/remote/<key>.json            GitHub lookups                                 12 V8
@@ -179,7 +179,7 @@ The two guessed rules are exact for the builds decision D19 supports. A user on 
 
 | Package | Change | Why |
 | --- | --- | --- |
-| `filelock` | New, runtime | One lock that works on Linux, macOS and Windows for the store, the modules folder and run folders. |
+| `filelock` | New, runtime | One lock that works on Linux, macOS and Windows for the store, the module folder and run folders. |
 | `pytest-bdd`, `hypothesis`, `responses`, `pytest-socket`, `pytest-randomly`, `pyte` | New, development | [01](01-testing.md). `pyte` rebuilds a terminal screen for the layout tests ([22 O4](22-reporters.md#o4-live-display)). None of them was installed or tried during the design. |
 | `coverage` | Bound raised to 7.10, development | Its subprocess patch counts the real-process scenarios ([01 T10](01-testing.md#t10-coverage-policy-and-pytest-settings)); not tried. |
 | `pytest-mock` | Removed | [01 T12](01-testing.md#t12-rules-for-writing-tests). |
@@ -199,7 +199,7 @@ Milestones are groups, not a strict order (decision D6). The dependencies betwee
 8. **Reporters**: O1, O3, O4, after the golden tests pass (roadmap, milestone 1b).
 9. **Other tools**: S1 to S5, on the launcher and the SANY parser.
 10. **Config and commands**: F1, F3 to F5, then the command tree C1 to C5, modules M1 to M3, help and wording F7, F8, F11.
-11. **Integration tests** T9 and the integration job I1, once `tlaup tools install` can use a token (V7) and the runner returns outcomes.
+11. **Integration tests** T9 and the integration job I1, once `tlaup tool install` can use a token (V7) and the runner returns outcomes.
 
 Items 4, 5 and 6 can run in parallel; so can 8, 9 and 10 once 7 is in.
 

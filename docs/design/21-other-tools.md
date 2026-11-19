@@ -41,6 +41,8 @@ Roadmap: "`sany` command: parse a spec and report diagnostics with file, line an
 1. Preflight: the command line (step 7), spec ([11 R5](11-runner.md#r5-spec-names)), build, Java.
 2. Run `tla2sany.SANY <extra args> <Spec.tla>` with the working folder set to the spec's folder, and the same classpath and `-DTLA-Library` a TLC run of that spec would get, so that modules resolve the same way in both commands.
 
+   **Waiting on question 32.** `tlc` runs in the folder tlaup was started from with the spec as an absolute path (D34); `sany` and `pcal` run in the spec's folder with the file name, which is how research 12 ran them. Two rules for three commands is a cost, not a choice: if question 32 shows that SANY and the translator behave the same from the starting folder, both commands follow D34, and the working-folder assertions of their tests change with them.
+
    **Waiting on question 27.** Research 12 ran standalone SANY with the jar alone; whether it honours `-DTLA-Library` and extra classpath entries the way TLC does was not run. If it does not, `tlaup sany` cannot see registered modules, the help says so, and step 2 passes the jar alone.
 3. SANY's two streams are read through one pipe (`run_streaming(..., merge_stderr=True)`, [20 G3](20-groundwork.md#g3-java-launcher)), which is how the research captured them, and fed to a `SanyParser` ([10 P8](10-parser.md#p8-sany-output)). The parser then sees the lines in the order SANY wrote them, and the v1.7.4 line that goes to stderr is not lost or reordered.
 
@@ -70,7 +72,7 @@ Roadmap: "`sany` command: parse a spec and report diagnostics with file, line an
 6. **Exit code** (D29): 150 if any diagnostic has severity `error`; otherwise SANY's own code. A warning alone does not change the code. The severity is the parser's (P8). No `-error-codes` is added: one rule for both builds, from the parsed output.
 
    One case needs saying: SANY prints its warning-level message 4802 ("Non-unique fields in constructor.") under "Semantic errors" with nothing in the text to tell it from an error (research 12). Whether the parser classes it as a warning by its text is P8's rule and one of the golden cases of S5; what TLC itself returns for a spec whose only finding is that message is part of question 22.
-7. **`-d` is refused.** `tlaup sany SPEC -- -d` is a `UsageError`: the command runs SANY with no input, where `-d` loops for ever. The hint names the way to run it: with Java directly, on the jar `tlaup tools path` prints, or with the generic exec command once milestone 4 adds it. This is the only SANY argument tlaup looks at, and it is looked at before anything else is checked, so the refusal comes before a first-run prompt.
+7. **`-d` is refused.** `tlaup sany SPEC -- -d` is a `UsageError`: the command runs SANY with no input, where `-d` loops for ever. The hint names the way to run it: with Java directly, on the jar `tlaup tool path` prints, or with the generic exec command once milestone 4 adds it. This is the only SANY argument tlaup looks at, and it is looked at before anything else is checked, so the refusal comes before a first-run prompt.
 
    The refusal matches an argument that is exactly `-d`. Matching more loosely, on any dash group that holds a `d`, would refuse `-error-codes`. Whether SANY also takes `-D`, or grouped flags such as `-dl`, as the same switch was not run. **Waiting on question 22**; if it does, those spellings are refused too, and until then one of them would start the loop the refusal exists to prevent.
 
@@ -97,7 +99,7 @@ Roadmap: "`pcal` command: run the PlusCal translator; passthrough for its flags.
 **Design.** `tlaup pcal SPEC [-- translator arguments]`.
 
 1. Preflight: spec, build, Java.
-2. Run `pcal.trans <extra args> <Spec.tla>` in the spec's folder, with the jar alone on the classpath, the two streams read through one pipe as for `sany`.
+2. Run `pcal.trans <extra args> <Spec.tla>` in the spec's folder, with the jar alone on the classpath, the two streams read through one pipe as for `sany`. Which folder is **waiting on question 32**, as for `sany` (S1, step 2).
 3. Feed the output to a `PcalParser`:
 
    ```python
@@ -134,7 +136,7 @@ Roadmap: "`repl` command: interactive, so no output parsing; the terminal is pas
 
 **Design.** `tlaup repl [-- arguments]`.
 
-1. Preflight: the build, its capability, then Java. If the build lacks the capability `repl` ([00](00-overview.md#what-a-build-can-do)): `ToolNotInBuild` (code 3), "the pinned build v1.7.4@5a47802 has no REPL" / "install a rolling build: `tlaup tools install rolling`".
+1. Preflight: the build, its capability, then Java. If the build lacks the capability `repl` ([00](00-overview.md#what-a-build-can-do)): `ToolNotInBuild` (code 3), "the pinned build v1.7.4@5a47802 has no REPL" / "install a rolling build: `tlaup tool install rolling`".
 2. Inside `signals_held(leave_interrupt=True)`: `run_passthrough(..., forward_interrupt=False)` of `tlc2.REPL` in the folder tlaup was started from, with the same classpath and `-DTLA-Library` as a TLC run without a spec (the registered modules and the config paths).
 3. Exit with the REPL's code.
 
