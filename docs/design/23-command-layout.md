@@ -25,7 +25,7 @@ tlaup [-v|--version]
 tlaup [-V|--version] [--debug] [--help]            (--debug goes before the command; TLAUP_DEBUG=1 works anywhere)
 
 Run
-  tlc SPEC [--cfg FILE] [--workers N|auto] [--coverage] [--raw] [--plain] [--show-command]
+  tlc SPEC [--cfg FILE] [--workers N|auto] [--coverage] [--raw] [--plain] [--no-keep] [--show-command]
            [--refresh-interval SECONDS] [--java-opt OPT]... [--auto-install stable|rolling] [-- TLC ARGS...]
   sany SPEC [--java-opt OPT]... [--auto-install ...] [-- SANY ARGS...]
   pcal SPEC [--java-opt OPT]... [--auto-install ...] [-- PCAL ARGS...]

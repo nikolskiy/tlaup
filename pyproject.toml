@@ -67,8 +67,11 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov=tlaup --cov-report=term-missing"
-testpaths = ["tests/unit"]
+addopts = "--cov=tlaup --cov-report=term-missing -m 'not pending'"
+testpaths = ["tests/unit", "tests/stateful"]
+markers = [
+    "pending: written before the code it tests (design 03); the work package that builds the code removes the marker",
+]
 
 [tool.ruff]
 line-length = 120

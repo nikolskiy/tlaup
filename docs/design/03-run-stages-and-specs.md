@@ -2,6 +2,8 @@
 
 Written 2026-11-16, after the first wave's third revision. Not reviewed by a fresh agent yet. It adds no behaviour of its own: the first part restates, as one walk-through, what [00](00-overview.md), [11](11-runner.md), [12](12-tools-and-downloads.md), [20](20-groundwork.md) and [22](22-reporters.md) already design, and where it and those documents differ, they are right. The second part plans a check of the design that comes before stage 4 (decision D46): small TLA+ specs of the parts where several processes share files, checked with TLC, and stateful property tests that mirror them.
 
+**Carried out on 2026-11-18**, by one agent, and not reviewed by a fresh agent yet. The specs, their bounds, the results and the findings are in [`specs/README.md`](../../specs/README.md); the fixes are in the design sections each spec models, marked "formal check"; the step functions are in [11 R6](11-runner.md#r6-run-folders), [12 V1](12-tools-and-downloads.md#v1-version-store) and [20 G3](20-groundwork.md#g3-java-launcher); the stateful tests are in `tests/stateful/`, marked `pending`. Part 2 below is the plan as it was written, with the property statements corrected where the check showed that they said more than the design can do; each correction is marked. It left three points to the maintainer. Two were settled on 2026-11-18 (decisions D49 and D50); the third, what a SIGKILL of tlaup reaches, waits on investigation question 35, with 33 and 34 as fall-backs. The specs' README lists them.
+
 ## Part 1. The components and one TLC run
 
 ### The layers
@@ -130,11 +132,13 @@ A lock belongs to the file, not to its name, as `flock` and `fcntl` locks do: re
 
 - `NoDeleteUnderTLC`: no folder is deleted while a TLC process works in it, unless the tlaup that owns it was killed (the case R6 accepts under "Risks"); the spec states the exception as a separate property so its reach is visible.
 - `OneTLCPerFolder`: at most one TLC process writes a given run folder (the `-recover` rule 2).
-- `KeptSurvives`: a kept folder with a checkpoint is not removed before it is 30 days old, except by `cache clean --all`.
-- `LockExclusive`: no two processes hold a lock on files that have the same name at the same moment.
+- `KeptSurvives`: a kept folder with a checkpoint is not removed before it is 30 days old, except by `cache clean --all`, and by the end of a run that resumed from it and finished (R6, `-recover` rule 3; the first wording left this out, corrected 2026-11-18). Since decision D49 the same holds for a folder that was never settled and holds a checkpoint (`CheckpointSurvives` in the spec).
+- `LockExclusive`: no two processes hold the lock of one name at the same moment, counting a process until it has removed the lock file; from then on it only releases. (The first wording, "hold a lock on files that have the same name", is false in the instant between removing a lock file and releasing its lock; corrected 2026-11-18, finding K1-1.)
 - `NothingLeft` (liveness, under fairness of the end and sweep steps): every folder that was not kept, and every lock file with no folder, is eventually removed.
 
 **Questions the check must answer.** Whether removing a lock file while holding its lock, at the end of a run and in the sweep, can let a process that opened the old file earlier and a process that creates the new one both believe they hold the lock. Whether the one-hour rule closes the gap between creating a lock file and locking it, for every order of sweep and start. Neither has been checked.
+
+**Answered 2026-11-18** ([details](../../specs/README.md#runfolders)). The first: not with a lock library that looks at the file again once it has the lock, which the locked `filelock` does; without that second look, yes (question 30 decides which versions qualify). The second: with the second look the gap is closed with or without the rule; without it the rule closes the gap unless an hour passes while a run is starting.
 
 ### K2 Tools store
 
@@ -142,9 +146,9 @@ A lock belongs to the file, not to its name, as `flock` and `fcntl` locks do: re
 
 **Properties.**
 
-- `PinConsistent`: whenever the store lock is free, the pin is absent or names an installed build.
+- `PinConsistent`: whenever the store lock is free, the pin is absent or names an installed build, unless a tlaup was killed while it held the lock. (The exception was added 2026-11-18: as V3 orders its steps, an uninstall killed between removing the pinned build and clearing the pin leaves such a pin. Finding K2-2; the maintainer kept the order and accepted that state, decision D50.)
 - `NoPartialBuild`: a reader never sees a build folder that is half moved in or half deleted.
-- `ReaderOutcome`: a reader ends with a jar it opened or with `PinnedBuildMissing`; never with another build than the one the pin named when it read it.
+- `ReaderOutcome`: a reader ends with a jar it opened or with `PinnedBuildMissing`; never with another build than the one the pin named when it read it. (Corrected 2026-11-18, finding K2-3: there is a third ending. When the build is removed between the preflight's look and Java opening the jar, Java fails with its own message and exit code 1.)
 - `NoDuplicate`: no two installed builds have the same name and SHA-256.
 - `TmpOwnerSafe`: a `.tmp/` folder whose owner is alive is never removed.
 - `PinNeverMovesSilently`: the pin changes only by `pin`, by `uninstall` of the pinned build (to absent), by `upgrade` of the pinned build, or by the first install.
@@ -157,13 +161,13 @@ A lock belongs to the file, not to its name, as `flock` and `fcntl` locks do: re
 
 - `NoDefaultHandler`: between entering and leaving `signals_held`, no signal reaches Python's default handler.
 - `ChildNeverOrphaned`: when tlaup exits, the child has exited (SIGKILL of tlaup is outside the model).
-- `ExitCode`: the exit code is the first signal's code if it arrived before the child exited, otherwise the run's own (G3's table).
+- `ExitCode`: the exit code is the first signal's code if it was recorded by the time the launcher saw the child gone, otherwise the run's own (G3's table). (Corrected 2026-11-18, finding K3-1: the first wording, "if it arrived before the child exited", asks tlaup to know something it cannot see.)
 - `IgnoredStaysIgnored`: a signal ignored at entry has no handler and is ignored by the child.
-- `NothingStartsAfterSignal`: if a signal was recorded before the start, no child is started.
+- `NothingStartsAfterSignal`: if a signal was recorded when the run function looked, immediately before the start, no child is started; a signal after that look reaches the child as soon as it is attached. (Corrected 2026-11-18, finding K3-2: the first wording, "recorded before the start", is false for a signal between the look and `Popen`.)
 
 ### Specs and their tests
 
-**Where they live.** `specs/` at the repository root: one `.tla` and one `.cfg` per spec (`RunFolders`, `ToolStore`, `Signals`), and a `README.md` that says for each spec what it models, what it leaves out, the bounds of its `.cfg`, the TLC build it was checked with, the number of states and the result. TLC's own output folders and trace files are ignored in `.gitignore`. The specs are checked with a released TLC through plain `java -cp tla2tools.jar tlc2.TLC` or the released tlaup; the tlaup being designed does not exist yet. Running them in the integration job, with the tlaup they describe, is a later step and not part of this plan.
+**Where they live.** `specs/` at the repository root: one `.tla` and one `.cfg` per spec (`RunFolders`, `ToolStore`, `Signals`), and a `README.md` that says for each spec what it models, what it leaves out, the bounds of its `.cfg`, the TLC build it was checked with, the number of states and the result. As built (2026-11-18), `specs/variants/` holds more `.cfg` files beside the three: one per answer to an open question, per option the maintainer was asked to choose between, and per property that is expected not to hold; the first line of every `.cfg` says what TLC should report, and `specs/check.sh` runs them all and compares. TLC's own output folders and trace files are ignored in `.gitignore`. The specs are checked with a released TLC through plain `java -cp tla2tools.jar tlc2.TLC` or the released tlaup; the tlaup being designed does not exist yet. Running them in the integration job, with the tlaup they describe, is a later step and not part of this plan.
 
 **Stateful property tests mirror the specs.** For each spec, one Hypothesis `RuleBasedStateMachine`:
 
@@ -175,7 +179,13 @@ A lock belongs to the file, not to its name, as `flock` and `fcntl` locks do: re
 
 Hypothesis then explores random interleavings of the same steps TLC checked exhaustively in a small model, on the code instead of the design. The tests run in the default suite with the CI profile of [01 T7](01-testing.md#t7-property-tests-for-values).
 
-**What this needs from the code.** The steps must be callable one at a time. `run_folder` today is one context manager and `ToolStore.add` one call. The design therefore adds step-level functions under the public ones, for example `rundirs.RunStart` with `create_lock_file`, `take_lock`, `take_recover_lock`, `make_folder`, `write_run_json` and `sweep`, which `run_folder` calls in order; and the same for install, upgrade and uninstall. Their exact names are written into [11 R6](11-runner.md#r6-run-folders) and [12 V1](12-tools-and-downloads.md#v1-version-store) once the specs fix the steps. The cost: the tests depend on the protocol's steps, so a change to the protocol changes the spec, the machine and the code together. That is the point of the exercise and is accepted.
+As built (2026-11-18, `tests/stateful/`; what each machine covers and how it was tried is in [the specs' README](../../specs/README.md#the-stateful-tests)):
+
+- Each machine can be run against the code it is written for, which does not exist yet (those tests carry the `pending` marker), and against a throwaway model of the same step functions kept beside it (`reference_*.py`), so the machine itself could be tried. The work package that builds the code deletes the throwaway model.
+- Random steps reach a race only by chance, and a machine as first written missed most of a set of deliberately broken models. Three things were added for that, and they are part of the pattern: a start-up phase that leaves behind what earlier commands left, made with the same step functions, so that the interleaving starts from a state worth racing in; the same bounds as the spec's model on the steps that end a command early (one kill per example); and, for every counterexample TLC gave for a fix, a plain test that replays its steps in order, so that the fix is tested on every run and not only when the dice fall that way.
+- The machine for the signals has no second process to stand for: the test process is the tlaup of the spec and sends itself real signals between the steps.
+
+**What this needs from the code.** The steps must be callable one at a time. `run_folder` today is one context manager and `ToolStore.add` one call. The design therefore adds step-level functions under the public ones, for example `rundirs.RunStart` with `create_lock_file`, `take_lock`, `take_recover_lock`, `make_folder`, `write_run_json` and `sweep`, which `run_folder` calls in order; and the same for install, upgrade and uninstall. Their exact names are written into [11 R6](11-runner.md#r6-run-folders) and [12 V1](12-tools-and-downloads.md#v1-version-store) once the specs fix the steps. (Done 2026-11-18; the launcher's are in [20 G3](20-groundwork.md#g3-java-launcher), which this paragraph had not foreseen: the signals machine needs the check, the start and the attach as separate calls.) The cost: the tests depend on the protocol's steps, so a change to the protocol changes the spec, the machine and the code together. That is the point of the exercise and is accepted.
 
 **Rejected.** *One spec of the whole system*: most of it is sequential and the model would be large without checking more. *Trace validation* (TLC checking a log of a real run against the spec): stronger, but needs logging in the product code for its own sake; worth looking at if a stateful test and the spec disagree in a way that is hard to read. *Tests without a spec*: Hypothesis samples interleavings and can miss the rare one; TLC covers all of them in the bounded model, so the two together check both the design and the code.
 

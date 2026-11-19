@@ -512,11 +512,14 @@ Roadmap: "Coverage policy: branch coverage on; a `fail_under` near the current 8
 
 ```toml
 [tool.pytest.ini_options]
-addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider"
+addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider -m 'not pending'"
 testpaths = ["tests"]
 norecursedirs = ["tests/integration", "tests/fakes", "tests/fixtures"]
 filterwarnings = ["error"]
-markers = ["integration: needs Java and real jars (TLAUP_TEST_JARS)"]
+markers = [
+    "integration: needs Java and real jars (TLAUP_TEST_JARS)",
+    "pending: written before the code it tests (03); the work package that builds the code removes the marker",
+]
 
 [tool.coverage.run]
 branch = true
@@ -536,6 +539,7 @@ show_missing = true
 - `fail_under` starts at 80, not the roadmap's "near the current 83" (a departure, listed in the README): branch coverage lowers the figure, and deleting the dead display code and its tests changes both sides of the fraction. The last milestone 2 work package measures the figure and sets `fail_under` to it, rounded down to a whole number. It is never lowered to make a pull request pass.
 - `pytest-randomly` randomises order on every run and prints the seed.
 - `tests/integration` is excluded from the default run and has its own task.
+- `pending` marks the stateful tests of the formal check ([03](03-run-stages-and-specs.md#specs-and-their-tests)), which were written before their code. The marker and its deselection are in today's `pyproject.toml` since 2026-11-18, and `tests/stateful` is in today's `testpaths`; CI runs `uv run poe test` and so follows both. When the last package has removed its marker, the marker and the `-m` option go.
 - A third-party deprecation warning that cannot be fixed gets one `ignore` line naming the exact message and the issue it waits on.
 
 **Rejected.** Coverage on every run: it slows the single-test loop and prints a failing total for a partial run. Leaving real processes out of the figure: the signal, pipe and raw paths would then count as untested, and the figure would push towards in-process tests that cannot see them. A per-file threshold: the suite tests through two boundaries, so a file's coverage says little about whether it is tested.

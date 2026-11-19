@@ -19,6 +19,7 @@ class TlcRequest:                     # what the user typed, nothing looked up
     workers: str | None = None        # "auto" or a positive integer, as text; None = take the setting
     coverage: bool = False
     raw: bool = False
+    no_keep: bool = False             # never keep the run folder (11 R6, decision D48)
     java_opts: tuple[str, ...] = ()
     extra_args: tuple[str, ...] = ()  # TLC's own arguments (11 R8)
 
@@ -191,10 +192,31 @@ def run_passthrough(inv: JavaInvocation, *, signals: Signals,
 
 | When the signal arrives | What happens |
 | --- | --- |
-| Before the child exists | It is recorded. The run function checks `signals.first` immediately before starting the child and, if it is set, starts nothing: the run ends with that signal's code after the usual cleanup. A signal that lands while `Popen` is returning is seen when the child is attached and is treated as the next row. |
+| Before the child exists | It is recorded. The run function checks `signals.first` immediately before starting the child and, if it is set, starts nothing: the run ends with that signal's code after the usual cleanup. A signal that lands while `Popen` is returning is seen when the child is attached and is treated as the next row. "While `Popen` is returning" is everything after that check, so a signal between the check and `Popen` still finds a child started, and stops it a moment later. The child is attached to `Signals` first and `signals.first` is looked at second; in the other order a signal between the two would be recorded and never reach the child. Two signals in that window count as one for the child, which gets `terminate()`. (Made explicit by the formal check, 2026-11-18, [finding K3-2](../../specs/README.md#findings).) |
 | While the child runs, first signal | `terminate()` on the child. |
 | While the child runs, a second signal, or the grace period running out | `kill()` on the child. The second signal is acted on in the handler; the grace period is watched by the main thread, which never waits for the child or for a line for more than a fifth of a second at a time and compares the clock with `signals.first_at`. |
-| After the child has exited | Recorded only. The summary and the cleanup finish; nothing is interrupted and no traceback is possible. The exit code is the first signal's if it arrived before the child exited, else the run's own. |
+| After the child has exited | Recorded only. The summary and the cleanup finish; nothing is interrupted and no traceback is possible. The exit code is the first signal's if it was recorded by the time the launcher saw the child gone (both pipes closed and the wait returned), else the run's own; `ProcessOutcome.stopped_by` is taken at that moment, once. tlaup cannot see more than that: a signal that arrives after the child has ended by itself and before the launcher has noticed counts as having stopped the run. The run is then reported as interrupted, and its folder is kept if it holds a checkpoint (R6), although the run finished. (Formal check, 2026-11-18, [finding K3-1](../../specs/README.md#findings): the first wording, "if it arrived before the child exited", cannot be built.) |
+
+**Formal check, 2026-11-18.** This table and R2 were written as `specs/Signals.tla` and checked with TLC; [the specs' README](../../specs/README.md#signals) says what was modelled and what was found. The check found no flaw in the design and two sentences that said more than can be built, both corrected in the table above.
+
+*The steps, one call each* (decision D46). `run_streaming` and `run_passthrough` are loops over these, and the stateful test calls them one at a time, sending signals in between ([03](03-run-stages-and-specs.md#specs-and-their-tests)). `signals_held` takes the clock that stamps `first_at`, so the test can run the grace period out without waiting.
+
+```python
+@contextmanager
+def signals_held(*, leave_interrupt: bool = False, clock=time.monotonic) -> Iterator[Signals]
+
+class ChildRun:                                    # one child under signals_held
+    def __init__(self, inv: JavaInvocation, signals: Signals, *, on_stdout=None, on_stderr=None,
+                 merge_stderr: bool = False, passthrough: bool = False,
+                 grace_seconds: float = 10.0, clock=time.monotonic): ...
+    pid: int | None
+    def may_start(self) -> bool                    # looks at signals.first; False: nothing is started
+    def spawn(self) -> None                        # Popen; raises ToolStartError
+    def attach(self) -> None                       # attach to signals, then look at signals.first: terminate()
+    def turn(self, timeout: float = 0.2) -> bool   # one turn of the loop; True when the child is gone and its pipes are closed
+    def stop(self) -> None                         # the finally round the loop: stop the child, empty the queue
+    def outcome(self) -> ProcessOutcome            # takes stopped_by from signals.first; the same answer every time
+```
 
 Why the last row matters: research 15 measured the JVM exiting in under a second after the first signal, so a second Ctrl-C from an impatient user usually arrives after the process loop has ended. With handlers held only for the loop it would hit Python's default handler during the summary.
 
@@ -247,6 +269,7 @@ The main thread waits for the child in steps of a fifth of a second, for the sam
 - The same three signals for `tlc --raw`, real processes: the codes are the same and the fake has exited.
 - Unit, with the fake `java` as a real child of the test process: invalid UTF-8 bytes in stdout arrive as replacement characters and the run completes; 100,000 lines (ten times the bound) arrive in order with a slow `on_stdout` and the queue never holds more than its bound; an `on_stdout` that raises at the fifth of 100,000 lines makes `run_streaming` raise that exception within a few seconds, with the fake exited and no reader thread alive; a fake that ignores SIGTERM is killed when the grace period (set to half a second) runs out; text on stderr arrives through `on_stderr` only; a missing executable raises `ToolStartError` whose message does not say "not found" unless the file is missing; a file without execute permission says "permission denied"; a `Signals` with `first` already set starts nothing. The two start failures can only be shown here, by calling the launcher with a path: through the command line a `java` that is missing or not executable is never found, and the result is `JavaNotFound`, code 3 ([13 J2](13-modules-and-java.md#j2-finding-java)).
 - Feature, real process (`tlc_raw.feature`): passthrough keeps the two streams apart, byte for byte, and returns the fake's code. This cannot run in-process: the child inherits the real file descriptors, which the in-process runner does not capture ([01 T5](01-testing.md#t5-feature-files-and-steps)).
+- Stateful (`tests/stateful/test_signals.py`): the Hypothesis state machine that mirrors [the spec](../../specs/README.md#signals) on the steps above. The test process is the tlaup of the spec: it enters `signals_held`, runs a real child a step at a time and sends itself real signals in between, never where Python's default handler would get them. One plain test confirms with a second Python process that a signal from outside is recorded as one the process sends itself. Written before the code and marked `pending` ([03](03-run-stages-and-specs.md#specs-and-their-tests)).
 - Integration (T9): the same signal scenarios with the real JVM, including "no `java` process is left".
 
 **Changelog.** Fixed: "Stopping `tlaup tlc` with SIGTERM (for example a CI timeout) now stops TLC too; it used to keep running." "A second Ctrl-C no longer loses the summary." "Output that is not valid UTF-8 no longer crashes tlaup." Changed: "Ctrl-C exits with 130."

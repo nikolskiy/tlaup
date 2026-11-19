@@ -20,6 +20,14 @@ lib/*.jar
 classes/
 states/
 
+# TLC output beside a spec: state folders, trace specs and their dumps, checkpoints
+specs/**/states*/
+*_TTrace_*.tla
+*_TTrace_*.bin
+*.chkpt
+# Hypothesis example database
+.hypothesis/
+
 # Machine and personal files (also refused by the no-machine-files hook)
 hs_err_pid*.log
 replay_pid*.log
