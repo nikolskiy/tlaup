@@ -1,0 +1,1 @@
+RESULT q30 select-poll windows : SKIP - select.poll does not exist on this platform (reader_gone is false)

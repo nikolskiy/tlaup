@@ -1,0 +1,32 @@
+--- rich==13.8.0 (Python 3.13)
+RESULT q30 rich-plain-closed-stdout windows : DIFFERENT (rich 13.8.0, Python 3.13.17) - 3 lines into a pipe closed before start: exit 1; OSError fd1-null=True
+RESULT q30 rich-plain-closed-stderr windows : INFO (rich 13.8.0, Python 3.13.17) - stderr console, stderr on a closed pipe, stdout open: exit 1; OSError fd1-null=True
+RESULT q30 rich-subclass-closed-stdout windows : DIFFERENT (rich 13.8.0, Python 3.13.17) - on_broken_pipe raising BrokenPipeError: exit 1; (no note)
+RESULT q30 rich-subclass-closed-stderr windows : DIFFERENT (rich 13.8.0, Python 3.13.17) - stderr console subclass, stderr closed: exit 1; (no note)
+RESULT q30 rich-typer-help-closed windows : DIFFERENT (rich 13.8.0, typer 0.29.1, Python 3.13.17) - --help with stdout closed before start: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr windows : INFO (rich 13.8.0, typer 0.29.1, Python 3.13.17) - unknown option, stderr closed: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-live-pty windows : SKIP - no pty module
+--- rich==13.9.4 (Python 3.13)
+RESULT q30 rich-plain-closed-stdout windows : DIFFERENT (rich 13.9.4, Python 3.13.17) - 3 lines into a pipe closed before start: exit 1; OSError fd1-null=True
+RESULT q30 rich-plain-closed-stderr windows : INFO (rich 13.9.4, Python 3.13.17) - stderr console, stderr on a closed pipe, stdout open: exit 1; OSError fd1-null=True
+RESULT q30 rich-subclass-closed-stdout windows : DIFFERENT (rich 13.9.4, Python 3.13.17) - on_broken_pipe raising BrokenPipeError: exit 1; (no note)
+RESULT q30 rich-subclass-closed-stderr windows : DIFFERENT (rich 13.9.4, Python 3.13.17) - stderr console subclass, stderr closed: exit 1; (no note)
+RESULT q30 rich-typer-help-closed windows : DIFFERENT (rich 13.9.4, typer 0.29.1, Python 3.13.17) - --help with stdout closed before start: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr windows : INFO (rich 13.9.4, typer 0.29.1, Python 3.13.17) - unknown option, stderr closed: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-live-pty windows : SKIP - no pty module
+--- rich==14.3.4 (Python 3.13)
+RESULT q30 rich-plain-closed-stdout windows : DIFFERENT (rich 14.3.4, Python 3.13.17) - 3 lines into a pipe closed before start: exit 1; OSError fd1-null=True
+RESULT q30 rich-plain-closed-stderr windows : INFO (rich 14.3.4, Python 3.13.17) - stderr console, stderr on a closed pipe, stdout open: exit 1; OSError fd1-null=True
+RESULT q30 rich-subclass-closed-stdout windows : DIFFERENT (rich 14.3.4, Python 3.13.17) - on_broken_pipe raising BrokenPipeError: exit 1; (no note)
+RESULT q30 rich-subclass-closed-stderr windows : DIFFERENT (rich 14.3.4, Python 3.13.17) - stderr console subclass, stderr closed: exit 1; (no note)
+RESULT q30 rich-typer-help-closed windows : DIFFERENT (rich 14.3.4, typer 0.29.1, Python 3.13.17) - --help with stdout closed before start: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr windows : INFO (rich 14.3.4, typer 0.29.1, Python 3.13.17) - unknown option, stderr closed: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-live-pty windows : SKIP - no pty module
+--- rich (Python 3.13)
+RESULT q30 rich-plain-closed-stdout windows : DIFFERENT (rich 15.0.0, Python 3.13.17) - 3 lines into a pipe closed before start: exit 1; OSError fd1-null=True
+RESULT q30 rich-plain-closed-stderr windows : INFO (rich 15.0.0, Python 3.13.17) - stderr console, stderr on a closed pipe, stdout open: exit 1; OSError fd1-null=True
+RESULT q30 rich-subclass-closed-stdout windows : DIFFERENT (rich 15.0.0, Python 3.13.17) - on_broken_pipe raising BrokenPipeError: exit 1; (no note)
+RESULT q30 rich-subclass-closed-stderr windows : DIFFERENT (rich 15.0.0, Python 3.13.17) - stderr console subclass, stderr closed: exit 1; (no note)
+RESULT q30 rich-typer-help-closed windows : DIFFERENT (rich 15.0.0, typer 0.29.1, Python 3.13.17) - --help with stdout closed before start: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr windows : INFO (rich 15.0.0, typer 0.29.1, Python 3.13.17) - unknown option, stderr closed: exit 1; OSError: [Errno 22] Invalid argument fd1-null=True
+RESULT q30 rich-live-pty windows : SKIP - no pty module

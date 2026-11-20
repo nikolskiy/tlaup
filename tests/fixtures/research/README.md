@@ -1,6 +1,6 @@
 # Captured investigation data
 
-Raw data captured while answering the roadmap's investigation questions (pipeline stage 2), on 2026-11-14 with Linux and OpenJDK 25.0.5. Each folder belongs to one question; its number matches the result file in `docs/research/`, which explains what the data shows. Start there, not here.
+Raw data captured while answering the roadmap's investigation questions (pipeline stage 2), on 2026-11-14 with Linux and OpenJDK 25.0.5; questions 19 to 35 on 2026-11-18 and 2026-11-19, some with GitHub-hosted macOS and Windows runners (see each result file). Each folder belongs to one question; its number matches the result file in `docs/research/`, which explains what the data shows. Start there, not here.
 
 No test reads these files yet. They are kept as evidence and as a starting point: the testing design of milestone 2 decides which become golden files, which move, and which are deleted.
 
@@ -19,6 +19,23 @@ No test reads these files yet. They are kept as evidence and as a starting point
 | `15-exit-codes/` | [15, exit codes and signals](../../../docs/research/15-exit-codes-and-signals.md) | Specs that trigger each TLC exit code, the output of each run, the result tables per version, and the scripts for the exit-code and signal tests. |
 | `17-metadir/` | [17, metadir](../../../docs/research/17-metadir.md) | Specs and scripts for the metadir experiments, the folder trees they left (`trees.txt`) and the v1.7.4 collision error. |
 | `18-digest/` | [18, digest field](../../../docs/research/18-digest-field.md) | Trimmed release API responses and a table of every release's jar digest. |
+| `19-workers-auto/` | [19, workers auto](../../../docs/research/19-workers-auto.md) | The test spec, the scripts and TLC's startup lines for each `-workers` value, CPU limit, build and Java. |
+| `20-metadir-creation/` | [20, metadir creation](../../../docs/research/20-metadir-creation.md) | The cases script, specs, outputs per build and Java, and the CI logs of the three systems. |
+| `21-output-encoding/` | [21, output encoding](../../../docs/research/21-output-encoding.md) | Specs with non-ASCII text, the scripts, result tables, hexdumps and the CI logs. |
+| `22-more-tool-captures/` | [22, more tool captures](../../../docs/research/22-more-tool-captures.md) | 164 cases per build as `.out` and `.err` pairs with `commands.txt`, the specs and the driver; layout as in `12-sany-pcal-repl/`. |
+| `23-typer-versions/` | [23, Typer versions](../../../docs/research/23-typer-versions.md) | The probe app, the scripts and the results per Typer and Rich pair. |
+| `24-path-flags-and-links/` | [24, path flags and links](../../../docs/research/24-path-flags-and-links.md) | The experiment outputs, the scripts and the logs of both CI runs. |
+| `25-default-checkpoints/` | [25, default checkpoints](../../../docs/research/25-default-checkpoints.md) | The spec, scripts, folder listings over time and TLC's output. |
+| `26-old-jar-commits/` | [26, old jar commits](../../../docs/research/26-old-jar-commits.md) | The manifests of every release jar, a table of their entries and the tag-to-commit lookups. |
+| `27-sany-library-path/` | [27, SANY library path](../../../docs/research/27-sany-library-path.md) | The setup and case scripts, captures for Java 25 and 11, and the case summaries. |
+| `28-java-11-and-macos-java/` | [28, Java 11 and macOS java](../../../docs/research/28-java-11-and-macos-java.md) | Runs per build and Java, class-version captures, the CI scripts and the logs of both CI runs. |
+| `29-ci-facts-and-recordings/` | [29, CI facts and recordings](../../../docs/research/29-ci-facts-and-recordings.md) | Real GitHub responses with headers: two pages of tags and of releases, and a rate-limit 403. |
+| `30-library-behaviours/` | [30, library behaviours](../../../docs/research/30-library-behaviours.md) | The probes per library and version, their results, and the logs of both CI runs. |
+| `31-progress-and-closed-stdout/` | [31, progress and closed stdout](../../../docs/research/31-progress-and-closed-stdout.md) | Timestamped progress captures, the closed-pipe scripts and the CI logs. |
+| `32-sany-pcal-working-folder/` | [32, SANY and pcal working folder](../../../docs/research/32-sany-pcal-working-folder.md) | Captures of each scenario in three modes per build, with their diffs and the driver. |
+| `33-inherited-lock/` | [33, inherited lock](../../../docs/research/33-inherited-lock.md) | The lock scripts for POSIX and Windows, the Linux runs and the CI logs. |
+| `34-metadir-write-frequency/` | [34, metadir write frequency](../../../docs/research/34-metadir-write-frequency.md) | The polling watcher, specs, per-run summaries and trimmed event logs. |
+| `35-jvm-ends-with-tlaup/` | [35, JVM ends with tlaup](../../../docs/research/35-jvm-ends-with-tlaup.md) | The CI scripts with the Java agent's source, the checkpoint-kill experiment and the outputs of Linux and both CI runs. |
 
 Questions 4, 5, 6, 7, 9, 11 and 16 kept no data here; their evidence is quoted in their result files.
 

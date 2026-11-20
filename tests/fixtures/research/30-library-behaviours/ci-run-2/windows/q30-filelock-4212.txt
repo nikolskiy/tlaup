@@ -1,0 +1,10 @@
+q30 filelock_probe: filelock 4.2.12, Python 3.13.17, Windows AMD64, FileLock=WindowsFileLock
+RESULT q30 filelock-recheck windows : PASS (filelock 4.2.12) - unlink-failed:PermissionError; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc windows : PASS (filelock 4.2.12) - unlink-failed:PermissionError; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout windows : PASS (filelock 4.2.12) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process windows : PASS (filelock 4.2.12) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death windows : PASS (filelock 4.2.12) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind windows : FAIL (filelock 4.2.12) - library deleted the lock file on release
+RESULT q30 filelock-mtime windows : PASS (filelock 4.2.12) - while held: unchanged; after release: file gone
+RESULT q30 filelock-foreign_file windows : SKIP (filelock 4.2.12) - cannot unlink a held lock file here: PermissionError
+RESULT q30 filelock-creates windows : PASS (filelock 4.2.12) - lock file created by acquire

@@ -1,0 +1,20 @@
+# rolling-reader mode=reader pid=1446043 first-line-seen: TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+# fd listing at +2s:
+#    -> 
+#   0 -> /dev/null
+#   1 -> pipe:[6309338]
+#   2 -> <tmp>/q31/p2/log-rolling-reader.txt
+t=2s alive state/cpu-ticks=S 122
+t=13s alive state/cpu-ticks=S 603
+t=23s alive state/cpu-ticks=S 984
+t=33s alive state/cpu-ticks=S 1364
+t=43s alive state/cpu-ticks=S 1857
+t=53s alive state/cpu-ticks=S 2194
+t=63s alive state/cpu-ticks=S 2697
+t=73s alive state/cpu-ticks=S 3061
+t=83s alive state/cpu-ticks=S 3630
+t=93s alive state/cpu-ticks=S 4086
+t=103s alive state/cpu-ticks=S 4469
+t=113s alive state/cpu-ticks=S 4868
+t=123s alive state/cpu-ticks=S 5268
+t=133s java gone; exit=12

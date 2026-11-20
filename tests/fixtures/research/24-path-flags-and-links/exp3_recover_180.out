@@ -1,0 +1,29 @@
+files after kill:
+relck
+relck/26-11-18-22-04-25.423
+relck/26-11-18-22-04-25.423/Big-0.chkpt
+relck/26-11-18-22-04-25.423/Big_0.fp
+relck/26-11-18-22-04-25.423/Big-0.st
+relck/26-11-18-22-04-25.423/Big_1.fp
+relck/26-11-18-22-04-25.423/Big.st
+relck/26-11-18-22-04-25.423/Big.st.chkpt
+relck/26-11-18-22-04-25.423/queue.chkpt
+relck/26-11-18-22-04-25.423/settings.chkpt
+relck/26-11-18-22-04-25.423/vars.chkpt
+recover dir (relative): relck/26-11-18-22-04-25.423
+--- recover, same cwd (rec), relative path
+Starting recovery from checkpoint relck/26-11-18-22-04-25.423/
+Recovery completed. 8233292 states examined. 2008 states on queue.
+Progress(4565) at 2026-11-18 22:05:57: 8,883,890 states generated (8,883,890 s/min), 8,558,590 distinct states found (8,558,590 ds/min), 1,837 states left on queue.
+Error: Deadlock reached.
+Error: TLC threw an unexpected exception.
+This was probably caused by an error in the spec or model.
+The exception was a java.lang.NullPointerException
+12259513 states generated, 10246402 distinct states found, 0 states left on queue.
+--- recover, other cwd (rec2), same relative path
+Error: TLC threw an unexpected exception.
+This was probably caused by an error in the spec or model.
+The exception was a java.io.FileNotFoundException
+: relck/26-11-18-22-04-25.423/vars.chkpt (No such file or directory)
+Finished in 00s at (2026-11-18 22:06:10)
+--- recover, other cwd (rec2), spec-folder-relative? (path of the checkpoint under big/: none)

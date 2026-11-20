@@ -1,0 +1,314 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <tmp>/q22/work/v1.7.4/q12-sany-d-scripted/Good.tla
+Parsing file /tmp/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module Good
+
+
+*** TLA+ semantic graph exploration tool v 1.0 (DRJ)
+
+>>
+*** Concrete Syntax Tree for Module 229
+N_Module	  #heirs: 4	  kind:   382
+| N_BeginModule	  #heirs: 3	  kind:   333
+| | ---- MODULE	  #heirs: 0	  kind:   3
+| | Good	  #heirs: 0	  kind:   231
+| | ----	  #heirs: 0	  kind:   35
+| N_Extends	  #heirs: 2	  kind:   350
+| | EXTENDS	  #heirs: 0	  kind:   47
+| | Naturals	  #heirs: 0	  kind:   231
+| N_Body	  #heirs: 4	  kind:   334
+| | N_VariableDeclaration	  #heirs: 2	  kind:   426
+| | | VARIABLE	  #heirs: 0	  kind:   84
+| | | x	  #heirs: 0	  kind:   231
+| | N_OperatorDefinition	*Init	  #heirs: 3	  kind:   389
+| | | N_IdentLHS	  #heirs: 1	  kind:   366
+| | | | Init	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | x	  #heirs: 0	  kind:   231
+| | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | =	  #heirs: 0	  kind:   373
+| | | | N_Number	  #heirs: 1	  kind:   385
+| | | | | 0	  #heirs: 0	  kind:   110
+| | N_OperatorDefinition	*Next	  #heirs: 3	  kind:   389
+| | | N_IdentLHS	  #heirs: 1	  kind:   366
+| | | | Next	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | N_PostfixExpr	  #heirs: 2	  kind:   395
+| | | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | x	  #heirs: 0	  kind:   231
+| | | | | N_GenPostfixOp	  #heirs: 2	  kind:   361
+| | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | '	  #heirs: 0	  kind:   397
+| | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | =	  #heirs: 0	  kind:   373
+| | | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | x	  #heirs: 0	  kind:   231
+| | | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | +	  #heirs: 0	  kind:   373
+| | | | | N_Number	  #heirs: 1	  kind:   385
+| | | | | | 1	  #heirs: 0	  kind:   110
+| | N_OperatorDefinition	*Spec	  #heirs: 3	  kind:   389
+| | | N_IdentLHS	  #heirs: 1	  kind:   366
+| | | | Spec	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | Init	  #heirs: 0	  kind:   231
+| | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | /\	  #heirs: 0	  kind:   373
+| | | | N_PrefixExpr	  #heirs: 2	  kind:   399
+| | | | | N_GenPrefixOp	  #heirs: 2	  kind:   362
+| | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | []	  #heirs: 0	  kind:   401
+| | | | | N_ActionExpr	  #heirs: 4	  kind:   329
+| | | | | | [	  #heirs: 0	  kind:   96
+| | | | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | | Next	  #heirs: 0	  kind:   231
+| | | | | | ]_	  #heirs: 0	  kind:   97
+| | | | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | | x	  #heirs: 0	  kind:   231
+| N_EndModule	  #heirs: 1	  kind:   345
+| | ====	  #heirs: 0	  kind:   36
+
+*** End of concrete syntax tree for Module 229
+
+*** Concrete Syntax Tree for Module 154
+N_Module	  #heirs: 4	  kind:   382
+| N_BeginModule	  #heirs: 3	  kind:   333
+| | -------------------------------- MODULE	  #heirs: 0	  kind:   3
+| | Naturals	  #heirs: 0	  kind:   231
+| | ----------------------------	  #heirs: 0	  kind:   35
+| N_Extends	  #heirs: 0	  kind:   350
+| N_Body	  #heirs: 12	  kind:   334
+| | N_OperatorDefinition	*Nat	  #heirs: 3	  kind:   389
+| | | N_IdentLHS	  #heirs: 1	  kind:   366
+| | | | Nat	  #heirs: 0	  kind:   231
+ preComment: 0 (***************************************************************************)
+             1 (* This module provides dummy definitions of the operators that are        *)
+             2 (* defined by the real Naturals module.  It is expected that any tool will *)
+             3 (* provide its own implementations of these operators.  See the book       *)
+             4 (* "Specifying Systems" for the real Naturals module.                      *)
+             5 (***************************************************************************)
+             6 (***************************************************************************)
+             7 (* These definitions are all overridden by TLC in the Java class           *)
+             8 (* tlc2.module.Naturals. Each operator is overridden by the Java method    *)
+             9 (* with the same name, except that the mapping for TLA+ infix operators    *)
+             10 (* is defined in the static block at the beginning of the Java class.      *)
+             11 (***************************************************************************)
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_SetEnumerate	  #heirs: 2	  kind:   411
+| | | | {	  #heirs: 0	  kind:   101
+| | | | }	  #heirs: 0	  kind:   102
+| | N_OperatorDefinition	+	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | +	  #heirs: 0	  kind:   198
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_SetEnumerate	  #heirs: 5	  kind:   411
+| | | | {	  #heirs: 0	  kind:   101
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | ,	  #heirs: 0	  kind:   87
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | | | }	  #heirs: 0	  kind:   102
+| | N_OperatorDefinition	-	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | -	  #heirs: 0	  kind:   194
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_UnBoundedOrBoundedChoose	  #heirs: 5	  kind:   424
+| | | | CHOOSE	  #heirs: 0	  kind:   42
+| | | | n	  #heirs: 0	  kind:   231
+| | | | N_MaybeBound	  #heirs: 0	  kind:   381
+| | | | :	  #heirs: 0	  kind:   88
+| | | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | | b	  #heirs: 0	  kind:   231
+| | | | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | | +	  #heirs: 0	  kind:   373
+| | | | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | | n	  #heirs: 0	  kind:   231
+| | | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | =	  #heirs: 0	  kind:   373
+| | | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | | a	  #heirs: 0	  kind:   231
+| | N_OperatorDefinition	*	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | *	  #heirs: 0	  kind:   196
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | TRUE	  #heirs: 0	  kind:   231
+| | N_OperatorDefinition	^	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | ^	  #heirs: 0	  kind:   190
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_SetEnumerate	  #heirs: 5	  kind:   411
+| | | | {	  #heirs: 0	  kind:   101
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | ,	  #heirs: 0	  kind:   87
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | | | }	  #heirs: 0	  kind:   102
+| | N_OperatorDefinition	<	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | <	  #heirs: 0	  kind:   202
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | =	  #heirs: 0	  kind:   373
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | N_OperatorDefinition	>	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | >	  #heirs: 0	  kind:   204
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | =	  #heirs: 0	  kind:   373
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | N_OperatorDefinition	\leq	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | \leq	  #heirs: 0	  kind:   152
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | =	  #heirs: 0	  kind:   373
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | N_OperatorDefinition	\geq	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | \geq	  #heirs: 0	  kind:   146
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_InfixExpr	  #heirs: 3	  kind:   371
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | N_GenInfixOp	  #heirs: 2	  kind:   359
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | =	  #heirs: 0	  kind:   373
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | N_OperatorDefinition	%	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+ preComment: 0 (***************************************************************************)
+             1 (* a .. b  is defined to equal  {i \in Int : (a \leq i) /\ (i \leq b)}     *)
+             2 (* where  Int  is the set of all integers.                                 *)
+             3 (*                                                                         *)
+             4 (* a % b  and  a \div b  are defined so that for any integers  a  and  b   *)
+             5 (* with  b > 0 , the following formula is true:                            *)
+             6 (*                                                                         *)
+             7 (*    a  =  b * (a \div b) + (a % b)                                       *)
+             8 (***************************************************************************)
+| | | | %	  #heirs: 0	  kind:   217
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_SetEnumerate	  #heirs: 5	  kind:   411
+| | | | {	  #heirs: 0	  kind:   101
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | ,	  #heirs: 0	  kind:   87
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | | | }	  #heirs: 0	  kind:   102
+| | N_OperatorDefinition	\div	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | \div	  #heirs: 0	  kind:   143
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_SetEnumerate	  #heirs: 5	  kind:   411
+| | | | {	  #heirs: 0	  kind:   101
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | ,	  #heirs: 0	  kind:   87
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | | | }	  #heirs: 0	  kind:   102
+| | N_OperatorDefinition	..	  #heirs: 3	  kind:   389
+| | | N_InfixLHS	  #heirs: 3	  kind:   372
+| | | | a	  #heirs: 0	  kind:   231
+| | | | ..	  #heirs: 0	  kind:   206
+| | | | b	  #heirs: 0	  kind:   231
+| | | ==	  #heirs: 0	  kind:   92
+| | | N_SetEnumerate	  #heirs: 5	  kind:   411
+| | | | {	  #heirs: 0	  kind:   101
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | a	  #heirs: 0	  kind:   231
+| | | | ,	  #heirs: 0	  kind:   87
+| | | | N_GeneralId	  #heirs: 2	  kind:   358
+| | | | | N_IdPrefix	  #heirs: 0	  kind:   367
+| | | | | b	  #heirs: 0	  kind:   231
+| | | | }	  #heirs: 0	  kind:   102
+| N_EndModule	  #heirs: 1	  kind:   345
+| | =============================================================================	  #heirs: 0	  kind:   36
+
+*** End of concrete syntax tree for Module 154
+
+>>

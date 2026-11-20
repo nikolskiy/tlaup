@@ -1,0 +1,13 @@
+$ cd <w>/spec
+$ java  -cp <jar> pcal.trans Pc.tla
+--- run 1 stdout
+pcal.trans Version 1.11 of 31 December 2020
+Parsing completed.
+
+Unrecoverable error:
+ -- goto to non-existent label `Zzz' at line 6, column 6.
+
+--- run 1 stderr
+--- run 1 exit 255
+--- files changed
+

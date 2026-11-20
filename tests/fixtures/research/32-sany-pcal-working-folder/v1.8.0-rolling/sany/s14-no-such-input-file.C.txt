@@ -1,0 +1,12 @@
+$ cd <w>/other
+$ java  -cp <jar> tla2sany.SANY ../spec/Nope.tla
+--- run 1 stdout
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Cannot find the specified file ../spec/Nope.tla.
+--- run 1 stderr
+File does not exist: <w>/other/./../spec/Nope.tla while looking in these directories: <w>/other, , classpath:/tla2sany/StandardModules, classpath:/
+--- run 1 exit 255
+--- files changed
+

@@ -1,0 +1,302 @@
+[
+  {
+    "name": "2026.11.15.002146",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.15.002146",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.15.002146",
+    "commit": {
+      "sha": "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMTUuMDAyMTQ2"
+  },
+  {
+    "name": "2026.11.06.222357",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.06.222357",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.06.222357",
+    "commit": {
+      "sha": "d8fb231de4e4b5d02c1b2ed1ac759c086f694021",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/d8fb231de4e4b5d02c1b2ed1ac759c086f694021"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDYuMjIyMzU3"
+  },
+  {
+    "name": "2026.11.06.182551",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.06.182551",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.06.182551",
+    "commit": {
+      "sha": "c058b21a5013c31281312d3f029bcbb5c98e3748",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/c058b21a5013c31281312d3f029bcbb5c98e3748"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDYuMTgyNTUx"
+  },
+  {
+    "name": "2026.11.06.100558",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.06.100558",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.06.100558",
+    "commit": {
+      "sha": "3ec1cc4f8c24fca53ce16f2bb254d91e9337af49",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/3ec1cc4f8c24fca53ce16f2bb254d91e9337af49"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDYuMTAwNTU4"
+  },
+  {
+    "name": "2026.11.06.005304",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.06.005304",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.06.005304",
+    "commit": {
+      "sha": "3ec1cc4f8c24fca53ce16f2bb254d91e9337af49",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/3ec1cc4f8c24fca53ce16f2bb254d91e9337af49"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDYuMDA1MzA0"
+  },
+  {
+    "name": "2026.11.03.180953",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.03.180953",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.03.180953",
+    "commit": {
+      "sha": "309e489a512e8017f1cdc8388fa6a5e8a01cf597",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/309e489a512e8017f1cdc8388fa6a5e8a01cf597"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDMuMTgwOTUz"
+  },
+  {
+    "name": "2026.11.02.164701",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.02.164701",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.02.164701",
+    "commit": {
+      "sha": "dc6a944429fe3e26104d38f9ff792d2d5d83f307",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/dc6a944429fe3e26104d38f9ff792d2d5d83f307"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDIuMTY0NzAx"
+  },
+  {
+    "name": "2026.11.02.143702",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.02.143702",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.02.143702",
+    "commit": {
+      "sha": "29980f0891892fba6e74125b420e1e59a50254d2",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/29980f0891892fba6e74125b420e1e59a50254d2"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDIuMTQzNzAy"
+  },
+  {
+    "name": "2026.11.02.140006",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.11.02.140006",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.11.02.140006",
+    "commit": {
+      "sha": "696d8fee17f9c83510bc609aa25d4b08285b19ff",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/696d8fee17f9c83510bc609aa25d4b08285b19ff"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTEuMDIuMTQwMDA2"
+  },
+  {
+    "name": "2026.10.30.154139",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.30.154139",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.30.154139",
+    "commit": {
+      "sha": "090e85c31a6d7fb3d34a33a9f1a46310cdc2aa7f",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/090e85c31a6d7fb3d34a33a9f1a46310cdc2aa7f"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMzAuMTU0MTM5"
+  },
+  {
+    "name": "2026.10.28.014557",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.28.014557",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.28.014557",
+    "commit": {
+      "sha": "56d37a9b7bf529086fd961160e0b8975e224eafc",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/56d37a9b7bf529086fd961160e0b8975e224eafc"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjguMDE0NTU3"
+  },
+  {
+    "name": "2026.10.28.003840",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.28.003840",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.28.003840",
+    "commit": {
+      "sha": "ef3417b06cf2e99cae4c70cf3f4e5cf8bd5e8d4a",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/ef3417b06cf2e99cae4c70cf3f4e5cf8bd5e8d4a"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjguMDAzODQw"
+  },
+  {
+    "name": "2026.10.26.231022",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.26.231022",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.26.231022",
+    "commit": {
+      "sha": "fad899c74ca87a38322c1a0fc4a7d72a7a0fba33",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/fad899c74ca87a38322c1a0fc4a7d72a7a0fba33"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjYuMjMxMDIy"
+  },
+  {
+    "name": "2026.10.26.225603",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.26.225603",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.26.225603",
+    "commit": {
+      "sha": "dd05ab6706193c6680b1edff27c862a77961ebeb",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/dd05ab6706193c6680b1edff27c862a77961ebeb"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjYuMjI1NjAz"
+  },
+  {
+    "name": "2026.10.26.223007",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.26.223007",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.26.223007",
+    "commit": {
+      "sha": "dd05ab6706193c6680b1edff27c862a77961ebeb",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/dd05ab6706193c6680b1edff27c862a77961ebeb"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjYuMjIzMDA3"
+  },
+  {
+    "name": "2026.10.26.192531",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.26.192531",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.26.192531",
+    "commit": {
+      "sha": "4aff8e3a88963d765acbca2bd954ef19a07275a5",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/4aff8e3a88963d765acbca2bd954ef19a07275a5"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjYuMTkyNTMx"
+  },
+  {
+    "name": "2026.10.24.013619",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.24.013619",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.24.013619",
+    "commit": {
+      "sha": "2ef2af8c767b76e5db5cba2878f027ac07aad36c",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/2ef2af8c767b76e5db5cba2878f027ac07aad36c"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjQuMDEzNjE5"
+  },
+  {
+    "name": "2026.10.23.135453",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.23.135453",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.23.135453",
+    "commit": {
+      "sha": "2ef2af8c767b76e5db5cba2878f027ac07aad36c",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/2ef2af8c767b76e5db5cba2878f027ac07aad36c"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjMuMTM1NDUz"
+  },
+  {
+    "name": "2026.10.23.035525",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.23.035525",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.23.035525",
+    "commit": {
+      "sha": "606dfa48298a1b36c4ee4625c705041c35bd7393",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/606dfa48298a1b36c4ee4625c705041c35bd7393"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjMuMDM1NTI1"
+  },
+  {
+    "name": "2026.10.20.183001",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.20.183001",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.20.183001",
+    "commit": {
+      "sha": "d2e1472884d292df7b0ed788712b1af262edc16e",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/d2e1472884d292df7b0ed788712b1af262edc16e"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMjAuMTgzMDAx"
+  },
+  {
+    "name": "2026.10.15.145915",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.15.145915",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.15.145915",
+    "commit": {
+      "sha": "932d35ec2b9fdb3d3e4d0a3321689c634a1f6b43",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/932d35ec2b9fdb3d3e4d0a3321689c634a1f6b43"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMTUuMTQ1OTE1"
+  },
+  {
+    "name": "2026.10.13.164326",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.13.164326",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.13.164326",
+    "commit": {
+      "sha": "210df3af8aff4f6032bf9be459d5a911d079da6d",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/210df3af8aff4f6032bf9be459d5a911d079da6d"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMTMuMTY0MzI2"
+  },
+  {
+    "name": "2026.10.13.011403",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.13.011403",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.13.011403",
+    "commit": {
+      "sha": "210df3af8aff4f6032bf9be459d5a911d079da6d",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/210df3af8aff4f6032bf9be459d5a911d079da6d"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMTMuMDExNDAz"
+  },
+  {
+    "name": "2026.10.13.000515",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.13.000515",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.13.000515",
+    "commit": {
+      "sha": "5737c4758703f9fc4ef4ce1ff5dd912fe37d78d3",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/5737c4758703f9fc4ef4ce1ff5dd912fe37d78d3"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMTMuMDAwNTE1"
+  },
+  {
+    "name": "2026.10.06.014338",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.06.014338",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.06.014338",
+    "commit": {
+      "sha": "94d0c5070852b37b801bb8998c436383ab7ee37b",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/94d0c5070852b37b801bb8998c436383ab7ee37b"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMDYuMDE0MzM4"
+  },
+  {
+    "name": "2026.10.05.225551",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.05.225551",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.05.225551",
+    "commit": {
+      "sha": "ed3aed8f3b611b4e740ccb7d65aa5b4be3bb1995",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/ed3aed8f3b611b4e740ccb7d65aa5b4be3bb1995"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMDUuMjI1NTUx"
+  },
+  {
+    "name": "2026.10.05.160859",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.05.160859",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.05.160859",
+    "commit": {
+      "sha": "610da1d073754ea8e0dd3c2af3eae8011d20191a",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/610da1d073754ea8e0dd3c2af3eae8011d20191a"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMDUuMTYwODU5"
+  },
+  {
+    "name": "2026.10.04.025638",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.04.025638",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.04.025638",
+    "commit": {
+      "sha": "1813307068bbc5759a441df820f3f548948d6b7a",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/1813307068bbc5759a441df820f3f548948d6b7a"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMDQuMDI1NjM4"
+  },
+  {
+    "name": "2026.10.03.231403",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.03.231403",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.03.231403",
+    "commit": {
+      "sha": "1813307068bbc5759a441df820f3f548948d6b7a",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/1813307068bbc5759a441df820f3f548948d6b7a"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMDMuMjMxNDAz"
+  },
+  {
+    "name": "2026.10.03.211638",
+    "zipball_url": "https://api.github.com/repos/tlaplus/tlaplus/zipball/refs/tags/2026.10.03.211638",
+    "tarball_url": "https://api.github.com/repos/tlaplus/tlaplus/tarball/refs/tags/2026.10.03.211638",
+    "commit": {
+      "sha": "1813307068bbc5759a441df820f3f548948d6b7a",
+      "url": "https://api.github.com/repos/tlaplus/tlaplus/commits/1813307068bbc5759a441df820f3f548948d6b7a"
+    },
+    "node_id": "MDM6UmVmNTA5MDY5Mjc6cmVmcy90YWdzLzIwMjYuMTAuMDMuMjExNjM4"
+  }
+]

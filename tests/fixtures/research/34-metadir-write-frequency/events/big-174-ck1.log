@@ -1,0 +1,164 @@
+      0.0 NEW  d . size=4096
+      1.0 CHG  d . mtime
+      1.0 NEW  d 26-11-18-22-41-01 size=4096
+      1.0 NEW  f 26-11-18-22-41-01/Big-0.st size=0
+      1.0 NEW  f 26-11-18-22-41-01/Big-1.st size=0
+      1.0 NEW  f 26-11-18-22-41-01/Big.st size=0
+      1.0 NEW  f 26-11-18-22-41-01/Big_0.fp size=0
+      1.0 NEW  f 26-11-18-22-41-01/Big_1.fp size=0
+      2.0 CHG  d 26-11-18-22-41-01 mtime
+      2.0 NEW  f 26-11-18-22-41-01/0 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/1 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/10 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/11 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/12 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/13 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/14 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/15 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/16 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/17 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/2 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/3 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/4 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/5 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/6 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/7 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/8 size=212992
+      2.0 NEW  f 26-11-18-22-41-01/9 size=212992
+      2.0 CHG  f 26-11-18-22-41-01/Big-0.st size 0->1105920 mtime
+      2.0 CHG  f 26-11-18-22-41-01/Big-1.st size 0->1179648 mtime
+      3.0 CHG  d 26-11-18-22-41-01 mtime
+      3.0 NEW  f 26-11-18-22-41-01/18 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/19 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/20 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/21 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/22 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/23 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/24 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/25 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/26 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/27 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/28 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/29 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/30 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/31 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/32 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/33 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/34 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/35 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/36 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/37 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/38 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/39 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/40 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/41 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/42 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/43 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/44 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/45 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/46 size=212992
+      3.0 NEW  f 26-11-18-22-41-01/47 size=212992
+... (32135 lines in all; kept: the first 60, then every line about a .fp or checkpoint file)
+     37.4 CHG  f 26-11-18-22-41-01/Big_0.fp size 0->67108864 mtime
+     38.4 CHG  f 26-11-18-22-41-01/Big_1.fp size 0->67108864 mtime
+     64.9 NEW  f 26-11-18-22-41-01/Big-0.chkpt size=16
+     64.9 NEW  f 26-11-18-22-41-01/Big-1.chkpt size=16
+     64.9 NEW  f 26-11-18-22-41-01/Big.st.chkpt size=0
+     64.9 NEW  f 26-11-18-22-41-01/queue.chkpt size=252740
+     64.9 NEW  f 26-11-18-22-41-01/vars.chkpt size=6835
+    124.3 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    124.3 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    124.3 CHG  f 26-11-18-22-41-01/queue.chkpt size 252740->150898 mtime
+    124.3 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    155.4 NEW  f 26-11-18-22-41-01/Big_0.tmp size=134217728
+    156.4 CHG  f 26-11-18-22-41-01/Big_0.fp size 67108864->134217728 mtime
+    156.4 GONE f 26-11-18-22-41-01/Big_0.tmp
+    156.4 NEW  f 26-11-18-22-41-01/Big_1.tmp size=134217728
+    157.4 CHG  f 26-11-18-22-41-01/Big_1.fp size 67108864->134217728 mtime
+    157.4 GONE f 26-11-18-22-41-01/Big_1.tmp
+    184.9 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    184.9 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    184.9 CHG  f 26-11-18-22-41-01/queue.chkpt size 150898->254222 mtime
+    184.9 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    244.5 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    244.5 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    244.5 CHG  f 26-11-18-22-41-01/queue.chkpt size 254222->147934 mtime
+    244.5 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    278.7 NEW  f 26-11-18-22-41-01/Big_1.tmp size=201326592
+    279.8 CHG  f 26-11-18-22-41-01/Big_1.tmp mtime
+    280.8 NEW  f 26-11-18-22-41-01/Big_0.tmp size=201326592
+    280.8 CHG  f 26-11-18-22-41-01/Big_1.fp size 134217728->201326592 mtime
+    280.8 GONE f 26-11-18-22-41-01/Big_1.tmp
+    281.9 CHG  f 26-11-18-22-41-01/Big_0.fp size 134217728->201326592 mtime
+    281.9 GONE f 26-11-18-22-41-01/Big_0.tmp
+    305.2 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    305.2 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    305.2 CHG  f 26-11-18-22-41-01/queue.chkpt size 147934->278168 mtime
+    305.2 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    365.0 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    365.0 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    365.0 CHG  f 26-11-18-22-41-01/queue.chkpt size 278168->390956 mtime
+    365.0 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    402.6 NEW  f 26-11-18-22-41-01/Big_0.tmp size=268435456
+    403.7 CHG  f 26-11-18-22-41-01/Big_0.tmp mtime
+    404.7 CHG  f 26-11-18-22-41-01/Big_0.fp size 201326592->268435456 mtime
+    404.7 GONE f 26-11-18-22-41-01/Big_0.tmp
+    404.7 NEW  f 26-11-18-22-41-01/Big_1.tmp size=268435456
+    405.8 CHG  f 26-11-18-22-41-01/Big_1.tmp mtime
+    406.8 CHG  f 26-11-18-22-41-01/Big_1.fp size 201326592->268435456 mtime
+    406.8 GONE f 26-11-18-22-41-01/Big_1.tmp
+    424.9 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    424.9 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    424.9 CHG  f 26-11-18-22-41-01/queue.chkpt size 390956->269068 mtime
+    424.9 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    484.9 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    484.9 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    484.9 CHG  f 26-11-18-22-41-01/queue.chkpt size 269068->207214 mtime
+    484.9 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    533.3 NEW  f 26-11-18-22-41-01/Big_0.tmp size=335544320
+    534.3 CHG  f 26-11-18-22-41-01/Big_0.fp size 268435456->335544320 mtime
+    534.3 GONE f 26-11-18-22-41-01/Big_0.tmp
+    535.4 NEW  f 26-11-18-22-41-01/Big_1.tmp size=335544320
+    536.4 CHG  f 26-11-18-22-41-01/Big_1.fp size 268435456->335544320 mtime
+    536.4 GONE f 26-11-18-22-41-01/Big_1.tmp
+    545.0 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    545.0 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    545.0 CHG  f 26-11-18-22-41-01/queue.chkpt size 207214->355960 mtime
+    545.0 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    605.5 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    605.5 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    605.5 CHG  f 26-11-18-22-41-01/queue.chkpt size 355960->231888 mtime
+    605.5 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    665.9 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    665.9 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    665.9 CHG  f 26-11-18-22-41-01/queue.chkpt size 231888->191614 mtime
+    665.9 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    673.2 NEW  f 26-11-18-22-41-01/Big_1.tmp size=402653184
+    674.2 CHG  f 26-11-18-22-41-01/Big_1.tmp mtime
+    675.3 NEW  f 26-11-18-22-41-01/Big_0.tmp size=402653184
+    675.3 CHG  f 26-11-18-22-41-01/Big_1.fp size 335544320->402653184 mtime
+    675.3 GONE f 26-11-18-22-41-01/Big_1.tmp
+    676.3 CHG  f 26-11-18-22-41-01/Big_0.tmp mtime
+    677.4 CHG  f 26-11-18-22-41-01/Big_0.fp size 335544320->402653184 mtime
+    677.4 GONE f 26-11-18-22-41-01/Big_0.tmp
+    725.1 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    725.1 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    725.1 CHG  f 26-11-18-22-41-01/queue.chkpt size 191614->309368 mtime
+    725.1 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    785.7 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    785.7 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    785.7 CHG  f 26-11-18-22-41-01/queue.chkpt size 309368->169696 mtime
+    785.7 CHG  f 26-11-18-22-41-01/vars.chkpt mtime
+    806.7 NEW  f 26-11-18-22-41-01/Big_1.tmp size=469762048
+    807.8 CHG  f 26-11-18-22-41-01/Big_1.tmp mtime
+    808.8 CHG  f 26-11-18-22-41-01/Big_1.tmp mtime
+    809.9 CHG  f 26-11-18-22-41-01/Big_1.fp size 402653184->469762048 mtime
+    809.9 GONE f 26-11-18-22-41-01/Big_1.tmp
+    810.9 NEW  f 26-11-18-22-41-01/Big_0.tmp size=469762048
+    812.0 CHG  f 26-11-18-22-41-01/Big_0.tmp mtime
+    813.0 CHG  f 26-11-18-22-41-01/Big_0.fp size 402653184->469762048 mtime
+    813.0 GONE f 26-11-18-22-41-01/Big_0.tmp
+    846.2 CHG  f 26-11-18-22-41-01/Big-0.chkpt mtime
+    846.2 CHG  f 26-11-18-22-41-01/Big-1.chkpt mtime
+    846.2 CHG  f 26-11-18-22-41-01/queue.chkpt size 169696->142526 mtime
+    846.2 CHG  f 26-11-18-22-41-01/vars.chkpt mtime

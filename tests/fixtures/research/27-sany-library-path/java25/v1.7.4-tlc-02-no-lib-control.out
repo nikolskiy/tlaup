@@ -1,0 +1,20 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 58 and seed <seed> with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid and platform removed]
+Parsing file <work>/spec/S.tla
+Parsing file /tmp/Naturals.tla
+
+Fatal errors while parsing TLA+ spec in file S
+
+tla2sany.semantic.AbortException
+*** Abort messages: 1
+
+Unknown location
+
+Cannot find source file for module OnlyInLibA imported in module S.
+
+
+
+Error: Parsing or semantic analysis failed.
+

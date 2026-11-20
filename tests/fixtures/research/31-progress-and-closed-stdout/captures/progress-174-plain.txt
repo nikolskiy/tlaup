@@ -1,0 +1,20 @@
+# cmd: java -Xmx700m -jar ../../../jars/v1.7.4/tla2tools.jar -workers 2 -deadlock -metadir ./states Big
+# pid 1422927
+    0.372 TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+    0.840 Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+    0.840 (Use the -nowarning option to disable this warning.)
+    0.941 Running breadth-first search Model-Checking with fp 47 and seed -1528011381459550762 with 2 workers on 12 cores with 700MB heap and 64MB offheap memory [pid: 1422927] (Linux amd64, Java 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+    1.050 Parsing file <tmp>/q31/run/174-plain/Big.tla
+    1.083 Parsing file /tmp/Naturals.tla
+    1.090 Semantic processing of module Naturals
+    1.126 Semantic processing of module Big
+    1.136 Starting... (2026-11-18 21:58:01)
+    1.796 Computing initial states...
+    1.813 Finished computing initial states: 1 distinct state generated at 2026-11-18 21:58:02.
+    4.820 Progress(54) at 2026-11-18 21:58:05: 1,449,601 states generated (1,449,601 s/min), 389,932 distinct states found (389,932 ds/min), 27,542 states left on queue.
+   64.849 Progress(125) at 2026-11-18 21:59:05: 40,203,086 states generated (38,753,485 s/min), 10,378,260 distinct states found (9,988,328 ds/min), 327,482 states left on queue.
+  124.856 Progress(135) at 2026-11-18 22:00:05: 54,754,731 states generated (14,551,645 s/min), 14,099,898 distinct states found (3,721,638 ds/min), 410,741 states left on queue.
+  184.862 Progress(142) at 2026-11-18 22:01:05: 66,967,103 states generated (12,212,372 s/min), 17,217,096 distinct states found (3,117,198 ds/min), 473,734 states left on queue.
+  244.876 Progress(148) at 2026-11-18 22:02:05: 79,736,824 states generated (12,769,721 s/min), 20,471,889 distinct states found (3,254,793 ds/min), 534,317 states left on queue.
+# t=285.017 sending SIGTERM to 1422927 (time limit)
+# t=285.477 exit 143

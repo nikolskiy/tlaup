@@ -1,0 +1,12 @@
+RESULT q20 v1.7.4/existing macos : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/one-missing macos : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/three-missing macos : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/relative-missing macos : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/parent-is-file macos : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/v1.7.4/
+RESULT q20 v1.7.4/parent-not-writable macos : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/v1.7.4/
+RESULT q20 rolling/existing macos : exit=0 metadir=dir-exists
+RESULT q20 rolling/one-missing macos : exit=0 metadir=dir-exists
+RESULT q20 rolling/three-missing macos : exit=0 metadir=dir-exists
+RESULT q20 rolling/relative-missing macos : exit=0 metadir=dir-exists
+RESULT q20 rolling/parent-is-file macos : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/rolling
+RESULT q20 rolling/parent-not-writable macos : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/rolling

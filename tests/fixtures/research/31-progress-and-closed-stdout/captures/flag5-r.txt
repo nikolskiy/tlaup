@@ -1,0 +1,35 @@
+# cmd: java -Xmx400m -XX:+UseParallelGC -Dtlc2.TLC.progressInterval=5 -jar ../../../jars/rolling/tla2tools.jar -nowarning -workers 1 -deadlock -metadir ./s Big
+# pid 1467038
+    0.794 TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+    1.268 Running breadth-first search Model-Checking with fp 2 and seed -6100189483732250725 with 1 worker on 12 cores with 356MB heap and 64MB offheap memory [pid: 1467038] (Linux amd64, Java 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+    1.664 Parsing file <tmp>/q31/run/flag5-r/Big.tla
+    1.818 Parsing file /tmp/tlc-4333989484965080968/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+    1.862 Parsing file /tmp/tlc-4333989484965080968/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+    1.964 Parsing file /tmp/tlc-4333989484965080968/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+    2.024 Parsing file /tmp/tlc-4333989484965080968/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+    2.053 Parsing file /tmp/tlc-4333989484965080968/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+    2.072 Parsing file /tmp/tlc-4333989484965080968/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+    2.112 Parsing file /tmp/tlc-4333989484965080968/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+    2.130 Semantic processing of module Naturals
+    2.225 Semantic processing of module Sequences
+    2.251 Semantic processing of module FiniteSets
+    2.276 Semantic processing of module TLC
+    2.306 Semantic processing of module Integers
+    2.310 Semantic processing of module TLCExt
+    2.344 Semantic processing of module _TLCTrace
+    2.359 Semantic processing of module Big
+    2.408 Linting of module TLCExt
+    2.408 Linting of module _TLCTrace
+    2.430 Linting of module Big
+    2.452 Starting... (2026-11-18 22:03:15)
+    4.146 Computing initial states...
+    4.164 Finished computing initial states: 1 distinct state generated at 2026-11-18 22:03:17.
+    7.182 Progress(46) at 2026-11-18 22:03:20: 732,317 states generated (8,787,804 s/min), 199,775 distinct states found (2,397,300 ds/min), 16,704 states left on queue.
+   12.187 Progress(64) at 2026-11-18 22:03:25: 2,762,416 states generated (24,361,188 s/min), 735,240 distinct states found (6,425,580 ds/min), 44,652 states left on queue.
+   17.188 Progress(73) at 2026-11-18 22:03:30: 4,610,553 states generated (22,177,644 s/min), 1,217,738 distinct states found (5,789,976 ds/min), 65,099 states left on queue.
+   22.194 Progress(79) at 2026-11-18 22:03:35: 6,521,514 states generated (22,931,532 s/min), 1,714,792 distinct states found (5,964,648 ds/min), 84,413 states left on queue.
+   27.194 Progress(85) at 2026-11-18 22:03:40: 8,526,001 states generated (24,053,844 s/min), 2,234,526 distinct states found (6,236,808 ds/min), 103,026 states left on queue.
+   32.201 Progress(90) at 2026-11-18 22:03:45: 11,127,110 states generated (31,213,308 s/min), 2,907,083 distinct states found (8,070,684 ds/min), 125,305 states left on queue.
+   37.216 Progress(96) at 2026-11-18 22:03:50: 13,898,991 states generated (33,262,572 s/min), 3,622,963 distinct states found (8,590,560 ds/min), 148,231 states left on queue.
+# t=40.005 sending SIGTERM to 1467038 (time limit)
+# t=40.157 exit 143

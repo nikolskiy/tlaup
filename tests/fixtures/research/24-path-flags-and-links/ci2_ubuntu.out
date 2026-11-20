@@ -1,0 +1,18 @@
+RESULT q24 R1-1.7.4 linux : validated N=4; relative-real=OK; relative-abs=OK; absolute-real=MISS(read none)
+RESULT q24 R2-1.7.4 linux : validated N=44; relative-real=OK; relative-abs=MISS(read 4); absolute-real=MISS(read none)
+RESULT q24 R3-1.7.4 linux : validated N=12; relative-real=OK; relative-abs=OK; absolute-real=MISS(read none)
+RESULT q24 R4-1.7.4 linux : validated N=13; relative-real=OK; relative-abs=OK; absolute-real=MISS(read none)
+RESULT q24 R5-1.7.4 linux : validated N=99; relative-real=OK; relative-abs=MISS(read 12); absolute-real=MISS(read none)
+RESULT q24 R6-1.7.4 linux : validated N=55; relative-real=OK; relative-abs=MISS(read none); absolute-real=MISS(read none)
+RESULT q24 R7-1.7.4 linux : validated N=6; relative-real=OK; relative-abs=MISS(read none); absolute-real=MISS(read none)
+RESULT q24 R8-1.7.4 linux : validated N=2; relative-real=OK; relative-abs=OK; absolute-real=MISS(read none)
+RESULT q24 R9-1.7.4 linux : validated N=4; relative-real=OK; relative-abs=OK; absolute-real=MISS(read none)
+RESULT q24 R1-1.8.0 linux : validated N=4; relative-real=OK; relative-abs=OK; absolute-real=OK
+RESULT q24 R2-1.8.0 linux : validated N=44; relative-real=OK; relative-abs=MISS(read 4); absolute-real=OK
+RESULT q24 R3-1.8.0 linux : validated N=12; relative-real=OK; relative-abs=OK; absolute-real=OK
+RESULT q24 R4-1.8.0 linux : validated N=13; relative-real=OK; relative-abs=OK; absolute-real=OK
+RESULT q24 R5-1.8.0 linux : validated N=99; relative-real=OK; relative-abs=MISS(read 12); absolute-real=OK
+RESULT q24 R6-1.8.0 linux : validated N=55; relative-real=OK; relative-abs=MISS(read none); absolute-real=OK
+RESULT q24 R7-1.8.0 linux : validated N=6; relative-real=OK; relative-abs=MISS(read none); absolute-real=OK
+RESULT q24 R8-1.8.0 linux : validated N=2; relative-real=OK; relative-abs=OK; absolute-real=OK
+RESULT q24 R9-1.8.0 linux : validated N=4; relative-real=OK; relative-abs=OK; absolute-real=OK

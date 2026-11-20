@@ -22,11 +22,12 @@ repos:
 
       - id: no-ip-addresses
         name: No IP addresses
-        # IPv4 except 127.0.0.1 and version pins such as >=6.0.12.12; IPv6 in
+        # IPv4 except 127.0.0.1, the Java version 21.0.13.1 (Temurin on GitHub's
+        # runners, quoted in research captures) and version pins such as >=6.0.12.12; IPv6 in
         # full form or compressed with a digit and a group of 3+ characters,
         # so Python slices such as a[1::2] do not match.
         language: pygrep
-        entry: '(?<![\w.<>=~])(?!127\.0\.0\.1(?!\w|\.\d))(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\w|\.\d)|(?<![\w:])(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}(?![\w:])|(?<![\w:])(?=[0-9A-Fa-f:]*\d)(?=[0-9A-Fa-f:]*[0-9A-Fa-f]{3})(?:[0-9A-Fa-f]{1,4}:){1,6}(?::[0-9A-Fa-f]{1,4}){1,6}(?![\w:])'
+        entry: '(?<![\w.<>=~])(?!(?:127\.0\.0\.1|21\.0\.13\.1)(?!\w|\.\d))(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\w|\.\d)|(?<![\w:])(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}(?![\w:])|(?<![\w:])(?=[0-9A-Fa-f:]*\d)(?=[0-9A-Fa-f:]*[0-9A-Fa-f]{3})(?:[0-9A-Fa-f]{1,4}:){1,6}(?::[0-9A-Fa-f]{1,4}){1,6}(?![\w:])'
         types: [text]
         exclude: ^\.pre-commit-config\.yaml$
 

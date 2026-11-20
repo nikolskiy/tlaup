@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.10.12
+Created-By: 11.0.3+7-LTS (Azul Systems, Inc.)
+Built-By: runner
+Build-Tag: ${env.BUILD_TAG}
+Build-Rev: ${Build-Rev}
+Implementation-Title: TLA+ Tools
+Implementation-Version: 2.0 2024-08-02
+Implementation-Vendor: Microsoft Corp.
+Main-class: tlc2.TLC
+X-Git-Branch: v1.7.3
+X-Git-Tag: v1.7.3
+X-Git-Revision: 3ea322254974cd39a4dd336fff12b203a6743dd1
+X-Git-ShortRevision: 3ea3222
+X-Git-BuildNumber: v1.7.3_v1.7.3_3ea3222
+X-Git-Commits-Count: 7414
+Application-Name: TLC
+permissions: all-permissions
+Class-Path: CommunityModules.jar
+

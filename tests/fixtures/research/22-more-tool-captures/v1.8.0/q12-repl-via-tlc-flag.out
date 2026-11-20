@@ -1,0 +1,3 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Error: Error: unrecognized option: -repl
+Usage: java tlc2.TLC [-help] [-option] inputfile

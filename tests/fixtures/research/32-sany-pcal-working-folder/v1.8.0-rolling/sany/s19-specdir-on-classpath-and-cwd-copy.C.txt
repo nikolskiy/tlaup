@@ -1,0 +1,18 @@
+$ cd <w>/other
+$ java  -cp <jar>:<w>/spec tla2sany.SANY ../spec/Main.tla
+--- run 1 stdout
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <w>/spec/Main.tla (file:<w>/other/../spec/Main.tla)
+Parsing file /tmp/tlc-<n>/Naturals.tla (jar:file:<jar>!/tla2sany/StandardModules/Naturals.tla)
+Parsing file <w>/other/Helper.tla
+Semantic processing of module Naturals
+Semantic processing of module Helper
+Semantic processing of module Main
+Linting of module Helper
+Linting of module Main
+--- run 1 stderr
+--- run 1 exit 0
+--- files changed
+

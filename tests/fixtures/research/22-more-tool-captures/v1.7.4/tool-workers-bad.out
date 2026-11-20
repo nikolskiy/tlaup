@@ -1,0 +1,7 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: worker number or 'auto' required. But encountered abc
+Usage: java tlc2.TLC [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@

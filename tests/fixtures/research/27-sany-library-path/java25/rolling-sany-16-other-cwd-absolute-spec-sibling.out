@@ -1,0 +1,19 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <work>/spec/S.tla
+Parsing file /tmp/tlc-<n>/Naturals.tla (jar:file:<jars>/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+
+Fatal errors while parsing TLA+ spec in file <work>/spec/S.tla
+
+In module S
+
+Cannot find source file for module Dup imported in module S.
+*** Errors: 1
+
+In module S
+
+Cannot find source file for module Dup imported in module S.
+
+
+

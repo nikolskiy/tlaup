@@ -1,0 +1,258 @@
+{
+ "f10": {
+  "lines 200000 | head -1 (python pipe, reader leaves)": {
+   "code": 141,
+   "traceback": false
+  },
+  "bash: lines 200000 | head -1": {
+   "code": 141,
+   "traceback": false
+  },
+  "bash: --help | head -1": {
+   "code": 141,
+   "traceback": false
+  },
+  "bash: tool --help | head -1": {
+   "code": 141,
+   "traceback": false
+  },
+  "bash: (no args) | head -1": {
+   "code": 141,
+   "traceback": false
+  },
+  "bash: --nosuch 2>&1 | head -1": {
+   "code": 141,
+   "traceback": false
+  },
+  "--help, stdout dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "tool --help, stdout dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "no args, stdout dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "--nosuch, stdout+stderr dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "lines 3, stdout dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "--version, stdout dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "tool pin nosuch, stderr dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "boom, stderr dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "exit 1, stdout dead": {
+   "code": 1,
+   "traceback": false
+  },
+  "exit 12, stdout dead": {
+   "code": 12,
+   "traceback": false
+  },
+  "--help, open (control)": {
+   "code": 0,
+   "traceback": false
+  },
+  "--nosuch, open (control)": {
+   "code": 2,
+   "traceback": false
+  },
+  "lines, open (control)": {
+   "code": 0,
+   "traceback": false
+  },
+  "tool pin nosuch, open": {
+   "code": 3,
+   "traceback": false
+  },
+  "boom, open": {
+   "code": 5,
+   "traceback": false
+  },
+  "interrupt command, open": {
+   "code": 130,
+   "traceback": false
+  },
+  "abort command, open": {
+   "code": 130,
+   "traceback": false
+  },
+  "eof command, open": {
+   "code": 3,
+   "traceback": false
+  },
+  "prompt at EOF, open": {
+   "code": 130,
+   "traceback": false
+  },
+  "badparam, open": {
+   "code": 2,
+   "traceback": false
+  },
+  "nosuchcmd, open": {
+   "code": 2,
+   "traceback": false
+  },
+  "tool (group alone), open": {
+   "code": 2,
+   "traceback": false
+  },
+  "--version raises RuntimeError, open": {
+   "code": 5,
+   "traceback": false
+  },
+  "SIGINT during lines-forever (spin)": {
+   "code": 130,
+   "secs": 0.04,
+   "traceback": false
+  },
+  "SIGINT during sleep (wait)": {
+   "code": 130,
+   "secs": 0.04,
+   "traceback": false
+  }
+ },
+ "bare": {
+  "lines 200000 | head -1 (python pipe, reader leaves)": {
+   "code": 141,
+   "traceback": false
+  },
+  "bash: lines 200000 | head -1": {
+   "code": 141,
+   "traceback": false
+  },
+  "bash: --help | head -1": {
+   "code": 1,
+   "traceback": false
+  },
+  "bash: tool --help | head -1": {
+   "code": 1,
+   "traceback": false
+  },
+  "bash: (no args) | head -1": {
+   "code": 1,
+   "traceback": false
+  },
+  "bash: --nosuch 2>&1 | head -1": {
+   "code": 120,
+   "traceback": false
+  },
+  "--help, stdout dead": {
+   "code": 1,
+   "traceback": false
+  },
+  "tool --help, stdout dead": {
+   "code": 1,
+   "traceback": false
+  },
+  "no args, stdout dead": {
+   "code": 1,
+   "traceback": false
+  },
+  "--nosuch, stdout+stderr dead": {
+   "code": 120,
+   "traceback": false
+  },
+  "lines 3, stdout dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "--version, stdout dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "tool pin nosuch, stderr dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "boom, stderr dead": {
+   "code": 141,
+   "traceback": false
+  },
+  "exit 1, stdout dead": {
+   "code": 1,
+   "traceback": false
+  },
+  "exit 12, stdout dead": {
+   "code": 12,
+   "traceback": false
+  },
+  "--help, open (control)": {
+   "code": 0,
+   "traceback": false
+  },
+  "--nosuch, open (control)": {
+   "code": 2,
+   "traceback": false
+  },
+  "lines, open (control)": {
+   "code": 0,
+   "traceback": false
+  },
+  "tool pin nosuch, open": {
+   "code": 3,
+   "traceback": false
+  },
+  "boom, open": {
+   "code": 5,
+   "traceback": false
+  },
+  "interrupt command, open": {
+   "code": 130,
+   "traceback": false
+  },
+  "abort command, open": {
+   "code": 130,
+   "traceback": false
+  },
+  "eof command, open": {
+   "code": 3,
+   "traceback": false
+  },
+  "prompt at EOF, open": {
+   "code": 130,
+   "traceback": false
+  },
+  "badparam, open": {
+   "code": 2,
+   "traceback": false
+  },
+  "nosuchcmd, open": {
+   "code": 2,
+   "traceback": false
+  },
+  "tool (group alone), open": {
+   "code": 2,
+   "traceback": false
+  },
+  "--version raises RuntimeError, open": {
+   "code": 5,
+   "traceback": false
+  },
+  "SIGINT during lines-forever (spin)": {
+   "code": 130,
+   "secs": 0.04,
+   "traceback": false
+  },
+  "SIGINT during sleep (wait)": {
+   "code": 130,
+   "secs": 0.04,
+   "traceback": false
+  }
+ }
+}

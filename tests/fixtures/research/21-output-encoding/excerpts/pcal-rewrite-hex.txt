@@ -1,0 +1,7 @@
+# PlusCal rewrite of a spec with non-ASCII only in comments (EncPcalOk.tla), first comment line after translation
+v174-j11-C-none:  5c 2a 20 62 65 66 6f 72 65 20 74 68 65 20 61 6c 67 6f 72 69 74 68 6d 3a 20 63 61 66 3f 3f 20 3f 3f 3f 3f 3f 3f 3f 3f 3f 0a
+v174-j11-C-minimal:  5c 2a 20 62 65 66 6f 72 65 20 74 68 65 20 61 6c 67 6f 72 69 74 68 6d 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 0a
+v174-j11-Cutf8-none:  5c 2a 20 62 65 66 6f 72 65 20 74 68 65 20 61 6c 67 6f 72 69 74 68 6d 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 0a
+v174-j25-C-none:  5c 2a 20 62 65 66 6f 72 65 20 74 68 65 20 61 6c 67 6f 72 69 74 68 6d 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 0a
+v180-j11-C-none:  5c 2a 20 62 65 66 6f 72 65 20 74 68 65 20 61 6c 67 6f 72 69 74 68 6d 3a 20 63 61 66 c3 a9 20 e6 97 a5 e6 9c ac e8 aa 9e 20 f0 9f 98 80 0a
+v180-j25-C-none:  5c 2a 20 62 65 66 6f 72 65 20 74 68 65 20 61 6c 67 6f 72 69 74 68 6d 3a 20 63 61 66 c3 a9 20 e6 97 a5 e6 9c ac e8 aa 9e 20 f0 9f 98 80 0a

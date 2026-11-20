@@ -1,0 +1,26 @@
+RESULT q24 flag--dump-1.7.4 macos : lands in cwd
+RESULT q24 flag--metadir-1.7.4 macos : lands in cwd
+RESULT q24 flag--userFile-1.7.4 macos : lands in cwd
+RESULT q24 flag--dump-1.8.0 macos : lands in cwd
+RESULT q24 flag--metadir-1.8.0 macos : lands in cwd
+RESULT q24 flag--userFile-1.8.0 macos : lands in cwd
+RESULT q24 flag--dumpTrace-1.8.0 macos : lands in cwd
+RESULT q24 flag--teSpecOutDir-1.8.0 macos : lands in cwd
+RESULT q24 abs-spec-cfg-dotdot-1.7.4 macos : N=4 (4 = the file beside the spec's parent; None = not read) rc=12
+RESULT q24 abs-spec-cfg-dotdot-1.8.0 macos : N=4 (4 = the file beside the spec's parent; None = not read) rc=12
+RESULT q24 link-folder-default-1.7.4 macos : N=1 marker=helper-real (expect N=1 helper-real)
+RESULT q24 link-folder-config-dotdot-1.7.4 macos : N=4 (4 = operating system walked the link, 44 = TLC tidied .. as text)
+RESULT q24 link-deep-config-dotdot-1.7.4 macos : N=12 (12 = walked the link, 99 = tidied as text)
+RESULT q24 link-spec-path-with-dotdot-1.7.4 macos : N=1 marker=helper-real (1 = walked the link, None = tidied as text)
+RESULT q24 link-file-modules-1.7.4 macos : N=77 marker=helper-beside-file-link (helper-beside-file-link/77 = beside the link; helper-real/1 = beside the target)
+RESULT q24 r4-relative-config-folder-dotdot-1.7.4 macos : validated N=12 TLC read N=12 -> same file
+RESULT q24 r4-relative-config-beside-link-parent-1.7.4 macos : validated N=99 TLC read N=99 -> same file
+RESULT q24 r4-relative-config-shallow-folder-dotdot-1.7.4 macos : validated N=4 TLC read N=4 -> same file
+RESULT q24 link-folder-default-1.8.0 macos : N=1 marker=helper-real (expect N=1 helper-real)
+RESULT q24 link-folder-config-dotdot-1.8.0 macos : N=4 (4 = operating system walked the link, 44 = TLC tidied .. as text)
+RESULT q24 link-deep-config-dotdot-1.8.0 macos : N=12 (12 = walked the link, 99 = tidied as text)
+RESULT q24 link-spec-path-with-dotdot-1.8.0 macos : N=1 marker=helper-real (1 = walked the link, None = tidied as text)
+RESULT q24 link-file-modules-1.8.0 macos : N=77 marker=helper-beside-file-link (helper-beside-file-link/77 = beside the link; helper-real/1 = beside the target)
+RESULT q24 r4-relative-config-folder-dotdot-1.8.0 macos : validated N=12 TLC read N=12 -> same file
+RESULT q24 r4-relative-config-beside-link-parent-1.8.0 macos : validated N=99 TLC read N=99 -> same file
+RESULT q24 r4-relative-config-shallow-folder-dotdot-1.8.0 macos : validated N=4 TLC read N=4 -> same file

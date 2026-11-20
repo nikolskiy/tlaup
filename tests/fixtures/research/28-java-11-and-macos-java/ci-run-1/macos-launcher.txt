@@ -1,0 +1,70 @@
+q28 os=macos release=25.6.0 machine=arm64
+q28 JAVA_HOME=set: ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 which-a-java macos : 3 found: ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home/bin/java, ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/aarch64/Contents/Home/bin/java, /usr/bin/java
+  ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home/bin/java: symlink=False -> ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home/bin/java size=70432 header=Mach-O
+  file -L: ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home/bin/java: Mach-O 64-bit executable arm64
+  file: ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home/bin/java: Mach-O 64-bit executable arm64
+  ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/aarch64/Contents/Home/bin/java: symlink=False -> ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/aarch64/Contents/Home/bin/java size=70464 header=Mach-O
+  file -L: ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/aarch64/Contents/Home/bin/java: Mach-O 64-bit executable arm64
+  file: ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/aarch64/Contents/Home/bin/java: Mach-O 64-bit executable arm64
+  /usr/bin/java: symlink=False -> /usr/bin/java size=135376 header=Mach-O
+  file -L: /usr/bin/java: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64e:Mach-O 64-bit executable arm64e]
+/usr/bin/java (for architecture x86_64):	Mach-O 64-bit executable x86_64
+/usr/bin/java (for architecture arm64e):	Mach-O 64-bit executable arm64e
+  file: /usr/bin/java: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64e:Mach-O 64-bit executable arm64e]
+/usr/bin/java (for architecture x86_64):	Mach-O 64-bit executable x86_64
+/usr/bin/java (for architecture arm64e):	Mach-O 64-bit executable arm64e
+RESULT q28 usr-bin-java-symlink macos : exists=True symlink=False
+RESULT q28 usr-bin-java-file macos : /usr/bin/java: Mach-O universal binary with 2 architectures: [x86_64:Mach-O 64-bit executable x86_64] [arm64e:Mach-O 64-bit executable arm64e]
+/usr/bin/java (for architecture x86_64):	Mach-O 64-bit executable x86_64
+/usr/bin/java (for architecture arm64e):	Mach-O 64-bit executable arm64e
+  ls -l: -rwxr-xr-x  37 root  wheel  135376 Oct 22 10:38 /usr/bin/java
+  ls -l java_home: -rwxr-xr-x  37 root  wheel  135376 Oct 22 10:38 /usr/libexec/java_home
+--- /usr/libexec/java_home -V (exit 0)
+  ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/25.0.5-8.0/arm64/Contents/Home
+  Matching Java Virtual Machines (4):
+      25.0.5 (arm64) "Eclipse Adoptium" - "OpenJDK 25.0.5" ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/25.0.5-8.0/arm64/Contents/Home
+      21.0.13 (arm64) "Eclipse Adoptium" - "OpenJDK 21.0.13" ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9.0/arm64/Contents/Home
+      17.0.21 (arm64) "Eclipse Adoptium" - "OpenJDK 17.0.21" ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.21-9/arm64/Contents/Home
+      11.0.33 (arm64) "Eclipse Adoptium" - "OpenJDK 11.0.33" ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/arm64/Contents/Home
+RESULT q28 java_home-default macos : exit=0 ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/25.0.5-8.0/arm64/Contents/Home
+  /Library/Java/JavaVirtualMachines: Temurin-Hotspot-11.jdk Temurin-Hotspot-17.jdk Temurin-Hotspot-21.jdk Temurin-Hotspot-25.jdk
+RESULT q28 java-home[/usr/bin/java][as-given] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME-unset] macos : exit=0 version=25.0.5 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/25.0.5-8.0/arm64/Contents/Home
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME=JAVA11_HOME] macos : exit=0 version=11.0.33 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/aarch64/Contents/Home
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME=JAVA21_HOME] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[first-on-PATH][as-given] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[first-on-PATH][JAVA_HOME-unset] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA11_HOME] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA21_HOME] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[$JAVA_HOME/bin/java][as-given] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME-unset] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA11_HOME] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA21_HOME] macos : exit=0 version=21.0.13.1 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home
+RESULT q28 usr-bin-java-no-jdk[JAVA_HOME=empty-folder] macos : exit=0
+--- stdout
+--- stderr
+  openjdk version "25.0.5" 2026-10-20 LTS
+  OpenJDK Runtime Environment Temurin-25.0.5+8 (build 25.0.5+8-LTS)
+  OpenJDK 64-Bit Server VM Temurin-25.0.5+8 (build 25.0.5+8-LTS, mixed mode, sharing)
+RESULT q28 usr-bin-java-no-jdk[JAVA_HOME=missing-folder] macos : exit=0
+--- stdout
+--- stderr
+  openjdk version "25.0.5" 2026-10-20 LTS
+  OpenJDK Runtime Environment Temurin-25.0.5+8 (build 25.0.5+8-LTS)
+  OpenJDK 64-Bit Server VM Temurin-25.0.5+8 (build 25.0.5+8-LTS, mixed mode, sharing)
+RESULT q28 usr-bin-java-JAVA_VERSION=1.6 macos : exit=0 version=25.0.5 java.home=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/25.0.5-8.0/arm64/Contents/Home
+  java_home -v 1.6: exit=0 ~/hostedtoolcache/Java_Temurin-Hotspot_jdk/25.0.5-8.0/arm64/Contents/Home
+--- java_home -V with JDK folders aside (exit 1)
+  The operation couldn’t be completed. Unable to locate a Java Runtime.
+  Please visit http://www.java.com for information on installing Java.
+RESULT q28 usr-bin-java-no-jdk-registered macos : exit=1 moved=1
+--- stdout
+--- stderr
+  The operation couldn’t be completed. Unable to locate a Java Runtime.
+  Please visit http://www.java.com for information on installing Java.
+  restored 1 folder(s)
+RESULT q28 tlc-pass-v1.7.4-JAVA11_HOME macos : exit=0 no-error-found=True TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+RESULT q28 tlc-pass-v1.7.4-/usr/bin/java+JAVA_HOME=11 macos : exit=0 no-error-found=True TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+RESULT q28 tlc-pass-rolling-JAVA11_HOME macos : exit=0 no-error-found=True TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+RESULT q28 tlc-pass-rolling-/usr/bin/java+JAVA_HOME=11 macos : exit=0 no-error-found=True TLC2 Version 2026.11.15.002146 (rev: bc1b506)

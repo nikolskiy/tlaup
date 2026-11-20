@@ -1,0 +1,11 @@
+q35 check_kill on Linux x86_64, Python 3.13.18; java: openjdk version "21.0.13" 2026-10-20 LTS
+RESULT q35 kill-sleeper-none-xrs-KILL linux : child STILL RUNNING 8s after the parent was killed (parent rc -9, child's parent now 1; log )
+RESULT q35 kill-sleeper-pdeathsig-preexec-xrs-KILL linux : child ENDED 0.00s after the parent was killed (parent rc -9; how: no shutdown hook (hard kill))
+RESULT q35 kill-sleeper-pdeathsig-preexec-thread-xrs-KILL linux : child ENDED BEFORE THE KILL (parent still alive=False; parent said ['CHILD-EXITED -15']; log )
+RESULT q35 kill-sleeper-pdeathsig-setpriv-xrs-KILL linux : child ENDED 0.00s after the parent was killed (parent rc -9; how: no shutdown hook (hard kill))
+RESULT q35 kill-sleeper-pdeathsig-setpriv-thread-xrs-KILL linux : child ENDED BEFORE THE KILL (parent still alive=False; parent said ['CHILD-EXITED -15']; log )
+RESULT q35 kill-sleeper-agent-pipe-xrs-KILL linux : child ENDED 0.05s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-stdin-xrs-KILL linux : child ENDED 0.05s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-pid-xrs-KILL linux : child ENDED 0.10s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-onexit-xrs-KILL linux : child ENDED 0.40s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-watcher-xrs-KILL linux : child ENDED 0.05s after the parent was killed (parent rc -9; how: watcher parent-gone sent TERM (pidfd via os.pidfd_open); no shutdown hook (hard kill))

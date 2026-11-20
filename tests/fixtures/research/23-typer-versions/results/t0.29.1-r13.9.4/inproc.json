@@ -1,0 +1,131 @@
+{
+ "typer": "0.29.1",
+ "rich": "13.9.4",
+ "click_installed": null,
+ "import_click": false,
+ "requires": [
+  "pydantic>=2.5.3",
+  "shellingham>=1.3.0",
+  "rich>=13.8.0",
+  "annotated-doc>=0.0.2",
+  "colorama; platform_system == \"Windows\""
+ ],
+ "bundled_click": true,
+ "public_names": {
+  "Exit": true,
+  "Abort": true,
+  "BadParameter": true,
+  "TyperException": true,
+  "Context": true
+ },
+ "TyperGroup_make_context": "(self, info_name: str | None, args: list[str], parent: typer._click.core.Context | None = None, **extra: Any) -> typer._click.core.Context",
+ "TyperGroup_invoke": "(self, ctx: typer._click.core.Context) -> Any",
+ "TyperGroup_mro": [
+  "typer.core.TyperGroup",
+  "typer._click.core.Command",
+  "abc.ABC",
+  "builtins.object"
+ ],
+ "runner": {
+  "--help": {
+   "code": 0,
+   "exc": null,
+   "out": "                                                                                "
+  },
+  "(none)": {
+   "code": 2,
+   "exc": null,
+   "out": "                                                                                "
+  },
+  "tool": {
+   "code": 2,
+   "exc": null,
+   "out": "                                                                                "
+  },
+  "lines": {
+   "code": 0,
+   "exc": null,
+   "out": "line 0\nline 1\nline 2\n"
+  },
+  "tool pin rolling": {
+   "code": 0,
+   "exc": null,
+   "out": "pinned rolling\n"
+  },
+  "tool pin nosuch": {
+   "code": 3,
+   "exc": null,
+   "out": "error: no such build: nosuch\n"
+  },
+  "boom": {
+   "code": 5,
+   "exc": null,
+   "out": "error: internal error: RuntimeError: unexpected\n"
+  },
+  "interrupt": {
+   "code": 130,
+   "exc": null,
+   "out": ""
+  },
+  "abort": {
+   "code": 130,
+   "exc": null,
+   "out": ""
+  },
+  "eof": {
+   "code": 3,
+   "exc": null,
+   "out": "error: input ended\n"
+  },
+  "exit 1": {
+   "code": 1,
+   "exc": null,
+   "out": ""
+  },
+  "exit 12": {
+   "code": 12,
+   "exc": null,
+   "out": ""
+  },
+  "badparam": {
+   "code": 2,
+   "exc": null,
+   "out": "Usage: app badparam [OPTIONS]\nTry 'app badparam --help' for help.\n\u256d\u2500 Error \u2500\u2500\u2500\u2500\u2500"
+  },
+  "nosuchcmd": {
+   "code": 2,
+   "exc": null,
+   "out": "Usage: app [OPTIONS] COMMAND [ARGS]...\nTry 'app --help' for help.\n\u256d\u2500 Error \u2500\u2500\u2500\u2500\u2500"
+  },
+  "lines --nosuch": {
+   "code": 2,
+   "exc": null,
+   "out": "Usage: app lines [OPTIONS]\nTry 'app lines --help' for help.\n\u256d\u2500 Error \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  "lines --n x": {
+   "code": 2,
+   "exc": null,
+   "out": "Usage: app lines [OPTIONS]\nTry 'app lines --help' for help.\n\u256d\u2500 Error \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+  },
+  "tool pin": {
+   "code": 2,
+   "exc": null,
+   "out": "Usage: app tool pin [OPTIONS] {build}\nTry 'app tool pin --help' for help.\n\u256d\u2500 Err"
+  },
+  "--version": {
+   "code": 0,
+   "exc": null,
+   "out": "app 1.0\n"
+  },
+  "prompt": {
+   "code": 130,
+   "exc": null,
+   "out": "name: "
+  },
+  "--version (callback raises RuntimeError)": {
+   "code": 5,
+   "out": "error: internal error: RuntimeError: boom in eager callback\n"
+  }
+ },
+ "te_source": "typer.TyperException (public)"
+}

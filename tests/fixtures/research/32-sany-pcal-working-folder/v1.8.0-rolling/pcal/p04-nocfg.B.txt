@@ -1,0 +1,60 @@
+$ cd <w>/other
+$ java  -cp <jar> pcal.trans -nocfg <w>/spec/Pc.tla
+--- run 1 stdout
+pcal.trans Version 1.12 of 01 July 2024
+Parsing completed.
+Translation completed.
+New file <w>/spec/Pc.tla written.
+--- run 1 stderr
+--- run 1 exit 0
+--- files changed
+NEW      spec/Pc.old  sha=b65d249c8d
+CHANGED  spec/Pc.tla  sha=35319d182e
+--- content spec/Pc.old
+---- MODULE Pc ----
+EXTENDS Naturals
+(*--algorithm Pc
+variable x = 0;
+begin
+  A: x := x + 1;
+  B: x := x + 1;
+end algorithm; *)
+====
+--- content spec/Pc.tla
+---- MODULE Pc ----
+EXTENDS Naturals
+(*--algorithm Pc
+variable x = 0;
+begin
+  A: x := x + 1;
+  B: x := x + 1;
+end algorithm; *)
+\* BEGIN TRANSLATION (chksum(pcal) = "683b527e" /\ chksum(tla) = "25bac779")
+VARIABLES pc, x
+
+vars == << pc, x >>
+
+Init == (* Global variables *)
+        /\ x = 0
+        /\ pc = "A"
+
+A == /\ pc = "A"
+     /\ x' = x + 1
+     /\ pc' = "B"
+
+B == /\ pc = "B"
+     /\ x' = x + 1
+     /\ pc' = "Done"
+
+(* Allow infinite stuttering to prevent deadlock on termination. *)
+Terminating == pc = "Done" /\ UNCHANGED vars
+
+Next == A \/ B
+           \/ Terminating
+
+Spec == Init /\ [][Next]_vars
+
+Termination == <>(pc = "Done")
+
+\* END TRANSLATION 
+====

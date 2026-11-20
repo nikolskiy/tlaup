@@ -1,0 +1,16 @@
+--- v1.7.4 openjdk version "25.0.5" 2026-10-20 taskset -c 0-2 (nproc=3)
+with 3 workers on 3 cores
+--- v1.7.4 taskset -c 5 (nproc=1)
+with 1 worker on 1 cores
+--- v1.7.4 openjdk version "11.0.33" 2026-10-20 taskset -c 0-2 (nproc=3)
+with 3 workers on 3 cores
+--- v1.7.4 taskset -c 5 (nproc=1)
+with 1 worker on 1 cores
+--- rolling openjdk version "25.0.5" 2026-10-20 taskset -c 0-2 (nproc=3)
+with 3 workers on 3 cores
+--- rolling taskset -c 5 (nproc=1)
+with 1 worker on 1 cores
+--- rolling openjdk version "11.0.33" 2026-10-20 taskset -c 0-2 (nproc=3)
+with 3 workers on 3 cores
+--- rolling taskset -c 5 (nproc=1)
+with 1 worker on 1 cores

@@ -1,0 +1,8 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <tmp>/q22/work/v1.7.4/sany-stale-both/PcalStaleBoth.tla
+!! WARNING: The PlusCal algorithm and its TLA+ translation in module PcalStaleBoth filename since the last translation.
+Parsing file /tmp/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module PcalStaleBoth

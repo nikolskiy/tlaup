@@ -1,0 +1,18 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 127 and seed 6899018746254801179 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory (Linux <kernel> amd64, Eclipse Adoptium 11.0.33 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q28/work/ovr-case/spec.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/TLC.tla
+Parsing file <tmp>/q28/work/ovr-case/modules/Ovr.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Ovr
+Semantic processing of module spec
+Starting... (2026-11-18 22:07:07)
+Error: Found a Java class for module tlc2.overrides.TLCOverrides, but unable to read
+it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+Finished in 02s at (2026-11-18 22:07:07)

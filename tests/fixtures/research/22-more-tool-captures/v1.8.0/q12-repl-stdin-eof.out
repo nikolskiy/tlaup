@@ -1,0 +1,19 @@
+Welcome to the TLA+ REPL!
+TLC2 Version 2026.11.15.002146
+Enter a constant-level TLA+ expression.
+(tla+) 2
+(tla+) 6
+(tla+) {1, 2, 3, 4}
+(tla+) Error evaluating expression: 'x'
+[line 6, col 14 to line 6, col 14 of module tlarepl
+
+Unknown operator: `x'.]
+(tla+) Error evaluating expression: 'Foo('
+[In module tlarepl
+
+Could not parse module tlarepl from file tlarepl.tla]
+(tla+) Error evaluating expression: ':q'
+[In module tlarepl
+
+Could not parse module tlarepl from file tlarepl.tla]
+(tla+) 

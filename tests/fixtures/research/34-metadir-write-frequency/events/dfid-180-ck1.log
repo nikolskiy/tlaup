@@ -1,0 +1,12 @@
+      0.0 NEW  d . size=4096
+      1.0 CHG  d . mtime
+      1.0 NEW  d 26-11-18-23-16-23.341 size=4096
+     66.0 CHG  d 26-11-18-23-16-23.341 mtime
+     66.0 NEW  f 26-11-18-23-16-23.341/Big.fp.chkpt size=67665444
+     66.0 NEW  f 26-11-18-23-16-23.341/vars.chkpt size=12276
+    128.1 CHG  d 26-11-18-23-16-23.341 mtime
+    128.1 NEW  f 26-11-18-23-16-23.341/Big.fp.tmp size=52436992
+    129.1 CHG  d 26-11-18-23-16-23.341 mtime
+    129.1 CHG  f 26-11-18-23-16-23.341/Big.fp.chkpt size 67665444->117755256 mtime
+    129.1 GONE f 26-11-18-23-16-23.341/Big.fp.tmp
+    129.1 CHG  f 26-11-18-23-16-23.341/vars.chkpt mtime

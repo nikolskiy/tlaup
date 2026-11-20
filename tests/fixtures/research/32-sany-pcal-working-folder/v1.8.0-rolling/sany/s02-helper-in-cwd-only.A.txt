@@ -1,0 +1,26 @@
+$ cd <w>/spec
+$ java  -cp <jar> tla2sany.SANY Main.tla
+--- run 1 stdout
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <w>/spec/Main.tla
+Parsing file /tmp/tlc-<n>/Naturals.tla (jar:file:<jar>!/tla2sany/StandardModules/Naturals.tla)
+
+Fatal errors while parsing TLA+ spec in file Main.tla
+
+In module Main
+
+Cannot find source file for module Helper imported in module Main.
+*** Errors: 1
+
+In module Main
+
+Cannot find source file for module Helper imported in module Main.
+
+
+
+--- run 1 stderr
+--- run 1 exit 255
+--- files changed
+

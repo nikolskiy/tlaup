@@ -1,0 +1,47 @@
+# cmd: java -Xmx700m -jar ../../../jars/v1.7.4/tla2tools.jar -tool -workers 2 -deadlock -metadir ./states Big
+# pid 1422925
+    0.332 @!@!@STARTMSG 2262:0 @!@!@
+    0.332 TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+    0.332 @!@!@ENDMSG 2262 @!@!@
+    0.803 @!@!@STARTMSG 2401:3 @!@!@
+    0.804 Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+    0.804 @!@!@ENDMSG 2401 @!@!@
+    0.893 @!@!@STARTMSG 2187:0 @!@!@
+    0.893 Running breadth-first search Model-Checking with fp 79 and seed 7563192638413840263 with 2 workers on 12 cores with 700MB heap and 64MB offheap memory [pid: 1422925] (Linux amd64, Java 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+    0.893 @!@!@ENDMSG 2187 @!@!@
+    1.015 @!@!@STARTMSG 2220:0 @!@!@
+    1.015 Starting SANY...
+    1.015 @!@!@ENDMSG 2220 @!@!@
+    1.072 Parsing file <tmp>/q31/run/174-tool/Big.tla
+    1.125 Parsing file /tmp/Naturals.tla
+    1.136 Semantic processing of module Naturals
+    1.174 Semantic processing of module Big
+    1.189 @!@!@STARTMSG 2219:0 @!@!@
+    1.189 SANY finished.
+    1.189 @!@!@ENDMSG 2219 @!@!@
+    1.192 @!@!@STARTMSG 2185:0 @!@!@
+    1.192 Starting... (2026-11-18 21:58:01)
+    1.192 @!@!@ENDMSG 2185 @!@!@
+    1.832 @!@!@STARTMSG 2189:0 @!@!@
+    1.832 Computing initial states...
+    1.832 @!@!@ENDMSG 2189 @!@!@
+    1.847 @!@!@STARTMSG 2190:0 @!@!@
+    1.848 Finished computing initial states: 1 distinct state generated at 2026-11-18 21:58:02.
+    1.848 @!@!@ENDMSG 2190 @!@!@
+    4.863 @!@!@STARTMSG 2200:0 @!@!@
+    4.863 Progress(57) at 2026-11-18 21:58:05: 1,715,867 states generated (1,715,867 s/min), 460,288 distinct states found (460,288 ds/min), 31,344 states left on queue.
+    4.863 @!@!@ENDMSG 2200 @!@!@
+   64.877 @!@!@STARTMSG 2200:0 @!@!@
+   64.877 Progress(125) at 2026-11-18 21:59:05: 40,135,772 states generated (38,419,905 s/min), 10,360,847 distinct states found (9,900,559 ds/min), 326,892 states left on queue.
+   64.877 @!@!@ENDMSG 2200 @!@!@
+  124.881 @!@!@STARTMSG 2200:0 @!@!@
+  124.881 Progress(135) at 2026-11-18 22:00:05: 55,605,391 states generated (15,469,619 s/min), 14,316,977 distinct states found (3,956,130 ds/min), 415,152 states left on queue.
+  124.881 @!@!@ENDMSG 2200 @!@!@
+  184.883 @!@!@STARTMSG 2200:0 @!@!@
+  184.883 Progress(142) at 2026-11-18 22:01:05: 66,787,766 states generated (11,182,375 s/min), 17,170,878 distinct states found (2,853,901 ds/min), 472,338 states left on queue.
+  184.883 @!@!@ENDMSG 2200 @!@!@
+  244.885 @!@!@STARTMSG 2200:0 @!@!@
+  244.885 Progress(147) at 2026-11-18 22:02:05: 78,342,636 states generated (11,554,870 s/min), 20,115,655 distinct states found (2,944,777 ds/min), 526,816 states left on queue.
+  244.885 @!@!@ENDMSG 2200 @!@!@
+# t=285.024 sending SIGTERM to 1422925 (time limit)
+# t=285.477 exit 143

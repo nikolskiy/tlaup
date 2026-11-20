@@ -1,0 +1,7 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: unrecognized option: -version
+Usage: java tlc2.TLC [-help] [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@

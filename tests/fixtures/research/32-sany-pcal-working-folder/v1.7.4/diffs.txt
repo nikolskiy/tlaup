@@ -1,0 +1,676 @@
+##### sany s01-helper-beside-spec  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7,4 +7,11 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic processing of module Main
++
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
++
++tla2sany.semantic.AbortException
++*** Abort messages: 1
++
++Unknown location
++
++Cannot find source file for module Helper imported in module Main.
++
++
+@@ -12 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s01-helper-beside-spec  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7,4 +7,11 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic processing of module Main
++
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
++
++tla2sany.semantic.AbortException
++*** Abort messages: 1
++
++Unknown location
++
++Cannot find source file for module Helper imported in module Main.
++
++
+@@ -12 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s02-helper-in-cwd-only  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7,11 +7,4 @@
+-
+-Fatal errors while parsing TLA+ spec in file Main.tla
+-
+-tla2sany.semantic.AbortException
+-*** Abort messages: 1
+-
+-Unknown location
+-
+-Cannot find source file for module Helper imported in module Main.
+-
+-
++Parsing file <w>/other/Helper.tla
++Semantic processing of module Naturals
++Semantic processing of module Helper
++Semantic processing of module Main
+@@ -19,2 +12 @@
+-File does not exist: <w>/spec/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+---- run 1 exit 255
++--- run 1 exit 0
+##### sany s02-helper-in-cwd-only  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7,11 +7,4 @@
+-
+-Fatal errors while parsing TLA+ spec in file Main.tla
+-
+-tla2sany.semantic.AbortException
+-*** Abort messages: 1
+-
+-Unknown location
+-
+-Cannot find source file for module Helper imported in module Main.
+-
+-
++Parsing file <w>/other/Helper.tla
++Semantic processing of module Naturals
++Semantic processing of module Helper
++Semantic processing of module Main
+@@ -19,2 +12 @@
+-File does not exist: <w>/spec/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+---- run 1 exit 255
++--- run 1 exit 0
+##### sany s03-helper-beside-spec-and-cwd  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### sany s03-helper-beside-spec-and-cwd  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### sany s04-helper-in-lib-only  A vs B: SAME
+##### sany s04-helper-in-lib-only  A vs C: SAME
+##### sany s05-helper-in-lib-and-beside-spec  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/lib/Helper.tla
+##### sany s05-helper-in-lib-and-beside-spec  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/lib/Helper.tla
+##### sany s06-helper-in-lib-and-cwd  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7 +7 @@
+-Parsing file <w>/lib/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### sany s06-helper-in-lib-and-cwd  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7 +7 @@
+-Parsing file <w>/lib/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### sany s07-helper-nowhere  A vs B: DIFFERENT
+--- A
++++ B
+@@ -8 +8 @@
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
+@@ -19 +19 @@
+-File does not exist: <w>/spec/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+##### sany s07-helper-nowhere  A vs C: DIFFERENT
+--- A
++++ C
+@@ -8 +8 @@
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+@@ -19 +19 @@
+-File does not exist: <w>/spec/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+##### sany s08-missing-module  A vs B: DIFFERENT
+--- A
++++ B
+@@ -8 +8 @@
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
+@@ -19 +19 @@
+-File does not exist: <w>/spec/NoSuchModule.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++File does not exist: <w>/other/NoSuchModule.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+##### sany s08-missing-module  A vs C: DIFFERENT
+--- A
++++ C
+@@ -8 +8 @@
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+@@ -19 +19 @@
+-File does not exist: <w>/spec/NoSuchModule.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++File does not exist: <w>/other/NoSuchModule.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+##### sany s09-parse-error-in-spec  A vs B: DIFFERENT
+--- A
++++ B
+@@ -14 +14 @@
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
+@@ -21 +21 @@
+-Could not parse module Main from file Main.tla
++Could not parse module Main from file <w>/spec/Main.tla
+##### sany s09-parse-error-in-spec  A vs C: DIFFERENT
+--- A
++++ C
+@@ -14 +14 @@
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+@@ -21 +21 @@
+-Could not parse module Main from file Main.tla
++Could not parse module Main from file ../spec/Main.tla
+##### sany s10-semantic-error-in-spec  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7,5 +6,0 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic processing of module Main
+-Semantic errors:
+@@ -13 +8 @@
+-*** Errors: 1
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
+@@ -15 +10,2 @@
+-line 3, col 11 to line 3, col 24 of module Main
++tla2sany.semantic.AbortException
++*** Abort messages: 1
+@@ -17 +13 @@
+-Unknown operator: `undefinedThing'.
++Unknown location
+@@ -18,0 +15 @@
++Cannot find source file for module Helper imported in module Main.
+@@ -22 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s10-semantic-error-in-spec  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7,5 +6,0 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic processing of module Main
+-Semantic errors:
+@@ -13 +8 @@
+-*** Errors: 1
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+@@ -15 +10,2 @@
+-line 3, col 11 to line 3, col 24 of module Main
++tla2sany.semantic.AbortException
++*** Abort messages: 1
+@@ -17 +13 @@
+-Unknown operator: `undefinedThing'.
++Unknown location
+@@ -18,0 +15 @@
++Cannot find source file for module Helper imported in module Main.
+@@ -22 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s11-parse-error-in-helper  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7,4 +6,0 @@
+-Parsing file <w>/spec/Helper.tla
+-***Parse Error***
+-Was expecting "==== or more Module body"
+-Encountered "H" at line 3, column 1 and token "Naturals" 
+@@ -12,5 +8 @@
+-Residual stack trace follows:
+-Module definition starting at line 1, column 1.
+-
+-
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
+@@ -21 +13 @@
+-In module Helper
++Unknown location
+@@ -23 +15 @@
+-Could not parse module Helper from file Helper.tla
++Cannot find source file for module Helper imported in module Main.
+@@ -26,0 +19 @@
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+##### sany s11-parse-error-in-helper  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7,4 +6,0 @@
+-Parsing file <w>/spec/Helper.tla
+-***Parse Error***
+-Was expecting "==== or more Module body"
+-Encountered "H" at line 3, column 1 and token "Naturals" 
+@@ -12,5 +8 @@
+-Residual stack trace follows:
+-Module definition starting at line 1, column 1.
+-
+-
+-Fatal errors while parsing TLA+ spec in file Main.tla
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+@@ -21 +13 @@
+-In module Helper
++Unknown location
+@@ -23 +15 @@
+-Could not parse module Helper from file Helper.tla
++Cannot find source file for module Helper imported in module Main.
+@@ -26,0 +19,2 @@
++Encountered an exception while attempt to validate /tmp/Naturals.tla - /tmp/Naturals.tla (No such file or directory)
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+##### sany s12-semantic-error-in-helper  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7,4 +6,0 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic errors:
+@@ -12 +8 @@
+-*** Errors: 1
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
+@@ -14 +10,2 @@
+-line 3, col 6 to line 3, col 9 of module Helper
++tla2sany.semantic.AbortException
++*** Abort messages: 1
+@@ -16 +13 @@
+-Unknown operator: `nope'.
++Unknown location
+@@ -18,11 +15 @@
+-
+-
+-Semantic processing of module Main
+-Semantic errors:
+-
+-*** Errors: 1
+-
+-line 3, col 6 to line 3, col 9 of module Helper
+-
+-Unknown operator: `nope'.
+-
++Cannot find source file for module Helper imported in module Main.
+@@ -32 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s12-semantic-error-in-helper  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7,4 +6,0 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic errors:
+@@ -12 +8 @@
+-*** Errors: 1
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+@@ -14 +10,2 @@
+-line 3, col 6 to line 3, col 9 of module Helper
++tla2sany.semantic.AbortException
++*** Abort messages: 1
+@@ -16 +13 @@
+-Unknown operator: `nope'.
++Unknown location
+@@ -18,11 +15 @@
+-
+-
+-Semantic processing of module Main
+-Semantic errors:
+-
+-*** Errors: 1
+-
+-line 3, col 6 to line 3, col 9 of module Helper
+-
+-Unknown operator: `nope'.
+-
++Cannot find source file for module Helper imported in module Main.
+@@ -32 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s13-spec-copy-in-cwd-shadows  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7,4 +7,11 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic processing of module Main
++
++Fatal errors while parsing TLA+ spec in file <w>/spec/Main.tla
++
++tla2sany.semantic.AbortException
++*** Abort messages: 1
++
++Unknown location
++
++Cannot find source file for module Helper imported in module Main.
++
++
+@@ -12 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s13-spec-copy-in-cwd-shadows  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7,4 +7,11 @@
+-Parsing file <w>/spec/Helper.tla
+-Semantic processing of module Naturals
+-Semantic processing of module Helper
+-Semantic processing of module Main
++
++Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
++
++tla2sany.semantic.AbortException
++*** Abort messages: 1
++
++Unknown location
++
++Cannot find source file for module Helper imported in module Main.
++
++
+@@ -12 +19,2 @@
+---- run 1 exit 0
++File does not exist: <w>/other/Helper.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++--- run 1 exit 255
+##### sany s14-no-such-input-file  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5 +5 @@
+-Cannot find the specified file Nope.tla.
++Cannot find the specified file <w>/spec/Nope.tla.
+##### sany s14-no-such-input-file  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5 +5 @@
+-Cannot find the specified file Nope.tla.
++Cannot find the specified file ../spec/Nope.tla.
+@@ -7 +7 @@
+-File does not exist: <w>/spec/Nope.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
++File does not exist: <w>/other/../spec/Nope.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+##### sany s15-helper-in-lib-lib-given-relative  A vs B: SAME
+##### sany s15-helper-in-lib-lib-given-relative  A vs C: SAME
+##### sany s16-specdir-on-TLA-Library  A vs B: SAME
+##### sany s16-specdir-on-TLA-Library  A vs C: SAME
+##### sany s17-specdir-on-classpath  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file /tmp/Helper.tla
+##### sany s17-specdir-on-classpath  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file /tmp/Helper.tla
+##### sany s18-specdir-on-TLA-Library-and-cwd-copy  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### sany s18-specdir-on-TLA-Library-and-cwd-copy  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### sany s19-specdir-on-classpath-and-cwd-copy  A vs B: DIFFERENT
+--- A
++++ B
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### sany s19-specdir-on-classpath-and-cwd-copy  A vs C: DIFFERENT
+--- A
++++ C
+@@ -7 +7 @@
+-Parsing file <w>/spec/Helper.tla
++Parsing file <w>/other/Helper.tla
+##### pcal p01-plain  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p01-plain  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p02-existing-cfg-beside-spec  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-File Pc.cfg already contains SPECIFICATION statement,
++New file <w>/spec/Pc.tla written.
++File <w>/spec/Pc.cfg already contains SPECIFICATION statement,
+@@ -8 +8 @@
+-New file Pc.cfg written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p02-existing-cfg-beside-spec  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-File Pc.cfg already contains SPECIFICATION statement,
++New file ../spec/Pc.tla written.
++File ../spec/Pc.cfg already contains SPECIFICATION statement,
+@@ -8 +8 @@
+-New file Pc.cfg written.
++New file ../spec/Pc.cfg written.
+##### pcal p03-existing-cfg-in-cwd  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p03-existing-cfg-in-cwd  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p04-nocfg  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5 +5 @@
+-New file Pc.tla written.
++New file <w>/spec/Pc.tla written.
+##### pcal p04-nocfg  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5 +5 @@
+-New file Pc.tla written.
++New file ../spec/Pc.tla written.
+##### pcal p05-algorithm-error  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p05-algorithm-error  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p05b-real-translator-error  A vs B: SAME
+##### pcal p05b-real-translator-error  A vs C: SAME
+##### pcal p06-existing-old-beside-spec  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p06-existing-old-beside-spec  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p07-name-without-extension  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p07-name-without-extension  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p08-writeAST  A vs B: DIFFERENT
+--- A
++++ B
+@@ -8,2 +8,2 @@
+-NEW      spec/AST.tla  sha=b253f7a938
+---- content spec/AST.tla
++NEW      other/AST.tla  sha=b253f7a938
++--- content other/AST.tla
+##### pcal p08-writeAST  A vs C: DIFFERENT
+--- A
++++ C
+@@ -8,2 +8,2 @@
+-NEW      spec/AST.tla  sha=b253f7a938
+---- content spec/AST.tla
++NEW      other/AST.tla  sha=b253f7a938
++--- content other/AST.tla
+##### pcal p09-labels-added  A vs B: DIFFERENT
+--- A
++++ B
+@@ -6,2 +6,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p09-labels-added  A vs C: DIFFERENT
+--- A
++++ C
+@@ -6,2 +6,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p10-no-such-file  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5 +5 @@
+- -- Command-line error: Input file Pc.tla does not exist...
++ -- Command-line error: Input file <w>/spec/Pc.tla does not exist...
+##### pcal p10-no-such-file  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5 +5 @@
+- -- Command-line error: Input file Pc.tla does not exist...
++ -- Command-line error: Input file ../spec/Pc.tla does not exist...
+##### pcal p11-spec-copy-in-cwd  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p11-spec-copy-in-cwd  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p12-translate-twice  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+@@ -13,2 +13,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file <w>/spec/Pc.tla written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p12-translate-twice  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+@@ -13,2 +13,2 @@
+-New file Pc.tla written.
+-New file Pc.cfg written.
++New file ../spec/Pc.tla written.
++New file ../spec/Pc.cfg written.
+##### pcal p13-unchanged-cwd-other-cfg-name  A vs B: DIFFERENT
+--- A
++++ B
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-File Pc.cfg already contains SPECIFICATION statement,
++New file <w>/spec/Pc.tla written.
++File <w>/spec/Pc.cfg already contains SPECIFICATION statement,
+@@ -8 +8 @@
+-New file Pc.cfg written.
++New file <w>/spec/Pc.cfg written.
+##### pcal p13-unchanged-cwd-other-cfg-name  A vs C: DIFFERENT
+--- A
++++ C
+@@ -5,2 +5,2 @@
+-New file Pc.tla written.
+-File Pc.cfg already contains SPECIFICATION statement,
++New file ../spec/Pc.tla written.
++File ../spec/Pc.cfg already contains SPECIFICATION statement,
+@@ -8 +8 @@
+-New file Pc.cfg written.
++New file ../spec/Pc.cfg written.

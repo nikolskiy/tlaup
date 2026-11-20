@@ -1,0 +1,27 @@
+version | requires click | bundled typer/_click | typer.TyperException public | _completion_classes | _completion_shared | completion_init in _completion_classes | get_completion_script in _completion_shared | requires python
+0.22.0 | True | False | False | True | True | True | True | >=3.9
+0.23.0 | True | False | False | True | True | True | True | >=3.9
+0.23.1 | True | False | False | True | True | True | True | >=3.9
+0.23.2 | True | False | False | True | True | True | True | >=3.9
+0.24.0 | True | False | False | True | True | True | True | >=3.10
+0.24.1 | True | False | False | True | True | True | True | >=3.10
+0.24.2 | True | False | False | True | True | True | True | >=3.10
+0.25.0 | True | False | False | True | True | True | True | >=3.10
+0.25.1 | True | False | False | True | True | True | True | >=3.10
+0.26.0 | False | True | False | True | True | True | True | >=3.10
+0.26.1 | False | True | False | True | True | True | True | >=3.10
+0.26.2 | False | True | False | True | True | True | True | >=3.10
+0.26.3 | False | True | False | True | True | True | True | >=3.10
+0.26.4 | False | True | False | True | True | True | True | >=3.10
+0.26.5 | False | True | False | True | True | True | True | >=3.10
+0.26.6 | False | True | False | True | True | True | True | >=3.10
+0.26.7 | False | True | False | True | True | True | True | >=3.10
+0.26.8 | False | True | False | True | True | True | True | >=3.10
+0.27.0 | False | True | False | True | True | True | True | >=3.10
+0.27.1 | False | True | False | True | True | True | True | >=3.10
+0.27.2 | False | True | True | True | True | True | True | >=3.10
+0.27.3 | False | True | True | True | True | True | True | >=3.10
+0.28.0 | False | True | True | True | True | True | True | >=3.10
+0.29.0 | False | True | True | True | True | True | True | >=3.10
+0.29.1 | False | True | True | True | True | True | True | >=3.10
+0.29.2 | False | True | True | True | True | True | True | >=3.11

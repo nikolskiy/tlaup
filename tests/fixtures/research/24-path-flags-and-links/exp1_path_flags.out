@@ -1,0 +1,165 @@
+######## version 174  (cwd = work/, spec = <T>/real/proj/Spec.tla, cfg = Spec.cfg beside the spec, TLC violates Inv)
+--- P1 -dump rel (no suffix)
+    exit=12
+      work/rel.dump
+--- P2 -dump rel.dump
+    exit=12
+      work/rel.dump
+--- P3 -dump dot rel.dot
+    exit=12
+      work/rel.dot
+--- P4 -dump sub/rel (sub exists only in spec folder)
+    Error: Unable to write to file sub/rel.dump
+    Error: Error: Given file name sub/rel.dump for dumping states invalid.
+    exit=1
+--- P5 -dump dumps/rel (folder exists nowhere)
+    Error: Unable to write to file dumps/rel.dump
+    Error: Error: Given file name dumps/rel.dump for dumping states invalid.
+    exit=1
+--- P6 -dump ${metadir}/rel
+    exit=12
+--- P7 -dump absolute
+    exit=12
+      outside
+      outside/abs.dump
+--- M1 -metadir relmeta
+    exit=12
+      work/relmeta
+--- M2 -metadir ../relmeta
+    exit=12
+      .
+      relmeta
+--- M3 no -metadir (absolute spec)
+    exit=12
+      real/proj/states
+--- U1 -userFile rel.out
+    exit=12
+      work/rel.out
+--- U2 -userFile sub/rel.out (sub only in spec folder)
+    Error: Error: Failed to create user output log file.
+    exit=1
+--- T0 default (no TE flag, violation)
+    exit=12
+--- T1 -generateSpecTE
+    Will generate a SpecTE file pair if error states are encountered.
+    The model check run produced error-states - we will generate the SpecTE files now.
+    exit=12
+      real/proj/SpecTE.cfg
+      real/proj/SpecTE.tla
+--- S1 -simulate file=rel num=2
+    exit=12
+######## version 180  (cwd = work/, spec = <T>/real/proj/Spec.tla, cfg = Spec.cfg beside the spec, TLC violates Inv)
+--- P1 -dump rel (no suffix)
+    exit=12
+      real/proj/Spec_TTrace_1795075207.tla
+      work/rel.dump
+--- P2 -dump rel.dump
+    exit=12
+      real/proj/Spec_TTrace_1795075212.tla
+      work/rel.dump
+--- P3 -dump dot rel.dot
+    exit=12
+      real/proj/Spec_TTrace_1795075217.tla
+      work/rel.dot
+--- P4 -dump sub/rel (sub exists only in spec folder)
+    Error: Unable to write to file sub/rel.dump
+    Error: Error: Given file name sub/rel.dump for dumping states invalid.
+    exit=1
+--- P5 -dump dumps/rel (folder exists nowhere)
+    Error: Unable to write to file dumps/rel.dump
+    Error: Error: Given file name dumps/rel.dump for dumping states invalid.
+    exit=1
+--- P6 -dump ${metadir}/rel
+    exit=12
+      real/proj/Spec_TTrace_1795075226.tla
+--- P7 -dump absolute
+    exit=12
+      outside
+      outside/abs.dump
+      real/proj/Spec_TTrace_1795075231.tla
+--- M1 -metadir relmeta
+    exit=12
+      real/proj/Spec_TTrace_1795075237.tla
+      work/relmeta
+      work/relmeta/26-11-18-22-00-37.589
+      work/relmeta/26-11-18-22-00-37.589/Spec_0.fp
+      work/relmeta/26-11-18-22-00-37.589/Spec-0.st
+      work/relmeta/26-11-18-22-00-37.589/Spec_1.fp
+      work/relmeta/26-11-18-22-00-37.589/Spec.st
+--- M2 -metadir ../relmeta
+    exit=12
+      .
+      real/proj/Spec_TTrace_1795075243.tla
+      relmeta
+      relmeta/26-11-18-22-00-43.839
+      relmeta/26-11-18-22-00-43.839/Spec_0.fp
+      relmeta/26-11-18-22-00-43.839/Spec-0.st
+      relmeta/26-11-18-22-00-43.839/Spec_1.fp
+      relmeta/26-11-18-22-00-43.839/Spec.st
+--- M3 no -metadir (absolute spec)
+    exit=12
+      real/proj/Spec_TTrace_1795075249.tla
+      real/proj/states
+      real/proj/states/26-11-18-22-00-49.310
+      real/proj/states/26-11-18-22-00-49.310/Spec_0.fp
+      real/proj/states/26-11-18-22-00-49.310/Spec-0.st
+      real/proj/states/26-11-18-22-00-49.310/Spec_1.fp
+      real/proj/states/26-11-18-22-00-49.310/Spec.st
+--- U1 -userFile rel.out
+    exit=12
+      real/proj/Spec_TTrace_1795075255.tla
+      work/rel.out
+--- U2 -userFile sub/rel.out (sub only in spec folder)
+    Error: Error: Failed to create user output log file.
+    exit=1
+--- T0 default (no TE flag, violation)
+    exit=12
+      real/proj/Spec_TTrace_1795075263.tla
+--- T1 -generateSpecTE
+    exit=12
+      real/proj/Spec_TTrace_1795075270.tla
+--- S1 -simulate file=rel num=2
+    exit=12
+      real/proj/Spec_TTrace_1795075275.tla
+--- D1 -dumpTrace json rel.json
+    exit=12
+      real/proj/Spec_TTrace_1795075279.tla
+      work/rel.json
+--- D2 -dumpTrace json sub/rel.json
+    exit=12
+      real/proj/Spec_TTrace_1795075285.tla
+      work/sub
+      work/sub/rel.json
+--- D3 -dumpTrace json dumps/rel.json
+    exit=12
+      real/proj/Spec_TTrace_1795075290.tla
+      work/dumps
+      work/dumps/rel.json
+--- D4 -dumpTrace json absolute
+    exit=12
+      outside
+      outside/abs.json
+      real/proj/Spec_TTrace_1795075295.tla
+--- D5 -dumpTrace tlc rel.tlc
+    exit=12
+      real/proj/Spec_TTrace_1795075302.tla
+--- E1 -teSpecOutDir te
+    Error: Evaluating postcondition _TLCTraceSilent at line 28, col 5 to line 28, col 21 of module _TLCTrace failed.
+    public static final tlc2.value.IValue tlc2.module._TLCTrace.ioSerialize(tlc2.value.IValue,tlc2.value.impl.StringValue) throws java.io.IOException,
+    but it produced the following error:
+    exit=12
+      work/te
+      work/te/Spec_TTrace_1795075309.tla
+--- E2 -teSpecOutDir te/MyTE.tla
+    Error: Evaluating postcondition _TLCTraceSilent at line 28, col 5 to line 28, col 21 of module _TLCTrace failed.
+    public static final tlc2.value.IValue tlc2.module._TLCTrace.ioSerialize(tlc2.value.IValue,tlc2.value.impl.StringValue) throws java.io.IOException,
+    but it produced the following error:
+    exit=12
+      work/te
+      work/te/MyTE.tla
+--- E3 -teSpecOutDir absolute dir
+    exit=12
+      outside
+      outside/Spec_TTrace_1795075319.tla
+--- E4 -noGenerateSpecTE
+    exit=12

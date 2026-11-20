@@ -1,0 +1,16 @@
+$ cd <w>/other
+$ java -DTLA-Library=<w>/lib -cp <jar> tla2sany.SANY ../spec/Main.tla
+--- run 1 stdout
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <w>/spec/Main.tla
+Parsing file /tmp/Naturals.tla
+Parsing file <w>/other/Helper.tla
+Semantic processing of module Naturals
+Semantic processing of module Helper
+Semantic processing of module Main
+--- run 1 stderr
+--- run 1 exit 0
+--- files changed
+

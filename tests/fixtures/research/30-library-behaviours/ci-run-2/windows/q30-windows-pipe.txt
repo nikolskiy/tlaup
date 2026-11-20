@@ -1,0 +1,5 @@
+Installed 4 packages in 55ms
+RESULT q30 pipe-error-closed-print windows : INFO (print, Python 3.13.17) - 3 lines, reader closed before start: exit 7; NOTE OSError errno=22 winerror=None is-BrokenPipeError=False
+RESULT q30 pipe-error-reader-exits-print windows : INFO (print, Python 3.13.17) - 200000 lines, reader reads one line and exits: exit 7; NOTE OSError errno=22 winerror=None is-BrokenPipeError=False
+RESULT q30 pipe-error-closed-rich windows : INFO (rich 13.9.4, Python 3.13.17) - 3 lines, reader closed before start: exit 7; NOTE OSError errno=22 winerror=None is-BrokenPipeError=False
+RESULT q30 pipe-error-reader-exits-rich windows : INFO (rich 13.9.4, Python 3.13.17) - 200000 lines, reader reads one line and exits: exit 7; NOTE OSError errno=22 winerror=None is-BrokenPipeError=False

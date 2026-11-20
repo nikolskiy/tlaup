@@ -1,0 +1,2 @@
+RESULT q28 stub-pid-JAVA_HOME=21 macos : popen-pid=3093 same-pid=True rc=0 | pid=3093 parent=3091 cmd=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-100000002.0.LTS/aarch64/Contents/Home/bin/java
+RESULT q28 stub-pid-JAVA_HOME-unset macos : popen-pid=3100 same-pid=True rc=0 | pid=3100 parent=3091 cmd=~/hostedtoolcache/Java_Temurin-Hotspot_jdk/25.0.5-8.0/arm64/Contents/Home/bin/java

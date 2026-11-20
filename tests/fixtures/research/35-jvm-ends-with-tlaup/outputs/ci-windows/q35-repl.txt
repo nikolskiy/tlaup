@@ -1,0 +1,2 @@
+q35 check_repl on Windows AMD64, Python 3.13.17; java: openjdk version "21.0.13" 2026-10-20 LTS
+RESULT q35 repl windows : skipped (POSIX only; the Windows mechanisms do not touch stdin)

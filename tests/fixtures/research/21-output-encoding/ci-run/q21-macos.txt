@@ -1,0 +1,18 @@
+RESULT q21 java-properties darwin : java=path(21.0.13.1) stdout.encoding=UTF-8 native.encoding=UTF-8 file.encoding=UTF-8 sun.jnu.encoding=UTF-8
+RESULT q21 tlc-output darwin : java=path(21.0.13.1) jar=v1.7.4 opts=none rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=path(21.0.13.1) jar=v1.7.4 opts=none rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687
+RESULT q21 tlc-output darwin : java=path(21.0.13.1) jar=v1.7.4 opts=utf8 rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=path(21.0.13.1) jar=v1.7.4 opts=utf8 rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687
+RESULT q21 tlc-output darwin : java=path(21.0.13.1) jar=rolling opts=none rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=path(21.0.13.1) jar=rolling opts=none rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687
+RESULT q21 tlc-output darwin : java=path(21.0.13.1) jar=rolling opts=utf8 rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=path(21.0.13.1) jar=rolling opts=utf8 rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687
+RESULT q21 java-properties darwin : java=java11(11.0.33) stdout.encoding=n/a native.encoding=n/a file.encoding=UTF-8 sun.jnu.encoding=UTF-8
+RESULT q21 tlc-output darwin : java=java11(11.0.33) jar=v1.7.4 opts=none rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=java11(11.0.33) jar=v1.7.4 opts=none rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687
+RESULT q21 tlc-output darwin : java=java11(11.0.33) jar=v1.7.4 opts=utf8 rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=java11(11.0.33) jar=v1.7.4 opts=utf8 rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687
+RESULT q21 tlc-output darwin : java=java11(11.0.33) jar=rolling opts=none rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=java11(11.0.33) jar=rolling opts=none rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687
+RESULT q21 tlc-output darwin : java=java11(11.0.33) jar=rolling opts=utf8 rc=12 trace=utf-8/utf-8/utf-8 print=utf-8 hex(first-value)=636166c3a9 stderr-bytes=0
+RESULT q21 pcal-rewrite darwin : java=java11(11.0.33) jar=rolling opts=utf8 rc=0 comments-kept hex(before-line)=5c2a206265666f72653a20636166c3a920e697a5e8aa9ee69687

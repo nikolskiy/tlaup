@@ -1,0 +1,22 @@
+# rolling-closedout mode=closed-out pid=1475581 first-line-seen: 
+# fd listing at +2s:
+#    -> 
+#   0 -> /dev/null
+#   1 -> <jdk25>/lib/modules
+#   2 -> <tmp>/q31/p2/log-rolling-closedout.txt
+t=2s alive state/cpu-ticks=S 80
+t=12s alive state/cpu-ticks=S 575
+t=22s alive state/cpu-ticks=S 886
+t=32s alive state/cpu-ticks=S 1283
+t=42s alive state/cpu-ticks=S 1616
+t=52s alive state/cpu-ticks=S 2005
+t=62s alive state/cpu-ticks=S 2264
+t=72s alive state/cpu-ticks=S 2570
+t=82s alive state/cpu-ticks=S 2892
+t=92s alive state/cpu-ticks=S 3211
+t=102s alive state/cpu-ticks=S 3449
+t=112s alive state/cpu-ticks=S 3804
+t=123s alive state/cpu-ticks=S 4217
+t=133s alive state/cpu-ticks=S 4628
+t=143s alive state/cpu-ticks=S 4996
+t=153s java gone; exit=12

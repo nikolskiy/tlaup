@@ -1,0 +1,55 @@
+# java: openjdk version "25.0.5" 2026-10-20
+### [rolling] A_existing: -metadir '<tmp>/q20/work/rolling/exist' (cwd=$W/cwd) exit=0
+Model checking completed. No error has been found.
+    d exist
+### [rolling] B_one_level_missing: -metadir '<tmp>/q20/work/rolling/b1' (cwd=$W/cwd) exit=0
+Model checking completed. No error has been found.
+    d b1
+### [rolling] C_three_levels_missing: -metadir '<tmp>/q20/work/rolling/c1/c2/c3' (cwd=$W/cwd) exit=0
+Model checking completed. No error has been found.
+    d c1
+    d c1/c2
+    d c1/c2/c3
+### [rolling] D_trailing_slash_missing: -metadir '<tmp>/q20/work/rolling/d1/' (cwd=$W/cwd) exit=0
+Model checking completed. No error has been found.
+    d d1
+### [rolling] E_relative_missing: -metadir 'rel1/rel2' (cwd=$W/cwd) exit=0
+Model checking completed. No error has been found.
+    d cwd
+    d cwd/rel1
+    d cwd/rel1/rel2
+### [rolling] F_relative_dot_missing: -metadir './relx' (cwd=$W/cwd) exit=0
+Model checking completed. No error has been found.
+    d cwd/relx
+### [rolling] G_parent_is_file: -metadir '<tmp>/q20/work/rolling/afile/md' (cwd=$W/cwd) exit=1
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <tmp>/q20/work/rolling/afile/md/26-11-18-21-59-42.353 for the disk files it needs to write.
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+    f afile
+### [rolling] H_grandparent_is_file: -metadir '<tmp>/q20/work/rolling/afile/m1/m2' (cwd=$W/cwd) exit=1
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <tmp>/q20/work/rolling/afile/m1/m2/26-11-18-21-59-43.195 for the disk files it needs to write.
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+    f afile
+### [rolling] I_metadir_is_file: -metadir '<tmp>/q20/work/rolling/afile' (cwd=$W/cwd) exit=1
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <tmp>/q20/work/rolling/afile/26-11-18-21-59-43.909 for the disk files it needs to write.
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+    f afile
+### [rolling] J_parent_not_writable: -metadir '<tmp>/q20/work/rolling/ro/md' (cwd=$W/cwd) exit=1
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <tmp>/q20/work/rolling/ro/md/26-11-18-21-59-44.688 for the disk files it needs to write.
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+    d ro
+### [rolling] K_grandparent_not_writable: -metadir '<tmp>/q20/work/rolling/ro/m1/m2' (cwd=$W/cwd) exit=1
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <tmp>/q20/work/rolling/ro/m1/m2/26-11-18-21-59-45.382 for the disk files it needs to write.
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+    d ro
+### [rolling] L_via_symlink_parent: -metadir '<tmp>/q20/work/rolling/link/sub' (cwd=$W/cwd) exit=0
+Model checking completed. No error has been found.
+    d real
+    d real/sub
+### [rolling] M_dangling_symlink_parent: -metadir '<tmp>/q20/work/rolling/dangling/sub' (cwd=$W/cwd) exit=1
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <tmp>/q20/work/rolling/dangling/sub/26-11-18-21-59-49.709 for the disk files it needs to write.
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+    l dangling
+### [rolling] N_metadir_dangling_symlink: -metadir '<tmp>/q20/work/rolling/dangling2' (cwd=$W/cwd) exit=1
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <tmp>/q20/work/rolling/dangling2/26-11-18-21-59-50.517 for the disk files it needs to write.
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+    l dangling2

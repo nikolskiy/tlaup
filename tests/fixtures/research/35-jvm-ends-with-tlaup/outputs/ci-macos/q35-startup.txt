@@ -1,0 +1,8 @@
+q35 check_startup on Darwin arm64, Python 3.13.17; java: openjdk version "21.0.13.1" 2026-11-17 LTS
+RESULT q35 startup-jvm-plain macos : 67.3 ms median (min 62.0, max 74.7)
+RESULT q35 startup-jvm-agent-pid macos : 92.8 ms median (min 75.5, max 154.0)
+RESULT q35 startup-jvm-agent-pipe macos : 1769.6 ms median (min 1253.1, max 2087.1)
+RESULT q35 startup-tlc-plain macos : 587.9 ms median (min 572.3, max 652.1)
+RESULT q35 startup-tlc-agent-pid macos : 537.1 ms median (min 516.6, max 545.6)
+RESULT q35 startup-popen-plain macos : 3.2 ms median (min 2.2, max 4.2)
+RESULT q35 startup-watcher-process macos : 30.0 ms median (min 28.2, max 31.4)

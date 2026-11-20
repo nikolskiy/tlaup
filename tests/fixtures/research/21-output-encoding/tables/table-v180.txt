@@ -1,0 +1,32 @@
+v180-j11-C-all             tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j11-C-fileenc         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j11-C-latin1          tlc=L1/ASCII?/ASCII? print=L1? pcal-msg=L1 sanyquote=other:636166e9203f3f3f203f pcalfile=comments-intact
+v180-j11-C-minimal         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j11-C-none            tlc=ASCII?/ASCII?/ASCII? tlctool=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j11-C-stdout          tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j11-C-sunstdout       tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j11-Cutf8-none        tlc=UTF8/UTF8/UTF8 tlctool=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j11-POSIX-minimal     tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j11-POSIX-none        tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j11-enUS-none         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j21-C-all             tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j21-C-fileenc         tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j21-C-latin1          tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j21-C-minimal         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j21-C-none            tlc=ASCII?/ASCII?/ASCII? tlctool=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j21-C-stdout          tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j21-C-sunstdout       tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j21-Cutf8-none        tlc=UTF8/UTF8/UTF8 tlctool=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j21-POSIX-minimal     tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j21-POSIX-none        tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j25-C-all             tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j25-C-fileenc         tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j25-C-latin1          tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j25-C-minimal         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j25-C-none            tlc=ASCII?/ASCII?/ASCII? tlctool=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j25-C-stdout          tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j25-C-sunstdout       tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j25-Cutf8-none        tlc=UTF8/UTF8/UTF8 tlctool=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j25-POSIX-minimal     tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v180-j25-POSIX-none        tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v180-j25-enUS-none         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact

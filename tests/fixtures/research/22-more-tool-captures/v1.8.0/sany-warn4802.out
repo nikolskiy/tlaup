@@ -1,0 +1,16 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q22/work/v1.8.0/sany-warn4802/Warn4802.tla
+Parsing file /tmp/tlc-5725183483479449245/Naturals.tla (jar:file:<tmp>/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+Semantic processing of module Warn4802
+Semantic errors:
+
+*** Errors: 1
+
+line 4, col 16 to line 4, col 16 of module Warn4802
+
+Non-unique fields in constructor.
+
+

@@ -1,0 +1,11 @@
+q35 check_startup on Linux x86_64, Python 3.14.3; java: openjdk version "25.0.5" 2026-10-20
+RESULT q35 startup-jvm-plain linux : 228.4 ms median (min 178.0, max 297.6)
+RESULT q35 startup-jvm-agent-pid linux : 398.8 ms median (min 299.5, max 542.7)
+RESULT q35 startup-jvm-agent-pipe linux : 653.4 ms median (min 558.0, max 767.2)
+RESULT q35 startup-tlc-plain linux : 2287.0 ms median (min 1974.9, max 2480.6)
+RESULT q35 startup-tlc-agent-pid linux : 2222.9 ms median (min 1914.2, max 2612.7)
+RESULT q35 startup-popen-plain linux : 0.7 ms median (min 0.5, max 3.6)
+RESULT q35 startup-popen-preexec-pdeathsig linux : 7.1 ms median (min 3.9, max 10.7)
+RESULT q35 startup-run-true-plain linux : 4.7 ms median (min 1.5, max 15.5)
+RESULT q35 startup-run-true-via-setpriv linux : 6.9 ms median (min 2.9, max 12.7)
+RESULT q35 startup-watcher-process linux : 68.3 ms median (min 32.6, max 125.9)

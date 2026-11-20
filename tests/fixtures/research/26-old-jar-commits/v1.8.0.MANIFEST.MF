@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.10.12
+Created-By: 17.0.21+9 (Eclipse Adoptium)
+Built-By: runner
+Build-Tag: ${env.BUILD_TAG}
+Build-Rev: ${Build-Rev}
+Build-TimeStamp: 2026-11-15T00:21:46.50Z
+Implementation-Title: TLA+ Tools
+Implementation-Version: 2.0 2026-11-15
+Implementation-Vendor: Microsoft Corp.
+Main-class: tlc2.TLC
+X-Git-Branch: master
+X-Git-Tag: 
+X-Git-Revision: bc1b506bdcad80bb518bf3776a9161c34ff0fc4c
+X-Git-ShortRevision: bc1b506
+X-Git-BuildNumber: master__bc1b506
+X-Git-Commits-Count: 9089
+Application-Name: TLC
+permissions: all-permissions
+Class-Path: CommunityModules-deps.jar CommunityModules.jar
+

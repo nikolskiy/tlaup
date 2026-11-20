@@ -1,0 +1,15 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <work>/spec/S.tla
+Parsing file /tmp/Naturals.tla
+Parsing file /tmp/TLC.tla
+Parsing file <work>/libA/Dup.tla
+Parsing file /tmp/Sequences.tla
+Parsing file /tmp/FiniteSets.tla
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Dup
+Semantic processing of module S

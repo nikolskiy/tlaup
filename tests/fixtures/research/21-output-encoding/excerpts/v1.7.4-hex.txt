@@ -1,0 +1,119 @@
+### v174-j25-C-none
+  [TLC error trace values] 's = "caf?"'
+      73 20 3d 20 22 63 61 66 3f 22
+  [TLC error trace values] 's = "???"'
+      73 20 3d 20 22 3f 3f 3f 22
+  [TLC error trace values] 's = "?"'
+      73 20 3d 20 22 3f 22
+  [Print / PrintT] '"printt: caf? ???"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 3f 20 3f 3f 3f 22
+  [Print / PrintT] '"print: caf? ???"  TRUE'
+      22 70 72 69 6e 74 3a 20 63 61 66 3f 20 3f 3f 3f 22 20 20 54 52 55 45
+  [Print / PrintT] '"printt: caf? ???"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 3f 20 3f 3f 3f 22
+  [SANY parse error quoting a string token] 'Encountered ""caf? ???"" at line 3, column 10 and token "1" '
+      45 6e 63 6f 75 6e 74 65 72 65 64 20 22 22 63 61 66 3f 20 3f 3f 3f 22 22 20 61 74 20 6c 69 6e 65 20 33 2c 20 63 6f 6c 75 6d 6e 20 31 30 20 61 6e 64 20 74 6f 6b 65 6e 20 22 31 22 20
+  [PlusCal message quoting a string] " -- Illegal character in string `caf?' found at"
+      20 2d 2d 20 49 6c 6c 65 67 61 6c 20 63 68 61 72 61 63 74 65 72 20 69 6e 20 73 74 72 69 6e 67 20 60 63 61 66 3f 27 20 66 6f 75 6e 64 20 61 74
+### v174-j25-Cutf8-none
+  [TLC error trace values] 's = "café"'
+      73 20 3d 20 22 63 61 66 c3 a9 22
+  [TLC error trace values] 's = "日語文"'
+      73 20 3d 20 22 e6 97 a5 e8 aa 9e e6 96 87 22
+  [TLC error trace values] 's = "ø"'
+      73 20 3d 20 22 c3 b8 22
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [Print / PrintT] '"print: café 日語文"  TRUE'
+      22 70 72 69 6e 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 20 20 54 52 55 45
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [SANY parse error quoting a string token] 'Encountered ""café 日語文"" at line 3, column 10 and token "1" '
+      45 6e 63 6f 75 6e 74 65 72 65 64 20 22 22 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 22 20 61 74 20 6c 69 6e 65 20 33 2c 20 63 6f 6c 75 6d 6e 20 31 30 20 61 6e 64 20 74 6f 6b 65 6e 20 22 31 22 20
+  [PlusCal message quoting a string] " -- Illegal character in string `café' found at"
+      20 2d 2d 20 49 6c 6c 65 67 61 6c 20 63 68 61 72 61 63 74 65 72 20 69 6e 20 73 74 72 69 6e 67 20 60 63 61 66 c3 a9 27 20 66 6f 75 6e 64 20 61 74
+### v174-j25-C-stdout
+  [TLC error trace values] 's = "café"'
+      73 20 3d 20 22 63 61 66 c3 a9 22
+  [TLC error trace values] 's = "日語文"'
+      73 20 3d 20 22 e6 97 a5 e8 aa 9e e6 96 87 22
+  [TLC error trace values] 's = "ø"'
+      73 20 3d 20 22 c3 b8 22
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [Print / PrintT] '"print: café 日語文"  TRUE'
+      22 70 72 69 6e 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 20 20 54 52 55 45
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [SANY parse error quoting a string token] 'Encountered ""café 日語文"" at line 3, column 10 and token "1" '
+      45 6e 63 6f 75 6e 74 65 72 65 64 20 22 22 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 22 20 61 74 20 6c 69 6e 65 20 33 2c 20 63 6f 6c 75 6d 6e 20 31 30 20 61 6e 64 20 74 6f 6b 65 6e 20 22 31 22 20
+  [PlusCal message quoting a string] " -- Illegal character in string `café' found at"
+      20 2d 2d 20 49 6c 6c 65 67 61 6c 20 63 68 61 72 61 63 74 65 72 20 69 6e 20 73 74 72 69 6e 67 20 60 63 61 66 c3 a9 27 20 66 6f 75 6e 64 20 61 74
+### v174-j11-C-none
+  [TLC error trace values] 's = "caf??"'
+      73 20 3d 20 22 63 61 66 3f 3f 22
+  [TLC error trace values] 's = "?????????"'
+      73 20 3d 20 22 3f 3f 3f 3f 3f 3f 3f 3f 3f 22
+  [TLC error trace values] 's = "??"'
+      73 20 3d 20 22 3f 3f 22
+  [Print / PrintT] '"printt: caf?? ?????????"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 3f 3f 20 3f 3f 3f 3f 3f 3f 3f 3f 3f 22
+  [Print / PrintT] '"print: caf?? ?????????"  TRUE'
+      22 70 72 69 6e 74 3a 20 63 61 66 3f 3f 20 3f 3f 3f 3f 3f 3f 3f 3f 3f 22 20 20 54 52 55 45
+  [Print / PrintT] '"printt: caf?? ?????????"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 3f 3f 20 3f 3f 3f 3f 3f 3f 3f 3f 3f 22
+  [SANY parse error quoting a string token] 'Encountered ""caf?? ?????????"" at line 3, column 10 and token "1" '
+      45 6e 63 6f 75 6e 74 65 72 65 64 20 22 22 63 61 66 3f 3f 20 3f 3f 3f 3f 3f 3f 3f 3f 3f 22 22 20 61 74 20 6c 69 6e 65 20 33 2c 20 63 6f 6c 75 6d 6e 20 31 30 20 61 6e 64 20 74 6f 6b 65 6e 20 22 31 22 20
+  [PlusCal message quoting a string] " -- Illegal character in string `caf?' found at"
+      20 2d 2d 20 49 6c 6c 65 67 61 6c 20 63 68 61 72 61 63 74 65 72 20 69 6e 20 73 74 72 69 6e 67 20 60 63 61 66 3f 27 20 66 6f 75 6e 64 20 61 74
+### v174-j11-C-fileenc
+  [TLC error trace values] 's = "café"'
+      73 20 3d 20 22 63 61 66 c3 a9 22
+  [TLC error trace values] 's = "日語文"'
+      73 20 3d 20 22 e6 97 a5 e8 aa 9e e6 96 87 22
+  [TLC error trace values] 's = "ø"'
+      73 20 3d 20 22 c3 b8 22
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [Print / PrintT] '"print: café 日語文"  TRUE'
+      22 70 72 69 6e 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 20 20 54 52 55 45
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [SANY parse error quoting a string token] 'Encountered ""café 日語文"" at line 3, column 10 and token "1" '
+      45 6e 63 6f 75 6e 74 65 72 65 64 20 22 22 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 22 20 61 74 20 6c 69 6e 65 20 33 2c 20 63 6f 6c 75 6d 6e 20 31 30 20 61 6e 64 20 74 6f 6b 65 6e 20 22 31 22 20
+  [PlusCal message quoting a string] " -- Illegal character in string `café' found at"
+      20 2d 2d 20 49 6c 6c 65 67 61 6c 20 63 68 61 72 61 63 74 65 72 20 69 6e 20 73 74 72 69 6e 67 20 60 63 61 66 c3 a9 27 20 66 6f 75 6e 64 20 61 74
+### v174-j11-C-sunstdout
+  [TLC error trace values] 's = "caf��"'
+      73 20 3d 20 22 63 61 66 ef bf bd ef bf bd 22
+  [TLC error trace values] 's = "���������"'
+      73 20 3d 20 22 ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd 22
+  [TLC error trace values] 's = "��"'
+      73 20 3d 20 22 ef bf bd ef bf bd 22
+  [Print / PrintT] '"printt: caf�� ���������"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 ef bf bd ef bf bd 20 ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd 22
+  [Print / PrintT] '"print: caf�� ���������"  TRUE'
+      22 70 72 69 6e 74 3a 20 63 61 66 ef bf bd ef bf bd 20 ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd 22 20 20 54 52 55 45
+  [Print / PrintT] '"printt: caf�� ���������"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 ef bf bd ef bf bd 20 ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd 22
+  [SANY parse error quoting a string token] 'Encountered ""caf�� ���������"" at line 3, column 10 and token "1" '
+      45 6e 63 6f 75 6e 74 65 72 65 64 20 22 22 63 61 66 ef bf bd ef bf bd 20 ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd ef bf bd 22 22 20 61 74 20 6c 69 6e 65 20 33 2c 20 63 6f 6c 75 6d 6e 20 31 30 20 61 6e 64 20 74 6f 6b 65 6e 20 22 31 22 20
+  [PlusCal message quoting a string] " -- Illegal character in string `caf�' found at"
+      20 2d 2d 20 49 6c 6c 65 67 61 6c 20 63 68 61 72 61 63 74 65 72 20 69 6e 20 73 74 72 69 6e 67 20 60 63 61 66 ef bf bd 27 20 66 6f 75 6e 64 20 61 74
+### v174-j11-C-minimal
+  [TLC error trace values] 's = "café"'
+      73 20 3d 20 22 63 61 66 c3 a9 22
+  [TLC error trace values] 's = "日語文"'
+      73 20 3d 20 22 e6 97 a5 e8 aa 9e e6 96 87 22
+  [TLC error trace values] 's = "ø"'
+      73 20 3d 20 22 c3 b8 22
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [Print / PrintT] '"print: café 日語文"  TRUE'
+      22 70 72 69 6e 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 20 20 54 52 55 45
+  [Print / PrintT] '"printt: café 日語文"'
+      22 70 72 69 6e 74 74 3a 20 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22
+  [SANY parse error quoting a string token] 'Encountered ""café 日語文"" at line 3, column 10 and token "1" '
+      45 6e 63 6f 75 6e 74 65 72 65 64 20 22 22 63 61 66 c3 a9 20 e6 97 a5 e8 aa 9e e6 96 87 22 22 20 61 74 20 6c 69 6e 65 20 33 2c 20 63 6f 6c 75 6d 6e 20 31 30 20 61 6e 64 20 74 6f 6b 65 6e 20 22 31 22 20
+  [PlusCal message quoting a string] " -- Illegal character in string `café' found at"
+      20 2d 2d 20 49 6c 6c 65 67 61 6c 20 63 68 61 72 61 63 74 65 72 20 69 6e 20 73 74 72 69 6e 67 20 60 63 61 66 c3 a9 27 20 66 6f 75 6e 64 20 61 74

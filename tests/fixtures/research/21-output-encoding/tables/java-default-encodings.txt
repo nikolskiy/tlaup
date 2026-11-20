@@ -1,0 +1,15 @@
+openjdk version "11.0.33" 2026-10-20
+  LC_ALL=C: file.encoding = ANSI_X3.4-1968;sun.jnu.encoding = ANSI_X3.4-1968;
+  LC_ALL=POSIX: file.encoding = ANSI_X3.4-1968;sun.jnu.encoding = ANSI_X3.4-1968;
+  LC_ALL=C.utf8: file.encoding = UTF-8;sun.jnu.encoding = UTF-8;
+  LC_ALL=en_US.utf8: file.encoding = UTF-8;sun.jnu.encoding = UTF-8;
+openjdk version "21.0.13" 2026-10-20
+  LC_ALL=C: file.encoding = UTF-8;native.encoding = ANSI_X3.4-1968;stderr.encoding = ANSI_X3.4-1968;stdout.encoding = ANSI_X3.4-1968;sun.jnu.encoding = ANSI_X3.4-1968;
+  LC_ALL=POSIX: file.encoding = UTF-8;native.encoding = ANSI_X3.4-1968;stderr.encoding = ANSI_X3.4-1968;stdout.encoding = ANSI_X3.4-1968;sun.jnu.encoding = ANSI_X3.4-1968;
+  LC_ALL=C.utf8: file.encoding = UTF-8;native.encoding = UTF-8;stderr.encoding = UTF-8;stdout.encoding = UTF-8;sun.jnu.encoding = UTF-8;
+  LC_ALL=en_US.utf8: file.encoding = UTF-8;native.encoding = UTF-8;stderr.encoding = UTF-8;stdout.encoding = UTF-8;sun.jnu.encoding = UTF-8;
+openjdk version "25.0.5" 2026-10-20
+  LC_ALL=C: file.encoding = UTF-8;native.encoding = ANSI_X3.4-1968;stderr.encoding = ANSI_X3.4-1968;stdout.encoding = ANSI_X3.4-1968;sun.jnu.encoding = ANSI_X3.4-1968;
+  LC_ALL=POSIX: file.encoding = UTF-8;native.encoding = ANSI_X3.4-1968;stderr.encoding = ANSI_X3.4-1968;stdout.encoding = ANSI_X3.4-1968;sun.jnu.encoding = ANSI_X3.4-1968;
+  LC_ALL=C.utf8: file.encoding = UTF-8;native.encoding = UTF-8;stderr.encoding = UTF-8;stdout.encoding = UTF-8;sun.jnu.encoding = UTF-8;
+  LC_ALL=en_US.utf8: file.encoding = UTF-8;native.encoding = UTF-8;stderr.encoding = UTF-8;stdout.encoding = UTF-8;sun.jnu.encoding = UTF-8;

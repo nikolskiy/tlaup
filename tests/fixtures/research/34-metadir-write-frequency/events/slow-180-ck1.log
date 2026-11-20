@@ -1,0 +1,80 @@
+      0.0 NEW  d . size=4096
+      1.0 CHG  d . mtime
+      1.0 NEW  d 26-11-18-22-41-01.644 size=4096
+      1.0 NEW  f 26-11-18-22-41-01.644/Slow-0.st size=0
+      1.0 NEW  f 26-11-18-22-41-01.644/Slow.st size=0
+      1.0 NEW  f 26-11-18-22-41-01.644/Slow_0.fp size=0
+      1.0 NEW  f 26-11-18-22-41-01.644/Slow_1.fp size=0
+     80.1 CHG  d 26-11-18-22-41-01.644 mtime
+     80.1 NEW  f 26-11-18-22-41-01.644/Slow-0.chkpt size=16
+     80.1 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 0->65 mtime
+     80.1 NEW  f 26-11-18-22-41-01.644/Slow.st.chkpt size=0
+     80.1 NEW  f 26-11-18-22-41-01.644/queue.chkpt size=31
+     80.1 NEW  f 26-11-18-22-41-01.644/settings.chkpt size=89
+     80.1 NEW  f 26-11-18-22-41-01.644/vars.chkpt size=12348
+    154.2 CHG  d 26-11-18-22-41-01.644 mtime
+    154.2 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    154.2 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 65->117 mtime
+    154.2 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    154.2 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    154.2 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    228.3 CHG  d 26-11-18-22-41-01.644 mtime
+    228.3 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    228.3 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 117->169 mtime
+    228.3 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    228.3 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    228.3 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    299.4 CHG  d 26-11-18-22-41-01.644 mtime
+    299.4 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    299.4 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 169->221 mtime
+    299.4 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    299.4 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    299.4 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    371.5 CHG  d 26-11-18-22-41-01.644 mtime
+    371.5 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    371.5 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 221->273 mtime
+    371.5 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    371.5 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    371.5 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    436.6 CHG  d 26-11-18-22-41-01.644 mtime
+    436.6 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    436.6 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 273->325 mtime
+    436.6 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    436.6 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    436.6 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    503.6 CHG  d 26-11-18-22-41-01.644 mtime
+    503.6 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    503.6 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 325->377 mtime
+    503.6 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    503.6 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    503.6 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    574.7 CHG  d 26-11-18-22-41-01.644 mtime
+    574.7 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    574.7 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 377->429 mtime
+    574.7 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    574.7 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    574.7 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    634.8 CHG  d 26-11-18-22-41-01.644 mtime
+    634.8 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    634.8 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 429->468 mtime
+    634.8 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    634.8 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    634.8 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    703.9 CHG  d 26-11-18-22-41-01.644 mtime
+    703.9 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    703.9 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 468->520 mtime
+    703.9 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    703.9 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    703.9 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    776.0 CHG  d 26-11-18-22-41-01.644 mtime
+    776.0 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    776.0 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 520->572 mtime
+    776.0 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    776.0 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    776.0 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime
+    845.1 CHG  d 26-11-18-22-41-01.644 mtime
+    845.1 CHG  f 26-11-18-22-41-01.644/Slow-0.chkpt mtime
+    845.1 CHG  f 26-11-18-22-41-01.644/Slow-0.st size 572->624 mtime
+    845.1 CHG  f 26-11-18-22-41-01.644/queue.chkpt mtime
+    845.1 CHG  f 26-11-18-22-41-01.644/settings.chkpt mtime
+    845.1 CHG  f 26-11-18-22-41-01.644/vars.chkpt mtime

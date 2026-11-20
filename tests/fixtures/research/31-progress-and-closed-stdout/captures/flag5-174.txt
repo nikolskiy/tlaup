@@ -1,0 +1,14 @@
+# cmd: java -Xmx400m -XX:+UseParallelGC -Dtlc2.TLC.progressInterval=5 -jar ../../../jars/v1.7.4/tla2tools.jar -nowarning -workers 1 -deadlock -metadir ./s Big
+# pid 1467042
+    0.780 TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+    1.794 Running breadth-first search Model-Checking with fp 68 and seed 7182362400900114124 with 1 worker on 12 cores with 356MB heap and 64MB offheap memory [pid: 1467042] (Linux amd64, Java 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+    2.089 Parsing file <tmp>/q31/run/flag5-174/Big.tla
+    2.179 Parsing file /tmp/Naturals.tla
+    2.192 Semantic processing of module Naturals
+    2.246 Semantic processing of module Big
+    2.264 Starting... (2026-11-18 22:03:15)
+    3.582 Computing initial states...
+    3.589 Finished computing initial states: 1 distinct state generated at 2026-11-18 22:03:16.
+    6.614 Progress(51) at 2026-11-18 22:03:19: 1,165,728 states generated (1,165,728 s/min), 314,804 distinct states found (314,804 ds/min), 23,372 states left on queue.
+# t=40.011 sending SIGTERM to 1467042 (time limit)
+# t=40.410 exit 143

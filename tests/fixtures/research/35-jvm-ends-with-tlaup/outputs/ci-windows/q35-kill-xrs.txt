@@ -1,0 +1,7 @@
+q35 check_kill on Windows AMD64, Python 3.13.17; java: openjdk version "21.0.13" 2026-10-20 LTS
+RESULT q35 kill-sleeper-none-xrs-TERMINATE windows : child STILL RUNNING 8s after the parent was killed (parent rc 1, child's parent now ?; log )
+RESULT q35 kill-sleeper-agent-stdin-xrs-TERMINATE windows : child ENDED 0.05s after the parent was killed (parent rc 1; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-pid-xrs-TERMINATE windows : child ENDED 0.15s after the parent was killed (parent rc 1; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-onexit-xrs-TERMINATE windows : child ENDED 0.05s after the parent was killed (parent rc 1; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-watcher-xrs-TERMINATE windows : child ENDED 0.00s after the parent was killed (parent rc 1; how: watcher parent-gone TerminateProcess; no shutdown hook (hard kill))
+RESULT q35 kill-sleeper-job-xrs-TERMINATE windows : child ENDED 0.00s after the parent was killed (parent rc 1; how: no shutdown hook (hard kill))

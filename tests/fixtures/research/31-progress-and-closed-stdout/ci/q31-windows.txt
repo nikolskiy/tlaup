@@ -1,0 +1,2 @@
+RESULT q31 closed-stdout-v174 windows : alive-2s-after-close=True exit=12 total=4s
+RESULT q31 closed-stdout-rolling windows : alive-2s-after-close=True exit=12 total=4s

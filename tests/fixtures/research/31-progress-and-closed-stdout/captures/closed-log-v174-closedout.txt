@@ -1,0 +1,22 @@
+# v174-closedout mode=closed-out pid=1475608 first-line-seen: 
+# fd listing at +2s:
+#    -> 
+#   0 -> /dev/null
+#   1 -> <jdk25>/lib/modules
+#   2 -> <tmp>/q31/p2/log-v174-closedout.txt
+t=2s alive state/cpu-ticks=S 104
+t=12s alive state/cpu-ticks=S 877
+t=22s alive state/cpu-ticks=S 1181
+t=32s alive state/cpu-ticks=S 1600
+t=42s alive state/cpu-ticks=S 1975
+t=52s alive state/cpu-ticks=S 2308
+t=62s alive state/cpu-ticks=S 2593
+t=72s alive state/cpu-ticks=S 2975
+t=82s alive state/cpu-ticks=S 3302
+t=92s alive state/cpu-ticks=S 3732
+t=102s alive state/cpu-ticks=S 4290
+t=112s alive state/cpu-ticks=S 4562
+t=122s alive state/cpu-ticks=S 4938
+t=132s alive state/cpu-ticks=S 5278
+t=143s alive state/cpu-ticks=S 5609
+t=153s java gone; exit=12

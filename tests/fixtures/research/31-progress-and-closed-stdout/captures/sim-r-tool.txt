@@ -1,0 +1,36 @@
+# cmd: java -Xmx400m -XX:+UseParallelGC -jar ../../../jars/rolling/tla2tools.jar -nowarning -tool -simulate -workers 1 -deadlock -metadir ./s Big
+# pid 1465760
+    1.032 @!@!@STARTMSG 2262:0 @!@!@
+    1.033 TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+    1.033 @!@!@ENDMSG 2262 @!@!@
+    1.459 @!@!@STARTMSG 2188:0 @!@!@
+    1.459 Running Random Simulation with seed 4368909553332519232 with 1 worker on 12 cores with 356MB heap and 64MB offheap memory [pid: 1465760] (Linux amd64, Java 25.0.5 64bit).
+    1.459 @!@!@ENDMSG 2188 @!@!@
+    1.844 @!@!@STARTMSG 2220:0 @!@!@
+    1.845 Starting SANY...
+    1.845 @!@!@ENDMSG 2220 @!@!@
+    1.963 Parsing file <tmp>/q31/run/sim-r-tool/Big.tla
+    2.079 Parsing file /tmp/tlc-12561490902276433858/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+    2.110 Semantic processing of module Naturals
+    2.172 Semantic processing of module Big
+    2.186 Linting of module Big
+    2.190 @!@!@STARTMSG 2219:0 @!@!@
+    2.190 SANY finished.
+    2.190 @!@!@ENDMSG 2219 @!@!@
+    2.197 @!@!@STARTMSG 2185:0 @!@!@
+    2.197 Starting... (2026-11-18 22:03:07)
+    2.197 @!@!@ENDMSG 2185 @!@!@
+    2.538 @!@!@STARTMSG 2269:0 @!@!@
+    2.538 Computed 1 initial states...
+    2.538 @!@!@ENDMSG 2269 @!@!@
+    2.538 @!@!@STARTMSG 2190:0 @!@!@
+    2.538 Finished computing initial states: 1 distinct state generated at 2026-11-18 22:03:07.
+    2.538 @!@!@ENDMSG 2190 @!@!@
+   62.552 @!@!@STARTMSG 2209:0 @!@!@
+   62.552 Progress(382235) at 2026-11-18 22:04:07: 38223490 states generated, -1 distinct states found, -1 states left on queue.
+   62.552 @!@!@ENDMSG 2209 @!@!@
+  122.563 @!@!@STARTMSG 2209:0 @!@!@
+  122.563 Progress(668685) at 2026-11-18 22:05:07: 66868475 states generated, -1 distinct states found, -1 states left on queue.
+  122.563 @!@!@ENDMSG 2209 @!@!@
+# t=150.015 sending SIGTERM to 1465760 (time limit)
+# t=150.154 exit 143

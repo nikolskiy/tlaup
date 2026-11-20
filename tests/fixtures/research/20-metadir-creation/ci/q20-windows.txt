@@ -1,0 +1,10 @@
+RESULT q20 v1.7.4/existing windows : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/one-missing windows : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/three-missing windows : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/relative-missing windows : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/parent-is-file windows : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>\v1.7.4\afile\md\26-
+RESULT q20 rolling/existing windows : exit=0 metadir=dir-exists
+RESULT q20 rolling/one-missing windows : exit=0 metadir=dir-exists
+RESULT q20 rolling/three-missing windows : exit=0 metadir=dir-exists
+RESULT q20 rolling/relative-missing windows : exit=0 metadir=dir-exists
+RESULT q20 rolling/parent-is-file windows : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>\rolling\afile\md\26

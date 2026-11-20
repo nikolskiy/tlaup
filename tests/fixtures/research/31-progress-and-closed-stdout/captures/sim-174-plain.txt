@@ -1,0 +1,14 @@
+# cmd: java -Xmx400m -XX:+UseParallelGC -jar ../../../jars/v1.7.4/tla2tools.jar -nowarning -simulate -workers 1 -deadlock -metadir ./s Big
+# pid 1465776
+    0.679 TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+    1.282 Running Random Simulation with seed -7759557307418557418 with 1 worker on 12 cores with 356MB heap and 64MB offheap memory [pid: 1465776] (Linux amd64, Java 25.0.5 x86_64).
+    1.755 Parsing file <tmp>/q31/run/sim-174-plain/Big.tla
+    1.843 Parsing file /tmp/Naturals.tla
+    1.853 Semantic processing of module Naturals
+    1.941 Semantic processing of module Big
+    1.963 Starting... (2026-11-18 22:03:06)
+    2.077 Computed 1 initial states...
+   62.078 Progress: 48409835 states checked.
+  122.079 Progress: 86700304 states checked.
+# t=150.039 sending SIGTERM to 1465776 (time limit)
+# t=150.228 exit 143

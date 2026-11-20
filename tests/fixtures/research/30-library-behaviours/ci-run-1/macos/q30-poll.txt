@@ -1,0 +1,1 @@
+RESULT q30 select-poll macos : PASS - ERR|HUP marks a gone reader and only then. reader alive: POLLOUT / no-events: none; reader closed: POLLHUP / none; reader process exited: POLLHUP / none; full pipe, reader alive: none / none; null device: POLLNVAL; closed fd: POLLNVAL

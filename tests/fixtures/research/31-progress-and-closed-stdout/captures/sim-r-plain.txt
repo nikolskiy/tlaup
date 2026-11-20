@@ -1,0 +1,30 @@
+# cmd: java -Xmx400m -XX:+UseParallelGC -jar ../../../jars/rolling/tla2tools.jar -nowarning -simulate -workers 1 -deadlock -metadir ./s Big
+# pid 1465779
+    0.739 TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+    1.070 Running Random Simulation with seed 92508560455564140 with 1 worker on 12 cores with 356MB heap and 64MB offheap memory [pid: 1465779] (Linux amd64, Java 25.0.5 64bit).
+    1.415 Parsing file <tmp>/q31/run/sim-r-plain/Big.tla
+    1.497 Parsing file /tmp/tlc-17443782019371672713/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+    1.537 Parsing file /tmp/tlc-17443782019371672713/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+    1.584 Parsing file /tmp/tlc-17443782019371672713/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+    1.599 Parsing file /tmp/tlc-17443782019371672713/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+    1.609 Parsing file /tmp/tlc-17443782019371672713/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+    1.618 Parsing file /tmp/tlc-17443782019371672713/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+    1.633 Parsing file /tmp/tlc-17443782019371672713/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+    1.645 Semantic processing of module Naturals
+    1.674 Semantic processing of module Sequences
+    1.695 Semantic processing of module FiniteSets
+    1.698 Semantic processing of module TLC
+    1.706 Semantic processing of module Integers
+    1.708 Semantic processing of module TLCExt
+    1.717 Semantic processing of module _TLCTrace
+    1.733 Semantic processing of module Big
+    1.745 Linting of module TLCExt
+    1.751 Linting of module _TLCTrace
+    1.753 Linting of module Big
+    1.762 Starting... (2026-11-18 22:03:06)
+    2.293 Computed 1 initial states...
+    2.302 Finished computing initial states: 1 distinct state generated at 2026-11-18 22:03:07.
+   62.308 Progress: 44354791 states checked, 443548 traces generated (trace length: mean=100, var(x)=0, sd=0)
+  122.309 Progress: 79669612 states checked, 796697 traces generated (trace length: mean=100, var(x)=0, sd=0)
+# t=150.022 sending SIGTERM to 1465779 (time limit)
+# t=150.177 exit 143

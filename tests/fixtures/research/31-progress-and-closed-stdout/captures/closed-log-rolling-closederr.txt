@@ -1,0 +1,24 @@
+# rolling-closederr mode=closed-err pid=1475597 first-line-seen: 
+# fd listing at +2s:
+#    -> 
+#   0 -> /dev/null
+#   1 -> <tmp>/q31/p2/run-rolling-closederr/out.txt
+#   2 -> <jdk25>/lib/modules
+t=2s alive state/cpu-ticks=S 81
+t=12s alive state/cpu-ticks=S 634
+t=22s alive state/cpu-ticks=S 1029
+t=32s alive state/cpu-ticks=S 1501
+t=42s alive state/cpu-ticks=S 2041
+t=52s alive state/cpu-ticks=S 2417
+t=62s alive state/cpu-ticks=S 2728
+t=72s alive state/cpu-ticks=S 3110
+t=82s alive state/cpu-ticks=S 3478
+t=92s alive state/cpu-ticks=S 3807
+t=102s alive state/cpu-ticks=S 4320
+t=112s alive state/cpu-ticks=S 4619
+t=123s alive state/cpu-ticks=S 4998
+t=133s alive state/cpu-ticks=S 5406
+t=143s java gone; exit=12
+# out.txt lines: 3038; last:
+Finished in 02min 14s at (2026-11-18 22:06:19)
+Trace exploration spec path: ./Mid_TTrace_1795075445.tla

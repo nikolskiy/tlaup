@@ -1,0 +1,4 @@
+System.out.checkError() = true
+System.err.checkError() = false
+tlc.process returned (before System.exit) = 2110
+exit=0 (Probe's own exit; stdout reader was head -1)

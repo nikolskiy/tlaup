@@ -1,0 +1,11 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <work>/spec/S.tla
+Parsing file /tmp/tlc-<n>/Naturals.tla (jar:file:<jars>/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file <work>/libA/OnlyInLibA.tla (file:<work>/spec/../libA/OnlyInLibA.tla)
+Semantic processing of module Naturals
+Semantic processing of module OnlyInLibA
+Semantic processing of module S
+Linting of module OnlyInLibA
+Linting of module S

@@ -1,0 +1,22 @@
+q28 os=windows release=2025Server machine=AMD64
+q28 JAVA_HOME=set: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 which-a-java windows : 3 found: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64\bin\java.exe, C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\11.0.33-10\x64\bin\java.exe, C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\17.0.21-9\x64\bin\java.exe
+  C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64\bin\java.exe: symlink=False -> C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64\bin\java.exe size=50296 header=PE
+  file -L: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64\bin\java.exe: PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections
+  file: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64\bin\java.exe: PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections
+  C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\11.0.33-10\x64\bin\java.exe: symlink=False -> C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\11.0.33-10\x64\bin\java.exe size=49792 header=PE
+  file -L: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\11.0.33-10\x64\bin\java.exe: PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections
+  file: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\11.0.33-10\x64\bin\java.exe: PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections
+  C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\17.0.21-9\x64\bin\java.exe: symlink=False -> C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\17.0.21-9\x64\bin\java.exe size=50304 header=PE
+  file -L: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\17.0.21-9\x64\bin\java.exe: PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections
+  file: C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\17.0.21-9\x64\bin\java.exe: PE32+ executable for MS Windows 6.00 (console), x86-64, 6 sections
+RESULT q28 java-home[first-on-PATH][as-given] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME-unset] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA11_HOME] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA21_HOME] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 java-home[$JAVA_HOME/bin/java][as-given] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME-unset] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA11_HOME] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA21_HOME] windows : exit=0 version=21.0.13 java.home=C:\hostedtoolcache\windows\Java_Temurin-Hotspot_jdk\21.0.13-9.0\x64
+RESULT q28 tlc-pass-v1.7.4-JAVA11_HOME windows : exit=0 no-error-found=True TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+RESULT q28 tlc-pass-rolling-JAVA11_HOME windows : exit=0 no-error-found=True TLC2 Version 2026.11.15.002146 (rev: bc1b506)

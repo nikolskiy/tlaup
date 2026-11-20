@@ -1,0 +1,15 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <tmp>/q22/work/v1.7.4/sany-name-mismatch-ext/Mismatch.tla
+
+Fatal errors while parsing TLA+ spec in file Mismatch.tla
+
+tla2sany.semantic.AbortException
+*** Abort messages: 1
+
+Unknown location
+
+File name 'Mismatch' does not match the name 'Other' of the top level module it contains.
+
+

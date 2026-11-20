@@ -1,0 +1,9 @@
+q35 check_startup on Windows AMD64, Python 3.13.17; java: openjdk version "21.0.13" 2026-10-20 LTS
+RESULT q35 startup-jvm-plain windows : 97.5 ms median (min 93.1, max 118.1)
+RESULT q35 startup-jvm-agent-pid windows : 140.1 ms median (min 129.2, max 144.9)
+RESULT q35 startup-tlc-plain windows : 1236.0 ms median (min 1183.5, max 1480.4)
+RESULT q35 startup-tlc-agent-pid windows : 1269.2 ms median (min 1225.2, max 1613.4)
+RESULT q35 startup-popen-plain windows : 1.6 ms median (min 1.5, max 1.7)
+RESULT q35 startup-watcher-process windows : 48.6 ms median (min 47.8, max 52.0)
+RESULT q35 startup-popen-plus-job windows : 27.0 ms median (min 25.6, max 31.0)
+RESULT q35 startup-popen-plain-wait windows : 26.6 ms median (min 24.9, max 27.5)

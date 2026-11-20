@@ -1,0 +1,12 @@
+$ cd <w>/spec
+$ java  -cp <jar> pcal.trans Pc.tla
+--- run 1 stdout
+pcal.trans Version 1.12 of 01 July 2024
+
+Unrecoverable error:
+ -- Input file Pc.tla not found.
+
+--- run 1 stderr
+--- run 1 exit 255
+--- files changed
+

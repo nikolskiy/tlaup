@@ -1,0 +1,26 @@
+== v1.7.4  Multi-Release attribute: absent
+  classes per major version: {48: 21, 51: 187, 52: 769}
+    com                            {51: 71}
+    javax                          {48: 21, 51: 116}
+    model                          {52: 2}
+    pcal                           {52: 85}
+    tla2sany                       {52: 127}
+    tla2tex                        {52: 27}
+    tlc2                           {52: 481}
+    util                           {52: 47}
+  newest major 52: 769 classes, e.g. ['model/InJarFilenameToStream.class', 'model/ModelInJar.class', 'pcal/AST$Assert.class', 'pcal/AST$Assign.class', 'pcal/AST$Call.class']
+== rolling  Multi-Release attribute: absent
+  classes per major version: {48: 21, 51: 197, 52: 580, 53: 2, 55: 1221}
+    META-INF/versions/9            {53: 1}
+    com                            {51: 83, 52: 271}
+    formatter                      {55: 98}
+    javax                          {48: 21, 51: 114, 52: 2}
+    model                          {55: 2}
+    module-info.class              {53: 1}
+    org                            {52: 307, 55: 258}
+    pcal                           {55: 85}
+    tla2sany                       {55: 137}
+    tla2tex                        {55: 27}
+    tlc2                           {55: 564}
+    util                           {55: 50}
+  newest major 55: 1221 classes, e.g. ['formatter/AstComparator$Result.class', 'formatter/AstComparator.class', 'formatter/DocUtils.class', 'formatter/FormatConfig.class', 'formatter/Main.class']

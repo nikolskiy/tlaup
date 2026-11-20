@@ -1,0 +1,17 @@
+{
+ "--show-completion (shell auto-detected, SHELL=/bin/bash)": {
+  "code": 0,
+  "stdout_head": "_app_completion() { |     local IFS=$' | ' |     COMPREPLY=( $( env COMP_WORDS=\"${COMP_WORDS[*]}\" \\ |       ",
+  "stderr_head": ""
+ },
+ "--show-completion bash": {
+  "code": 0,
+  "stdout_head": "_app_completion() { |     local IFS=$' | ' |     COMPREPLY=( $( env COMP_WORDS=\"${COMP_WORDS[*]}\" \\ |       ",
+  "stderr_head": ""
+ },
+ "--help lists the two options": {
+  "code": 0,
+  "show_completion_listed": true,
+  "install_completion_listed": true
+ }
+}

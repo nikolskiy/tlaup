@@ -1,0 +1,12 @@
+--- v1.7.4 CPUQuota=200%
+with 2 workers on 2 cores
+--- rolling CPUQuota=200%
+with 2 workers on 2 cores
+quota 250% openjdk version "25.0.5" 2026-10-20
+with 3 workers on 3 cores
+quota 250% openjdk version "11.0.33" 2026-10-20
+with 3 workers on 3 cores
+quota 50% openjdk version "25.0.5" 2026-10-20
+with 1 worker on 1 cores
+quota 50% openjdk version "11.0.33" 2026-10-20
+with 1 worker on 1 cores

@@ -1,0 +1,12 @@
+$ cd <w>/other
+$ java  -cp <jar> pcal.trans ../spec/Pc.tla
+--- run 1 stdout
+pcal.trans Version 1.11 of 31 December 2020
+
+Unrecoverable error:
+ -- Command-line error: Input file ../spec/Pc.tla does not exist...
+
+--- run 1 stderr
+--- run 1 exit 255
+--- files changed
+

@@ -1,0 +1,12 @@
+[project]
+name = "mypkg"
+version = "0"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+patch = ["subprocess"]
+source = ["mypkg"]
+
+[tool.coverage.report]
+show_missing = true

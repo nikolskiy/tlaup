@@ -1,0 +1,2 @@
+java -cp <jars>/v1.7.4/tla2tools.jar:<work>/dup.jar:<work>/cpdir tlc2.TLC -metadir <work>/meta/24-ladder-jar-before-cp-folder -workers 1 S.tla
+# cwd=<work>/spec

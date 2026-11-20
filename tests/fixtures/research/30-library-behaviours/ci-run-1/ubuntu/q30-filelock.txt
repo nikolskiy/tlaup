@@ -1,0 +1,88 @@
+--- filelock==3.20.3 (Python 3.13)
+q30 filelock_probe: filelock 3.20.3, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : FAIL (filelock 3.20.3) - unlinked; waiter's file vs path: path-missing; third-GOT-LOCK
+RESULT q30 filelock-recheck_proc linux : FAIL (filelock 3.20.3) - unlinked; waiter: WAITER path-missing; third-GOT-LOCK
+RESULT q30 filelock-timeout linux : PASS (filelock 3.20.3) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 3.20.3) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 3.20.3) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : PASS (filelock 3.20.3) - file kept after release
+RESULT q30 filelock-mtime linux : FAIL (filelock 3.20.3) - while held: CHANGED; after release: CHANGED
+RESULT q30 filelock-foreign_file linux : PASS (filelock 3.20.3) - other's file kept by old holder's release; third-refused
+RESULT q30 filelock-creates linux : PASS (filelock 3.20.3) - lock file created by acquire
+--- filelock==3.20.4 (Python 3.13)
+q30 filelock_probe: filelock 3.20.4, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : PASS (filelock 3.20.4) - unlinked; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc linux : PASS (filelock 3.20.4) - unlinked; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout linux : PASS (filelock 3.20.4) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 3.20.4) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 3.20.4) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : FAIL (filelock 3.20.4) - library deleted the lock file on release
+RESULT q30 filelock-mtime linux : FAIL (filelock 3.20.4) - while held: CHANGED; after release: file gone
+RESULT q30 filelock-foreign_file linux : FAIL (filelock 3.20.4) - other's file REMOVED by old holder's release; third-GOT-LOCK
+RESULT q30 filelock-creates linux : PASS (filelock 3.20.4) - lock file created by acquire
+--- filelock==3.29.4 (Python 3.13)
+q30 filelock_probe: filelock 3.29.4, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : PASS (filelock 3.29.4) - unlinked; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc linux : PASS (filelock 3.29.4) - unlinked; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout linux : PASS (filelock 3.29.4) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 3.29.4) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 3.29.4) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : FAIL (filelock 3.29.4) - library deleted the lock file on release
+RESULT q30 filelock-mtime linux : FAIL (filelock 3.29.4) - while held: CHANGED; after release: file gone
+RESULT q30 filelock-foreign_file linux : FAIL (filelock 3.29.4) - other's file REMOVED by old holder's release; third-GOT-LOCK
+RESULT q30 filelock-creates linux : PASS (filelock 3.29.4) - lock file created by acquire
+--- filelock==3.29.5 (Python 3.13)
+q30 filelock_probe: filelock 3.29.5, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : PASS (filelock 3.29.5) - unlinked; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc linux : PASS (filelock 3.29.5) - unlinked; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout linux : PASS (filelock 3.29.5) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 3.29.5) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 3.29.5) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : PASS (filelock 3.29.5) - file kept after release
+RESULT q30 filelock-mtime linux : FAIL (filelock 3.29.5) - while held: CHANGED; after release: CHANGED
+RESULT q30 filelock-foreign_file linux : PASS (filelock 3.29.5) - other's file kept by old holder's release; third-refused
+RESULT q30 filelock-creates linux : PASS (filelock 3.29.5) - lock file created by acquire
+--- filelock==4.2.0 (Python 3.13)
+q30 filelock_probe: filelock 4.2.0, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : PASS (filelock 4.2.0) - unlinked; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc linux : PASS (filelock 4.2.0) - unlinked; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout linux : PASS (filelock 4.2.0) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 4.2.0) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 4.2.0) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : PASS (filelock 4.2.0) - file kept after release
+RESULT q30 filelock-mtime linux : FAIL (filelock 4.2.0) - while held: CHANGED; after release: CHANGED
+RESULT q30 filelock-foreign_file linux : PASS (filelock 4.2.0) - other's file kept by old holder's release; third-refused
+RESULT q30 filelock-creates linux : PASS (filelock 4.2.0) - lock file created by acquire
+--- filelock==4.2.1 (Python 3.13)
+q30 filelock_probe: filelock 4.2.1, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : PASS (filelock 4.2.1) - unlinked; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc linux : PASS (filelock 4.2.1) - unlinked; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout linux : PASS (filelock 4.2.1) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 4.2.1) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 4.2.1) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : PASS (filelock 4.2.1) - file kept after release
+RESULT q30 filelock-mtime linux : PASS (filelock 4.2.1) - while held: unchanged; after release: unchanged
+RESULT q30 filelock-foreign_file linux : PASS (filelock 4.2.1) - other's file kept by old holder's release; third-refused
+RESULT q30 filelock-creates linux : PASS (filelock 4.2.1) - lock file created by acquire
+--- filelock==4.2.10 (Python 3.13)
+q30 filelock_probe: filelock 4.2.10, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : PASS (filelock 4.2.10) - unlinked; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc linux : PASS (filelock 4.2.10) - unlinked; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout linux : PASS (filelock 4.2.10) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 4.2.10) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 4.2.10) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : PASS (filelock 4.2.10) - file kept after release
+RESULT q30 filelock-mtime linux : PASS (filelock 4.2.10) - while held: unchanged; after release: unchanged
+RESULT q30 filelock-foreign_file linux : PASS (filelock 4.2.10) - other's file kept by old holder's release; third-refused
+RESULT q30 filelock-creates linux : PASS (filelock 4.2.10) - lock file created by acquire
+--- filelock (Python 3.13)
+q30 filelock_probe: filelock 4.2.12, Python 3.13.18, Linux x86_64, FileLock=UnixFileLock
+RESULT q30 filelock-recheck linux : PASS (filelock 4.2.12) - unlinked; waiter's file vs path: same; third-refused
+RESULT q30 filelock-recheck_proc linux : PASS (filelock 4.2.12) - unlinked; waiter: WAITER same; third-refused
+RESULT q30 filelock-timeout linux : PASS (filelock 4.2.12) - Timeout after 0.50s for timeout=0.5
+RESULT q30 filelock-same_process linux : PASS (filelock 4.2.12) - singleton=False; second-object-refused; same-object-reentrant(counter=2); other-thread-object-refused
+RESULT q30 filelock-death linux : PASS (filelock 4.2.12) - refused-while-alive; free-after-kill(0.00s)
+RESULT q30 filelock-left_behind linux : PASS (filelock 4.2.12) - file kept after release
+RESULT q30 filelock-mtime linux : PASS (filelock 4.2.12) - while held: unchanged; after release: unchanged
+RESULT q30 filelock-foreign_file linux : PASS (filelock 4.2.12) - other's file kept by old holder's release; third-refused
+RESULT q30 filelock-creates linux : PASS (filelock 4.2.12) - lock file created by acquire

@@ -1,0 +1,1 @@
+RESULT q30 select-poll linux : PASS - ERR|HUP marks a gone reader and only then. reader alive: POLLOUT / no-events: none; reader closed: POLLOUT|POLLERR / POLLERR; reader process exited: POLLOUT|POLLERR / POLLERR; full pipe, reader alive: none / none; null device: POLLOUT; closed fd: POLLNVAL

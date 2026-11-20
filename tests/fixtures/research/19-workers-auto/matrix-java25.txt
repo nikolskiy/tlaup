@@ -1,0 +1,488 @@
+##### jar=v174 java=j25: openjdk version "25.0.5" 2026-10-20
+=== workers='auto' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 71 and seed -5421210825344406616 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module W
+Starting... (2026-11-18 21:57:36)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-18 21:57:36.
+Error: Deadlock reached.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+exit=11
+=== workers='auto' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 113 and seed 5152671765734002002 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+exit=11
+=== workers='AUTO' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 47 and seed -2964716469812690476 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module W
+Starting... (2026-11-18 21:57:38)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-18 21:57:38.
+Error: Deadlock reached.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+exit=11
+=== workers='AUTO' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 67 and seed -5602467424776020196 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+exit=11
+=== workers=' auto ' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 33 and seed -3501118409263477405 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module W
+Starting... (2026-11-18 21:57:40)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-18 21:57:41.
+Error: Deadlock reached.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+exit=11
+=== workers=' auto ' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 27 and seed -5329395298676538443 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+exit=11
+=== workers='1' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 39 and seed 2500808662968378445 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module W
+Starting... (2026-11-18 21:57:43)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-18 21:57:43.
+Error: Deadlock reached.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+exit=11
+=== workers='1' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 122 and seed -7366766649766588926 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+exit=11
+=== workers='4' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 95 and seed 2338296559195631664 with 4 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module W
+Starting... (2026-11-18 21:57:45)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-18 21:57:45.
+Error: Deadlock reached.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+exit=11
+=== workers='4' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 65 and seed 2025179303591394178 with 4 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+exit=11
+=== workers='0' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Error: Error: at least one worker required.
+Usage: java tlc2.TLC [-option] inputfile
+exit=1
+=== workers='0' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: at least one worker required.
+Usage: java tlc2.TLC [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='-1' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Error: Error: at least one worker required.
+Usage: java tlc2.TLC [-option] inputfile
+exit=1
+=== workers='-1' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: at least one worker required.
+Usage: java tlc2.TLC [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='x' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Error: Error: worker number or 'auto' required. But encountered x
+Usage: java tlc2.TLC [-option] inputfile
+exit=1
+=== workers='x' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: worker number or 'auto' required. But encountered x
+Usage: java tlc2.TLC [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='2.5' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Error: Error: worker number or 'auto' required. But encountered 2.5
+Usage: java tlc2.TLC [-option] inputfile
+exit=1
+=== workers='2.5' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: worker number or 'auto' required. But encountered 2.5
+Usage: java tlc2.TLC [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='+3' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Running breadth-first search Model-Checking with fp 26 and seed 8453457524806551710 with 3 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module W
+Starting... (2026-11-18 21:57:51)
+Computing initial states...
+Finished computing initial states: 1 distinct state generated at 2026-11-18 21:57:51.
+Error: Deadlock reached.
+Error: The behavior up to this point is:
+State 1: <Initial predicate>
+exit=11
+=== workers='+3' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 85 and seed 6033275799246460391 with 3 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 x86_64, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file <jar>/Naturals.tla
+Semantic processing of module Naturals
+exit=11
+=== workers='' tool=''
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Error: Error: worker number or 'auto' required. But encountered 
+Usage: java tlc2.TLC [-option] inputfile
+exit=1
+=== workers='' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: worker number or 'auto' required. But encountered 
+Usage: java tlc2.TLC [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== -workers missing value
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Error: Error: expect an integer or 'auto' for -workers option.
+Usage: java tlc2.TLC [-option] inputfile
+exit=1
+##### jar=roll java=j25: openjdk version "25.0.5" 2026-10-20
+=== workers='auto' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 80 and seed 7602476643450239469 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-2185764859367620667/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-2185764859367620667/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-2185764859367620667/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-2185764859367620667/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-2185764859367620667/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-2185764859367620667/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-2185764859367620667/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+exit=11
+=== workers='auto' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 69 and seed 5513119484119874546 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-1597174426697467971/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+exit=11
+=== workers='AUTO' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 68 and seed 6492207359429245108 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-10385603666846021503/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-10385603666846021503/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-10385603666846021503/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-10385603666846021503/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-10385603666846021503/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-10385603666846021503/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-10385603666846021503/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+exit=11
+=== workers='AUTO' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 67 and seed 43400296294047220 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-2352743924612941897/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+exit=11
+=== workers=' auto ' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 84 and seed 1931425175352141096 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-18181461956706176766/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-18181461956706176766/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-18181461956706176766/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-18181461956706176766/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-18181461956706176766/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-18181461956706176766/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-18181461956706176766/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+exit=11
+=== workers=' auto ' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 26 and seed 5061992538410378713 with 12 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-12604071437561286008/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+exit=11
+=== workers='1' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 30 and seed 4482442311144407473 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-4901303158875789674/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-4901303158875789674/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-4901303158875789674/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-4901303158875789674/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-4901303158875789674/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-4901303158875789674/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-4901303158875789674/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+exit=11
+=== workers='1' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 113 and seed 7243302889991976268 with 1 worker on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-8062865960688132277/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+exit=11
+=== workers='4' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 60 and seed 8300486699889556247 with 4 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-8661753430004339835/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-8661753430004339835/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-8661753430004339835/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-8661753430004339835/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-8661753430004339835/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-8661753430004339835/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-8661753430004339835/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+exit=11
+=== workers='4' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 1 and seed 5632800649014512541 with 4 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-14966260967954145021/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+exit=11
+=== workers='0' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Error: Error: at least one worker required.
+Usage: java tlc2.TLC [-help] [-option] inputfile
+exit=1
+=== workers='0' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: at least one worker required.
+Usage: java tlc2.TLC [-help] [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='-1' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Error: Error: at least one worker required.
+Usage: java tlc2.TLC [-help] [-option] inputfile
+exit=1
+=== workers='-1' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: at least one worker required.
+Usage: java tlc2.TLC [-help] [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='x' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Error: Error: worker number or 'auto' required. But encountered x
+Usage: java tlc2.TLC [-help] [-option] inputfile
+exit=1
+=== workers='x' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: worker number or 'auto' required. But encountered x
+Usage: java tlc2.TLC [-help] [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='2.5' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Error: Error: worker number or 'auto' required. But encountered 2.5
+Usage: java tlc2.TLC [-help] [-option] inputfile
+exit=1
+=== workers='2.5' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: worker number or 'auto' required. But encountered 2.5
+Usage: java tlc2.TLC [-help] [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== workers='+3' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Running breadth-first search Model-Checking with fp 72 and seed -1967475159048999120 with 3 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-6210753298568155345/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-6210753298568155345/_TLCTrace.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/_TLCTrace.tla)
+Parsing file /tmp/tlc-6210753298568155345/TLC.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file /tmp/tlc-6210753298568155345/TLCExt.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/TLCExt.tla)
+Parsing file /tmp/tlc-6210753298568155345/Sequences.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-6210753298568155345/FiniteSets.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Parsing file /tmp/tlc-6210753298568155345/Integers.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Integers.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+exit=11
+=== workers='+3' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2187:0 @!@!@
+Running breadth-first search Model-Checking with fp 90 and seed 4806988208300595391 with 3 workers on 12 cores with 3415MB heap and 64MB offheap memory [pid: N] (Linux x86-64, Debian 25.0.5 64bit, MSBDiskFPSet, DiskStateQueue).
+@!@!@ENDMSG 2187 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q19/specs/W.tla
+Parsing file /tmp/tlc-8990090690643255080/Naturals.tla (jar:file:<tmp>/jars/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+exit=11
+=== workers='' tool=''
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Error: Error: worker number or 'auto' required. But encountered 
+Usage: java tlc2.TLC [-help] [-option] inputfile
+exit=1
+=== workers='' tool='-tool'
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 1102:1 @!@!@
+Error: worker number or 'auto' required. But encountered 
+Usage: java tlc2.TLC [-help] [-option] inputfile
+@!@!@ENDMSG 1102 @!@!@
+exit=1
+=== -workers missing value
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Error: Error: expect an integer or 'auto' for -workers option.
+Usage: java tlc2.TLC [-help] [-option] inputfile
+exit=1

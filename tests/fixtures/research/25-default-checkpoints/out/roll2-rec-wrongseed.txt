@@ -1,0 +1,14 @@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 128 and seed -4446095687964377306 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 1603329] (Linux x86-64, Java 25.0.5).
+Starting... (2026-11-18 22:59:17)
+Starting recovery from checkpoint <tmp>/q25/meta/roll2-copy/26-11-18-22-28-48.671/
+Warning: Recovering this checkpoint with different settings can produce inconsistent state counts and counterexamples with missing or incorrect states. Results may be unreliable.
+The checkpoint was created with -seed 3820130351746780114 -fp 69 -workers 1 (fingerprint -1665820305993667152).
+This run is using -seed -4446095687964377306 -fp 128 -workers 1 (fingerprint -6643529451767645187).
+Changed: seed, fingerprint.
+To match the checkpoint, rerun with -seed 3820130351746780114 -fp 69 -workers 1.
+Recovery will continue with the current settings at your own risk.
+Recovery completed. 36130 states examined. 269 states on queue.
+Progress(269) at 2026-11-18 22:59:20: 36,242 states generated (36,242 s/min), 36,187 distinct states found (36,187 ds/min), 269 states left on queue.

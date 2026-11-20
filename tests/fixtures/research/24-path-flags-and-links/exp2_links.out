@@ -1,0 +1,172 @@
+######## version 174
+== L: folder link  (L/lnk -> ../real/proj; decoys: L/Helper.tla, L/out.cfg)
+--- L1 spec via folder link, default cfg
+    <<"N", 1, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L2 spec via folder link, -config ../out.cfg (OS: real/out.cfg=4, lexical: L/out.cfg=44)
+    <<"N", 4, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L3 spec via folder link, -config sub/a.cfg (2)
+    <<"N", 2, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L4 spec via folder link with .. in spec path: L/lnk/../proj/Spec.tla (OS ok, lexical L/proj missing)
+    <<"N", 1, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L5 control: real path, -config ../out.cfg (4)
+    <<"N", 4, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L6 control: real path, -config ../other/o.cfg (5)
+    <<"N", 5, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L7 control: real path, -config ../../outside/o.cfg (6)
+    <<"N", 6, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+== L2: deeper link  (L2/lnk -> ../deep/a/b; cfgs: b/Spec.cfg=11, a/out.cfg=12, deep/out.cfg=13, L2/out.cfg=99)
+--- M1 default cfg
+    <<"N", 11, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M2 -config ../out.cfg (OS 12, lexical 99)
+    <<"N", 12, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M3 -config ../../out.cfg (OS 13, lexical: <T>/out.cfg missing)
+    <<"N", 13, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M4 -config ../../../L2/out.cfg (OS walk from deep/a/b gives <T>/L2/out.cfg = 99)
+    <<"N", 99, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M5 spec L2/lnk/../b/Spec.tla (OS ok, lexical L2/b missing)
+    <<"N", 11, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+== F: file link  (Lf/Spec.tla -> ../real/proj/Spec.tla; beside link: Lf/Helper.tla marker helper-beside-file-link, Lf/Spec.cfg=77; beside target: helper-real-proj, Spec.cfg=1)
+--- F1 abs spec = file link, default cfg
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- F2 abs spec = file link, -config Spec.cfg
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- F3 relative spec = file link, cwd Lf
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- F4 relative spec = file link, cwd work
+    <<"N", 77, "marker", "helper-in-cwd", "specfile", "spec-real">>
+    exit=12
+--- F5 relative bare name, cwd Lf (control)
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+== R4: tlaup's relative -config (relpath(realpath(cfg), realpath(spec.parent))) fed to TLC, abs spec as typed
+--- R1 spec L/lnk, cfg $T/L/lnk/../out.cfg (file: real/out.cfg=4)
+    <<"N", 4, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R2 spec L/lnk, cfg $T/L/out.cfg (44)
+    <<"N", 44, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R3 spec L2/lnk, cfg $T/L2/lnk/../out.cfg (12)
+    <<"N", 12, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R4 spec L2/lnk, cfg $T/L2/lnk/../../out.cfg (13)
+    <<"N", 13, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R5 spec L2/lnk, cfg $T/L2/out.cfg (99)
+    <<"N", 99, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R6 spec L2/lnk, cfg $T/work/out.cfg (55)
+    <<"N", 55, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R7 spec L2/lnk, cfg $T/outside/o.cfg (6)
+    <<"N", 6, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R8 spec L/lnk, cfg $T/real/proj/sub/a.cfg (2), through the real path
+    <<"N", 2, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R9 spec file link Lf/Spec.tla, cfg $T/real/out.cfg (4)
+    <<"N", 4, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- R10 no link, spec real/proj, cfg $T/outside/o.cfg (6)
+    <<"N", 6, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+######## version 180
+== L: folder link  (L/lnk -> ../real/proj; decoys: L/Helper.tla, L/out.cfg)
+--- L1 spec via folder link, default cfg
+    <<"N", 1, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L2 spec via folder link, -config ../out.cfg (OS: real/out.cfg=4, lexical: L/out.cfg=44)
+    <<"N", 4, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L3 spec via folder link, -config sub/a.cfg (2)
+    <<"N", 2, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L4 spec via folder link with .. in spec path: L/lnk/../proj/Spec.tla (OS ok, lexical L/proj missing)
+    <<"N", 1, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L5 control: real path, -config ../out.cfg (4)
+    <<"N", 4, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L6 control: real path, -config ../other/o.cfg (5)
+    <<"N", 5, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- L7 control: real path, -config ../../outside/o.cfg (6)
+    <<"N", 6, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+== L2: deeper link  (L2/lnk -> ../deep/a/b; cfgs: b/Spec.cfg=11, a/out.cfg=12, deep/out.cfg=13, L2/out.cfg=99)
+--- M1 default cfg
+    <<"N", 11, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M2 -config ../out.cfg (OS 12, lexical 99)
+    <<"N", 12, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M3 -config ../../out.cfg (OS 13, lexical: <T>/out.cfg missing)
+    <<"N", 13, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M4 -config ../../../L2/out.cfg (OS walk from deep/a/b gives <T>/L2/out.cfg = 99)
+    <<"N", 99, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- M5 spec L2/lnk/../b/Spec.tla (OS ok, lexical L2/b missing)
+    <<"N", 11, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+== F: file link  (Lf/Spec.tla -> ../real/proj/Spec.tla; beside link: Lf/Helper.tla marker helper-beside-file-link, Lf/Spec.cfg=77; beside target: helper-real-proj, Spec.cfg=1)
+--- F1 abs spec = file link, default cfg
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- F2 abs spec = file link, -config Spec.cfg
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- F3 relative spec = file link, cwd Lf
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- F4 relative spec = file link, cwd work
+    <<"N", 77, "marker", "helper-in-cwd", "specfile", "spec-real">>
+    exit=12
+--- F5 relative bare name, cwd Lf (control)
+    <<"N", 77, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+== R4: tlaup's relative -config (relpath(realpath(cfg), realpath(spec.parent))) fed to TLC, abs spec as typed
+--- R1 spec L/lnk, cfg $T/L/lnk/../out.cfg (file: real/out.cfg=4)
+    <<"N", 4, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R2 spec L/lnk, cfg $T/L/out.cfg (44)
+    <<"N", 44, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R3 spec L2/lnk, cfg $T/L2/lnk/../out.cfg (12)
+    <<"N", 12, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R4 spec L2/lnk, cfg $T/L2/lnk/../../out.cfg (13)
+    <<"N", 13, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R5 spec L2/lnk, cfg $T/L2/out.cfg (99)
+    <<"N", 99, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R6 spec L2/lnk, cfg $T/work/out.cfg (55)
+    <<"N", 55, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R7 spec L2/lnk, cfg $T/outside/o.cfg (6)
+    <<"N", 6, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R8 spec L/lnk, cfg $T/real/proj/sub/a.cfg (2), through the real path
+    <<"N", 2, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12
+--- R9 spec file link Lf/Spec.tla, cfg $T/real/out.cfg (4)
+    <<"N", 4, "marker", "helper-beside-file-link", "specfile", "spec-real">>
+    exit=12
+--- R10 no link, spec real/proj, cfg $T/outside/o.cfg (6)
+    <<"N", 6, "marker", "helper-real-proj", "specfile", "spec-real">>
+    exit=12

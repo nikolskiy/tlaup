@@ -1,0 +1,17 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <work>/spec/S.tla
+Parsing file /tmp/tlc-<n>/Naturals.tla (jar:file:<jars>/rolling/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-<n>/TLC.tla (jar:file:<jars>/rolling/tla2tools.jar!/tla2sany/StandardModules/TLC.tla)
+Parsing file <work>/cpdir/Dup.tla
+Parsing file /tmp/tlc-<n>/Sequences.tla (jar:file:<jars>/rolling/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-<n>/FiniteSets.tla (jar:file:<jars>/rolling/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module TLC
+Semantic processing of module Dup
+Semantic processing of module S
+Linting of module Dup
+Linting of module S

@@ -1,0 +1,22 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <work>/spec/S.tla
+Parsing file /tmp/Naturals.tla
+Parsing file <work>/libA/OnlyInLibA.tla
+Parsing file /tmp/OnlyInCpDir.tla
+Semantic processing of module Naturals
+Semantic processing of module OnlyInLibA
+Semantic processing of module OnlyInCpDir
+Semantic processing of module S
+Semantic errors in global context:
+
+
+*** Warnings: 1
+
+line 2, col 1 to line 2, col 16 of module OnlyInCpDir
+
+Warning: the definition of 'Where' conflicts with 
+its definition at line 2, col 1 to line 2, col 15 of module OnlyInLibA.
+
+

@@ -1,0 +1,6 @@
+q35 check_repl on Darwin arm64, Python 3.13.17; java: openjdk version "21.0.13.1" 2026-11-17 LTS
+RESULT q35 repl-none macos : 1+1 answered 2; REPL STILL RUNNING 8s after the parent was killed
+RESULT q35 repl-agent-pipe macos : 1+1 answered 2; REPL ENDED 1.55s after the parent was killed
+RESULT q35 repl-agent-pid macos : 1+1 answered 2; REPL ENDED 1.62s after the parent was killed
+RESULT q35 repl-agent-stdin macos : 1+1 NOT answered; REPL ENDED 0.00s after the parent was killed
+RESULT q35 repl-watcher macos : 1+1 answered 2; REPL ENDED 1.55s after the parent was killed

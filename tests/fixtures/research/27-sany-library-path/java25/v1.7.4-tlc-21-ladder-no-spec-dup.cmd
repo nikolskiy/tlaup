@@ -1,0 +1,2 @@
+java -DTLA-Library=<work>/libA:<work>/libB -cp <jars>/v1.7.4/tla2tools.jar:<work>/cpdir:<work>/dup.jar tlc2.TLC -metadir <work>/meta/21-ladder-no-spec-dup -workers 1 S.tla
+# cwd=<work>/spec

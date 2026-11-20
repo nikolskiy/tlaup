@@ -1,0 +1,164 @@
+q01-success	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Success	0	2255	0			
+q01-violation	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Violation	12	4021	0		26-11-18-22-17-39.355/Violation-0.st 26-11-18-22-17-39.355/Violation.st 26-11-18-22-17-39.355/Violation_0.fp 26-11-18-22-17-39.355/Violation_1.fp	
+q01-deadlock	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Deadlock	11	2284	0		26-11-18-22-17-41.252/Deadlock-0.st 26-11-18-22-17-41.252/Deadlock.st 26-11-18-22-17-41.252/Deadlock_0.fp 26-11-18-22-17-41.252/Deadlock_1.fp	
+q01-liveness-back-to-state	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> LiveBack	13	3016	0		26-11-18-22-17-43.097/LiveBack-0.st 26-11-18-22-17-43.097/LiveBack.st 26-11-18-22-17-43.097/LiveBack_0.fp 26-11-18-22-17-43.097/LiveBack_1.fp 26-11-18-22-17-43.097/nodes_0 26-11-18-22-17-43.097/ptrs_0	
+q01-liveness-stuttering	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> LiveStutter	13	2846	0		26-11-18-22-17-44.700/LiveStutter-0.st 26-11-18-22-17-44.700/LiveStutter.st 26-11-18-22-17-44.700/LiveStutter_0.fp 26-11-18-22-17-44.700/LiveStutter_1.fp 26-11-18-22-17-44.700/nodes_0 26-11-18-22-17-44.700/ptrs_0	
+q01-sany-semantic-error	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> SanyError	150	1397	0			
+q01-parse-error	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> ParseError	150	1626	0			
+q01-assertion-failure	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Assertion	14	3149	0		26-11-18-22-17-48.192/Assertion-0.st 26-11-18-22-17-48.192/Assertion-4223.st 26-11-18-22-17-48.192/Assertion.st 26-11-18-22-17-48.192/Assertion_0.fp 26-11-18-22-17-48.192/Assertion_1.fp	
+q01-coverage	java -cp tla2tools.jar tlc2.TLC -tool -coverage 1 -metadir <metadir> Success	0	5153	0			
+q01-workers-4	java -cp tla2tools.jar tlc2.TLC -tool -workers 4 -metadir <metadir> Success	0	2260	0			
+q01-simulate	java -cp tla2tools.jar tlc2.TLC -tool -simulate num=3 -depth 20 -seed 7 -metadir <metadir> Success	0	1770	0			
+q01-multi-error-continue	java -cp tla2tools.jar tlc2.TLC -tool -continue -metadir <metadir> MultiError	11	3990	0		26-11-18-22-17-53.824/MultiError-0.st 26-11-18-22-17-53.824/MultiError.st 26-11-18-22-17-53.824/MultiError_0.fp 26-11-18-22-17-53.824/MultiError_1.fp	
+q01-postcondition-false	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Post	10	2467	0		26-11-18-22-17-55.419/Post-0.st 26-11-18-22-17-55.419/Post.st 26-11-18-22-17-55.419/Post_0.fp 26-11-18-22-17-55.419/Post_1.fp	
+q01-stack-overflow	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Stack	255	2268	0		26-11-18-22-17-57.492/Stack-0.st 26-11-18-22-17-57.492/Stack.st 26-11-18-22-17-57.492/Stack_0.fp 26-11-18-22-17-57.492/Stack_1.fp	
+q01-java-override-exception	java -cp tla2tools.jar:classes/v1.8.0 tlc2.TLC -tool -metadir <metadir> Boom	75	3104	0		26-11-18-22-17-59.092/Boom-0.st 26-11-18-22-17-59.092/Boom-4223.st 26-11-18-22-17-59.092/Boom.st 26-11-18-22-17-59.092/Boom_0.fp 26-11-18-22-17-59.092/Boom_1.fp	
+q01-java-override-stack-trace	java -cp tla2tools.jar:classes/v1.8.0 tlc2.TLC -tool -metadir <metadir> BoomTrace	75	3999	0		26-11-18-22-18-00.686/BoomTrace-0.st 26-11-18-22-18-00.686/BoomTrace-4223.st 26-11-18-22-18-00.686/BoomTrace.st 26-11-18-22-18-00.686/BoomTrace_0.fp 26-11-18-22-18-00.686/BoomTrace_1.fp	
+q01-print-output	java -cp tla2tools.jar tlc2.TLC -tool -continue -metadir <metadir> Print	11	3755	0		26-11-18-22-18-02.301/Print-0.st 26-11-18-22-18-02.301/Print.st 26-11-18-22-18-02.301/Print_0.fp 26-11-18-22-18-02.301/Print_1.fp	
+q01-big-states	java -cp tla2tools.jar tlc2.TLC -tool -workers 4 -metadir <metadir> Big	0	2548	0			
+q01-version-bad-option	java -cp tla2tools.jar tlc2.TLC -tool -version -metadir <metadir>	1	232	0			
+q01-print-marker	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> PrintMarker	11	3124	0		26-11-18-22-18-15.619/PrintMarker-0.st 26-11-18-22-18-15.619/PrintMarker.st 26-11-18-22-18-15.619/PrintMarker_0.fp 26-11-18-22-18-15.619/PrintMarker_1.fp	
+q12-pcal-badopt	java -cp tla2tools.jar pcal.trans -bogus Pcal.tla	255	125	0			
+q12-pcal-err	java -cp tla2tools.jar pcal.trans PcalErr.tla	0	142	0	PcalErr.cfg PcalErr.old		
+q12-pcal-good	java -cp tla2tools.jar pcal.trans Pcal.tla	0	136	0	Pcal.cfg Pcal.old		
+q12-pcal-help	java -cp tla2tools.jar pcal.trans -help	0	3528	0			
+q12-pcal-label	java -cp tla2tools.jar pcal.trans -label -reportLabels PcalNoLabel.tla	0	209	0	PcalNoLabel.cfg PcalNoLabel.old		
+q12-pcal-noalg	java -cp tla2tools.jar pcal.trans PcalNoAlg.tla	255	121	0			
+q12-pcal-noargs	java -cp tla2tools.jar pcal.trans	255	112	0			
+q12-pcal-nocfg	java -cp tla2tools.jar pcal.trans -nocfg Pcal.tla	0	109	0	Pcal.old		
+q12-pcal-noext	java -cp tla2tools.jar pcal.trans Pcal	0	136	0	Pcal.cfg Pcal.old		
+q12-pcal-nofile	java -cp tla2tools.jar pcal.trans Nope	255	98	0			
+q12-pcal-nolabel	java -cp tla2tools.jar pcal.trans PcalNoLabel.tla	255	131	0			
+q12-pcal-proc-wf	java -cp tla2tools.jar pcal.trans -wf PcalProc.tla	0	144	0	PcalProc.cfg PcalProc.old		
+q12-pcal-semerr	java -cp tla2tools.jar pcal.trans PcalSemErr.tla	255	147	0			
+q12-pcal-spec	java -cp tla2tools.jar pcal.trans -spec Foo PcalProc.tla	255	233	0	AST.tla		
+q12-pcal-syntaxerr	java -cp tla2tools.jar pcal.trans PcalSyn.tla	255	119	0			
+q12-pcal-termination	java -cp tla2tools.jar pcal.trans -termination Pcal.tla	0	136	0	Pcal.cfg Pcal.old		
+q12-pcal-wf	java -cp tla2tools.jar pcal.trans -wf Pcal.tla	0	136	0	Pcal.cfg Pcal.old		
+q12-pcal-writeast	java -cp tla2tools.jar pcal.trans -writeAST PcalProc.tla	255	79	0	AST.tla		
+q12-repl-stdin-eof	printf '1+1\n2*3\n{1,2,3} \\cup {4}\nx\nFoo(\n:q\n' | java -cp tla2tools.jar tlc2.REPL	0	491	164			
+q12-repl-via-tlc-flag	printf '1+1\nx\n' | java -cp tla2tools.jar tlc2.TLC -repl	1	136	0			
+q12-sany-badthengood	java -cp tla2tools.jar tla2sany.SANY -error-codes ParseErr.tla Good.tla	255	639	0			
+q12-sany-d-scripted	printf 'cst\nquit\n' | java -cp tla2tools.jar tla2sany.SANY -d Good.tla	0	14172	0			
+q12-sany-dcst	java -cp tla2tools.jar tla2sany.SANY -d Good.tla cst	0	14104	0			
+q12-sany-errorcodes-good	java -cp tla2tools.jar tla2sany.SANY -error-codes Good.tla	0	352	0			
+q12-sany-errorcodes-level	java -cp tla2tools.jar tla2sany.SANY -error-codes Level.tla	255	691	0			
+q12-sany-errorcodes-missing	java -cp tla2tools.jar tla2sany.SANY -error-codes MissingMod.tla	255	544	0			
+q12-sany-errorcodes-parse	java -cp tla2tools.jar tla2sany.SANY -error-codes ParseErr.tla	255	644	0			
+q12-sany-errorcodes-sem	java -cp tla2tools.jar tla2sany.SANY -error-codes SemErr.tla	4	518	0			
+q12-sany-good	java -cp tla2tools.jar tla2sany.SANY Good.tla	0	341	0			
+q12-sany-goodthenbad	java -cp tla2tools.jar tla2sany.SANY -error-codes Good.tla SemErr.tla	4	864	0			
+q12-sany-level	java -cp tla2tools.jar tla2sany.SANY Level.tla	255	680	0			
+q12-sany-levelerr	java -cp tla2tools.jar tla2sany.SANY LevelErr.tla	0	661	0			
+q12-sany-levelerr-errorcodes	java -cp tla2tools.jar tla2sany.SANY -error-codes LevelErr.tla	4	672	0			
+q12-sany-lint	java -cp tla2tools.jar tla2sany.SANY Lint.tla	0	340	0			
+q12-sany-missingmod	java -cp tla2tools.jar tla2sany.SANY MissingMod.tla	255	537	0			
+q12-sany-msgaserr	java -cp tla2tools.jar tla2sany.SANY -messagesAsErrors 1 Good.tla	255	50	0			
+q12-sany-multi	java -cp tla2tools.jar tla2sany.SANY Multi.tla	255	609	0			
+q12-sany-namemismatch	java -cp tla2tools.jar tla2sany.SANY NameMismatch.tla	255	428	0			
+q12-sany-noargs	java -cp tla2tools.jar tla2sany.SANY	255	1987	0			
+q12-sany-nofile	java -cp tla2tools.jar tla2sany.SANY Nope.tla	255	89	196			
+q12-sany-nolevel	java -cp tla2tools.jar tla2sany.SANY -l LevelErr.tla	0	329	0			
+q12-sany-parseerr	java -cp tla2tools.jar tla2sany.SANY ParseErr.tla	255	636	0			
+q12-sany-parseerr-s	java -cp tla2tools.jar tla2sany.SANY -s SemErr.tla	0	252	0			
+q12-sany-semerr	java -cp tla2tools.jar tla2sany.SANY SemErr.tla	0	511	0			
+q12-sany-stutter	java -cp tla2tools.jar tla2sany.SANY Stutter.tla	0	352	0			
+q12-sany-suppress	java -cp tla2tools.jar tla2sany.SANY -suppressMessages 1,2 Good.tla	255	50	0			
+q12-sany-twofiles	java -cp tla2tools.jar tla2sany.SANY Good.tla Two.tla	0	509	0			
+q12-sany-warn	java -cp tla2tools.jar tla2sany.SANY Warn.tla	0	535	0			
+q12-sany-warn-aserr	java -cp tla2tools.jar tla2sany.SANY -messagesAsErrors ALWAYS_PROPERTY_SENSITIVE_TO_STUTTERING Warn.tla	255	82	0			
+q12-sany-warn-errorcodes	java -cp tla2tools.jar tla2sany.SANY -error-codes Warn.tla	4	547	0			
+q12-sany-warn-suppress	java -cp tla2tools.jar tla2sany.SANY -error-codes -suppressMessages ALWAYS_PROPERTY_SENSITIVE_TO_STUTTERING,EVENTUALLY_PROPERTY_SENSITIVE_TO_STUTTERING Warn.tla	255	82	0			
+q12-sany-warning-recclash	java -cp tla2tools.jar tla2sany.SANY RecClash.tla	0	283	0			
+q12-sany-warning-recclash-aserr	java -cp tla2tools.jar tla2sany.SANY -messagesAsErrors 4802 RecClash.tla	0	289	0			
+q12-sany-warning-recclash-errorcodes	java -cp tla2tools.jar tla2sany.SANY -error-codes -messagesAsErrors 4802 RecClash.tla	4	294	0			
+q12-sany-warning-recclash-suppress	java -cp tla2tools.jar tla2sany.SANY -suppressMessages 4802 RecClash.tla	0	292	0			
+q12-tlc-version	java -cp tla2tools.jar tlc2.TLC -version	1	139	0			
+q12-xml-good	java -cp tla2tools.jar tla2sany.xml.XMLExporter Good.tla	0	70414	0			
+q12-xml-help	java -cp tla2tools.jar tla2sany.xml.XMLExporter	1	0	1282			
+q12-xml-parseerr	java -cp tla2tools.jar tla2sany.xml.XMLExporter ParseErr.tla	2	0	553			
+q12-xml-semerr	java -cp tla2tools.jar tla2sany.xml.XMLExporter SemErr.tla	2	0	218			
+difftrace-violation	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> Diff	12	2585	0		26-11-18-22-18-59.824/Diff-0.st 26-11-18-22-18-59.824/Diff.st 26-11-18-22-18-59.824/Diff_0.fp 26-11-18-22-18-59.824/Diff_1.fp	
+difftrace-violation-nodiff	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Diff	12	2676	0		26-11-18-22-19-01.463/Diff-0.st 26-11-18-22-19-01.463/Diff.st 26-11-18-22-19-01.463/Diff_0.fp 26-11-18-22-19-01.463/Diff_1.fp	same spec without -difftrace, for comparison
+difftrace-q1-violation	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> Violation	12	3979	0		26-11-18-22-19-03.649/Violation-0.st 26-11-18-22-19-03.649/Violation.st 26-11-18-22-19-03.649/Violation_0.fp 26-11-18-22-19-03.649/Violation_1.fp	
+difftrace-liveness	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> DiffLive	13	3166	0		26-11-18-22-19-05.928/DiffLive-0.st 26-11-18-22-19-05.928/DiffLive.st 26-11-18-22-19-05.928/DiffLive_0.fp 26-11-18-22-19-05.928/DiffLive_1.fp 26-11-18-22-19-05.928/nodes_0 26-11-18-22-19-05.928/ptrs_0	
+difftrace-liveness-nodiff	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> DiffLive	13	3202	0		26-11-18-22-19-07.934/DiffLive-0.st 26-11-18-22-19-07.934/DiffLive.st 26-11-18-22-19-07.934/DiffLive_0.fp 26-11-18-22-19-07.934/DiffLive_1.fp 26-11-18-22-19-07.934/nodes_0 26-11-18-22-19-07.934/ptrs_0	
+difftrace-liveness-q1-back-to-state	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> LiveBack	13	3028	0		26-11-18-22-19-09.999/LiveBack-0.st 26-11-18-22-19-09.999/LiveBack.st 26-11-18-22-19-09.999/LiveBack_0.fp 26-11-18-22-19-09.999/LiveBack_1.fp 26-11-18-22-19-09.999/nodes_0 26-11-18-22-19-09.999/ptrs_0	
+difftrace-liveness-q1-stuttering	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> LiveStutter	13	2854	0		26-11-18-22-19-12.246/LiveStutter-0.st 26-11-18-22-19-12.246/LiveStutter.st 26-11-18-22-19-12.246/LiveStutter_0.fp 26-11-18-22-19-12.246/LiveStutter_1.fp 26-11-18-22-19-12.246/nodes_0 26-11-18-22-19-12.246/ptrs_0	
+difftrace-deadlock	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> Deadlock	11	2287	0		26-11-18-22-19-14.954/Deadlock-0.st 26-11-18-22-19-14.954/Deadlock.st 26-11-18-22-19-14.954/Deadlock_0.fp 26-11-18-22-19-14.954/Deadlock_1.fp	
+difftrace-workers-4	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -workers 4 -metadir <metadir> Diff	12	2586	0		26-11-18-22-19-17.289/Diff-0.st 26-11-18-22-19-17.289/Diff-1.st 26-11-18-22-19-17.289/Diff-2.st 26-11-18-22-19-17.289/Diff-3.st 26-11-18-22-19-17.289/Diff.st 26-11-18-22-19-17.289/Diff_0.fp 26-11-18-22-19-17.289/Diff_1.fp	
+simulate-violation	java -cp tla2tools.jar tlc2.TLC -tool -simulate num=5 -depth 20 -seed 7 -metadir <metadir> Violation	12	4017	0			
+simulate-violation-diff	java -cp tla2tools.jar tlc2.TLC -tool -simulate num=5 -depth 20 -seed 7 -difftrace -metadir <metadir> Diff	12	2609	0			
+simulate-deadlock	java -cp tla2tools.jar tlc2.TLC -tool -simulate num=3 -depth 20 -seed 7 -metadir <metadir> Deadlock	11	2283	0			
+simulate-liveness	java -cp tla2tools.jar tlc2.TLC -tool -simulate num=3 -depth 20 -seed 7 -metadir <metadir> LiveBack	13	2571	0			
+generate-violation	java -cp tla2tools.jar tlc2.TLC -tool -generate -metadir <metadir> Violation	12	4057	0			
+generate-violation-num	java -cp tla2tools.jar tlc2.TLC -tool -generate num=3 -metadir <metadir> Violation	12	4061	0			
+generate-success	java -cp tla2tools.jar tlc2.TLC -tool -generate -metadir <metadir> Success	137 killed at timeout 120s	1434	0			
+generate-success-num	java -cp tla2tools.jar tlc2.TLC -tool -generate num=3 -metadir <metadir> Success	0	1819	0			
+generate-deadlock	java -cp tla2tools.jar tlc2.TLC -tool -generate -metadir <metadir> Deadlock	11	2326	0			
+generateSpecTE-violation	java -cp tla2tools.jar tlc2.TLC -tool -generateSpecTE -metadir <metadir> Violation	12	4884	0	Violation_TTrace_1795076491.bin Violation_TTrace_1795076491.tla	26-11-18-22-21-31.567/Violation-0.st 26-11-18-22-21-31.567/Violation.st 26-11-18-22-21-31.567/Violation_0.fp 26-11-18-22-21-31.567/Violation_1.fp	
+noGenerateSpecTE-violation	java -cp tla2tools.jar tlc2.TLC -tool -noGenerateSpecTE -metadir <metadir> Violation	12	4029	0		26-11-18-22-21-33.415/Violation-0.st 26-11-18-22-21-33.415/Violation.st 26-11-18-22-21-33.415/Violation_0.fp 26-11-18-22-21-33.415/Violation_1.fp	
+dfid-success	java -cp tla2tools.jar tlc2.TLC -tool -dfid 5 -metadir <metadir> Success	0	2004	0			
+dfid-violation	java -cp tla2tools.jar tlc2.TLC -tool -dfid 2 -metadir <metadir> Violation	0	2030	0			
+dfid-deadlock	java -cp tla2tools.jar tlc2.TLC -tool -dfid 2 -metadir <metadir> Deadlock	0	1664	0			
+dfid-violation-deep	java -cp tla2tools.jar tlc2.TLC -tool -dfid 10 -metadir <metadir> Violation	12	3898	0			
+dfid-success-deep	java -cp tla2tools.jar tlc2.TLC -tool -dfid 20 -metadir <metadir> Success	0	2680	0			
+alias-violation	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Alias	12	2524	0		26-11-18-22-21-42.240/Alias-0.st 26-11-18-22-21-42.240/Alias.st 26-11-18-22-21-42.240/Alias_0.fp 26-11-18-22-21-42.240/Alias_1.fp	
+alias-violation-difftrace	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> Alias	12	2496	0		26-11-18-22-21-43.709/Alias-0.st 26-11-18-22-21-43.709/Alias.st 26-11-18-22-21-43.709/Alias_0.fp 26-11-18-22-21-43.709/Alias_1.fp	
+params-violation	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Params	12	2474	0		26-11-18-22-21-45.712/Params-0.st 26-11-18-22-21-45.712/Params.st 26-11-18-22-21-45.712/Params_0.fp 26-11-18-22-21-45.712/Params_1.fp	
+params-violation-difftrace	java -cp tla2tools.jar tlc2.TLC -tool -difftrace -metadir <metadir> Params	12	2475	0		26-11-18-22-21-47.111/Params-0.st 26-11-18-22-21-47.111/Params.st 26-11-18-22-21-47.111/Params_0.fp 26-11-18-22-21-47.111/Params_1.fp	
+params-step-violation	java -cp tla2tools.jar tlc2.TLC -tool -config ParamsX.cfg -metadir <metadir> Params	12	2491	0		26-11-18-22-21-48.482/Params-0.st 26-11-18-22-21-48.482/Params.st 26-11-18-22-21-48.482/Params_0.fp 26-11-18-22-21-48.482/Params_1.fp	
+params-step-violation-difftrace	java -cp tla2tools.jar tlc2.TLC -tool -config ParamsX.cfg -difftrace -metadir <metadir> Params	12	2490	0		26-11-18-22-21-50.150/Params-0.st 26-11-18-22-21-50.150/Params.st 26-11-18-22-21-50.150/Params_0.fp 26-11-18-22-21-50.150/Params_1.fp	
+params-instance-exists-violation	java -cp tla2tools.jar tlc2.TLC -tool -config ParamsQ.cfg -metadir <metadir> Params	12	2513	0		26-11-18-22-21-51.588/Params-0.st 26-11-18-22-21-51.588/Params.st 26-11-18-22-21-51.588/Params_0.fp 26-11-18-22-21-51.588/Params_1.fp	
+params-instance-exists-violation-difftrace	java -cp tla2tools.jar tlc2.TLC -tool -config ParamsQ.cfg -difftrace -metadir <metadir> Params	12	2515	0		26-11-18-22-21-52.965/Params-0.st 26-11-18-22-21-52.965/Params.st 26-11-18-22-21-52.965/Params_0.fp 26-11-18-22-21-52.965/Params_1.fp	
+deadlock-flag	java -cp tla2tools.jar tlc2.TLC -tool -deadlock -metadir <metadir> Deadlock	0	2250	0			
+deadlock-flag-multierror	java -cp tla2tools.jar tlc2.TLC -tool -deadlock -continue -metadir <metadir> MultiError	0	3472	0			
+tool-assum	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Assum	10	1309	0		26-11-18-22-21-57.239/Assum-0.st 26-11-18-22-21-57.239/Assum.st 26-11-18-22-21-57.239/Assum_0.fp 26-11-18-22-21-57.239/Assum_1.fp	
+tool-eval	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Eval	75	2088	0		26-11-18-22-21-58.438/Eval-0.st 26-11-18-22-21-58.438/Eval.st 26-11-18-22-21-58.438/Eval_0.fp 26-11-18-22-21-58.438/Eval_1.fp	
+tool-nexteval	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> NextEval	255	2314	0		26-11-18-22-21-59.472/NextEval-0.st 26-11-18-22-21-59.472/NextEval-4223.st 26-11-18-22-21-59.472/NextEval.st 26-11-18-22-21-59.472/NextEval_0.fp 26-11-18-22-21-59.472/NextEval_1.fp	
+tool-act	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Act	13	2155	0		26-11-18-22-22-00.706/Act-0.st 26-11-18-22-22-00.706/Act.st 26-11-18-22-22-00.706/Act_0.fp 26-11-18-22-22-00.706/Act_1.fp	
+tool-badcfg	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> BadCfg	151	1330	0			
+tool-cfgsyn	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> CfgSyn	151	845	0			
+tool-live	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Live	13	2801	0		26-11-18-22-22-03.322/Live-0.st 26-11-18-22-22-03.322/Live.st 26-11-18-22-22-03.322/Live_0.fp 26-11-18-22-22-03.322/Live_1.fp 26-11-18-22-22-03.322/nodes_0 26-11-18-22-22-03.322/ptrs_0	
+tool-asrt	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Asrt	14	3122	0		26-11-18-22-22-04.560/Asrt-0.st 26-11-18-22-22-04.560/Asrt-4223.st 26-11-18-22-22-04.560/Asrt.st 26-11-18-22-22-04.560/Asrt_0.fp 26-11-18-22-22-04.560/Asrt_1.fp	
+tool-nocfg	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> NoCfg	151	744	0			
+tool-nospecfile	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> NoSuchFile	151	748	0			
+tool-cfg-missing	java -cp tla2tools.jar tlc2.TLC -tool -config nope.cfg -metadir <metadir> Ok	151	741	0			
+tool-workers-bad	java -cp tla2tools.jar tlc2.TLC -tool -workers abc -metadir <metadir> Ok	1	256	0			
+tool-missing-module	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> MissMod	150	1450	0			
+tool-name-mismatch	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Mismatch	150	1341	0			
+tool-oom	java -Xmx64m -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Oom	75	1951	0		26-11-18-22-22-11.225/Oom-0.st 26-11-18-22-22-11.225/Oom.st 26-11-18-22-22-11.225/Oom_0.fp 26-11-18-22-22-11.225/Oom_1.fp	
+plain-violation-files	java -cp tla2tools.jar tlc2.TLC -metadir <metadir> Violation	12	3859	0	Violation_TTrace_1795076532.bin Violation_TTrace_1795076532.tla	26-11-18-22-22-12.637/Violation-0.st 26-11-18-22-22-12.637/Violation.st 26-11-18-22-22-12.637/Violation_0.fp 26-11-18-22-22-12.637/Violation_1.fp	no -tool: does TLC write a trace-exploration spec next to the spec?
+tool-noargs	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir>	1	229	0			
+tool-help	java -cp tla2tools.jar tlc2.TLC -tool -help -metadir <metadir>	1	11890	0			
+warn4802-tool	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> Warn4802	150	1383	0			
+warn4802-plain	java -cp tla2tools.jar tlc2.TLC -metadir <metadir> Warn4802	150	2073	0			
+warnstutter-tool	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> WarnStutter	150	1502	0			
+stale-alg-tool	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> PcalStaleAlg	0	2432	0			
+stale-tla-tool	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> PcalStaleTla	0	2433	0			
+stale-both-tool	java -cp tla2tools.jar tlc2.TLC -tool -metadir <metadir> PcalStaleBoth	0	2470	0			
+stale-alg-plain	java -cp tla2tools.jar tlc2.TLC -metadir <metadir> PcalStaleAlg	0	2730	0			
+sany-help	java -cp tla2tools.jar tla2sany.SANY -help	0	1987	0			
+sany-h	java -cp tla2tools.jar tla2sany.SANY -h	255	58	0			
+sany-stale-alg	java -cp tla2tools.jar tla2sany.SANY PcalStaleAlg.tla	0	535	0			
+sany-stale-tla	java -cp tla2tools.jar tla2sany.SANY PcalStaleTla.tla	0	534	0			
+sany-stale-both	java -cp tla2tools.jar tla2sany.SANY PcalStaleBoth.tla	0	573	0			
+sany-stale-two-files	java -cp tla2tools.jar tla2sany.SANY PcalStaleAlg.tla PcalStaleTla.tla	0	1083	0			
+sany-missing-module-ext	java -cp tla2tools.jar tla2sany.SANY MissMod.tla	255	524	0			
+sany-name-mismatch-ext	java -cp tla2tools.jar tla2sany.SANY Mismatch.tla	255	413	0			
+sany-warn4802	java -cp tla2tools.jar tla2sany.SANY Warn4802.tla	0	447	0			
+sany-grouped-ls	java -cp tla2tools.jar tla2sany.SANY -ls Good.tla	255	59	0			
+sany-separate-l-s	java -cp tla2tools.jar tla2sany.SANY -l -s Good.tla	0	247	0			
+sany-grouped-ls-semerr	java -cp tla2tools.jar tla2sany.SANY -ls SemErr.tla	255	59	0			
+sany-s-semerr	java -cp tla2tools.jar tla2sany.SANY -s SemErr.tla	0	246	0			
+sany-grouped-dl	printf 'quit\n' | java -cp tla2tools.jar tla2sany.SANY -dl Good.tla	255	59	0			
+sany-separate-d-l	printf 'quit\n' | java -cp tla2tools.jar tla2sany.SANY -d -l Good.tla	0	380	0			
+sany-grouped-lerror-codes	java -cp tla2tools.jar tla2sany.SANY -l -error-codes LevelErr.tla	0	338	0			
+sany-grouped-unknown	java -cp tla2tools.jar tla2sany.SANY -xy Good.tla	255	59	0			
+sany-levelerr-174	java -cp tla2tools.jar tla2sany.SANY LevelErr.tla	0	662	0			
+sany-level-174	java -cp tla2tools.jar tla2sany.SANY Level.tla	255	680	0			
+sany-levelerr-errorcodes-174	java -cp tla2tools.jar tla2sany.SANY -error-codes LevelErr.tla	4	672	0			
+sany-nofile-no-sep	java -cp tla2tools.jar tla2sany.SANY Nope.tla	255	89	202			
+checkpoint-run	java -cp tla2tools.jar tlc2.TLC -tool -checkpoint 1 -metadir <metadir> Slow	143 SIGTERM sent at 80s	2268	0		26-11-18-22-22-32.052/Slow-0.chkpt 26-11-18-22-22-32.052/Slow-0.st 26-11-18-22-22-32.052/Slow.st 26-11-18-22-22-32.052/Slow.st.chkpt 26-11-18-22-22-32.052/Slow_0.fp 26-11-18-22-22-32.052/Slow_1.fp 26-11-18-22-22-32.052/queue.chkpt 26-11-18-22-22-32.052/settings.chkpt 26-11-18-22-22-32.052/vars.chkpt	TLC stopped by SIGTERM about 80 s after the start, after the first checkpoint
+checkpoint-recover	java -cp tla2tools.jar tlc2.TLC -tool -recover <tmp>/q22/meta/v1.8.0/checkpoint-run/26-11-18-22-22-32.052 Slow	0	4044	0			-recover with the folder the first run left behind (path shown with <tmp>)
+checkpoint-recover-missing	java -cp tla2tools.jar tlc2.TLC -tool -recover <metadir>/nope Slow	255	727	0			

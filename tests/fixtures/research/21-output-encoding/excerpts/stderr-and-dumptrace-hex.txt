@@ -1,0 +1,21 @@
+# SANY, nonexistent file cafe+CJK .tla, LC_ALL=C.utf8, rolling jar: bytes of the file name in each stream
+j11-fileenc      stderr: 636166e93f2e746c61  stdout: 636166e93f2e746c61
+j11-none         stderr: 636166c3a9e697a52e746c61  stdout: 636166c3a9e697a52e746c61
+j11-stderr       stderr: 636166c3a9e697a52e746c61  stdout: 636166c3a9e697a52e746c61
+j11-sunstderr    stderr: 636166e93f2e746c61  stdout: 636166c3a9e697a52e746c61
+j21-fileenc      stderr: 636166c3a9e697a52e746c61  stdout: 636166c3a9e697a52e746c61
+j21-none         stderr: 636166c3a9e697a52e746c61  stdout: 636166c3a9e697a52e746c61
+j21-stderr       stderr: 636166e93f2e746c61  stdout: 636166c3a9e697a52e746c61
+j21-sunstderr    stderr: 636166e93f2e746c61  stdout: 636166c3a9e697a52e746c61
+j25-fileenc      stderr: 636166c3a9e697a52e746c61  stdout: 636166c3a9e697a52e746c61
+j25-none         stderr: 636166c3a9e697a52e746c61  stdout: 636166c3a9e697a52e746c61
+j25-stderr       stderr: 636166e93f2e746c61  stdout: 636166c3a9e697a52e746c61
+j25-sunstderr    stderr: 636166e93f2e746c61  stdout: 636166c3a9e697a52e746c61
+
+# -dumpTrace json FILE (rolling jar): bytes of the "s" values in the written file (expect e-acute c3 a9 / CJK / emoji f0 9f 98 80)
+j11-C-fileenc.json     ['636166c3a9', 'e697a5e69cace8aa9e', 'e697a5e69cace8aa9e', 'f09f9880']
+j11-C-none.json        ['6361663f', '3f3f3f', '3f3f3f', '3f']
+j11-C-sunstdout.json   ['6361663f', '3f3f3f', '3f3f3f', '3f']
+j25-C-none.json        ['636166c3a9', 'e697a5e69cace8aa9e', 'e697a5e69cace8aa9e', 'f09f9880']
+j25-C-stdout.json      ['636166c3a9', 'e697a5e69cace8aa9e', 'e697a5e69cace8aa9e', 'f09f9880']
+j25-Cutf8-none.json    ['636166c3a9', 'e697a5e69cace8aa9e', 'e697a5e69cace8aa9e', 'f09f9880']

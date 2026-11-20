@@ -1,0 +1,20 @@
+# v174-reader mode=reader pid=1446051 first-line-seen: TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+# fd listing at +2s:
+#    -> 
+#   0 -> /dev/null
+#   1 -> pipe:[6313164]
+#   2 -> <tmp>/q31/p2/log-v174-reader.txt
+t=2s alive state/cpu-ticks=S 104
+t=13s alive state/cpu-ticks=S 865
+t=23s alive state/cpu-ticks=S 1292
+t=33s alive state/cpu-ticks=S 1623
+t=43s alive state/cpu-ticks=S 1909
+t=53s alive state/cpu-ticks=S 2441
+t=63s alive state/cpu-ticks=S 3092
+t=73s alive state/cpu-ticks=S 3572
+t=83s alive state/cpu-ticks=S 4036
+t=93s alive state/cpu-ticks=S 4479
+t=103s alive state/cpu-ticks=S 4867
+t=113s alive state/cpu-ticks=S 5268
+t=123s alive state/cpu-ticks=S 5637
+t=133s java gone; exit=12

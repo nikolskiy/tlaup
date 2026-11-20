@@ -1,0 +1,44 @@
+--- rich==13.8.0 (Python 3.13)
+RESULT q30 rich-plain-closed-stdout linux : PASS (rich 13.8.0, Python 3.13.18) - 3 lines into a pipe closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-plain-closed-stderr linux : INFO (rich 13.8.0, Python 3.13.18) - stderr console, stderr on a closed pipe, stdout open: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-closed-stdout linux : PASS (rich 13.8.0, Python 3.13.18) - on_broken_pipe raising BrokenPipeError: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-subclass-closed-stderr linux : PASS (rich 13.8.0, Python 3.13.18) - stderr console subclass, stderr closed: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-plain-head linux : PASS (rich 13.8.0, Python 3.13.18) - 200000 lines | head -1: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-head linux : PASS (rich 13.8.0, Python 3.13.18) - subclass, 200000 lines | head -1: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-typer-help-closed linux : PASS (rich 13.8.0, typer 0.29.1, Python 3.13.18) - --help with stdout closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr linux : INFO (rich 13.8.0, typer 0.29.1, Python 3.13.18) - unknown option, stderr closed: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-help-head linux : INFO (rich 13.8.0, typer 0.29.1, Python 3.13.18) - --help | head -1 (racy: help may be written before head exits): exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-live-pty linux : PASS (rich 13.8.0, pyte 0.8.2, Python 3.13.18) - enter/leave written; four titles on one screen: True; distinct ticks drawn by the refresh thread: 15; last frame has Finished: True; colours seen by pyte: ['brightgreen', 'green', 'red']; ellipsis kept: True; text after leave: True; bytes 56183; exit 0
+--- rich==13.9.4 (Python 3.13)
+RESULT q30 rich-plain-closed-stdout linux : PASS (rich 13.9.4, Python 3.13.18) - 3 lines into a pipe closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-plain-closed-stderr linux : INFO (rich 13.9.4, Python 3.13.18) - stderr console, stderr on a closed pipe, stdout open: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-closed-stdout linux : PASS (rich 13.9.4, Python 3.13.18) - on_broken_pipe raising BrokenPipeError: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-subclass-closed-stderr linux : PASS (rich 13.9.4, Python 3.13.18) - stderr console subclass, stderr closed: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-plain-head linux : PASS (rich 13.9.4, Python 3.13.18) - 200000 lines | head -1: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-head linux : PASS (rich 13.9.4, Python 3.13.18) - subclass, 200000 lines | head -1: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-typer-help-closed linux : PASS (rich 13.9.4, typer 0.29.1, Python 3.13.18) - --help with stdout closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr linux : INFO (rich 13.9.4, typer 0.29.1, Python 3.13.18) - unknown option, stderr closed: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-help-head linux : INFO (rich 13.9.4, typer 0.29.1, Python 3.13.18) - --help | head -1 (racy: help may be written before head exits): exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-live-pty linux : PASS (rich 13.9.4, pyte 0.8.2, Python 3.13.18) - enter/leave written; four titles on one screen: True; distinct ticks drawn by the refresh thread: 15; last frame has Finished: True; colours seen by pyte: ['brightgreen', 'green', 'red']; ellipsis kept: True; text after leave: True; bytes 56183; exit 0
+--- rich==14.3.4 (Python 3.13)
+RESULT q30 rich-plain-closed-stdout linux : PASS (rich 14.3.4, Python 3.13.18) - 3 lines into a pipe closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-plain-closed-stderr linux : INFO (rich 14.3.4, Python 3.13.18) - stderr console, stderr on a closed pipe, stdout open: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-closed-stdout linux : PASS (rich 14.3.4, Python 3.13.18) - on_broken_pipe raising BrokenPipeError: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-subclass-closed-stderr linux : PASS (rich 14.3.4, Python 3.13.18) - stderr console subclass, stderr closed: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-plain-head linux : PASS (rich 14.3.4, Python 3.13.18) - 200000 lines | head -1: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-head linux : PASS (rich 14.3.4, Python 3.13.18) - subclass, 200000 lines | head -1: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-typer-help-closed linux : PASS (rich 14.3.4, typer 0.29.1, Python 3.13.18) - --help with stdout closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr linux : INFO (rich 14.3.4, typer 0.29.1, Python 3.13.18) - unknown option, stderr closed: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-help-head linux : INFO (rich 14.3.4, typer 0.29.1, Python 3.13.18) - --help | head -1 (racy: help may be written before head exits): exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-live-pty linux : PASS (rich 14.3.4, pyte 0.8.2, Python 3.13.18) - enter/leave written; four titles on one screen: True; distinct ticks drawn by the refresh thread: 15; last frame has Finished: True; colours seen by pyte: ['brightgreen', 'green', 'red']; ellipsis kept: True; text after leave: True; bytes 56183; exit 0
+--- rich (Python 3.13)
+RESULT q30 rich-plain-closed-stdout linux : PASS (rich 15.0.0, Python 3.13.18) - 3 lines into a pipe closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-plain-closed-stderr linux : INFO (rich 15.0.0, Python 3.13.18) - stderr console, stderr on a closed pipe, stdout open: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-closed-stdout linux : PASS (rich 15.0.0, Python 3.13.18) - on_broken_pipe raising BrokenPipeError: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-subclass-closed-stderr linux : PASS (rich 15.0.0, Python 3.13.18) - stderr console subclass, stderr closed: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-plain-head linux : PASS (rich 15.0.0, Python 3.13.18) - 200000 lines | head -1: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-subclass-head linux : PASS (rich 15.0.0, Python 3.13.18) - subclass, 200000 lines | head -1: exit 141; BrokenPipeError-reached-caller fd1-null=False
+RESULT q30 rich-typer-help-closed linux : PASS (rich 15.0.0, typer 0.29.1, Python 3.13.18) - --help with stdout closed before start: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-usage-closed-stderr linux : INFO (rich 15.0.0, typer 0.29.1, Python 3.13.18) - unknown option, stderr closed: exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-typer-help-head linux : INFO (rich 15.0.0, typer 0.29.1, Python 3.13.18) - --help | head -1 (racy: help may be written before head exits): exit 1; SystemExit(1) fd1-null=True
+RESULT q30 rich-live-pty linux : PASS (rich 15.0.0, pyte 0.8.2, Python 3.13.18) - enter/leave written; four titles on one screen: True; distinct ticks drawn by the refresh thread: 15; last frame has Finished: True; colours seen by pyte: ['brightgreen', 'green', 'red']; ellipsis kept: True; text after leave: True; bytes 56183; exit 0

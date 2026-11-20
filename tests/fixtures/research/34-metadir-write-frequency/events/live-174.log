@@ -1,0 +1,62 @@
+      0.0 NEW  d . size=4096
+      1.0 CHG  d . mtime
+      1.0 NEW  d 26-11-18-22-56-03 size=4096
+      1.0 NEW  f 26-11-18-22-56-03/Live.st size=0
+      1.0 NEW  f 26-11-18-22-56-03/nodes_0 size=0
+      1.0 NEW  f 26-11-18-22-56-03/ptrs_0 size=0
+      2.0 CHG  d 26-11-18-22-56-03 mtime
+      2.0 NEW  f 26-11-18-22-56-03/Live-0.st size=163840
+      2.0 NEW  f 26-11-18-22-56-03/Live-1.st size=180224
+      2.0 NEW  f 26-11-18-22-56-03/Live_0.fp size=0
+      2.0 NEW  f 26-11-18-22-56-03/Live_1.fp size=0
+      2.0 CHG  f 26-11-18-22-56-03/nodes_0 size 0->1302528 mtime
+      2.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 0->434176 mtime
+      3.0 CHG  f 26-11-18-22-56-03/Live-0.st size 163840->1261568 mtime
+      3.0 CHG  f 26-11-18-22-56-03/Live-1.st size 180224->1499136 mtime
+      3.0 CHG  f 26-11-18-22-56-03/nodes_0 size 1302528->10174464 mtime
+      3.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 434176->3391488 mtime
+      4.0 CHG  f 26-11-18-22-56-03/Live-0.st size 1261568->2531328 mtime
+      4.0 CHG  f 26-11-18-22-56-03/Live-1.st size 1499136->2973696 mtime
+      4.0 CHG  f 26-11-18-22-56-03/nodes_0 size 10174464->20316160 mtime
+      4.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 3391488->6766592 mtime
+      5.0 CHG  f 26-11-18-22-56-03/Live-0.st size 2531328->2973696 mtime
+      5.0 CHG  f 26-11-18-22-56-03/Live-1.st size 2973696->3416064 mtime
+      5.0 CHG  f 26-11-18-22-56-03/nodes_0 size 20316160->23567088 mtime
+      5.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 6766592->7855696 mtime
+     10.0 CHG  f 26-11-18-22-56-03/Live-0.st size 2973696->4538368 mtime
+     10.0 CHG  f 26-11-18-22-56-03/Live-1.st size 3416064->4972544 mtime
+     10.0 CHG  f 26-11-18-22-56-03/nodes_0 size 23567088->35094528 mtime
+     10.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 7855696->11689984 mtime
+     11.0 CHG  f 26-11-18-22-56-03/Live-0.st size 4538368->6275072 mtime
+     11.0 CHG  f 26-11-18-22-56-03/Live-1.st size 4972544->6873088 mtime
+     11.0 CHG  f 26-11-18-22-56-03/nodes_0 size 35094528->48488448 mtime
+     11.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 11689984->16162816 mtime
+     12.0 CHG  f 26-11-18-22-56-03/Live-0.st size 6275072->7798784 mtime
+     12.0 CHG  f 26-11-18-22-56-03/Live-1.st size 6873088->9527296 mtime
+     12.0 CHG  f 26-11-18-22-56-03/nodes_0 size 48488448->63963136 mtime
+     12.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 16162816->21315584 mtime
+     13.0 CHG  f 26-11-18-22-56-03/Live-0.st size 7798784->9371648 mtime
+     13.0 CHG  f 26-11-18-22-56-03/Live-1.st size 9527296->11722752 mtime
+     13.0 CHG  f 26-11-18-22-56-03/nodes_0 size 63963136->77864960 mtime
+     13.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 21315584->25952256 mtime
+     14.0 CHG  f 26-11-18-22-56-03/Live-0.st size 9371648->11436032 mtime
+     14.0 CHG  f 26-11-18-22-56-03/Live-1.st size 11722752->13852672 mtime
+     14.0 CHG  f 26-11-18-22-56-03/nodes_0 size 77864960->93388800 mtime
+     14.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 25952256->31129600 mtime
+     15.0 CHG  f 26-11-18-22-56-03/Live-0.st size 11436032->13139968 mtime
+     15.0 CHG  f 26-11-18-22-56-03/Live-1.st size 13852672->16089088 mtime
+     15.0 CHG  f 26-11-18-22-56-03/nodes_0 size 93388800->107962368 mtime
+     15.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 31129600->35987456 mtime
+     16.0 CHG  f 26-11-18-22-56-03/Live-0.st size 13139968->13148160 mtime
+     16.0 CHG  f 26-11-18-22-56-03/Live-1.st size 16089088->16097280 mtime
+     16.0 CHG  f 26-11-18-22-56-03/nodes_0 size 107962368->108000000 mtime
+     16.0 CHG  f 26-11-18-22-56-03/ptrs_0 size 35987456->36000000 mtime
+     35.0 CHG  d . mtime
+     35.0 GONE d 26-11-18-22-56-03
+     35.0 GONE f 26-11-18-22-56-03/Live-0.st
+     35.0 GONE f 26-11-18-22-56-03/Live-1.st
+     35.0 GONE f 26-11-18-22-56-03/Live.st
+     35.0 GONE f 26-11-18-22-56-03/Live_0.fp
+     35.0 GONE f 26-11-18-22-56-03/Live_1.fp
+     35.0 GONE f 26-11-18-22-56-03/nodes_0
+     35.0 GONE f 26-11-18-22-56-03/ptrs_0

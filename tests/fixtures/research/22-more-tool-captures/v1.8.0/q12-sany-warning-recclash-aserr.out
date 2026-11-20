@@ -1,0 +1,14 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q22/work/v1.8.0/q12-sany-warning-recclash-aserr/RecClash.tla
+Semantic processing of module RecClash
+Semantic errors:
+
+*** Errors: 1
+
+line 3, col 16 to line 3, col 16 of module RecClash
+
+Non-unique fields in constructor.
+
+

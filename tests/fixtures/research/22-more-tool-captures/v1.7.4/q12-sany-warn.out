@@ -1,0 +1,22 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <tmp>/q22/work/v1.7.4/q12-sany-warn/Warn.tla
+Parsing file /tmp/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module Warn
+Semantic errors:
+
+*** Errors: 2
+
+line 6, col 9 to line 6, col 22 of module Warn
+
+[] followed by action not of form [A]_v.
+
+
+line 7, col 10 to line 7, col 19 of module Warn
+
+<> followed by action not of form <<A>>_v.
+
+
+

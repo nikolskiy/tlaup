@@ -1,0 +1,109 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG 2401:3 @!@!@
+Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+@!@!@ENDMSG 2401 @!@!@
+@!@!@STARTMSG 2271:0 @!@!@
+Running depth-first search Model-Checking with fp 0 and seed 5471006356228703620 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 1560165] (Linux 6.12.115+deb13.1-amd64 amd64, Debian 25.0.5 64bit).
+@!@!@ENDMSG 2271 @!@!@
+@!@!@STARTMSG 2220:0 @!@!@
+Starting SANY...
+@!@!@ENDMSG 2220 @!@!@
+Parsing file <tmp>/q22/work/v1.8.0/dfid-violation-deep/Violation.tla
+Parsing file /tmp/tlc-2580457205323990810/Naturals.tla (jar:file:<tmp>/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Parsing file /tmp/tlc-2580457205323990810/Sequences.tla (jar:file:<tmp>/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Sequences.tla)
+Parsing file /tmp/tlc-2580457205323990810/FiniteSets.tla (jar:file:<tmp>/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/FiniteSets.tla)
+Semantic processing of module Naturals
+Semantic processing of module Sequences
+Semantic processing of module FiniteSets
+Semantic processing of module Violation
+Linting of module Violation
+@!@!@STARTMSG 2219:0 @!@!@
+SANY finished.
+@!@!@ENDMSG 2219 @!@!@
+@!@!@STARTMSG 2185:0 @!@!@
+Starting... (2026-11-18 22:21:40)
+@!@!@ENDMSG 2185 @!@!@
+@!@!@STARTMSG 2208:0 @!@!@
+Finished computing initial states: 1 states generated, with 1 of them distinct.
+@!@!@ENDMSG 2208 @!@!@
+@!@!@STARTMSG 2205:0 @!@!@
+Starting level 2: 1 states generated, 1 distinct states found.
+@!@!@ENDMSG 2205 @!@!@
+@!@!@STARTMSG 2205:0 @!@!@
+Starting level 3: 7 states generated, 7 distinct states found.
+@!@!@ENDMSG 2205 @!@!@
+@!@!@STARTMSG 2205:0 @!@!@
+Starting level 4: 49 states generated, 43 distinct states found.
+@!@!@ENDMSG 2205 @!@!@
+@!@!@STARTMSG 2110:1 @!@!@
+Invariant Small is violated.
+@!@!@ENDMSG 2110 @!@!@
+@!@!@STARTMSG 2121:1 @!@!@
+The behavior up to this point is:
+@!@!@ENDMSG 2121 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+1: 
+/\ store = [alpha |-> {}, beta |-> {}, gamma |-> {}]
+/\ n = 0
+/\ log = <<>>
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+2: 
+/\ store = [alpha |-> {2}, beta |-> {}, gamma |-> {}]
+/\ n = 1
+/\ log = << [ op |-> "add",
+     key |-> "alpha",
+     val |-> 2,
+     note |->
+         "a deliberately long note to force the value to wrap across several lines" ] >>
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+3: 
+/\ store = [alpha |-> {2}, beta |-> {1}, gamma |-> {}]
+/\ n = 2
+/\ log = << [ op |-> "add",
+     key |-> "alpha",
+     val |-> 2,
+     note |->
+         "a deliberately long note to force the value to wrap across several lines" ],
+   [ op |-> "add",
+     key |-> "beta",
+     val |-> 1,
+     note |->
+         "a deliberately long note to force the value to wrap across several lines" ] >>
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2217:4 @!@!@
+4: 
+/\ store = [alpha |-> {1, 2}, beta |-> {1}, gamma |-> {}]
+/\ n = 3
+/\ log = << [ op |-> "add",
+     key |-> "alpha",
+     val |-> 2,
+     note |->
+         "a deliberately long note to force the value to wrap across several lines" ],
+   [ op |-> "add",
+     key |-> "beta",
+     val |-> 1,
+     note |->
+         "a deliberately long note to force the value to wrap across several lines" ],
+   [ op |-> "add",
+     key |-> "alpha",
+     val |-> 1,
+     note |->
+         "a deliberately long note to force the value to wrap across several lines" ] >>
+
+@!@!@ENDMSG 2217 @!@!@
+@!@!@STARTMSG 2206:0 @!@!@
+Progress(-1) at 2026-11-18 22:21:40: 127 states generated, 79 distinct states found, -1 states left on queue.
+@!@!@ENDMSG 2206 @!@!@
+@!@!@STARTMSG 2204:0 @!@!@
+127 states generated, 79 distinct states found.
+@!@!@ENDMSG 2204 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 945ms at (2026-11-18 22:21:40)
+@!@!@ENDMSG 2186 @!@!@

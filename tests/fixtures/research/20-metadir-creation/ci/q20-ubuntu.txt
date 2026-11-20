@@ -1,0 +1,12 @@
+RESULT q20 v1.7.4/existing linux : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/one-missing linux : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/three-missing linux : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/relative-missing linux : exit=0 metadir=dir-exists
+RESULT q20 v1.7.4/parent-is-file linux : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/v1.7.4/afile/md/26-11-19-08-46-03 for the disk file
+RESULT q20 v1.7.4/parent-not-writable linux : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/v1.7.4/ro/md/26-11-19-08-46-03 for the disk files i
+RESULT q20 rolling/existing linux : exit=0 metadir=dir-exists
+RESULT q20 rolling/one-missing linux : exit=0 metadir=dir-exists
+RESULT q20 rolling/three-missing linux : exit=0 metadir=dir-exists
+RESULT q20 rolling/relative-missing linux : exit=0 metadir=dir-exists
+RESULT q20 rolling/parent-is-file linux : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/rolling/afile/md/26-11-19-08-46-05.276 for the disk
+RESULT q20 rolling/parent-not-writable linux : exit=1 metadir=no-dir | Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <ws>/rolling/ro/md/26-11-19-08-46-05.382 for the disk fi

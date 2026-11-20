@@ -1,0 +1,23 @@
+q28 os=linux release=<kernel> machine=x86_64
+q28 JAVA_HOME=set: <JAVA_HOME: a JDK bundled with another program>
+RESULT q28 which-a-java linux : 2 found: /usr/bin/java, /bin/java
+  /usr/bin/java: symlink=True -> /usr/lib/jvm/java-25-openjdk-amd64/bin/java size=14384 header=ELF
+  file -L: /usr/bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=..., for GNU/Linux 3.2.0, stripped
+  file: /usr/bin/java: symbolic link to /etc/alternatives/java
+  /bin/java: symlink=True -> /usr/lib/jvm/java-25-openjdk-amd64/bin/java size=14384 header=ELF
+  file -L: /bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=..., for GNU/Linux 3.2.0, stripped
+  file: /bin/java: symbolic link to /etc/alternatives/java
+RESULT q28 java-home[/usr/bin/java][as-given] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME-unset] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME=JAVA11_HOME] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME=JAVA21_HOME] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[first-on-PATH][as-given] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME-unset] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA11_HOME] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA21_HOME] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/java-25-openjdk-amd64
+RESULT q28 java-home[$JAVA_HOME/bin/java][as-given] linux : exit=0 version=25.0.4 java.home=<JAVA_HOME: a JDK bundled with another program>
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME-unset] linux : exit=0 version=25.0.4 java.home=<JAVA_HOME: a JDK bundled with another program>
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA11_HOME] linux : exit=0 version=25.0.4 java.home=<JAVA_HOME: a JDK bundled with another program>
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA21_HOME] linux : exit=0 version=25.0.4 java.home=<JAVA_HOME: a JDK bundled with another program>
+RESULT q28 tlc-pass-v1.7.4-JAVA11_HOME linux : exit=0 no-error-found=True TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+RESULT q28 tlc-pass-rolling-JAVA11_HOME linux : exit=0 no-error-found=True TLC2 Version 2026.11.15.002146 (rev: bc1b506)

@@ -1,0 +1,16 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleAlg.tla
+!! WARNING: The PlusCal algorithm in module PcalStaleAlg has changed since its last translation.
+Parsing file /tmp/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module PcalStaleAlg
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleTla.tla
+!! WARNING: The TLA+ translation in module PcalStaleTla has changed since its last translation.
+Parsing file /tmp/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module PcalStaleTla

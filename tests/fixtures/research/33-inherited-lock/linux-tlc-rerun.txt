@@ -1,0 +1,10 @@
+# rerun of the real-TLC checks after the liveness fix, two runs per Java
+# Java 11.0.33 x2, then Java 25.0.5 x2
+RESULT q33 tlc174-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child lives:
+RESULT q33 tlcrolling-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child li
+RESULT q33 tlc174-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child lives:
+RESULT q33 tlcrolling-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child li
+RESULT q33 tlc174-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child lives:
+RESULT q33 tlcrolling-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child li
+RESULT q33 tlc174-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child lives:
+RESULT q33 tlcrolling-fl-hook-kill linux : lock held by child after holder kill, freed when child ended | while child li

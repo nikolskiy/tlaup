@@ -1,0 +1,67 @@
+{
+ "docs COLUMNS=100 NO_COLOR": {
+  "code": 0,
+  "stderr": "",
+  "bytes": 2700,
+  "sha": "ed658a0fa8",
+  "has_ansi": false,
+  "mentions": [
+   "tool pin",
+   "--n",
+   "How many lines",
+   "Pin a build",
+   "--version",
+   "Tool group",
+   "lines"
+  ]
+ },
+ "docs COLUMNS=60 NO_COLOR": {
+  "code": 0,
+  "stderr": "",
+  "bytes": 2700,
+  "sha": "ed658a0fa8",
+  "has_ansi": false,
+  "mentions": [
+   "tool pin",
+   "--n",
+   "How many lines",
+   "Pin a build",
+   "--version",
+   "Tool group",
+   "lines"
+  ]
+ },
+ "docs COLUMNS=100 color forced": {
+  "code": 0,
+  "stderr": "",
+  "bytes": 2700,
+  "sha": "ed658a0fa8",
+  "has_ansi": false,
+  "mentions": [
+   "tool pin",
+   "--n",
+   "How many lines",
+   "Pin a build",
+   "--version",
+   "Tool group",
+   "lines"
+  ]
+ },
+ "docs again COLUMNS=100 (determinism)": {
+  "code": 0,
+  "stderr": "",
+  "bytes": 2700,
+  "sha": "ed658a0fa8",
+  "has_ansi": false,
+  "mentions": [
+   "tool pin",
+   "--n",
+   "How many lines",
+   "Pin a build",
+   "--version",
+   "Tool group",
+   "lines"
+  ]
+ },
+ "docs tool cmd head": "# `app`\n\nA tiny app.\n\n**Usage**:\n\n```console\n$ app [OPTIONS] COMMAND [ARGS]...\n```\n\n**Options**:\n\n* `-V, --version`: Show version.\n* `--help`: Show this message and exit.\n\nSee the manual for more.\n\n**Commands**:\n\n* `lines`: Print N lines through the Rich console.\n* `boom`: Raise RuntimeError.\n* `interrupt`: Raise KeyboardInterrupt.\n* `abort`: Raise typer.Abort.\n* `eof`: Raise EOFError.\n* `exit`: E"
+}

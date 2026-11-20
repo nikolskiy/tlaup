@@ -1,0 +1,3 @@
+# rolling, Java 25, -workers 1, bound 10 (expected 1771561 distinct); last line of each -recover run
+between: 9084321 states generated, 1773118 distinct states found, 0 states left on queue.
+later-begun: 8422876 states generated, 1778012 distinct states found, 0 states left on queue.

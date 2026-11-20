@@ -1,0 +1,24 @@
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <tmp>/q22/work/v1.7.4/sany-levelerr-174/LevelErr.tla
+Parsing file /tmp/Naturals.tla
+Semantic processing of module Naturals
+Semantic processing of module LevelErr
+Semantic errors:
+
+*** Errors: 2
+
+line 6, col 8 to line 6, col 10 of module LevelErr
+
+Level error in applying operator ':
+The level of argument 1 exceeds the maximum level allowed by the operator.
+
+
+line 4, col 1 to line 4, col 12 of module LevelErr
+
+Level error: assumptions must be level 0 (Constant), 
+but this one has level 1.
+
+
+

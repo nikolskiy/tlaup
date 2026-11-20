@@ -1,0 +1,97 @@
+{
+ "inner": {
+  "typer._completion_classes": [
+   "BashComplete",
+   "FishComplete",
+   "Shells",
+   "ZshComplete",
+   "completion_init"
+  ],
+  "typer._completion_shared": [
+   "Shells",
+   "get_completion_script",
+   "install"
+  ],
+  "typer.completion": [
+   "Shells",
+   "completion_init",
+   "get_completion_inspect_parameters",
+   "get_completion_script",
+   "install",
+   "install_callback",
+   "shell_complete",
+   "show_callback"
+  ],
+  "typer._completion": "ImportError: No module named 'typer._completion'",
+  "get_completion_script_signature": "(*, prog_name: str, complete_var: str, shell: str) -> str",
+  "scripts": {
+   "bash": {
+    "len": 250,
+    "has": [
+     "COMP_WORDS",
+     "COMP_CWORD",
+     "complete_bash",
+     "_APP_COMPLETE"
+    ]
+   },
+   "zsh": {
+    "len": 153,
+    "has": [
+     "_TYPER_COMPLETE_ARGS",
+     "complete_zsh",
+     "_APP_COMPLETE"
+    ]
+   },
+   "fish": {
+    "len": 286,
+    "has": [
+     "_TYPER_COMPLETE_ARGS",
+     "_TYPER_COMPLETE_FISH_ACTION",
+     "complete_fish",
+     "_APP_COMPLETE"
+    ]
+   }
+  },
+  "completion_init_signature": "() -> None"
+ },
+ "bash: tool pin <TAB> (init called)": {
+  "code": 0,
+  "stdout": "rolling | rolling@bc1b506 | v1.8.0 | v1.7.4",
+  "stderr": ""
+ },
+ "bash: tool pin rolling @ <TAB> (split at @)": {
+  "code": 0,
+  "stdout": "",
+  "stderr": ""
+ },
+ "bash: tool pin rolling@ (unsplit)": {
+  "code": 0,
+  "stdout": "rolling@bc1b506",
+  "stderr": ""
+ },
+ "fish: get-args": {
+  "code": 0,
+  "stdout": "rolling | rolling@bc1b506 | v1.8.0 | v1.7.4",
+  "stderr": ""
+ },
+ "fish: is-args": {
+  "code": 0,
+  "stdout": "",
+  "stderr": ""
+ },
+ "zsh": {
+  "code": 0,
+  "stdout": "_arguments '*: :((\"rolling\" | \"rolling@bc1b506\" | \"v1.8.0\" | \"v1.7.4\"))'",
+  "stderr": ""
+ },
+ "bash without completion_init()": {
+  "code": 1,
+  "stdout": "",
+  "stderr": "Shell bash not supported."
+ },
+ "command names (bash, 'app lin<TAB>')": {
+  "code": 0,
+  "stdout": "lines",
+  "stderr": ""
+ }
+}

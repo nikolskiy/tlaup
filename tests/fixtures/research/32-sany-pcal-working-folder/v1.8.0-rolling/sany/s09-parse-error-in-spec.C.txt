@@ -1,0 +1,32 @@
+$ cd <w>/other
+$ java  -cp <jar> tla2sany.SANY ../spec/Main.tla
+--- run 1 stdout
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <w>/spec/Main.tla (file:<w>/other/../spec/Main.tla)
+***Parse Error***
+Was expecting "==== or more Module body"
+Encountered "x" at line 3, column 1 and token "Helper" 
+
+Residual stack trace follows:
+Module definition starting at line 1, column 1.
+
+
+Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+
+In module Main
+
+Could not parse module Main from file ../spec/Main.tla
+*** Errors: 1
+
+In module Main
+
+Could not parse module Main from file ../spec/Main.tla
+
+
+
+--- run 1 stderr
+--- run 1 exit 255
+--- files changed
+

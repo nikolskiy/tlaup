@@ -1,0 +1,7 @@
+q35 check_kill on Darwin arm64, Python 3.13.17; java: openjdk version "21.0.13.1" 2026-11-17 LTS
+RESULT q35 kill-sleeper-none-xrs-KILL macos : child STILL RUNNING 8s after the parent was killed (parent rc -9, child's parent now 1; log )
+RESULT q35 kill-sleeper-agent-pipe-xrs-KILL macos : child ENDED 0.06s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-stdin-xrs-KILL macos : child ENDED 0.20s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-pid-xrs-KILL macos : child ENDED 0.30s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-agent-onexit-xrs-KILL macos : child ENDED 0.19s after the parent was killed (parent rc -9; how: agent saw the parent go and called System.exit; shutdown hook ran (orderly exit, as after SIGTERM))
+RESULT q35 kill-sleeper-watcher-xrs-KILL macos : child ENDED 0.01s after the parent was killed (parent rc -9; how: watcher parent-gone sent TERM; no shutdown hook (hard kill))

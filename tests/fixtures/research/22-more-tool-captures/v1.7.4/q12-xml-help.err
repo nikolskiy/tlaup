@@ -1,0 +1,2 @@
+Exception in thread "main" java.lang.IllegalArgumentException: at least one .tla file must be given
+	at tla2sany.xml.XMLExporter.main(XMLExporter.java:59)

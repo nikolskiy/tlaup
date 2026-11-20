@@ -1,0 +1,10 @@
+v1.7.4 difftrace-violation states 5 vs 5 partial states: 3 carry-forward equals full trace: True
+v1.7.4 difftrace-liveness states 4 vs 4 partial states: 2 carry-forward equals full trace: True
+v1.7.4 params-violation-difftrace states 3 vs 3 partial states: 1 carry-forward equals full trace: True
+v1.7.4 alias-violation-difftrace no states (no ALIAS support or no trace)
+v1.7.4 difftrace-q1-violation states 4 vs 4 partial states: 1 carry-forward equals full trace: True
+v1.8.0 difftrace-violation states 5 vs 5 partial states: 3 carry-forward equals full trace: True
+v1.8.0 difftrace-liveness states 4 vs 4 partial states: 2 carry-forward equals full trace: True
+v1.8.0 params-violation-difftrace states 3 vs 3 partial states: 1 carry-forward equals full trace: True
+v1.8.0 alias-violation-difftrace states 4 vs 4 partial states: 2 carry-forward equals full trace: True
+v1.8.0 difftrace-q1-violation states 4 vs 4 partial states: 1 carry-forward equals full trace: True

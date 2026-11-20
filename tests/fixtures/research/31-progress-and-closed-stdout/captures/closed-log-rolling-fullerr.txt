@@ -1,0 +1,25 @@
+# rolling-fullerr mode=full-err pid=1475571 first-line-seen: 
+# fd listing at +2s:
+#    -> 
+#   0 -> /dev/null
+#   1 -> <tmp>/q31/p2/run-rolling-fullerr/out.txt
+#   2 -> /dev/full
+t=2s alive state/cpu-ticks=S 138
+t=12s alive state/cpu-ticks=S 704
+t=22s alive state/cpu-ticks=S 1018
+t=32s alive state/cpu-ticks=S 1437
+t=42s alive state/cpu-ticks=S 1804
+t=52s alive state/cpu-ticks=S 2260
+t=62s alive state/cpu-ticks=S 2560
+t=72s alive state/cpu-ticks=S 2835
+t=82s alive state/cpu-ticks=S 3234
+t=92s alive state/cpu-ticks=S 3578
+t=102s alive state/cpu-ticks=S 4020
+t=112s alive state/cpu-ticks=S 4363
+t=122s alive state/cpu-ticks=S 4697
+t=133s alive state/cpu-ticks=S 5079
+t=143s alive state/cpu-ticks=S 5465
+t=153s java gone; exit=12
+# out.txt lines: 3038; last:
+Finished in 02min 24s at (2026-11-18 22:06:29)
+Trace exploration spec path: ./Mid_TTrace_1795075445.tla

@@ -1,0 +1,38 @@
+ERROR: at least one .tla file must be given
+
+[1mNAME[0m
+
+	tla2sany.xml.XMLExporter - Emit SANY's parse tree as XML - Version 2.2 created 08 July 2020
+
+
+[1mSYNOPSIS[0m
+
+	[1mtla2sany.xml.XMLExporter[0m [[1m-Iortu[0m] [[1m-help[0m] FILE
+
+[1mDESCRIPTION[0m
+
+	Given a TLA+ file, parse that file with SANY then translate the module's semantic parse tree to XML, including all the modules depended on. The XML is printed to stdout and its output format is given by an XML Schema file (.xsd) found at https://proofs.tlapl.us/doc/web/sany.xsd.
+
+[1mOPTIONS[0m
+
+	[1m-I[0m
+		Include; use given directory path to resolve module dependencies.
+	[1m-help[0m
+		Print this usage information.
+	[1m-o[0m
+		Offline mode; skip XML schema validation step.
+	[1m-r[0m
+		Restrict mode; include only declarations and definitions of the specified module, excluding extended or instantiated modules.
+	[1m-t[0m
+		Terse; format XML output without tabs or newlines.
+	[1m-u[0m
+		Uncomment; process boxed comments and single-line comments (\*) in pre-comments to extract their content.
+
+[1mTIPS[0m
+
+	Only one root TLA+ file can be parsed per run.
+
+	Multiple directory search paths can be given by providing multiple -I arguments.
+
+	XML schema validation does not require network access.
+

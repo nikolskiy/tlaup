@@ -1,0 +1,20 @@
+# v174-head mode=head pid=1446064 first-line-seen: TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+# fd listing at +2s:
+#    -> 
+#   0 -> /dev/null
+#   1 -> pipe:[6305591]
+#   2 -> <tmp>/q31/p2/log-v174-head.txt
+t=2s alive state/cpu-ticks=S 108
+t=13s alive state/cpu-ticks=S 833
+t=23s alive state/cpu-ticks=S 1393
+t=33s alive state/cpu-ticks=S 1813
+t=43s alive state/cpu-ticks=S 2229
+t=53s alive state/cpu-ticks=S 2620
+t=63s alive state/cpu-ticks=S 3059
+t=73s alive state/cpu-ticks=S 3411
+t=83s alive state/cpu-ticks=S 3882
+t=93s alive state/cpu-ticks=S 4286
+t=103s alive state/cpu-ticks=S 4642
+t=113s alive state/cpu-ticks=S 5027
+t=123s alive state/cpu-ticks=S 5431
+t=133s java gone; exit=12

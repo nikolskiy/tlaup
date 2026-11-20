@@ -1,0 +1,36 @@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+(Use the -nowarning option to disable this warning.)
+Running breadth-first search Model-Checking with fp 99 and seed -7794505245229092177 with 1 worker on 12 cores with 3842MB heap and 64MB offheap memory [pid: 1601818] (Linux x86-64, Java 25.0.5).
+Starting... (2026-11-18 22:57:14)
+Starting recovery from checkpoint <tmp>/q25/meta/v174-default/26-11-18-21-56-44/
+Recovery completed. 67005 states examined. 269 states on queue.
+Progress(374) at 2026-11-18 22:57:17: 67,100 states generated (67,100 s/min), 67,053 distinct states found (67,053 ds/min), 269 states left on queue.
+Progress(380) at 2026-11-18 22:58:17: 70,395 states generated (3,295 s/min), 68,700 distinct states found (1,647 ds/min), 262 states left on queue.
+Progress(387) at 2026-11-18 22:59:17: 73,890 states generated (3,495 s/min), 70,447 distinct states found (1,747 ds/min), 255 states left on queue.
+Progress(392) at 2026-11-18 23:00:17: 76,814 states generated (2,924 s/min), 71,909 distinct states found (1,462 ds/min), 250 states left on queue.
+Progress(399) at 2026-11-18 23:01:17: 80,021 states generated (3,207 s/min), 73,513 distinct states found (1,604 ds/min), 243 states left on queue.
+Progress(407) at 2026-11-18 23:02:17: 83,625 states generated (3,604 s/min), 75,315 distinct states found (1,802 ds/min), 235 states left on queue.
+Progress(415) at 2026-11-18 23:03:17: 87,401 states generated (3,776 s/min), 77,203 distinct states found (1,888 ds/min), 227 states left on queue.
+Progress(424) at 2026-11-18 23:04:17: 91,341 states generated (3,940 s/min), 79,173 distinct states found (1,970 ds/min), 218 states left on queue.
+Progress(433) at 2026-11-18 23:05:17: 95,295 states generated (3,954 s/min), 81,150 distinct states found (1,977 ds/min), 209 states left on queue.
+Progress(442) at 2026-11-18 23:06:17: 99,168 states generated (3,873 s/min), 83,086 distinct states found (1,936 ds/min), 200 states left on queue.
+Progress(452) at 2026-11-18 23:07:17: 102,973 states generated (3,805 s/min), 84,989 distinct states found (1,903 ds/min), 190 states left on queue.
+Progress(462) at 2026-11-18 23:08:17: 106,741 states generated (3,768 s/min), 86,873 distinct states found (1,884 ds/min), 180 states left on queue.
+Progress(473) at 2026-11-18 23:09:17: 110,352 states generated (3,611 s/min), 88,678 distinct states found (1,805 ds/min), 169 states left on queue.
+Progress(484) at 2026-11-18 23:10:17: 114,062 states generated (3,710 s/min), 90,533 distinct states found (1,855 ds/min), 158 states left on queue.
+Progress(497) at 2026-11-18 23:11:17: 117,980 states generated (3,918 s/min), 92,492 distinct states found (1,959 ds/min), 145 states left on queue.
+Progress(511) at 2026-11-18 23:12:17: 121,817 states generated (3,837 s/min), 94,411 distinct states found (1,919 ds/min), 131 states left on queue.
+Progress(526) at 2026-11-18 23:13:17: 125,593 states generated (3,776 s/min), 96,299 distinct states found (1,888 ds/min), 116 states left on queue.
+Progress(544) at 2026-11-18 23:14:17: 129,388 states generated (3,795 s/min), 98,196 distinct states found (1,897 ds/min), 98 states left on queue.
+Progress(565) at 2026-11-18 23:15:17: 133,084 states generated (3,696 s/min), 100,044 distinct states found (1,848 ds/min), 77 states left on queue.
+Progress(596) at 2026-11-18 23:16:17: 136,929 states generated (3,845 s/min), 101,967 distinct states found (1,923 ds/min), 46 states left on queue.
+Model checking completed. No error has been found.
+  Estimates of the probability that TLC did not check all reachable states
+  because two distinct states had the same fingerprint:
+  calculated (optimistic):  val = 2.0E-10
+  based on the actual fingerprints:  val = 3.2E-11
+139080 states generated, 103042 distinct states found, 0 states left on queue.
+The depth of the complete state graph search is 641.
+The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 1).
+Finished in 19min 35s at (2026-11-18 23:16:49)

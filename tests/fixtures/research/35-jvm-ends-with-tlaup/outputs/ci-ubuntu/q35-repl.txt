@@ -1,0 +1,8 @@
+q35 check_repl on Linux x86_64, Python 3.13.18; java: openjdk version "21.0.13" 2026-10-20 LTS
+RESULT q35 repl-none linux : 1+1 answered 2; REPL STILL RUNNING 8s after the parent was killed
+RESULT q35 repl-pdeathsig-preexec linux : 1+1 answered 2; REPL ENDED 0.10s after the parent was killed
+RESULT q35 repl-pdeathsig-setpriv linux : 1+1 answered 2; REPL ENDED 0.10s after the parent was killed
+RESULT q35 repl-agent-pipe linux : 1+1 answered 2; REPL ENDED 0.10s after the parent was killed
+RESULT q35 repl-agent-pid linux : 1+1 answered 2; REPL ENDED 0.20s after the parent was killed
+RESULT q35 repl-agent-stdin linux : 1+1 NOT answered; REPL ENDED 0.05s after the parent was killed
+RESULT q35 repl-watcher linux : 1+1 answered 2; REPL ENDED 0.10s after the parent was killed

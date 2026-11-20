@@ -1,0 +1,215 @@
+q28 os=linux jars=['v1.7.4', 'rolling']
+q28 java11: javac=yes | openjdk version "11.0.33" 2026-10-20 | OpenJDK Runtime Environment Temurin-11.0.33+10 (build 11.0.33+10) | OpenJDK 64-Bit Server VM Temurin-11.0.33+10 (build 11.0.33+10, mixed mode)
+q28 java21: javac=no | openjdk version "21.0.13" 2026-10-20 | OpenJDK Runtime Environment (build 21.0.13+9-Debian) | OpenJDK 64-Bit Server VM (build 21.0.13+9-Debian, mixed mode, sharing)
+q28 java25: javac=yes | openjdk version "25.0.5" 2026-10-20 | OpenJDK Runtime Environment (build 25.0.5+8-Debian) | OpenJDK 64-Bit Server VM (build 25.0.5+8-Debian, mixed mode, sharing)
+RESULT q28 run-v1.7.4-java11-pass linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2193 2194 2199 2200 2219 2220 2262 2268
+RESULT q28 run-v1.7.4-java11-violation linux : exit=12
+  message codes: 2110 2121 2185 2186 2187 2189 2190 2194 2199 2200 2217 2219 2220 2262 2268
+RESULT q28 run-v1.7.4-java11-liveness_ok linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2192 2193 2194 2199 2200 2212 2219 2220 2262 2267 2268
+RESULT q28 run-v1.7.4-java11-liveness_violated linux : exit=13
+  message codes: 2116 2185 2186 2187 2189 2190 2192 2199 2200 2212 2217 2218 2219 2220 2262 2264 2267
+RESULT q28 run-v1.7.4-java21-pass linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2193 2194 2199 2200 2219 2220 2262 2268
+RESULT q28 run-v1.7.4-java21-violation linux : exit=12
+  message codes: 2110 2121 2185 2186 2187 2189 2190 2194 2199 2200 2217 2219 2220 2262 2268
+RESULT q28 run-v1.7.4-java21-liveness_ok linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2192 2193 2194 2199 2200 2212 2219 2220 2262 2267 2268
+RESULT q28 run-v1.7.4-java21-liveness_violated linux : exit=13
+  message codes: 2116 2185 2186 2187 2189 2190 2192 2199 2200 2212 2217 2218 2219 2220 2262 2264 2267
+RESULT q28 run-v1.7.4-java25-pass linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2193 2194 2199 2200 2219 2220 2262 2268
+RESULT q28 run-v1.7.4-java25-violation linux : exit=12
+  message codes: 2110 2121 2185 2186 2187 2189 2190 2194 2199 2200 2217 2219 2220 2262 2268
+RESULT q28 run-v1.7.4-java25-liveness_ok linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2192 2193 2194 2199 2200 2212 2219 2220 2262 2267 2268
+RESULT q28 run-v1.7.4-java25-liveness_violated linux : exit=13
+  message codes: 2116 2185 2186 2187 2189 2190 2192 2199 2200 2212 2217 2218 2219 2220 2262 2264 2267
+RESULT q28 run-rolling-java11-pass linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2193 2194 2199 2200 2219 2220 2262 2268
+RESULT q28 run-rolling-java11-violation linux : exit=12
+  message codes: 2110 2121 2185 2186 2187 2189 2190 2194 2199 2200 2217 2219 2220 2262
+RESULT q28 run-rolling-java11-liveness_ok linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2192 2193 2194 2199 2200 2212 2219 2220 2262 2267 2268
+RESULT q28 run-rolling-java11-liveness_violated linux : exit=13
+  message codes: 2116 2185 2186 2187 2189 2190 2192 2194 2199 2200 2212 2217 2218 2219 2220 2262 2264 2267
+RESULT q28 run-rolling-java21-pass linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2193 2194 2199 2200 2219 2220 2262 2268
+RESULT q28 run-rolling-java21-violation linux : exit=12
+  message codes: 2110 2121 2185 2186 2187 2189 2190 2194 2199 2200 2217 2219 2220 2262
+RESULT q28 run-rolling-java21-liveness_ok linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2192 2193 2194 2199 2200 2212 2219 2220 2262 2267 2268
+RESULT q28 run-rolling-java21-liveness_violated linux : exit=13
+  message codes: 2116 2185 2186 2187 2189 2190 2192 2194 2199 2200 2212 2217 2218 2219 2220 2262 2264 2267
+RESULT q28 run-rolling-java25-pass linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2193 2194 2199 2200 2219 2220 2262 2268
+RESULT q28 run-rolling-java25-violation linux : exit=12
+  message codes: 2110 2121 2185 2186 2187 2189 2190 2194 2199 2200 2217 2219 2220 2262
+RESULT q28 run-rolling-java25-liveness_ok linux : exit=0
+  message codes: 2185 2186 2187 2189 2190 2192 2193 2194 2199 2200 2212 2219 2220 2262 2267 2268
+RESULT q28 run-rolling-java25-liveness_violated linux : exit=13
+  message codes: 2116 2185 2186 2187 2189 2190 2192 2194 2199 2200 2212 2217 2218 2219 2220 2262 2264 2267
+RESULT q28 compile-javac11-default linux : ok classfile major=55
+RESULT q28 compile-javac25-default linux : ok classfile major=69
+RESULT q28 compile-javac25-release11 linux : ok classfile major=55
+RESULT q28 compile-javac25-release21 linux : ok classfile major=65
+RESULT q28 compile-mixed-index-release11-listed-javac25-default linux : ok index major=55 listed major=69
+RESULT q28 override-javac11-default-v1.7.4-java11-tool linux : exit=0 override used
+RESULT q28 override-javac11-default-v1.7.4-java11-plain linux : exit=0 override used
+RESULT q28 override-javac11-default-v1.7.4-java21-tool linux : exit=0 override used
+RESULT q28 override-javac11-default-v1.7.4-java21-plain linux : exit=0 override used
+RESULT q28 override-javac11-default-v1.7.4-java25-tool linux : exit=0 override used
+RESULT q28 override-javac11-default-v1.7.4-java25-plain linux : exit=0 override used
+RESULT q28 override-javac11-default-rolling-java11-tool linux : exit=0 override used
+RESULT q28 override-javac11-default-rolling-java11-plain linux : exit=0 override used
+RESULT q28 override-javac11-default-rolling-java21-tool linux : exit=0 override used
+RESULT q28 override-javac11-default-rolling-java21-plain linux : exit=0 override used
+RESULT q28 override-javac11-default-rolling-java25-tool linux : exit=0 override used
+RESULT q28 override-javac11-default-rolling-java25-plain linux : exit=0 override used
+RESULT q28 override-javac25-default-v1.7.4-java11-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 2173:1 @!@!@
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-javac25-default-v1.7.4-java11-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  Error: Found a Java class for module tlc2.overrides.TLCOverrides, but unable to read
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+RESULT q28 override-javac25-default-v1.7.4-java21-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 2173:1 @!@!@
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-javac25-default-v1.7.4-java21-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  Error: Found a Java class for module tlc2.overrides.TLCOverrides, but unable to read
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+RESULT q28 override-javac25-default-v1.7.4-java25-tool linux : exit=0 override used
+RESULT q28 override-javac25-default-v1.7.4-java25-plain linux : exit=0 override used
+RESULT q28 override-javac25-default-rolling-java11-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 2173:1 @!@!@
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-javac25-default-rolling-java11-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  Error: Found a Java class for module tlc2.overrides.TLCOverrides, but unable to read
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+RESULT q28 override-javac25-default-rolling-java21-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 2173:1 @!@!@
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-javac25-default-rolling-java21-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  Error: Found a Java class for module tlc2.overrides.TLCOverrides, but unable to read
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+RESULT q28 override-javac25-default-rolling-java25-tool linux : exit=0 override used
+RESULT q28 override-javac25-default-rolling-java25-plain linux : exit=0 override used
+RESULT q28 override-javac25-release11-v1.7.4-java11-tool linux : exit=0 override used
+RESULT q28 override-javac25-release11-v1.7.4-java11-plain linux : exit=0 override used
+RESULT q28 override-javac25-release11-v1.7.4-java21-tool linux : exit=0 override used
+RESULT q28 override-javac25-release11-v1.7.4-java21-plain linux : exit=0 override used
+RESULT q28 override-javac25-release11-v1.7.4-java25-tool linux : exit=0 override used
+RESULT q28 override-javac25-release11-v1.7.4-java25-plain linux : exit=0 override used
+RESULT q28 override-javac25-release11-rolling-java11-tool linux : exit=0 override used
+RESULT q28 override-javac25-release11-rolling-java11-plain linux : exit=0 override used
+RESULT q28 override-javac25-release11-rolling-java21-tool linux : exit=0 override used
+RESULT q28 override-javac25-release11-rolling-java21-plain linux : exit=0 override used
+RESULT q28 override-javac25-release11-rolling-java25-tool linux : exit=0 override used
+RESULT q28 override-javac25-release11-rolling-java25-plain linux : exit=0 override used
+RESULT q28 override-javac25-release21-v1.7.4-java11-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 2173:1 @!@!@
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-javac25-release21-v1.7.4-java11-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  Error: Found a Java class for module tlc2.overrides.TLCOverrides, but unable to read
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+RESULT q28 override-javac25-release21-v1.7.4-java21-tool linux : exit=0 override used
+RESULT q28 override-javac25-release21-v1.7.4-java21-plain linux : exit=0 override used
+RESULT q28 override-javac25-release21-v1.7.4-java25-tool linux : exit=0 override used
+RESULT q28 override-javac25-release21-v1.7.4-java25-plain linux : exit=0 override used
+RESULT q28 override-javac25-release21-rolling-java11-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 2173:1 @!@!@
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-javac25-release21-rolling-java11-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  Error: Found a Java class for module tlc2.overrides.TLCOverrides, but unable to read
+  it as a Java class object. tlc2/overrides/TLCOverrides has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+RESULT q28 override-javac25-release21-rolling-java21-tool linux : exit=0 override used
+RESULT q28 override-javac25-release21-rolling-java21-plain linux : exit=0 override used
+RESULT q28 override-javac25-release21-rolling-java25-tool linux : exit=0 override used
+RESULT q28 override-javac25-release21-rolling-java25-plain linux : exit=0 override used
+RESULT q28 override-mixed-index-release11-listed-javac25-default-v1.7.4-java11-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 1000:1 @!@!@
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-mixed-index-release11-listed-javac25-default-v1.7.4-java11-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  Error: TLC threw an unexpected exception.
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+RESULT q28 override-mixed-index-release11-listed-javac25-default-v1.7.4-java21-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 1000:1 @!@!@
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-mixed-index-release11-listed-javac25-default-v1.7.4-java21-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+  Error: TLC threw an unexpected exception.
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+RESULT q28 override-mixed-index-release11-listed-javac25-default-v1.7.4-java25-tool linux : exit=0 override used
+RESULT q28 override-mixed-index-release11-listed-javac25-default-v1.7.4-java25-plain linux : exit=0 override used
+RESULT q28 override-mixed-index-release11-listed-javac25-default-rolling-java11-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 1000:1 @!@!@
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-mixed-index-release11-listed-javac25-default-rolling-java11-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  Error: TLC threw an unexpected exception.
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0
+RESULT q28 override-mixed-index-release11-listed-javac25-default-rolling-java21-tool linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  @!@!@STARTMSG 2262:0 @!@!@
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  @!@!@STARTMSG 2185:0 @!@!@
+  @!@!@STARTMSG 1000:1 @!@!@
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+  @!@!@STARTMSG 2186:0 @!@!@
+RESULT q28 override-mixed-index-release11-listed-javac25-default-rolling-java21-plain linux : exit=255 class version refused (UnsupportedClassVersionError text)
+  TLC2 Version 2026.11.15.002146 (rev: bc1b506)
+  Error: TLC threw an unexpected exception.
+  The exception was a java.lang.UnsupportedClassVersionError
+  : tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 65.0
+RESULT q28 override-mixed-index-release11-listed-javac25-default-rolling-java25-tool linux : exit=0 override used
+RESULT q28 override-mixed-index-release11-listed-javac25-default-rolling-java25-plain linux : exit=0 override used

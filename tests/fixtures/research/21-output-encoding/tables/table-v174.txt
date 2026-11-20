@@ -1,0 +1,32 @@
+v174-j11-C-all             tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j11-C-fileenc         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j11-C-latin1          tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=other:636166c3 sanyquote=UTF8 pcalfile=comments-intact
+v174-j11-C-minimal         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j11-C-none            tlc=other:6361663f3f/BYTE?/BYTE? tlctool=other:6361663f3f/BYTE?/BYTE? print=other:6361663f3f203f3f3f3f3f3f3f3f3f pcal-msg=ASCII? sanyquote=other:6361663f3f203f3f3f3f3f3f3f3f3f pcalfile=COMMENTS-CHANGED
+v174-j11-C-stdout          tlc=other:6361663f3f/BYTE?/BYTE? print=other:6361663f3f203f3f3f3f3f3f3f3f3f pcal-msg=ASCII? sanyquote=other:6361663f3f203f3f3f3f3f3f3f3f3f pcalfile=COMMENTS-CHANGED
+v174-j11-C-sunstdout       tlc=other:636166efbfbdefbfbd/other:efbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbd/other:efbfbdefbfbd print=other:636166efbfbdefbfbd20efbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbd pcal-msg=other:636166efbfbd sanyquote=other:636166efbfbdefbfbd20efbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbdefbfbd pcalfile=COMMENTS-CHANGED
+v174-j11-Cutf8-none        tlc=UTF8/UTF8/UTF8 tlctool=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j11-POSIX-minimal     tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j11-POSIX-none        tlc=other:6361663f3f/BYTE?/BYTE? print=other:6361663f3f203f3f3f3f3f3f3f3f3f pcal-msg=ASCII? sanyquote=other:6361663f3f203f3f3f3f3f3f3f3f3f pcalfile=COMMENTS-CHANGED
+v174-j11-enUS-none         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j21-C-all             tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j21-C-fileenc         tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v174-j21-C-latin1          tlc=other:6361663f3f/BYTE?/BYTE? print=other:6361663f3f203f3f3f3f3f3f3f3f3f pcal-msg=ASCII? sanyquote=other:6361663f3f203f3f3f3f3f3f3f3f3f pcalfile=comments-intact
+v174-j21-C-minimal         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j21-C-none            tlc=ASCII?/ASCII?/ASCII? tlctool=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v174-j21-C-stdout          tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j21-C-sunstdout       tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j21-Cutf8-none        tlc=UTF8/UTF8/UTF8 tlctool=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j21-POSIX-minimal     tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j21-POSIX-none        tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v174-j25-C-all             tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j25-C-fileenc         tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v174-j25-C-latin1          tlc=other:6361663f3f/BYTE?/BYTE? print=other:6361663f3f203f3f3f3f3f3f3f3f3f pcal-msg=ASCII? sanyquote=other:6361663f3f203f3f3f3f3f3f3f3f3f pcalfile=comments-intact
+v174-j25-C-minimal         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j25-C-none            tlc=ASCII?/ASCII?/ASCII? tlctool=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v174-j25-C-stdout          tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j25-C-sunstdout       tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j25-Cutf8-none        tlc=UTF8/UTF8/UTF8 tlctool=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j25-POSIX-minimal     tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact
+v174-j25-POSIX-none        tlc=ASCII?/ASCII?/ASCII? print=ASCII? pcal-msg=ASCII? sanyquote=ASCII? pcalfile=comments-intact
+v174-j25-enUS-none         tlc=UTF8/UTF8/UTF8 print=UTF8 pcal-msg=UTF8 sanyquote=UTF8 pcalfile=comments-intact

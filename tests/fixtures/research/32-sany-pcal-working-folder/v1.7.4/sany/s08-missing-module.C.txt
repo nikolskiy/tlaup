@@ -1,0 +1,24 @@
+$ cd <w>/other
+$ java  -cp <jar> tla2sany.SANY ../spec/Main.tla
+--- run 1 stdout
+
+****** SANY2 Version 2.1 created 24 February 2014
+
+Parsing file <w>/spec/Main.tla
+Parsing file /tmp/Naturals.tla
+
+Fatal errors while parsing TLA+ spec in file ../spec/Main.tla
+
+tla2sany.semantic.AbortException
+*** Abort messages: 1
+
+Unknown location
+
+Cannot find source file for module NoSuchModule imported in module Main.
+
+
+--- run 1 stderr
+File does not exist: <w>/other/NoSuchModule.tla while looking in these directories: jar:file:<jar>!/tla2sany/StandardModules/
+--- run 1 exit 255
+--- files changed
+

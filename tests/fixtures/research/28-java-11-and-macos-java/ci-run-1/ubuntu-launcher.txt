@@ -1,0 +1,29 @@
+q28 os=linux release=7.0.0-1016-aws machine=x86_64
+q28 JAVA_HOME=set: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64
+RESULT q28 which-a-java linux : 4 found: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64/bin/java, /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/x64/bin/java, /usr/bin/java, /bin/java
+  /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64/bin/java: symlink=False -> /usr/lib/jvm/temurin-21-jdk-amd64/bin/java size=12328 header=ELF
+  file -L: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64/bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=51ad72e2c4c1bf23192b3e414ab9a95cb4cf5f6e, not stripped
+  file: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.13-9/x64/bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=51ad72e2c4c1bf23192b3e414ab9a95cb4cf5f6e, not stripped
+  /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/x64/bin/java: symlink=False -> /usr/lib/jvm/temurin-11-jdk-amd64/bin/java size=12768 header=ELF
+  file -L: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/x64/bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.18, not stripped
+  file: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.33-10/x64/bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.18, not stripped
+  /usr/bin/java: symlink=True -> /usr/lib/jvm/temurin-25-jdk-amd64/bin/java size=16264 header=ELF
+  file -L: /usr/bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=e6c64069554e8558a7dc3ae50791d9ee431e4a30, for GNU/Linux 2.6.32, not stripped
+  file: /usr/bin/java: symbolic link to /etc/alternatives/java
+  /bin/java: symlink=True -> /usr/lib/jvm/temurin-25-jdk-amd64/bin/java size=16264 header=ELF
+  file -L: /bin/java: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=e6c64069554e8558a7dc3ae50791d9ee431e4a30, for GNU/Linux 2.6.32, not stripped
+  file: /bin/java: symbolic link to /etc/alternatives/java
+RESULT q28 java-home[/usr/bin/java][as-given] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/temurin-25-jdk-amd64
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME-unset] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/temurin-25-jdk-amd64
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME=JAVA11_HOME] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/temurin-25-jdk-amd64
+RESULT q28 java-home[/usr/bin/java][JAVA_HOME=JAVA21_HOME] linux : exit=0 version=25.0.5 java.home=/usr/lib/jvm/temurin-25-jdk-amd64
+RESULT q28 java-home[first-on-PATH][as-given] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME-unset] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA11_HOME] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 java-home[first-on-PATH][JAVA_HOME=JAVA21_HOME] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 java-home[$JAVA_HOME/bin/java][as-given] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME-unset] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA11_HOME] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 java-home[$JAVA_HOME/bin/java][JAVA_HOME=JAVA21_HOME] linux : exit=0 version=21.0.13 java.home=/usr/lib/jvm/temurin-21-jdk-amd64
+RESULT q28 tlc-pass-v1.7.4-JAVA11_HOME linux : exit=0 no-error-found=True TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+RESULT q28 tlc-pass-rolling-JAVA11_HOME linux : exit=0 no-error-found=True TLC2 Version 2026.11.15.002146 (rev: bc1b506)

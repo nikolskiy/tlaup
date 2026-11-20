@@ -1,0 +1,15 @@
+      0.0 NEW  d . size=4096
+      1.0 CHG  d . mtime
+      1.0 NEW  d 26-11-18-22-41-18.666 size=4096
+      1.0 NEW  f 26-11-18-22-41-18.666/Slow.st size=0
+      2.0 CHG  d 26-11-18-22-41-18.666 mtime
+      2.0 NEW  f 26-11-18-22-41-18.666/Slow-0.st size=0
+      2.0 NEW  f 26-11-18-22-41-18.666/Slow_0.fp size=0
+      2.0 NEW  f 26-11-18-22-41-18.666/Slow_1.fp size=0
+    711.7 CHG  d 26-11-18-22-41-18.666 mtime
+    711.7 NEW  f 26-11-18-22-41-18.666/Slow-0.chkpt size=16
+    711.7 CHG  f 26-11-18-22-41-18.666/Slow-0.st size 0->26 mtime
+    711.7 NEW  f 26-11-18-22-41-18.666/Slow.st.chkpt size=0
+    711.7 NEW  f 26-11-18-22-41-18.666/queue.chkpt size=31
+    711.7 NEW  f 26-11-18-22-41-18.666/settings.chkpt size=87
+    711.7 NEW  f 26-11-18-22-41-18.666/vars.chkpt size=12347

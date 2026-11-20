@@ -1,0 +1,13 @@
+# TLC failure when -metadir cannot be created (stack trimmed by TLC itself)
+== v1.7.4
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory <W>/afile/md/26-11-18-22-03-02 for the disk files it needs to write.
+	at util.Assert.check(Assert.java:91)
+	at util.FileUtil.makeMetaDir(FileUtil.java:255)
+	at tlc2.TLC.handleParameters(TLC.java:958)
+	at tlc2.TLC.main(TLC.java:246)
+== rolling
+Exception in thread "main" util.Assert$TLCRuntimeException: TLC could not make a directory afile/md/26-11-18-22-03-03.249 for the disk files it needs to write.
+	at util.Assert.fail(Assert.java:86)
+	at util.FileUtil.makeMetaDir(FileUtil.java:300)
+	at tlc2.TLC.handleParameters(TLC.java:1283)
+	at tlc2.TLC.main(TLC.java:320)
