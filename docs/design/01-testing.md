@@ -201,7 +201,7 @@ Roadmap: "Unit tests cannot reach the network or start an unmocked subprocess."
              "generate_lines": null,
              "exit": 12, "line_delay_ms": 0, "hang_after_line": null,
              "on_sigint": 130, "on_sigterm": 143,
-             "write_into_metadir": [], "echo_stdin": false, "replace": {}}]}
+             "write_into_metadir": [], "checkpoint": null, "echo_stdin": false, "replace": {}}]}
   ```
 
   | Field | What the fake does |
@@ -212,7 +212,8 @@ Roadmap: "Unit tests cannot reach the network or start an unmocked subprocess."
   | `exit` | The exit code after the output. |
   | `line_delay_ms`, `hang_after_line` | Pace the output; stop after a line and wait for a signal. With `hang_after_line` equal to the number of lines the fake writes everything and then waits, which is "prints 100,000 lines and then waits". |
   | `on_sigint`, `on_sigterm` | The exit code when that signal arrives, or `"ignore"` to stay alive, which is how the second-signal and kill paths of [11 R2](11-runner.md#r2-signals) are reached. |
-  | `write_into_metadir` | File names to create in the folder given after `-metadir` (for example `queue.chkpt`), for the checkpoint rule of [11 R6](11-runner.md#r6-run-folders). |
+  | `write_into_metadir` | File names to create, before the output, in a timestamped folder the fake makes under the folder given after `-metadir`, as TLC does (for example `["queue.chkpt", "vars.chkpt"]`, a complete checkpoint under D52, or `["queue.chkpt", "queue.tmp"]`, an incomplete one), for the checkpoint rules of [11 R6](11-runner.md#r6-run-folders). Revised 2026-11-20 (review finding TU5): the first wording wrote into the `-metadir` folder itself, where D52's completeness test and `Kept.checkpoint_dir` do not look. |
+  | `checkpoint` | `{"begin_after_line": n, "commit_after_line": m}`: after replaying line `n` the fake writes `queue.tmp` and `vars.tmp` into its timestamped folder, and after line `m` renames them to `queue.chkpt` and `vars.chkpt`; with a 2195 line before `n` and a 2196 line at `m` in the replayed text, and `hang_after_line` between them, this is the checkpoint the deferral scenarios of R6 and G3 need. A signal that ends the fake between the two leaves the `.tmp` files, as TLC does. |
   | `echo_stdin` | Copy stdin to stdout line by line until it closes, for `repl` ([21 S3](21-other-tools.md#s3-repl)). |
   | `replace` | Text to substitute in the replayed output, for example `{"<tmp>/q1/specs": "{work}"}`. The captures hold `<tmp>` and `<repo>` placeholders where real paths were; with this a scenario can check rules that depend on real paths, such as diagnostics relative to the working folder. Without it such a rule can only be checked by the integration tests. |
 
@@ -220,7 +221,7 @@ Roadmap: "Unit tests cannot reach the network or start an unmocked subprocess."
 
   | Line | Fields | Written |
   | --- | --- | --- |
-  | `start` | The process id, the fake's own path, the argument list, the working folder, the main class (or `-version`), and whether its stdout is a pipe. | First thing, before any output. |
+  | `start` | The process id, its process group id (D60: a parsed run's JVM has a group of its own), the fake's own path, the argument list, the working folder, the main class (or `-version`), and whether its stdout is a pipe. | First thing, before any output. |
   | `signal` | The signal's name. | When a signal arrives, also one the fake ignores. |
   | `exit` | The exit code. | Last thing, on every way out the fake controls. |
 
@@ -321,7 +322,7 @@ Feature: Running TLC
 | Given: the store | `the build "<spec>" is installed` (optionally `and pinned`); `no build is installed`; `the module "<name>" is registered`; `the release list is cached from "<recording>", <n> minutes old`; `the jar of the build "<spec>" is truncated` |
 | Given: files | `a spec "<name>" from the golden specs`; `a file "<path>" containing:` (doc string); `a module source "<name>" from the fake sources`; `the config file contains:` (doc string); `the folder "<path>" is read-only`; `I am in the folder "<path>"` |
 | Given: what Java does | `java replays "<case>" with exit code <n>`; `java prints <n> lines`; `java writes "<text>" to stdout and "<text>" to stderr`; `java echoes its input`. Each of these declares one run of the fake. |
-| Given: changes to the run declared last | `java hangs after line <n>`; `java pauses <n> ms between lines`; `java writes "<file>" into its metadir`; `java ignores <signal>`; `java exits with <n> on <signal>` |
+| Given: changes to the run declared last | `java hangs after line <n>`; `java pauses <n> ms between lines`; `java writes "<file>, ..." into its metadir` (into the timestamped folder it makes there); `java begins a checkpoint after line <n> and commits it after line <m>`; `java ignores <signal>`; `java exits with <n> on <signal>` |
 | Given: which Java there is | `java is not installed`; `java is not executable`; `java is version "<v>"`; `java is replaced by version "<v>"`; `java takes <n> seconds to report its version`; `JAVA_HOME is a JDK of version "<v>"`; `JAVA_HOME is an empty folder`; `javac is not installed`; `javac fails with "<recording>"` |
 | Given: the editor | `the editor writes:` (doc string, which becomes the file's content); `the editor exits with code <n>` |
 | Given: the rest | `GitHub answers from "<recording>"`; `GitHub answers <status> to "<path>"`; `GitHub is unreachable` (all three in-process only); `the environment variable "<name>" is "<value>"` |
@@ -342,7 +343,7 @@ Notes on the steps whose meaning is not plain from their words:
 - **Counting.** `<stream> contains "<text>" <n> times` counts occurrences that do not overlap, for scenarios such as "the question was asked three times". The GitHub steps (`<n> request(s) were sent to GitHub`, `<n> jar download(s) were made`) count the last run only: `I run` clears the recorded requests before each call, so "the second time, one request" is a second `I run` followed by the step.
 - **`the cache holds no lock files`** asserts that no `*.lock` file lies directly under `{runs}` ([11 R6](11-runner.md#r6-run-folders)).
 - **Stdin of the real-process steps.** `I run ... as a process` gives the process the null device as stdin unless it is the `with input:` form. The `I start ...` steps give it a pipe that the step holds open until the process has ended, so a tool that reads its input (the REPL, the echoing fake) does not see end of input while the scenario waits to send its signal; the step closes the pipe after the process exits. On a terminal, stdin is the pty.
-- **Declaring a run, then changing it.** `java replays ... with exit code 255` followed by `And java writes "queue.chkpt" into its metadir` and `And java hangs after line 40` is one run with all three properties. This replaces the first vocabulary's combined forms, which could not say "replays, writes a checkpoint and exits with 255" or "hangs and ignores SIGTERM". `java prints 100000 lines` followed by `java hangs after line 100000` is the fake that prints everything and then waits.
+- **Declaring a run, then changing it.** `java replays ... with exit code 255` followed by `And java writes "queue.chkpt, vars.chkpt" into its metadir` and `And java hangs after line 40` is one run with all three properties. This replaces the first vocabulary's combined forms, which could not say "replays, writes a checkpoint and exits with 255" or "hangs and ignores SIGTERM". `java prints 100000 lines` followed by `java hangs after line 100000` is the fake that prints everything and then waits.
 - **Two runs in one scenario.** A scenario may have a second `When I run`, with Given steps between the two (a kept run folder exists because a first run left it; then the fake is declared again and a second run resumes it). `I run` resets the application context before each call, as the isolation fixture does before each test ([00](00-overview.md#application-context)), so the second run reads the files the first one left and nothing from its memory. The Then steps speak about the last run; the fakes' logs hold both. pytest-bdd accepts a Given after a When in every version research 30 tried (top-up), so the fallback step the first design named is not needed.
 - **`once java is running`** waits for a `start` line in the fake's log whose main class is the tool's, not the `-version` start that comes first (T4). Waiting for the first line of any kind would send the signal during the version check, before TLC exists.
 - **`send <signal> twice`** sends the signal, waits until the fake has logged a signal of its own (tlaup has passed the first one on), and sends it again. It is used with `java ignores <signal>`, so the child is certainly still running when the second arrives. Sending the two back to back would not do: two pending signals of one kind are delivered as one.

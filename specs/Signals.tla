@@ -157,8 +157,10 @@ LoopFails ==
     /\ UNCHANGED <<new, phase, ignored, leave, stubborn, handlers, first, count, child, childIgnores,
                    killSent, stoppedBy, code, arrived, firstBeforeExit, firstAtCheck, diedIn>>
 
-\* The grace period runs out: kill().  The main thread watches the clock from the first
-\* signal, and the finally from the terminate() it sent.
+\* The grace period runs out: kill().  The clock runs from the moment terminate() was sent:
+\* for a first signal, when it was sent on to the child (Signals.first_at), which for a
+\* signal held during a checkpoint is when the checkpoint was written, not when the signal
+\* arrived; for the finally, from the terminate() it sent.  Hence termSent below.
 GraceKill ==
     /\ phase = "attached"
     /\ child = "running"

@@ -5,8 +5,10 @@
 #   TLA2TOOLS=<path to a released tla2tools.jar> ./check.sh [name-pattern]
 #
 # Needs Java 11 or newer.  TLC's state files go to states.*/ here, which is ignored by git
-# and removed after each run.  The full set takes about half an hour on twelve cores; a
-# pattern such as "Signals" or "RunFolders-no" runs the configs whose file name contains it.
+# and removed after each run.  The full set took 3 h 41 min on twelve cores on 2026-11-21;
+# four configs take most of it, 41 to 65 minutes each: RunFolders,
+# RunFolders-one-process-three-ids, RunFolders-windows and RunFolders-no-hour-rule.  A pattern
+# such as "Signals" or "RunFolders-no" runs the configs whose file name contains it.
 set -u
 cd "$(dirname "$0")"
 : "${TLA2TOOLS:?set TLA2TOOLS to the path of tla2tools.jar}"

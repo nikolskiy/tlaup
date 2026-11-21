@@ -22,11 +22,13 @@ CONSTANTS
     MaxKills,        \* how many times a tlaup is killed with SIGKILL
     ReadUnderLock,   \* TRUE: what a mutation decides on (the pin, whether a build is
                      \* installed) is read again once the store lock is held (finding K2-1)
-    UnpinFirst       \* TRUE: uninstall clears the pin before it removes the pinned build
+    UnpinFirst,      \* TRUE: uninstall clears the pin before it removes the pinned build
                      \* (finding K2-2, the option not taken: decision D50 keeps FALSE)
+    CheckInstalled   \* TRUE: Add looks whether the build is installed already (V1); FALSE
+                     \* is the mutation that shows NoDuplicate is not vacuous (finding FC3)
 
 ASSUME /\ MaxVer \in Nat \ {0} /\ MaxKills \in Nat
-       /\ ReadUnderLock \in BOOLEAN /\ UnpinFirst \in BOOLEAN
+       /\ ReadUnderLock \in BOOLEAN /\ UnpinFirst \in BOOLEAN /\ CheckInstalled \in BOOLEAN
 
 Builds == Names \X (1..MaxVer)
 None == <<"none", 0>>
@@ -34,7 +36,7 @@ NoProc == "none"
 
 VARIABLES
     published,   \* per name: the version upstream publishes now
-    copies,      \* per build: how many folders of the store hold it (0 or 1 if NoDuplicate holds)
+    copies,      \* per build: how many folders of the store hold it (NoDuplicate: at most 1)
     pin,         \* the pinned build, or None
     storeLock,   \* the process holding <cache>/tool/.lock, or NoProc
     tmpd,        \* per process: its download folder under .tmp/ and that folder's lock
@@ -50,9 +52,10 @@ VARIABLES
                  \*   removed  uninstall: the build was removed
                  \*   rd       a reader: the pin it read
     kills,
-    killedInLock \* a tlaup was killed while it held the store lock (ghost)
+    killedRemoved \* the build an uninstall had removed when it was killed under the lock, until
+                 \* the pin is next written (ghost; finding FC4 of the 2026-11-20 review)
 
-vars == <<published, copies, pin, storeLock, tmpd, tmpo, left, pc, loc, kills, killedInLock>>
+vars == <<published, copies, pin, storeLock, tmpd, tmpo, left, pc, loc, kills, killedRemoved>>
 
 NoTmp == [lock |-> FALSE, st |-> "none"]
 \* tmpd.st: "none" no folder; "partial" a download in progress; "ready" a verified jar and
@@ -80,7 +83,7 @@ TypeOK ==
                           old : Builds \cup {None}, seenPin : Builds \cup {None},
                           removed : BOOLEAN, rd : Builds \cup {None}]]
     /\ kills \in 0..MaxKills
-    /\ killedInLock \in BOOLEAN
+    /\ killedRemoved \in Builds \cup {None}
 
 Init ==
     /\ published = [n \in Names |-> 1]
@@ -93,7 +96,7 @@ Init ==
     /\ pc = [p \in Procs |-> "idle"]
     /\ loc = [p \in Procs |-> NoLoc]
     /\ kills = 0
-    /\ killedInLock = FALSE
+    /\ killedRemoved = None
 
 Goto(p, where) == pc' = [pc EXCEPT ![p] = where]
 \* The command is over: the process forgets what it remembered.
@@ -109,7 +112,7 @@ StartInstall(p, n) ==
     /\ loc' = [loc EXCEPT ![p] = [NoLoc EXCEPT !.cmd = "install", !.nm = n, !.seenPin = pin,
                                                !.bld = IF Installed(Current(n)) THEN Current(n) ELSE None]]
     /\ Goto(p, IF Installed(Current(n)) THEN "sLock" ELSE "tLock")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedRemoved>>
 
 \* `tool upgrade NAME` (V4): compare the newest installed build of the name with upstream.
 StartUpgrade(p, n) ==
@@ -119,7 +122,7 @@ StartUpgrade(p, n) ==
     /\ loc' = [loc EXCEPT ![p] = [NoLoc EXCEPT !.cmd = "upgrade", !.nm = n, !.seenPin = pin,
                                                !.old = Newest(n)]]
     /\ Goto(p, "tLock")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedRemoved>>
 
 \* `tool uninstall BUILD` (V3) and `tool pin BUILD` (V4): the build is found first.
 StartUninstall(p, b) ==
@@ -127,14 +130,14 @@ StartUninstall(p, b) ==
     /\ Installed(b)
     /\ loc' = [loc EXCEPT ![p] = [NoLoc EXCEPT !.cmd = "uninstall", !.bld = b, !.seenPin = pin]]
     /\ Goto(p, "sLock")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedRemoved>>
 
 StartPin(p, b) ==
     /\ pc[p] = "idle"
     /\ Installed(b)
     /\ loc' = [loc EXCEPT ![p] = [NoLoc EXCEPT !.cmd = "pin", !.bld = b]]
     /\ Goto(p, "sLock")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedRemoved>>
 
 -----------------------------------------------------------------------------
 (* The download, outside the store lock (V5, V11).                         *)
@@ -144,13 +147,13 @@ TmpLock(p) ==
     /\ pc[p] = "tLock"
     /\ tmpd' = [tmpd EXCEPT ![p].lock = TRUE]
     /\ Goto(p, "tMkdir")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, loc, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, loc, kills, killedRemoved>>
 
 TmpMkdir(p) ==
     /\ pc[p] = "tMkdir"
     /\ tmpd' = [tmpd EXCEPT ![p].st = "partial"]
     /\ Goto(p, "dl")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, loc, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, loc, kills, killedRemoved>>
 
 \* The jar that arrives is what upstream publishes at that moment.
 Download(p) ==
@@ -158,7 +161,7 @@ Download(p) ==
     /\ tmpd' = [tmpd EXCEPT ![p].st = "ready"]
     /\ loc' = [loc EXCEPT ![p].bld = Current(loc[p].nm)]
     /\ Goto(p, "sLock")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, kills, killedRemoved>>
 
 \* A failed download, or a store lock that cannot be had in 60 seconds (StoreLocked): the
 \* folder is deleted, then its lock released.
@@ -167,13 +170,13 @@ GiveUp(p) ==
        \/ pc[p] = "sLock" /\ storeLock # NoProc
     /\ tmpd' = [tmpd EXCEPT ![p].st = "none"]
     /\ IF tmpd[p].lock THEN Goto(p, "tUnlock") /\ UNCHANGED loc ELSE Done(p)
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, kills, killedRemoved>>
 
 TmpUnlock(p) ==
     /\ pc[p] = "tUnlock"
     /\ tmpd' = [tmpd EXCEPT ![p] = NoTmp]
     /\ Done(p)
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpo, left, kills, killedRemoved>>
 
 -----------------------------------------------------------------------------
 (* Under the store lock.                                                   *)
@@ -183,7 +186,7 @@ StoreLock(p) ==
     /\ storeLock = NoProc
     /\ storeLock' = p
     /\ Goto(p, "locked")
-    /\ UNCHANGED <<published, copies, pin, tmpd, tmpo, left, loc, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, tmpd, tmpo, left, loc, kills, killedRemoved>>
 
 \* V11: whoever holds the store lock goes through .tmp/ and removes each folder whose own
 \* lock it can take, which means its owner is gone.
@@ -191,7 +194,7 @@ CleanupLeft(p) ==
     /\ pc[p] = "locked"
     /\ left > 0
     /\ left' = left - 1
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, pc, loc, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, pc, loc, kills, killedRemoved>>
 
 \* The same step meeting the folder of a process that is alive.  It is enabled only when
 \* that folder exists and its lock is free, which TmpLockedWhileThere says never happens.
@@ -204,7 +207,7 @@ CleanupLive(p, q) ==
        \/ /\ tmpo[q].st # "none" /\ ~tmpo[q].lock
           /\ tmpo' = [tmpo EXCEPT ![q].st = "none"]
           /\ UNCHANGED tmpd
-    /\ UNCHANGED <<published, copies, pin, storeLock, left, pc, loc, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, left, pc, loc, kills, killedRemoved>>
 
 \* An install that found its build installed has downloaded nothing.
 FoundInstalled(p) == loc[p].cmd = "install" /\ tmpd[p].st = "none"
@@ -216,11 +219,11 @@ Add(p) ==
     /\ pc[p] = "locked"
     /\ loc[p].cmd \in {"install", "upgrade"}
     /\ ~(ReadUnderLock /\ FoundInstalled(p) /\ ~Installed(loc[p].bld))
-    /\ copies' = IF Installed(loc[p].bld) \/ tmpd[p].st = "none"
-                 THEN copies ELSE [copies EXCEPT ![loc[p].bld] = 1]
+    /\ copies' = IF (CheckInstalled /\ Installed(loc[p].bld)) \/ tmpd[p].st = "none"
+                 THEN copies ELSE [copies EXCEPT ![loc[p].bld] = @ + 1]
     /\ tmpd' = [tmpd EXCEPT ![p].st = "none"]
     /\ Goto(p, "added")
-    /\ UNCHANGED <<published, pin, storeLock, tmpo, left, loc, kills, killedInLock>>
+    /\ UNCHANGED <<published, pin, storeLock, tmpo, left, loc, kills, killedRemoved>>
 
 \* The build an install found installed has been removed by the time it holds the lock:
 \* it lets the lock go and starts again, this time with a download (finding K2-5).
@@ -230,20 +233,28 @@ StartAgain(p) ==
     /\ storeLock' = NoProc
     /\ loc' = [loc EXCEPT ![p].bld = None]
     /\ Goto(p, "tLock")
-    /\ UNCHANGED <<published, copies, pin, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, tmpd, tmpo, left, kills, killedRemoved>>
 
 PinNow(p) == IF ReadUnderLock THEN pin ELSE loc[p].seenPin
+
+\* Nothing is pinned, for the first-install rule: no pin, or a pin that names a build that is
+\* not installed (V12; so that the state D50 accepts is put right by an install, as V3 says).
+NothingPinned(b) == b = None \/ ~Installed(b)
+
+\* The ghost is forgotten once the pin is written.
+Forget == killedRemoved' = IF pin' # pin THEN None ELSE killedRemoved
 
 \* install: pin the build if nothing is pinned.  upgrade: move the pin if it named the
 \* build that is replaced.
 PinStep(p) ==
     /\ pc[p] = "added"
     /\ IF loc[p].cmd = "install"
-       THEN /\ pin' = IF PinNow(p) = None THEN loc[p].bld ELSE pin
+       THEN /\ pin' = IF NothingPinned(PinNow(p)) THEN loc[p].bld ELSE pin
             /\ Goto(p, "sUnlock")
        ELSE /\ pin' = IF PinNow(p) = loc[p].old THEN loc[p].bld ELSE pin
             /\ Goto(p, "rm")
-    /\ UNCHANGED <<published, copies, storeLock, tmpd, tmpo, left, loc, kills, killedInLock>>
+    /\ Forget
+    /\ UNCHANGED <<published, copies, storeLock, tmpd, tmpo, left, loc, kills>>
 
 \* The build to remove: upgrade removes the build it compared, uninstall the one named.
 Outgoing(p) == IF loc[p].cmd = "upgrade" THEN loc[p].old ELSE loc[p].bld
@@ -259,14 +270,14 @@ RenameOut(p) ==
           /\ tmpo' = IF there THEN [tmpo EXCEPT ![p] = [lock |-> TRUE, st |-> "out"]] ELSE tmpo
           /\ loc' = [loc EXCEPT ![p].removed = there]
     /\ Goto(p, "rmDel")
-    /\ UNCHANGED <<published, pin, storeLock, tmpd, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, pin, storeLock, tmpd, left, kills, killedRemoved>>
 
 \* store.remove, second half: the folder is deleted in .tmp/ and its lock released.
 DeleteOut(p) ==
     /\ pc[p] = "rmDel"
     /\ tmpo' = [tmpo EXCEPT ![p] = NoTmp]
     /\ Goto(p, IF loc[p].cmd = "uninstall" /\ ~UnpinFirst THEN "unpin" ELSE "sUnlock")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, left, loc, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, left, loc, kills, killedRemoved>>
 
 \* uninstall: clear the pin if the pinned build is the one removed (V3, step 2).
 ClearPin(p) ==
@@ -275,7 +286,8 @@ ClearPin(p) ==
     /\ LET goes == IF UnpinFirst THEN Installed(loc[p].bld) ELSE loc[p].removed
        IN pin' = IF goes /\ PinNow(p) = loc[p].bld THEN None ELSE pin
     /\ Goto(p, IF UnpinFirst THEN "rm" ELSE "sUnlock")
-    /\ UNCHANGED <<published, copies, storeLock, tmpd, tmpo, left, loc, kills, killedInLock>>
+    /\ Forget
+    /\ UNCHANGED <<published, copies, storeLock, tmpd, tmpo, left, loc, kills>>
 
 \* pin: write the pin.  With ReadUnderLock the build is looked up again first.
 WritePin(p) ==
@@ -283,13 +295,14 @@ WritePin(p) ==
     /\ loc[p].cmd = "pin"
     /\ pin' = IF ReadUnderLock /\ ~Installed(loc[p].bld) THEN pin ELSE loc[p].bld
     /\ Goto(p, "sUnlock")
-    /\ UNCHANGED <<published, copies, storeLock, tmpd, tmpo, left, loc, kills, killedInLock>>
+    /\ Forget
+    /\ UNCHANGED <<published, copies, storeLock, tmpd, tmpo, left, loc, kills>>
 
 StoreUnlock(p) ==
     /\ pc[p] = "sUnlock"
     /\ storeLock' = NoProc
     /\ IF tmpd[p].lock THEN Goto(p, "tUnlock") /\ UNCHANGED loc ELSE Done(p)
-    /\ UNCHANGED <<published, copies, pin, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, tmpd, tmpo, left, kills, killedRemoved>>
 
 -----------------------------------------------------------------------------
 (* A reader: the preflight of a run, `tool path`.  No lock (V1).           *)
@@ -300,20 +313,20 @@ ReadPin(p) ==
     /\ pin # None
     /\ loc' = [loc EXCEPT ![p] = [NoLoc EXCEPT !.cmd = "read", !.rd = pin]]
     /\ Goto(p, "rCheck")
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedRemoved>>
 
 \* pinned(): the pin names a build that is in builds(), or PinnedBuildMissing.
 ReadCheck(p) ==
     /\ pc[p] = "rCheck"
     /\ IF Installed(loc[p].rd) THEN Goto(p, "rOpen") /\ UNCHANGED loc ELSE Done(p)
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedRemoved>>
 
 \* Java opens the jar.  If the build was removed after the check, Java, not tlaup, reports
 \* that it cannot load its main class (finding K2-3).
 ReadOpen(p) ==
     /\ pc[p] = "rOpen"
     /\ Done(p)
-    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedInLock>>
+    /\ UNCHANGED <<published, copies, pin, storeLock, tmpd, tmpo, left, kills, killedRemoved>>
 
 -----------------------------------------------------------------------------
 (* The environment.                                                        *)
@@ -323,7 +336,8 @@ Kill(p) ==
     /\ pc[p] # "idle"
     /\ kills < MaxKills
     /\ kills' = kills + 1
-    /\ killedInLock' = (killedInLock \/ storeLock = p)
+    /\ killedRemoved' = IF storeLock = p /\ loc[p].cmd = "uninstall" /\ loc[p].removed
+                        THEN loc[p].bld ELSE killedRemoved
     /\ storeLock' = IF storeLock = p THEN NoProc ELSE storeLock
     /\ left' = left + (IF tmpd[p].st # "none" THEN 1 ELSE 0) + (IF tmpo[p].st # "none" THEN 1 ELSE 0)
     /\ tmpd' = [tmpd EXCEPT ![p] = NoTmp]
@@ -335,7 +349,7 @@ Kill(p) ==
 Publish(n) ==
     /\ published[n] < MaxVer
     /\ published' = [published EXCEPT ![n] = @ + 1]
-    /\ UNCHANGED <<copies, pin, storeLock, tmpd, tmpo, left, pc, loc, kills, killedInLock>>
+    /\ UNCHANGED <<copies, pin, storeLock, tmpd, tmpo, left, pc, loc, kills, killedRemoved>>
 
 Next ==
     \/ \E p \in Procs :
@@ -354,10 +368,12 @@ Spec == Init /\ [][Next]_vars
 -----------------------------------------------------------------------------
 (* Properties (03, K2).                                                    *)
 
-\* Whenever the store lock is free, the pin is absent or names an installed build, unless
-\* a tlaup was killed while it held the lock.
+\* Whenever the store lock is free, the pin is absent or names an installed build, or it names
+\* the one build an uninstall had removed when it was killed, until the pin is next written
+\* (the state D50 accepts).  Before the 2026-11-20 review the exception was a flag that, once
+\* set, switched the property off for the rest of the behaviour (finding FC4).
 PinConsistent ==
-    (storeLock = NoProc /\ ~killedInLock) => (pin = None \/ Installed(pin))
+    storeLock = NoProc => (pin = None \/ Installed(pin) \/ pin = killedRemoved)
 
 \* The same without the exception.  As V3 orders the steps it does not hold (finding K2-2).
 PinConsistentAfterKill == storeLock = NoProc => (pin = None \/ Installed(pin))
@@ -393,7 +409,7 @@ PinNeverMovesSilently ==
             \/ WritePin(p)
             \/ ClearPin(p) /\ pin = loc[p].bld /\ pin' = None
             \/ PinStep(p) /\ loc[p].cmd = "upgrade" /\ pin = loc[p].old /\ pin' = loc[p].bld
-            \/ PinStep(p) /\ loc[p].cmd = "install" /\ pin = None /\ pin' = loc[p].bld]_vars
+            \/ PinStep(p) /\ loc[p].cmd = "install" /\ NothingPinned(pin) /\ pin' = loc[p].bld]_vars
 
 \* What `pin` pins is installed at that moment, and so is what an install pins.
 PinWritesInstalled ==

@@ -40,14 +40,17 @@ CONSTANTS
                            \* a SIGKILL of tlaup leaves the locks held until its TLC ends
                            \* (Linux and macOS, decision D51); FALSE: Windows, network file
                            \* systems, where only the lifeline ends the orphan TLC
-    UnlinkOnRelease        \* TRUE: the lock library deletes the file at the name when it
+    UnlinkOnRelease,       \* TRUE: the lock library deletes the file at the name when it
                            \* releases (filelock 3.20.4 to 3.29.4, question 30); ruled out by
                            \* the lower bound filelock>=4.2.1
+    KeptMeansKeep          \* TRUE: settle writes "keep": true when it keeps a folder, and a
+                           \* resume of a folder that says keep or kept is a kept run (R6, the
+                           \* fix of finding FC1 of the 2026-11-20 review); FALSE: the rule before
 
 ASSUME /\ Runners \subseteq Procs /\ Cleaners \subseteq Procs
        /\ Recheck \in BOOLEAN /\ HourRule \in BOOLEAN /\ Stall \in BOOLEAN
        /\ DeleteMayFail \in BOOLEAN /\ CleanSparesCheckpoint \in BOOLEAN
-       /\ LockFollowsTLC \in BOOLEAN /\ UnlinkOnRelease \in BOOLEAN
+       /\ LockFollowsTLC \in BOOLEAN /\ UnlinkOnRelease \in BOOLEAN /\ KeptMeansKeep \in BOOLEAN
        /\ MaxKills \in Nat
 
 VARIABLES
@@ -220,13 +223,14 @@ IfGone == [b \in BOOLEAN |-> b]
 (* recovered folder's lock, make the folder, write run.json, sweep.        *)
 
 \* k: the run was started with --keep.  A run that resumes from a folder whose run asked to
-\* be kept is a kept run too (D53: a kept folder goes only when a resume from it finishes).
+\* be kept is a kept run too (D53: a kept folder goes only when a resume from it finishes),
+\* and so, with KeptMeansKeep, is one that resumes from a folder that was kept.
 CreateLockFile(p, r, t, k) ==
     /\ pc[p] = "idle"
     /\ p \in Runners
     /\ r \notin used
     /\ t = NoRun \/ (t \in RunIds /\ t # r /\ folder[t].ex)   \* -recover PATH inside runs/<t>/
-    /\ (t # NoRun /\ keep[t]) => k
+    /\ (t # NoRun /\ (keep[t] \/ (KeptMeansKeep /\ folder[t].json = "kept"))) => k
     /\ lockFile[r] = 0
     /\ FreeInodes # {}
     /\ lockFile' = [lockFile EXCEPT ![r] = NewInode]
@@ -470,8 +474,9 @@ Settle(p) ==
             LET k == ~finished /\ keep[r] /\ folder[f].ex /\ folder[f].chk = "ok" IN
             /\ keptD' = [keptD EXCEPT ![p] = IF k THEN "kept" ELSE IF finished THEN "fin" ELSE "drop"]
             /\ folder' = IF k THEN [folder EXCEPT ![f].json = "kept"] ELSE folder
+            /\ keep' = IF k /\ KeptMeansKeep THEN [keep EXCEPT ![f] = TRUE] ELSE keep
     /\ pc' = [pc EXCEPT ![p] = "eOwn"]
-    /\ UNCHANGED <<cur, mode, snap, vis, runVars, lockVars, kills>>
+    /\ UNCHANGED <<cur, mode, snap, vis, used, target, tlc, lockVars, kills>>
 
 \* R6, "End".  The run's own folder: kept and released, or deleted, its lock file removed
 \* while the lock is held, and released.  Then the same for the recovered folder.
