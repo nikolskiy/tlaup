@@ -183,7 +183,7 @@ The two guessed rules are exact for the builds decision D19 supports. A user on 
 | `pytest-bdd`, `hypothesis`, `responses`, `pytest-socket`, `pytest-randomly`, `pyte` | New, development | [01](01-testing.md). `pyte` rebuilds a terminal screen for the layout tests ([22 O4](22-reporters.md#o4-live-display)). None of them was installed or tried during the design. |
 | `coverage` | Bound raised to 7.10, development | Its subprocess patch counts the real-process scenarios ([01 T10](01-testing.md#t10-coverage-policy-and-pytest-settings)); not tried. |
 | `pytest-mock` | Removed | [01 T12](01-testing.md#t12-rules-for-writing-tests). |
-| `rich`, `pydantic`, `pre-commit`, `setuptools`, `typer` | Bounds changed | [30 B2](30-ci-and-release.md#b2-build-fixes). The `typer` lower bound waits on question 23; the error handling and completion were probed on the locked 0.29.1 only. |
+| `rich`, `pydantic`, `pre-commit`, `setuptools`, `typer` | Bounds changed | [30 B2](30-ci-and-release.md#b2-build-fixes). Top-up (D59): `typer>=0.27.2,<1.0.0` and `rich>=13.8.0` with no cap, from research 23 and 30; `pydantic>=2.5.3`. |
 
 ## Order of work
 
