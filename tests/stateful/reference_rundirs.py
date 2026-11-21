@@ -5,12 +5,19 @@ It exists so that the state machine in ``test_run_folders.py`` can be run before
 step-level interface R6 names and nothing else of the runner. It is not product code:
 the work package that builds ``tlaup.tlc.rundirs`` deletes this file and the reference
 test with it.
+
+Revised 2026-11-20 for decisions D51 to D53: the run's own and recovered locks are
+``RunLock`` (tlaup's own descriptor, locked with ``filelock.lock_descriptor``, with its own
+wait and second look), whose duplicates a JVM inherits; keeping is asked for per run; only a
+complete checkpoint is trusted; the sweep never removes a kept folder.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
@@ -21,8 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-KEEP = timedelta(days=30)
-UNSETTLED = timedelta(days=1)
+NO_RUN_JSON = timedelta(days=30)
 LOCK_FILE_AGE = timedelta(hours=1)
 FINISHED = frozenset({0, 10, 11, 12, 13, 14})
 
@@ -43,6 +49,12 @@ class Kept:
     checkpoint_dir: Path
 
 
+@dataclass(frozen=True)
+class Settled:
+    kept: Kept | None
+    dropped: str | None  # "not-asked" or "incomplete" when a checkpoint was there and was not kept
+
+
 def list_entries(runs: Path, *, folders_only: bool = False) -> list[str]:
     """The run ids that have a folder or, unless ``folders_only``, a lock file."""
     ids: set[str] = set()
@@ -58,15 +70,48 @@ def _lock_file(runs: Path, run_id: str) -> Path:
     return runs / f"{run_id}.lock"
 
 
-def _acquire(lock: filelock.FileLock, wait: float) -> bool:
-    try:
-        if wait > 0:
-            lock.acquire(timeout=wait)
-        else:
-            lock.acquire(blocking=False)
-    except filelock.Timeout:
-        return False
-    return True
+class RunLock:
+    """tlaup's own lock on one ``<id>.lock`` (D51): a descriptor it owns, so a JVM can inherit it."""
+
+    def __init__(self, path: Path, *, wait: float) -> None:
+        self.path = path
+        self.wait = wait
+        self.fd: int | None = None
+
+    def acquire(self) -> None:
+        deadline = time.monotonic() + self.wait
+        while True:
+            fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o644)  # never O_TRUNC: the age stays
+            if filelock.lock_descriptor(fd, blocking=False):
+                try:
+                    current = self.path.stat()
+                except FileNotFoundError:
+                    current = None
+                mine = os.fstat(fd)
+                if current is not None and (current.st_dev, current.st_ino) == (mine.st_dev, mine.st_ino):
+                    self.fd = fd
+                    return
+                filelock.unlock_descriptor(fd)  # the second look: the file was unlinked under it
+            os.close(fd)
+            if time.monotonic() >= deadline:
+                raise FileOperationError(self.path.name)
+            time.sleep(0.01)
+
+    def duplicate(self) -> int:
+        assert self.fd is not None
+        return os.dup(self.fd)
+
+    def release(self) -> None:
+        if self.fd is not None:
+            filelock.unlock_descriptor(self.fd)
+            os.close(self.fd)
+            self.fd = None
+
+    def abandon(self) -> None:
+        """Close without unlocking: what the operating system does at a kill."""
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None
 
 
 def _read_run_json(folder: Path) -> dict[str, Any] | None:
@@ -77,9 +122,24 @@ def _read_run_json(folder: Path) -> dict[str, Any] | None:
     return loaded if isinstance(loaded, dict) else None
 
 
-def _checkpoint_dir(folder: Path) -> Path | None:
-    found = sorted(folder.rglob("*.chkpt"))
-    return found[0].parent if found else None
+def complete_checkpoint(folder: Path) -> Path | None:
+    """TLC's timestamped folder when it holds a complete checkpoint (D52), else None."""
+    if not folder.is_dir():
+        return None
+    if any(p.name.endswith(".tmp") or p.name == "settings.tmp.chkpt" for p in folder.rglob("*")):
+        return None
+    for queue in sorted(folder.rglob("queue.chkpt")):
+        if (queue.parent / "vars.chkpt").exists():
+            return queue.parent
+    return None
+
+
+def _any_checkpoint(folder: Path) -> bool:
+    return any(folder.rglob("*.chkpt")) or any(folder.rglob("*.tmp"))
+
+
+def _newest_change(folder: Path) -> float:
+    return max([folder.stat().st_mtime, *(p.stat().st_mtime for p in folder.rglob("*"))])
 
 
 def _recovered_run(runs: Path, recover: Path | None) -> str | None:
@@ -113,36 +173,44 @@ class RunStart:
         self.run_id = run_id
         self.path = runs / run_id
         self.recover = recover
-        self.info = info or {}
+        self.info = dict(info or {})
+        self.keep = bool(self.info.get("keep"))
         self.wait = wait
-        self._own: filelock.FileLock | None = None
-        self._recovered: filelock.FileLock | None = None
+        self._own: RunLock | None = None
+        self._recovered: RunLock | None = None
         self._recovered_id: str | None = None
 
     def create_lock_file(self) -> None:
         _lock_file(self.runs, self.run_id).open("x").close()
 
     def take_lock(self) -> None:
-        lock = filelock.FileLock(_lock_file(self.runs, self.run_id))
-        if not _acquire(lock, self.wait):
-            raise FileOperationError(self.run_id)
+        lock = RunLock(_lock_file(self.runs, self.run_id), wait=self.wait)
+        lock.acquire()
         self._own = lock
 
     def take_recover_lock(self) -> None:
         run_id = _recovered_run(self.runs, self.recover)
         if run_id is None:
             return
-        lock = filelock.FileLock(_lock_file(self.runs, run_id))
-        if not _acquire(lock, self.wait):
-            raise FileOperationError(run_id)
+        lock = RunLock(_lock_file(self.runs, run_id), wait=self.wait)
+        lock.acquire()
         self._recovered = lock
         self._recovered_id = run_id
+        if (_read_run_json(self.runs / run_id) or {}).get("keep"):
+            self.keep = True  # a resume of a folder that asked to be kept is a kept run (D53)
 
     def make_folder(self) -> None:
         self.path.mkdir()
 
     def write_run_json(self) -> None:
-        record = {"schema": 1, **self.info, "started": self.now().isoformat(), "ended": None, "kept": False}
+        record = {
+            "schema": 1,
+            **self.info,
+            "keep": self.keep,
+            "started": self.now().isoformat(),
+            "ended": None,
+            "kept": False,
+        }
         (self.path / "run.json").write_text(json.dumps(record), encoding="utf-8")
 
     def sweep(self) -> None:
@@ -151,7 +219,15 @@ class RunStart:
     def entered(self) -> RunFolder:
         if self._own is None:
             raise RuntimeError(self.run_id)
-        return RunFolder(self.runs, self.run_id, self.now, self._own, self._recovered, self._recovered_id)
+        folder = RunFolder(self.runs, self.run_id, self.now, self._own, self._recovered, self._recovered_id, self.keep)
+        self._own = self._recovered = None
+        return folder
+
+    def abandon(self) -> None:
+        """A kill before the folder was entered: every descriptor closed, nothing unlocked."""
+        for lock in (self._own, self._recovered):
+            if lock is not None:
+                lock.abandon()
 
 
 class RunFolder:
@@ -162,36 +238,48 @@ class RunFolder:
         runs: Path,
         run_id: str,
         now: Callable[[], datetime],
-        own: filelock.FileLock,
-        recovered: filelock.FileLock | None,
+        own: RunLock,
+        recovered: RunLock | None,
         recovered_id: str | None,
+        keep: bool,
     ) -> None:
         self.runs = runs
         self.run_id = run_id
         self.path = runs / run_id
         self.now = now
+        self.keep = keep
         self._own = own
         self._recovered = recovered
         self._recovered_id = recovered_id
-        self._settled = False
-        self._kept: Kept | None = None
+        self._settled: Settled | None = None
 
-    def settle(self, process: ProcessOutcome | None) -> Kept | None:
-        if self._settled:
-            return self._kept
-        self._settled = True
+    @property
+    def lock_fds(self) -> tuple[int, ...]:
+        """Duplicates for the JVM (D51); the caller closes them once Popen has returned."""
+        return tuple(lock.duplicate() for lock in (self._own, self._recovered) if lock is not None)
+
+    def settle(self, process: ProcessOutcome | None) -> Settled:
+        if self._settled is not None:
+            return self._settled
         finished = process is not None and process.stopped_by is None and process.exit_code in FINISHED
         folder = self.runs / self._recovered_id if self._recovered_id is not None else self.path
-        checkpoint = _checkpoint_dir(folder) if folder.is_dir() else None
-        if not finished and checkpoint is not None:
+        complete = complete_checkpoint(folder)
+        kept, dropped = None, None
+        if not finished and self.keep and complete is not None:
             record = _read_run_json(folder) or {"schema": 1}
             record.update(ended=self.now().isoformat(), kept=True)
             (folder / "run.json").write_text(json.dumps(record), encoding="utf-8")
-            self._kept = Kept(folder, checkpoint)
-        return self._kept
+            kept = Kept(folder, complete)
+        elif not finished and folder.is_dir() and _any_checkpoint(folder):
+            dropped = "incomplete" if self.keep else "not-asked"
+        self._settled = Settled(kept, dropped)
+        return self._settled
+
+    def _kept_path(self) -> Path | None:
+        return None if self._settled is None or self._settled.kept is None else self._settled.kept.path
 
     def end_own(self) -> None:
-        if self._kept is not None and self._kept.path == self.path:
+        if self._kept_path() == self.path:
             return
         shutil.rmtree(self.path, ignore_errors=True)
         _lock_file(self.runs, self.run_id).unlink(missing_ok=True)
@@ -200,7 +288,7 @@ class RunFolder:
         self._own.release()
 
     def end_recovered(self) -> None:
-        if self._recovered_id is None or self._kept is not None:
+        if self._recovered_id is None or self._kept_path() is not None:
             return
         shutil.rmtree(self.runs / self._recovered_id, ignore_errors=True)
         _lock_file(self.runs, self._recovered_id).unlink(missing_ok=True)
@@ -208,6 +296,12 @@ class RunFolder:
     def release_recovered(self) -> None:
         if self._recovered is not None:
             self._recovered.release()
+
+    def abandon(self) -> None:
+        """A kill: every descriptor closed, nothing unlocked, so a JVM's duplicate keeps the lock."""
+        for lock in (self._own, self._recovered):
+            if lock is not None:
+                lock.abandon()
 
 
 class EntryVisit:
@@ -221,25 +315,26 @@ class EntryVisit:
         self._lock = filelock.FileLock(_lock_file(runs, run_id))
 
     def take_lock(self) -> bool:
-        return _acquire(self._lock, 0)
+        try:
+            self._lock.acquire(timeout=0)  # one attempt, with a finite timeout (research 30)
+        except filelock.Timeout:
+            return False
+        return True
 
-    def _age(self, text: object) -> timedelta:
-        if isinstance(text, str):
-            return self.now() - datetime.fromisoformat(text)
-        modified = datetime.fromtimestamp(self.path.stat().st_mtime, tz=self.now().tzinfo)
-        return self.now() - modified
+    def _resumable(self, record: dict[str, Any]) -> bool:
+        return bool(record.get("keep")) and complete_checkpoint(self.path) is not None
 
     def sweep(self) -> None:
         if self.path.is_dir():
             record = _read_run_json(self.path)
             if record is None:
-                old = self._age(None) > KEEP
+                modified = datetime.fromtimestamp(_newest_change(self.path), tz=self.now().tzinfo)
+                remove = self.now() - modified > NO_RUN_JSON
             elif record.get("kept"):
-                old = self._age(record.get("ended")) > KEEP
+                remove = False  # a kept folder is never swept (D53)
             else:
-                limit = KEEP if _checkpoint_dir(self.path) is not None else UNSETTLED
-                old = self._age(record.get("started")) > limit
-            if old:
+                remove = not self._resumable(record)  # unsettled: at once, unless resumable
+            if remove:
                 shutil.rmtree(self.path, ignore_errors=True)
         lock_file = _lock_file(self.runs, self.run_id)
         if not self.path.exists() and lock_file.exists():
@@ -251,10 +346,7 @@ class EntryVisit:
         if not self.path.is_dir():
             return False
         record = _read_run_json(self.path)
-        if not include_kept and (record is None or record.get("kept")):
-            return False
-        resumable = _checkpoint_dir(self.path) is not None and not record.get("no_keep")
-        if not include_kept and resumable:  # never settled, and can be resumed (decision D49)
+        if not include_kept and (record is None or record.get("kept") or self._resumable(record)):
             return False
         shutil.rmtree(self.path, ignore_errors=True)
         if self.path.exists():

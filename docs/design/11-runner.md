@@ -281,12 +281,14 @@ class RunStart:                                             # "Start"
     def write_run_json(self) -> None
     def sweep(self) -> KeptSummary
     def entered(self) -> RunFolder                          # hands the locks to the folder; also after a failed step
+    def abandon(self) -> None                               # every lock descriptor closed, nothing unlocked: a kill
 
 class RunFolder:                                            # as above, and "End"
     def end_own(self) -> None                               # delete the folder and remove its lock file, unless it is kept
     def release_own(self) -> None
     def end_recovered(self) -> None                         # the same for the folder -recover named
     def release_recovered(self) -> None
+    def abandon(self) -> None                               # RunLock.abandon for both locks (see "A killed tlaup")
 
 class EntryVisit:                                           # one entry of runs/ under its lock
     def __init__(self, runs: Path, run_id: str, now): ...

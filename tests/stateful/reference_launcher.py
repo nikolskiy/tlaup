@@ -4,11 +4,18 @@ It exists so that the state machine in ``test_signals.py`` can be run before
 ``tlaup.java.launcher`` is written, to show that the machine itself is sound. It is not
 product code: the work package that builds the launcher deletes this file and the
 reference test with it.
+
+Revised 2026-11-20 for decisions D51 and D52: a first signal while a checkpoint is being
+written is held until ``checkpoint_written`` (the grace period runs from then), and the
+child is given a lifeline. The real lifeline is a Java agent; the fake child of the tests
+is a Python script, so here it is the environment variable ``LIFELINE_PID``, which the fake
+child watches the same way the agent watches tlaup's process id.
 """
 
 from __future__ import annotations
 
 import contextlib
+import os
 import queue
 import signal
 import subprocess
@@ -40,6 +47,8 @@ class Signals:
         self.leave_interrupt = leave_interrupt
         self.clock = clock
         self.child: subprocess.Popen[bytes] | None = None
+        self.checkpointing = False
+        self.held = False
 
     def handle(self, number: int, _frame: FrameType | None) -> None:
         if number == signal.SIGINT and self.leave_interrupt:
@@ -47,12 +56,28 @@ class Signals:
         self.count += 1
         if self.first is None:
             self.first = NAMES[signal.Signals(number)]
-            self.first_at = self.clock()
         if self.child is not None and self.child.poll() is None:
-            if self.count == 1:
+            if self.count == 1 and self.checkpointing:
+                self.held = True  # D52: sent on when the checkpoint is written
+            elif self.count == 1:
+                self.first_at = self.clock()
                 self.child.terminate()
             else:
+                self.held = False
                 self.child.kill()
+        elif self.first_at is None:
+            self.first_at = self.clock()
+
+    def checkpoint_started(self) -> None:
+        self.checkpointing = True
+
+    def checkpoint_written(self) -> None:
+        self.checkpointing = False
+        if self.held:
+            self.held = False
+            self.first_at = self.clock()
+            if self.child is not None and self.child.poll() is None:
+                self.child.terminate()
 
 
 @contextlib.contextmanager
@@ -81,6 +106,7 @@ class ChildRun:
         *,
         on_stdout: Callable[[str], None] | None = None,
         passthrough: bool = False,
+        lifeline: bool = True,
         grace_seconds: float = 10.0,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
@@ -88,6 +114,7 @@ class ChildRun:
         self.signals = signals
         self.on_stdout = on_stdout
         self.passthrough = passthrough
+        self.lifeline = lifeline
         self.grace = grace_seconds
         self.clock = clock
         self.proc: subprocess.Popen[bytes] | None = None
@@ -106,7 +133,8 @@ class ChildRun:
     def spawn(self) -> None:
         pipe = None if self.passthrough else subprocess.PIPE
         stdin = None if self.passthrough else subprocess.DEVNULL
-        self.proc = subprocess.Popen(self.argv, stdin=stdin, stdout=pipe)
+        env = {**os.environ, "LIFELINE_PID": str(os.getpid())} if self.lifeline else None
+        self.proc = subprocess.Popen(self.argv, stdin=stdin, stdout=pipe, env=env)
         if self.proc.stdout is not None:
             self._open_pipes = 1
             threading.Thread(target=self._read, args=(self.proc.stdout,), daemon=True).start()
@@ -119,6 +147,7 @@ class ChildRun:
     def attach(self) -> None:
         self.signals.child = self.proc  # first attach, then look: the other order leaves a gap
         if self.signals.first is not None and self.proc is not None:
+            self.signals.first_at = self.clock()
             self.proc.terminate()
 
     def _grace_over(self) -> bool:
