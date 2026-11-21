@@ -29,6 +29,10 @@ What differs from the spec, and why:
   the lifeline's own timing is G3's test, not this one's.
 - ``UnlinkOnRelease`` and ``cache clean <run-id>`` are not mirrored: the first is a property
   of a library version, pinned by R6's unit tests; the second is ``--all`` for one entry.
+- A deletion never fails here, although the spec's main config has ``DeleteMayFail`` on: a
+  failed deletion needs file-system tricks (a folder made unwritable, which root ignores).
+  The spec checks those behaviours; FC1 of the 2026-11-20 review was found through one, and
+  its replay below reaches the same state through a kill instead.
 
 The machine runs against ``tlaup.tlc.rundirs`` (marked ``pending`` until that module is
 built) and against the throwaway model in ``reference_rundirs.py``.
@@ -331,7 +335,8 @@ class RunFoldersMachine(RuleBasedStateMachine):
         )
         proc.start.create_lock_file()
         proc.run, proc.target, proc.mode, proc.pc = run_id, target, "run", "lock"
-        proc.keep, proc.target_keep = keep, bool(target and folders[target]["keep"])
+        proc.keep = keep
+        proc.target_keep = bool(target and (folders[target]["keep"] or folders[target]["kept"]))
 
     @precondition(lambda self: self.at("lock"))
     @rule(data=st.data())
@@ -817,3 +822,55 @@ def test_a_jvm_keeps_the_run_lock_reference_model(tmp_path: Path) -> None:
 @pytest.mark.pending
 def test_a_jvm_keeps_the_run_lock(tmp_path: Path) -> None:
     jvm_keeps_the_lock(tlaup_impl(), tmp_path)
+
+
+# Finding FC1 of the 2026-11-20 review, replayed step by step: a folder that was kept by a
+# resume that asked, although its own run did not, must survive a later resume that does not
+# ask. Settle therefore writes "keep": true when it keeps, and a folder that says kept makes a
+# kept run. Random steps reached this only by chance.
+
+
+def kept_folder_survives_a_second_resume(impl: SimpleNamespace, runs: Path) -> None:
+    clock = datetime(2026, 11, 20, 10, 0, tzinfo=UTC)
+    rd = impl.rundirs
+
+    def now() -> datetime:
+        return clock
+
+    first = rd.RunStart(runs, now, run_id="run0", info={"keep": False}, wait=0)
+    first.create_lock_file()
+    first.take_lock()
+    first.make_folder()
+    first.write_run_json()
+    (first.path / STATES).mkdir()
+    for name in ("queue.chkpt", "vars.chkpt"):
+        (first.path / STATES / name).write_bytes(b"")
+    first.abandon()  # killed, its TLC gone: unsettled, keep false, a complete checkpoint
+
+    def resume(run_id: str, *, keep: bool) -> Any:
+        start = rd.RunStart(runs, now, run_id=run_id, recover=runs / "run0" / STATES, info={"keep": keep}, wait=0)
+        start.create_lock_file()
+        start.take_lock()
+        start.take_recover_lock()
+        folder = start.entered()  # it stops before its TLC starts
+        settled = folder.settle(None)
+        folder.end_own()
+        folder.release_own()
+        folder.end_recovered()
+        folder.release_recovered()
+        return settled
+
+    assert resume("run1", keep=True).kept is not None, "a resume with --keep did not keep the folder"
+    record = json.loads((runs / "run0" / "run.json").read_text(encoding="utf-8"))
+    assert record.get("kept") and record.get("keep"), "settle kept the folder without writing keep"
+    resume("run2", keep=False)
+    assert (runs / "run0").is_dir(), "KeptSurvives: a resume without --keep deleted a kept folder"
+
+
+def test_kept_folder_survives_a_second_resume_reference_model(tmp_path: Path) -> None:
+    kept_folder_survives_a_second_resume(reference_impl(), tmp_path)
+
+
+@pytest.mark.pending
+def test_kept_folder_survives_a_second_resume(tmp_path: Path) -> None:
+    kept_folder_survives_a_second_resume(tlaup_impl(), tmp_path)

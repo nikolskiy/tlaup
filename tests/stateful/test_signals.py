@@ -358,6 +358,17 @@ class SignalsMachine(RuleBasedStateMachine):
         self.signals.checkpoint_started()
         self.checkpointing = True
 
+    @precondition(lambda self: self.phase == "attached" and self.held and self.child == "running")
+    @rule()
+    def a_long_checkpoint(self) -> None:
+        """Finding FC7 of the 2026-11-20 review: the grace period runs from the moment the
+        signal is sent on, so time passing while it is held must not kill the child."""
+        self.now += GRACE + 1
+        self.run.turn(timeout=0.01)
+        time.sleep(0.05)
+        assert not gone(self.run.pid), "the grace period ran from the held signal's arrival and killed the child"
+        assert not (self.root / "ready.term").exists(), "the child got SIGTERM while the signal was held"
+
     @precondition(lambda self: self.phase == "attached" and self.checkpointing)
     @rule()
     def checkpoint_written(self) -> None:

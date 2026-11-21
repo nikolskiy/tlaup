@@ -283,7 +283,11 @@ class Install(_Download):
         return True
 
     def pin_if_none(self) -> None:
-        if self.build is not None and self.store.pin_id() is None:  # read under the lock
+        """Pin the build if nothing is pinned: no pin, or one that names a missing build (V12, FC5)."""
+        if self.build is None:
+            return
+        pin = self.store.pin_id()  # read under the lock
+        if pin is None or pin not in {build.id for build in self.store.builds()}:
             self.store.pin(self.build)
 
 

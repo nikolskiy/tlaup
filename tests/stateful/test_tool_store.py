@@ -148,7 +148,8 @@ class ToolStoreMachine(RuleBasedStateMachine):
         self.procs = [Proc(f"p{i}") for i in range(PROCESSES)]
         self.published = dict.fromkeys(NAMES, 1)
         self.holder: Proc | None = None  # who holds the store lock
-        self.killed_in_lock = False
+        self.killed_removed: set[str] = set()  # FC4: what a killed uninstall had removed
+        self.pin_at_kill: str | None = None  # ...and the pin then, until the pin is next written
         self.kills = 0
         self.give_ups = 0
         self.pin_before = self.pin_on_disk()
@@ -330,7 +331,7 @@ class ToolStoreMachine(RuleBasedStateMachine):
         proc = self.draw_at(data, "added")
         pin = self.pin_on_disk()
         if proc.cmd == "install":
-            if pin is None:
+            if pin is None or not (self.tool / pin / "build.json").is_file():  # nothing pinned (V12, FC5)
                 self.pin_allowed = {proc.op.build.id}
             proc.op.pin_if_none()
             pinned = self.pin_on_disk()
@@ -444,7 +445,9 @@ class ToolStoreMachine(RuleBasedStateMachine):
         self.kills += 1
         if self.holder is proc:
             self.holder = None
-            self.killed_in_lock = True
+            if proc.cmd == "uninstall" and proc.op is not None:
+                self.killed_removed = {build.id for build in proc.op.removed}
+                self.pin_at_kill = self.pin_on_disk()
         proc.forget()
         gc.collect()
 
@@ -458,7 +461,10 @@ class ToolStoreMachine(RuleBasedStateMachine):
     @invariant()
     def pin_is_consistent(self) -> None:
         pin = self.pin_on_disk()
-        if self.holder is None and not self.killed_in_lock and pin is not None:
+        if pin != self.pin_at_kill:  # the pin was written since the kill: the exception is over
+            self.killed_removed, self.pin_at_kill = set(), None
+        accepted = pin in self.killed_removed  # the state D50 accepts, and only that one (FC4)
+        if self.holder is None and not accepted and pin is not None:
             assert (self.tool / pin / "build.json").is_file(), f"PinConsistent: the pin names {pin}, which is gone"
 
     @invariant()
@@ -505,7 +511,8 @@ def test_tool_store_machine(tmp_path: Path) -> None:
     run_machine(tlaup_impl(), tmp_path)
 
 
-# The counterexamples of findings K2-1 and K2-5 (specs/README.md), replayed step by step.
+# The counterexamples of findings K2-1 and K2-5 (specs/README.md), replayed step by step, and
+# the repair of finding FC5 of the 2026-11-20 review.
 # The machine above finds races like these by chance; these tests find them always.
 
 
@@ -623,7 +630,23 @@ def install_starts_again_when_the_build_it_found_has_gone(impl: SimpleNamespace,
     assert world.pin() == world.build("rolling").id
 
 
+def install_repairs_the_pin_a_killed_uninstall_left(impl: SimpleNamespace, root: Path) -> None:
+    """Finding FC5 of the 2026-11-20 review: after the state D50 accepts, an install puts it right (V3)."""
+    world = Scripted(impl, root)
+    world.finish(world.install("rolling"))
+    pinned = world.pin()
+    uninstall = impl.steps.Uninstall(impl.make_store(root), [world.build("rolling")])
+    uninstall.take_store_lock(timeout=0)
+    uninstall.move_out()
+    uninstall.delete_out()
+    uninstall.release_store_lock()  # killed before it cleared the pin: the system frees the lock
+    assert world.pin() == pinned, "the kill left the pin naming the removed build (D50)"
+    world.finish(world.install("rolling"))
+    assert world.pin() == world.build("rolling").id, "an install left a pin that names a missing build"
+
+
 TRACES = [
+    install_repairs_the_pin_a_killed_uninstall_left,
     second_install_leaves_the_pin,
     uninstall_clears_a_pin_written_after_it_started,
     pin_refuses_a_build_removed_after_it_was_found,

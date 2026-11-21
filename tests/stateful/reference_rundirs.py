@@ -196,8 +196,9 @@ class RunStart:
         lock.acquire()
         self._recovered = lock
         self._recovered_id = run_id
-        if (_read_run_json(self.runs / run_id) or {}).get("keep"):
-            self.keep = True  # a resume of a folder that asked to be kept is a kept run (D53)
+        record = _read_run_json(self.runs / run_id) or {}
+        if record.get("keep") or record.get("kept"):
+            self.keep = True  # a resume of a folder that asked to be kept, or was kept, is a kept run (D53)
 
     def make_folder(self) -> None:
         self.path.mkdir()
@@ -267,7 +268,7 @@ class RunFolder:
         kept, dropped = None, None
         if not finished and self.keep and complete is not None:
             record = _read_run_json(folder) or {"schema": 1}
-            record.update(ended=self.now().isoformat(), kept=True)
+            record.update(ended=self.now().isoformat(), kept=True, keep=True)  # FC1: keep goes with kept
             (folder / "run.json").write_text(json.dumps(record), encoding="utf-8")
             kept = Kept(folder, complete)
         elif not finished and folder.is_dir() and _any_checkpoint(folder):
