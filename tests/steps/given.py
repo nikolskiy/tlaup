@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers
 
-from tests.steps import _store
+from tests.steps import _modules, _store
 
 if TYPE_CHECKING:
     import pytest
@@ -234,3 +234,21 @@ def github_answers_status_to(scenario: Scenario, request: pytest.FixtureRequest,
 @given(parsers.re(r"GitHub is unreachable"))
 def github_is_unreachable(scenario: Scenario, request: pytest.FixtureRequest) -> None:
     _store.github(scenario, request).unreachable()
+
+
+# Given: modules (package 31)
+
+
+@given(parsers.re(r'the module "(?P<name>[^"]+)" is registered'))
+def the_module_is_registered(scenario: Scenario, name: str) -> None:
+    _modules.registered(scenario, name)
+
+
+@given(parsers.re(r'a module source "(?P<name>[^"]+)" from the fake sources'))
+def a_module_source_from_the_fake_sources(scenario: Scenario, name: str) -> None:
+    _modules.module_source(scenario, name)
+
+
+@given(parsers.re(r'javac fails with "(?P<recording>[^"]+)"'))
+def javac_fails_with(scenario: Scenario, recording: str) -> None:
+    _modules.javac_fails(scenario, recording)

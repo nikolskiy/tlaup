@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tests.clock import FakeClock
@@ -12,6 +11,8 @@ from tlaup.java.classpath import ClasspathResolver, ResolveMode
 from tlaup.modules.registry import RegisteredModule, Registry, write_record
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from tests.conftest import Isolated
 
 
@@ -44,7 +45,7 @@ def make_resolver(isolated: Isolated, tmp_path: Path) -> tuple[ClasspathResolver
     registry = Registry(isolated.paths.modules, now=FakeClock().now)
     register(registry, "beta", "y.jar")  # the reverse of name order
     register(registry, "alpha", "x.jar")
-    # A module in the old cache, which the resolver must not read when given module_dirs.
+    # A module in the old cache, which the resolver never reads: it takes the folders it is given.
     old = isolated.paths.cache / "modules" / "Old"
     (old / "classes").mkdir(parents=True)
     (old / "modules").mkdir()
@@ -83,13 +84,4 @@ def test_the_runtime_classpath_in_the_five_steps(isolated: Isolated, tmp_path: P
     ]
     assert resolver.resolve(ResolveMode.RUNTIME) == expected
     assert resolver.get_tla_library_property() == os.pathsep.join(expected[1:5])
-
-
-def test_without_module_dirs_the_old_cache_is_walked(isolated: Isolated, tmp_path: Path) -> None:
-    resolver, _ = make_resolver(isolated, tmp_path)
-    old = ClasspathResolver(resolver.config, project_root=resolver.project_root, tool_jar=resolver.tool_jar)
-    classpath = old.resolve(ResolveMode.RUNTIME)
-    walked = isolated.paths.cache / "modules" / "Old"
-    assert str(walked / "classes") in classpath
-    assert str(walked / "lib" / "old.jar") in classpath
-    assert not any(isolated.paths.modules in Path(entry).parents for entry in classpath)
+    assert not any("Old" in entry for entry in resolver.resolve(ResolveMode.RUNTIME))

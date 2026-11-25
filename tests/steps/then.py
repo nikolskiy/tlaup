@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, cast
 
 from pytest_bdd import parsers, then
 
-from tests.steps import _store, _terminal
+from tests.steps import _modules, _store, _terminal
 
 if TYPE_CHECKING:
     from tests.fakes.control import Tool
@@ -199,6 +199,11 @@ def no_build_is_pinned(scenario: Scenario) -> None:
 @then(parsers.re(r"the installed builds are:"))
 def the_installed_builds_are(scenario: Scenario, datatable: list[list[str]]) -> None:
     _store.check_installed(scenario, datatable)
+
+
+@then(parsers.re(r"the registered modules are:"))
+def the_registered_modules_are(scenario: Scenario, datatable: list[list[str]]) -> None:
+    _modules.check_registered(scenario, datatable)
 
 
 # Then: GitHub (package 29; the last run only, T5's "Counting")

@@ -3,11 +3,14 @@ import os
 import subprocess
 import sys
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 
 from tlaup.config.loader import load_config
 from tlaup.java import validate_java_version
 from tlaup.java.classpath import ClasspathResolver, ResolveMode
+from tlaup.modules.registry import Registry
+from tlaup.paths import AppPaths
 from tlaup.project import find_project_root
 from tlaup.project.core import CLASSES_DIR, MODULES_DIR
 from tlaup.tlc.compiler import get_tlc_jar_path
@@ -124,7 +127,10 @@ def build_tlc_command(spec: str, cfg: str | None = None) -> list[str]:
     spec_file, _ = resolve_spec_file(spec)
     project_root = find_project_root(spec_file, modules_dir=MODULES_DIR, classes_dir=CLASSES_DIR)
 
-    resolver = ClasspathResolver(config, project_root=project_root, tool_jar=jar_path)
+    modules = Registry(AppPaths.from_env(os.environ).modules, now=lambda: datetime.now(UTC)).list()
+    resolver = ClasspathResolver(
+        config, project_root=project_root, tool_jar=jar_path, module_dirs=[module.path for module in modules]
+    )
     classpath_resolved = resolver.resolve(ResolveMode.RUNTIME)
     classpath = os.pathsep.join(classpath_resolved)
 
