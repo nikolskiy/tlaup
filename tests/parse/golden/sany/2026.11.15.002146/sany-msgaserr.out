@@ -1,3 +1,1 @@
-$ java -cp tla2tools.jar tla2sany.SANY -messagesAsErrors 1 Good.tla
 Error: -messagesAsErrors: unknown message code: 1
-[exit=255]

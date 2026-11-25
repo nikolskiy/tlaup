@@ -1,4 +1,3 @@
-$ printf "cst\nquit\n" | java -cp tla2tools.jar tla2sany.SANY -d Good.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
@@ -19,4 +18,4 @@ External Module Table:
 | | Context Entry: Init  384 
 | | Context Entry: Next  391 
 | | Context Entry: Spec  398 
->>[rc=0]
+>>

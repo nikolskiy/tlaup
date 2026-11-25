@@ -1,3 +1,1 @@
-$ java -cp tla2tools.jar tla2sany.SANY -error-codes MissingMod.tla
 Illegal switch: -error-codes
-[exit=255]

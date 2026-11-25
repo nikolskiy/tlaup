@@ -1,7 +1,5 @@
-$ java -cp tla2tools.jar tla2sany.SANY Nope.tla
 
 ****** SANY2 Version 2.1 created 24 February 2014
 
 File does not exist: <tmp>/q12/work-v1.7.4/Nope.tla while looking in these directories: jar:file:<tmp>/q12/jar-v1.7.4/tla2tools.jar!/tla2sany/StandardModules/
 Cannot find the specified file Nope.tla.
-[exit=255]

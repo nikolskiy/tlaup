@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY -error-codes Warn.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
@@ -20,4 +19,3 @@ line 7, col 10 to line 7, col 19 of module Warn
 <> followed by action not of form <<A>>_v.
 
 
-[exit=4]

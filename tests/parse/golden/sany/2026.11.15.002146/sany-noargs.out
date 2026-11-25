@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY
 
 [1mNAME[0m
 
@@ -44,4 +43,3 @@ $ java -cp tla2tools.jar tla2sany.SANY
 		Errors cannot be suppressed.
 		 Message codes can be found in https://github.com/tlaplus/tlaplus/blob/master/tlatools/org.lamport.tlatools/src/tla2sany/semantic/ErrorCode.java#L38
 
-[exit=255]

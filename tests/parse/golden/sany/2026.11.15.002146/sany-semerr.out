@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY SemErr.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
@@ -20,4 +19,3 @@ line 5, col 22 to line 5, col 24 of module SemErr
 Unknown operator: `Foo'.
 
 
-[exit=0]

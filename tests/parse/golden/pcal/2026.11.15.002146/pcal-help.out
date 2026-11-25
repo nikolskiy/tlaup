@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar pcal.trans -help
 pcal.trans Version 1.12 of 01 July 2024
 This is the PlusCal translator, which translates a PlusCal algorithm into
 a TLA+ specification.  The translator is called by typing
@@ -82,4 +81,3 @@ what the TLA+ file must contain.  The possible options are
   -debug : This is useful only for maintainers of the program
            and has no effect on normal execution.
 
-[exit=0]

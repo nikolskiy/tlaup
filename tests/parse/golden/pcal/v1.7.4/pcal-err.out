@@ -1,9 +1,5 @@
-$ java -cp tla2tools.jar pcal.trans PcalErr.tla
 pcal.trans Version 1.11 of 31 December 2020
 Parsing completed.
 Translation completed.
 New file PcalErr.tla written.
 New file PcalErr.cfg written.
-[exit=0]
--- files before: PcalErr.tla 
--- files after:  PcalErr.cfg PcalErr.old PcalErr.tla 

@@ -1,9 +1,5 @@
-$ java -cp tla2tools.jar pcal.trans -bogus Pcal.tla
 pcal.trans Version 1.11 of 31 December 2020
 
 Unrecoverable error:
  -- Command-line error: Unknown command-line option: -bogus..
 
-[exit=255]
--- files before: Pcal.tla 
--- files after:  Pcal.tla 

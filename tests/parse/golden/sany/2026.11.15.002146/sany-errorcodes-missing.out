@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY -error-codes MissingMod.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
@@ -18,4 +17,3 @@ Cannot find source file for module NoSuchModule imported in module MissingMod.
 
 
 
-[exit=255]

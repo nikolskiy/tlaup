@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY ParseErr.tla
 
 ****** SANY2 Version 2.1 created 24 February 2014
 
@@ -23,4 +22,3 @@ In module ParseErr
 Could not parse module ParseErr from file ParseErr.tla
 
 
-[exit=255]

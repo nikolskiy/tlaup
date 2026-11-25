@@ -1,7 +1,5 @@
-$ java -cp tla2tools.jar tla2sany.SANY -s SemErr.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
 Parsing file <tmp>/q12/work-v1.8.0/SemErr.tla
 Parsing file /tmp/tlc-10275354212149898322/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
-[exit=0]

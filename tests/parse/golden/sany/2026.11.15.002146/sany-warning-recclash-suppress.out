@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY -suppressMessages 4802 RecClash.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
@@ -13,4 +12,3 @@ line 3, col 16 to line 3, col 16 of module RecClash
 Non-unique fields in constructor.
 
 
-[exit=0]

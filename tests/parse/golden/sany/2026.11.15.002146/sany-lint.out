@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY Lint.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
@@ -7,4 +6,3 @@ Parsing file /tmp/tlc-8334349473449824810/Naturals.tla (jar:file:<tmp>/q12/jar-v
 Semantic processing of module Naturals
 Semantic processing of module Lint
 Linting of module Lint
-[exit=0]

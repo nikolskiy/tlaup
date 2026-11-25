@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY Good.tla
 
 ****** SANY2 Version 2.1 created 24 February 2014
 
@@ -6,4 +5,3 @@ Parsing file <tmp>/q12/work-v1.7.4/Good.tla
 Parsing file /tmp/Naturals.tla
 Semantic processing of module Naturals
 Semantic processing of module Good
-[exit=0]

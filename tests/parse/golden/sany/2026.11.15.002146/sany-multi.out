@@ -1,4 +1,3 @@
-$ java -cp tla2tools.jar tla2sany.SANY Multi.tla
 
 ****** SANY2 Version 2.2 created 08 July 2020
 
@@ -26,4 +25,3 @@ Could not parse module Multi from file Multi.tla
 
 
 
-[exit=255]
