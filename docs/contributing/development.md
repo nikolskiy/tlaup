@@ -13,6 +13,8 @@ uv run poe test-clean          # the suite under an empty temporary home, then f
 uv run poe test-integration    # tests/integration; fails until package 52 writes the folder
 uv run poe lint                # ruff check, bandit, mypy (strict)
 uv run poe format              # ruff format, Python files and Python blocks in Markdown
+uv run poe build-lifeline      # rebuild src/tlaup/java/lifeline.jar from its source (needs a JDK)
+uv run poe test-lifeline       # tests/lifeline: the agent with a real JVM (needs a JDK; not part of poe test)
 uv run poe check               # all pre-commit hooks on all files
 uv run poe check-release       # hooks, build, twine check
 ```
@@ -20,6 +22,10 @@ uv run poe check-release       # hooks, build, twine check
 `tests/integration/` does not exist until work package 52 writes it, so until then `poe test-integration` fails with pytest's exit 4 and "file or directory not found"; 52 also adds the `TLAUP_TEST_JARS` variable that names the real jars it needs. A single test runs without coverage: `uv run pytest tests/unit/test_fakes.py::test_java_exit_code`. `pytest-randomly` prints the seed of each run; `--randomly-seed=<n>` repeats an order, and `-p no:randomly` switches it off.
 
 Run `uv run poe lint` and `uv run poe test` before committing.
+
+## The lifeline agent
+
+`src/tlaup/java/lifeline/Lifeline.java` is the source of the agent that ends a JVM when tlaup is gone ([design 20 G3](../design/20-groundwork.md#g3-java-launcher)); `src/tlaup/java/lifeline.jar` is built from it and checked in, and both are package data of `tlaup.java`. After changing the source, run `uv run poe build-lifeline` and commit the source and the jar together. Build with the JDK the lifeline job uses (Temurin 11): two JDKs need not write the same class-file bytes, and `tests/lifeline/test_jar_matches_source.py` compares them. `uv run poe test-lifeline` needs a JDK on `PATH` or in `JAVA_HOME`; a missing JDK is an error. The reused-process-id test needs `unshare --pid --fork --mount-proc` to work (root, or `--user --map-root-user`); it skips with a reason where it cannot, and fails instead when `CI` is set. `tests/unit/java/test_lifeline_jar.py` checks the jar without Java in `uv run poe test`.
 
 ## CI
 
