@@ -3,4 +3,4 @@ a message of that code is open at that moment". Line 7 begins with the 2185 end 
 message open: one plain line. Line 10 is the same while a 2201 is open: a body line of that 2201. No capture shows
 this (research 1's print-marker has the marker text inside quotes).
 
-How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). Lines 7 and 10 are new; the 2201 text is taken from tlc/v1.7.4/coverage.out.
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). Lines 7 and 10 are new; the 2201 text is copied unchanged from tlc/v1.7.4/coverage.out.

@@ -1,5 +1,6 @@
 # The PlusCal golden cases of this build, one table per <case>.out (design 01 T3, package 07).
 # Generated once from the research records named in each source; never guessed.
+# Here args is the whole argument list after the main class, file names included (unlike TLC's args).
 
 [pcal-badopt]
 spec = "Pcal"

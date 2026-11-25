@@ -2,4 +2,4 @@ Why: design 10 P4, "A start marker that does not match the pattern (STARTMSG -1,
 roadmap's "A malformed start marker such as STARTMSG -1 must not raise". Lines 4 to 6 are three plain lines; the
 end marker with -1 matches no open message and is plain text too.
 
-How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). Lines 4 to 6 are new.
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version) and 2186 (finish). Lines 4 to 6 are new.

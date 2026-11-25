@@ -2,5 +2,6 @@ Why: design 10 P4, "If it equals an outer open message instead, the inner ones a
 then it closes". The end marker of the outer 1000 (line 8) arrives while the inner 2154 is open: the 2154 is closed
 truncated with its one body line, then the 1000 closes with a body of one line and the truncated 2154.
 
-How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). The 1000 and 2154 texts are shortened from tlc/v1.7.4/java-override-exception.out, lines 4 to 8 are
-new, and the 2154 end marker is left out.
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version) and 2186 (finish). Lines 4 to 7 are lines 32, 33, 37 and 38 of
+tlc/v1.7.4/java-override-exception.out (the 1000 start marker, its first line, the nested 2154 start marker and its
+first line); the other lines of both messages and the 2154 end marker are left out, and line 8 is the 1000 end marker.

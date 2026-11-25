@@ -14,12 +14,16 @@ How a case runs, from its table in ``cases.toml``:
   there is no spec). A PlusCal case gets only its spec file, as research 12 ran it, and records ``files_before`` and
   ``files_after``.
 - ``java [jvm_options] -cp [classpath...:]JAR MAIN [args]``. For TLC, ``-tool`` comes first (not for a ``plain``
-  case), then ``args``, then ``-metadir`` with a fresh folder, then the spec's module name. ``<metadir>`` in ``args``
-  stands for that fresh folder, and then no ``-metadir`` is added. For SANY and PlusCal ``args`` are the whole
-  argument list, file names included, since the recorded file arguments are not always last nor ``<spec>.tla``.
+  case), then ``args``, then ``-metadir`` with a fresh folder, then the spec's module name. With no ``spec``, a last
+  argument of ``args`` that is neither an option nor an option's value goes there instead (a missing spec's name).
+  ``<metadir>`` in ``args`` stands for that fresh folder, and then no ``-metadir`` is added. For SANY and PlusCal
+  ``args`` are the whole argument list, file names included, since the recorded file arguments are not always last
+  nor ``<spec>.tla``.
 - ``java_sources`` are compiled first with ``javac --release 11 -cp JAR -d classes``; ``classpath`` entries are
   relative to the run folder. A case whose class path names a folder that does not exist (research 28's, whose spec
   was not kept) or whose spec file is missing is skipped with the reason printed.
+- The new ``cases.toml`` keeps each table's keys except ``note``, ``stderr`` and ``source``, which may no longer be
+  true; ``exit``, ``java``, ``captured`` and, for PlusCal, the files are what this run saw.
 - ``stdin`` is written to standard input; ``stopped`` stops the run the same way (``SIGTERM after N s``, ``killed by
   the driver after N s``); ``recover_from`` passes, after ``args`` and in place of ``-metadir``, the newest checkpoint
   folder that case left, running it first.
@@ -241,6 +245,14 @@ class Capture:
             return argv + list(table.get("args", [])), None
         metadir = run.parent / "meta"
         args = [arg.replace("<metadir>", str(metadir)) for arg in table.get("args", [])]
+        trailing: list[str] = []
+        if (
+            "spec" not in table
+            and args
+            and not args[-1].startswith("-")
+            and not (args[-2:-1] or [""])[0].startswith("-")
+        ):
+            args, trailing = args[:-1], args[-1:]  # a spec name that does not exist: keep it last, as recorded
         argv += ([] if case.plain else ["-tool"]) + args
         if "recover_from" in table:
             folder = self.metadirs.get(table["recover_from"])
@@ -253,7 +265,7 @@ class Capture:
             argv += ["-metadir", str(metadir)]
         if spec_arg is not None:
             argv.append(spec_arg)
-        return argv, metadir
+        return argv + trailing, metadir
 
     def run(self, case: Case) -> Result:
         run, spec_arg = self.prepare(case)
@@ -320,7 +332,7 @@ def capture_tool(capture: Capture, tool: str, folder: Path, target: Path, only: 
         where = target / "plain" if case.plain else target
         where.mkdir(parents=True, exist_ok=True)
         (where / f"{case.name}.out").write_bytes(result.stdout)
-        table = {key: value for key, value in case.table.items() if key not in ("stderr", "source")}
+        table = {key: value for key, value in case.table.items() if key not in ("stderr", "source", "note")}
         table |= {"exit": result.exit, "java": capture.java_version, "captured": capture.today}
         table["source"] = f"scripts/capture_golden.py, from {tool}/{folder.name}/{case.name}"
         if result.stderr:
