@@ -23,12 +23,6 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: "17"
-
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
@@ -38,9 +32,9 @@ jobs:
       - name: Check formatting
         run: uv run ruff format --check .
 
-      # Running tests requires a TLC
-      - name: Download tla2tools.jar
-        run: uv run tlaup tools install
-
       - name: Run tests
         run: uv run poe test
+
+      # The tests must leave no tlaup folder in the real home (design 01 T2, 30 I2).
+      - name: Check that the home folder stays clean
+        run: uv run python scripts/test_clean.py --home "$HOME"
