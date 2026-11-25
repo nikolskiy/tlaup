@@ -8,7 +8,6 @@ The other four tests check the facts themselves and pass now.
 from __future__ import annotations
 
 import fnmatch
-import re
 from collections import Counter
 from typing import TYPE_CHECKING
 
@@ -23,10 +22,6 @@ if TYPE_CHECKING:
     from tests.parse.facts import Fact
 
 PENDING: tuple[str, ...] = ("*",)  # fnmatch patterns over Fact.id; a fact whose id matches one is marked pending
-
-# 08a writes the facts of the cases from research 1, 2, 13 and 28; 08b adds research 22's and removes this.
-COVERED_SOURCES = frozenset({1, 2, 13, 28})
-_SOURCE = re.compile(r"^research (\d+),")
 
 
 def _is_pending(fact: Fact) -> bool:
@@ -49,17 +44,12 @@ def test_fact(folder: Path, fact: Fact) -> None:
     fact.check(parse_tlc(folder / f"{fact.case}.out"))
 
 
-def _covered(table: dict[str, object]) -> bool:
-    match = _SOURCE.match(str(table.get("source", "")))
-    return match is not None and int(match.group(1)) in COVERED_SOURCES
-
-
-def test_every_covered_case_has_facts_for_its_line() -> None:
+def test_every_case_has_facts_for_its_line() -> None:
     missing = [
         f"{folder.name}/{case}"
         for folder in build_folders("tlc")
-        for case, table in cases_of(folder).items()
-        if _covered(table) and not facts_for(case, line_of(folder))
+        for case in cases_of(folder)
+        if not facts_for(case, line_of(folder))
     ]
     assert missing == []
 

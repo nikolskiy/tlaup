@@ -1,6 +1,6 @@
 # 08. Golden facts
 
-Size: L, as two pull requests of size M (08a, 08b). Suggested model: most capable. Status: 08a built, 08b ready.
+Size: L, as two pull requests of size M (08a, 08b). Suggested model: most capable. Status: built.
 
 ## Goal
 
