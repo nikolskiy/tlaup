@@ -67,8 +67,10 @@ def test_the_handler_filters_the_error_line_and_the_traceback(monkeypatch: pytes
     assert "secret" not in result.stderr
 
 
-def test_importing_redact_does_not_load_the_client() -> None:
-    # Only the client: tlaup.versioning's __init__ still loads requests until package 29b empties it.
-    code = "import sys, tlaup.versioning.redact; print('tlaup.versioning.github' in sys.modules)"
+def test_importing_redact_loads_neither_the_client_nor_requests() -> None:
+    code = (
+        "import sys, tlaup.versioning.redact\n"
+        "print('tlaup.versioning.github' in sys.modules, 'requests' in sys.modules)"
+    )
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
-    assert result.stdout.strip() == "False"
+    assert result.stdout.strip() == "False False"

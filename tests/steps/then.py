@@ -49,7 +49,9 @@ def stream_does_not_contain(scenario: Scenario, stream: str, text: str) -> None:
 
 @then(parsers.re(rf'{STREAM} is exactly "(?P<text>.*)"'))
 def stream_is_exactly(scenario: Scenario, stream: str, text: str) -> None:
-    scenario.check_exactly(stream, text)
+    # "{tools}/<version>/tla2tools.jar" naming one installed build is that build's jar, whose folder name holds
+    # its digest (package 29b, as the read-only folder step reads "{tools}/<version>").
+    scenario.check_exactly(stream, _store.build_jar(scenario, text) or text)
 
 
 @then(parsers.re(rf"{STREAM} is empty"))

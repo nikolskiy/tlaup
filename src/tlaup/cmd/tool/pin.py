@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING
 
 import typer
 
-from tlaup.errors import VersionNotFound
-
 if TYPE_CHECKING:
     from tlaup.context import AppContext
     from tlaup.ui import Ui
@@ -33,18 +31,11 @@ def pin_command(
 
 def pin_tools(store: ToolStore, ui: Ui, text: str, spec: VersionSpec) -> int:
     """Pin the build ``spec`` names; asks which on a terminal when several match (V4)."""
-    from tlaup.cmd.tool._shared import printed
+    from tlaup.cmd.tool._shared import not_installed, printed
     from tlaup.versioning.install import pin
 
     if not store.find(spec):
-        names_a_release = spec.name is not None and spec.sha256 is None
-        hint = (
-            f"run `tlaup tool install {text}` to install it, or `tlaup tool list --installed` to see what is"
-            if names_a_release
-            else "run `tlaup tool list --installed` to see the installed builds"
-        )
-        message = f"{text} is not installed"
-        raise VersionNotFound(message, hint=hint)
+        raise not_installed(text, spec)
     build = pin(store, spec, ui)
     ui.note(f"Pinned {printed(build, store.builds())}")
     return 0

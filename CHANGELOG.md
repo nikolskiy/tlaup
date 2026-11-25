@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The commit shown for a build is read from the jar itself.
 - Unencrypted addresses, and redirects to them, are refused.
 - Installing a newer build of a name that is already installed keeps the older build and leaves the pin where it is; `tlaup tool upgrade` replaces the older build and moves the pin.
+- `tool list` keeps installed builds next to their upstream release and marks one that has a newer build available.
+- `tool list` marks an installed build whose release upstream no longer lists as `installed, not upstream` (was `local only`).
+- `rolling` is listed first in `tlaup tool list`, then versions by number.
 
 ### Added
 - Each setting can be given as an environment variable `TLAUP_<SECTION>_<KEY>`.
@@ -22,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `GITHUB_TOKEN` or `GH_TOKEN` is used for GitHub API requests, which raises the rate limit. The token is sent only to `api.github.com`, and to hosts you list in `tool.token_hosts`; it is never printed. Credentials in `.netrc` are not used.
 - Versions can be typed without the `v`, as `stable` or `rolling`, and as `tag@commit` to name one build.
 - `tlaup tool current` shows the pinned build and its jar without starting Java.
+- `tlaup tool list --installed` lists the installed builds only, with no network.
 - `tool.token_hosts` lists extra hosts that may receive the GitHub token.
 
 ### Breaking
@@ -31,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Uninstalling the pinned build clears the pin; it no longer switches to another installed build. Pin one with `tlaup tool pin`.
 - With several installed builds of one name, `tlaup tool uninstall NAME` without a terminal, or with `--yes`, removes all of them; name one build as `NAME@COMMIT`.
 - `tlaup tool install` with no version asks which build to install (stable or rolling), or takes the answer from `TLAUP_AUTO_INSTALL`, and fails without either; it used to install the latest stable release.
+- With several builds of one tag installed, `tlaup tool path TAG` now fails and lists them (it printed the first).
 - `tlaup tools dir` is now `tlaup tool dir` and prints only the folder; use `tlaup tool list --installed` for the builds.
 - `tlaup tools install -f` and `tlaup tools uninstall -y` are now `tlaup tool install --force` and `tlaup tool uninstall --yes`.
 - `tlaup tools` and `tlaup modules` are now `tlaup tool` and `tlaup module`; every subcommand keeps its name.
@@ -54,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup tool install` printed 'Successfully installed' after 'already installed'.
 - `tlaup tool install` could treat a moving tag such as `rolling` as up to date for an hour after upstream published a new build; it now asks GitHub every time and compares the installed jar with the published one.
 - Installing tools without Java present recorded an empty version.
+- Only the first 30 tags were read from GitHub, so `rolling` would have disappeared at the next upstream release.
+- The 'Tag/SHA' column of `tool list` is now 'Build'.
+- `tlaup tool install` could offer a prerelease as the stable version when no stable release was in the first page of results.
+- A warning from `tool list` went to stdout.
 
 ## [0.8.2] - 2026-11-14
 

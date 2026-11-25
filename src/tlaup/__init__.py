@@ -1,6 +1,4 @@
-import truststore
+"""tlaup: install and pin TLA+ tools builds, compile Java operator overrides, and run TLC.
 
-# Inject truststore as early as possible so that all standard library
-# and third-party tools relying on `ssl` (such as `requests` and `urllib3`)
-# utilize the native OS trust store.
-truststore.inject_into_ssl()
+Nothing is imported here: the trust store is set up by the GitHub client where the network is used (14 F9).
+"""

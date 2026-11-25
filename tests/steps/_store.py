@@ -14,6 +14,7 @@ import shutil
 import weakref
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit
 
@@ -31,7 +32,6 @@ from tlaup.versioning.store import Source, ToolStore
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
     from tests.github import GitHubFake
     from tests.steps._scenario import Scenario
@@ -214,6 +214,18 @@ def build_folder(scenario: Scenario, path: str) -> str | None:
     except TlaupError:
         return None
     return str(one_build(scenario, path[len(prefix) :]).path) if store(scenario).find(spec) else None
+
+
+def build_jar(scenario: Scenario, text: str) -> str | None:
+    """``{tools}/<version>/tla2tools.jar`` with ``{tools}/<version>`` naming one installed build: its jar; else None.
+
+    The same reading as ``build_folder``, for the one line ``tool path`` prints (package 29b).
+    """
+    suffix = "/tla2tools.jar"
+    if not text.endswith(suffix):
+        return None
+    folder = build_folder(scenario, text.removesuffix(suffix))
+    return None if folder is None else str(Path(folder) / suffix.lstrip("/"))
 
 
 def truncate(scenario: Scenario, spec_text: str) -> None:

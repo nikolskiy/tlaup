@@ -111,3 +111,13 @@ Feature: Errors and exit codes
     And stderr contains "error:" 1 times
     And stderr contains "did not answer with JSON"
     And stderr does not contain "Traceback"
+
+  # The tool group (package 29b)
+
+  Scenario: tool list with stdout on a closed pipe exits 141 without a traceback
+    Given the build "v1.7.4" is installed and pinned
+    And the build "rolling" is installed
+    And the release list is cached from "releases", 1 minutes old
+    When I run "tlaup tool list" as a process with stdout on a closed pipe
+    Then the exit code is 141
+    And stderr does not contain "Traceback"

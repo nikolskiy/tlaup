@@ -337,11 +337,9 @@ def test_every_request_carries_the_user_agent_and_the_timeout(github: GitHub, ma
 
 
 def test_truststore_is_set_up_by_the_constructor_not_by_the_import() -> None:
-    # tlaup/__init__.py still injects truststore until package 29 or 49 removes it, so the child takes it out
-    # first; what is asserted is that importing the client changes nothing and constructing one sets it up.
+    # What is asserted is that importing tlaup and the client changes nothing and constructing one sets it up.
     code = (
         "import ssl, truststore, tlaup\n"
-        "truststore.extract_from_ssl()\n"
         "plain = ssl.SSLContext\n"
         "from tlaup.versioning.github import GitHubClient\n"
         "assert ssl.SSLContext is plain, 'the import set up truststore'\n"
