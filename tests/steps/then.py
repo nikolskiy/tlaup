@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, cast
 
 from pytest_bdd import parsers, then
 
-from tests.steps import _terminal
+from tests.steps import _store, _terminal
 
 if TYPE_CHECKING:
     from tests.fakes.control import Tool
@@ -179,3 +179,45 @@ def the_terminal_does_not_contain(scenario: Scenario, text: str) -> None:
 @then(parsers.re(r'the terminal ends with the expected file "(?P<name>[^"]+)"'))
 def the_terminal_ends_with_the_expected_file(scenario: Scenario, name: str) -> None:
     scenario.check_matches(_terminal.terminal_end(scenario), name)
+
+
+# Then: the store (package 29)
+
+
+@then(parsers.re(r'the pinned build is "(?P<spec>[^"]+)"'))
+def the_pinned_build_is(scenario: Scenario, spec: str) -> None:
+    _store.check_pinned(scenario, spec)
+
+
+@then(parsers.re(r"no build is pinned"))
+def no_build_is_pinned(scenario: Scenario) -> None:
+    _store.check_nothing_pinned(scenario)
+
+
+@then(parsers.re(r"the installed builds are:"))
+def the_installed_builds_are(scenario: Scenario, datatable: list[list[str]]) -> None:
+    _store.check_installed(scenario, datatable)
+
+
+# Then: GitHub (package 29; the last run only, T5's "Counting")
+
+
+@then(
+    parsers.re(r"(?P<count>\d+) request(?:s|\(s\))? (?:was|were) sent to GitHub"),
+    converters={"count": int},
+)
+def requests_were_sent_to_github(scenario: Scenario, count: int) -> None:
+    _store.check_requests(scenario, count)
+
+
+@then(
+    parsers.re(r"(?P<count>\d+) jar download(?:s|\(s\))? (?:was|were) made"),
+    converters={"count": int},
+)
+def jar_downloads_were_made(scenario: Scenario, count: int) -> None:
+    _store.check_downloads(scenario, count)
+
+
+@then(parsers.re(r'no request carried a token to "(?P<host>[^"]+)"'))
+def no_request_carried_a_token_to(scenario: Scenario, host: str) -> None:
+    _store.check_no_token_to(scenario, host)
