@@ -37,7 +37,9 @@ def the_config_file_contains(scenario: Scenario, docstring: str) -> None:
 
 @given(parsers.re(r'the folder "(?P<path>[^"]+)" is read-only'))
 def the_folder_is_read_only(scenario: Scenario, path: str) -> None:
-    scenario.read_only(path)
+    # "{tools}/<version>" naming one installed build is that build's folder, whose name holds its jar's digest
+    # (package 29a); any other path is the folder as written.
+    scenario.read_only(_store.build_folder(scenario, path) or path)
 
 
 @given(parsers.re(r'I am in the folder "(?P<path>[^"]+)"'))

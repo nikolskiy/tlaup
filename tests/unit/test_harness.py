@@ -20,6 +20,7 @@ import pytest
 import typer
 from pytest_bdd.steps import StepFunctionContext, step_function_context_registry
 
+from tests.clock import FakeClock
 from tests.steps._process import closed_pipe, exit_code_of, run_as_process, start, start_and_signal
 from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, TLAUP_JAVA_DIR, Outcome, _process_alive
 from tests.steps._terminal import (
@@ -34,6 +35,7 @@ from tests.steps._terminal import (
     screen_text,
     without_escapes,
 )
+from tlaup.versioning.store import ToolStore
 
 if TYPE_CHECKING:
     from tests.conftest import Isolated
@@ -765,6 +767,20 @@ def test_the_folder_is_read_only_until_the_end(scenario: Scenario, isolated: Iso
     assert not os.access(folder, os.W_OK)
     scenario.cleanup()
     assert os.access(folder, os.W_OK)
+
+
+def test_the_folder_of_an_installed_build_is_found_through_the_store(scenario: Scenario, isolated: Isolated) -> None:
+    if os.geteuid() == 0:
+        pytest.skip("permissions do not bind as root")
+    given(scenario, 'the build "v1.7.4" is installed')
+    (build,) = ToolStore(isolated.paths, now=FakeClock().now).builds()
+    given(scenario, 'the folder "{tools}/v1.7.4@5a47802" is read-only')
+    assert not os.access(build.path, os.W_OK)
+    assert not (isolated.paths.tools / "v1.7.4@5a47802").exists()
+    given(scenario, 'the folder "{tools}/nosuch" is read-only')  # names no build: the folder as written
+    assert not os.access(isolated.paths.tools / "nosuch", os.W_OK)
+    scenario.cleanup()
+    assert os.access(build.path, os.W_OK)
 
 
 def test_i_am_in_the_folder(scenario: Scenario, isolated: Isolated) -> None:

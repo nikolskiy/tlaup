@@ -36,10 +36,10 @@ Feature: Uninstalling TLA+ tools builds
     And the pinned build is "v1.7.4"
 
   Scenario: A build that cannot be removed fails with 5, keeps the pin, and the others go
-    # The folder is v1.7.4's build id: its name and the first 12 digits of its jar's SHA-256.
+    # "{tools}/v1.7.4@5a47802" is that build's folder, found through the store.
     Given the build "v1.7.4" is installed and pinned
     And the build "rolling" is installed
-    And the folder "{tools}/v1.7.4-f98975750260" is read-only
+    And the folder "{tools}/v1.7.4@5a47802" is read-only
     When I run "tlaup tool uninstall v1.7.4 rolling"
     Then the exit code is 5
     And stderr contains "v1.7.4@5a47802 was not removed: "

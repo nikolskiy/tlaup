@@ -200,6 +200,22 @@ def one_build(scenario: Scenario, spec_text: str) -> Build:
     return found[0]
 
 
+def build_folder(scenario: Scenario, path: str) -> str | None:
+    """``{tools}/<version>`` naming exactly one installed build: that build's folder; else None.
+
+    A build's folder is named from its jar's digest, which no feature file can know, and never a bare version
+    (V1), so the form cannot mean a folder of that name.
+    """
+    prefix = "{tools}/"
+    if not path.startswith(prefix) or "/" in path[len(prefix) :]:
+        return None
+    try:
+        spec = parse_version_spec(path[len(prefix) :])
+    except TlaupError:
+        return None
+    return str(one_build(scenario, path[len(prefix) :]).path) if store(scenario).find(spec) else None
+
+
 def truncate(scenario: Scenario, spec_text: str) -> None:
     """``the jar of the build "<spec>" is truncated``: cut to half its size."""
     jar = one_build(scenario, spec_text).jar

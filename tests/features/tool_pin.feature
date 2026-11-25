@@ -76,7 +76,8 @@ Feature: Pinning a build, and showing what is pinned
     Then the exit code is 0
     And stderr is empty
     And stdout contains "rolling@bc1b506 (2026.11.15.002146)"
-    And stdout contains "{tools}/rolling-888fd447a34f/tla2tools.jar"
+    And stdout contains "{tools}/rolling-"
+    And stdout contains "/tla2tools.jar"
 
   Scenario: tool current with a build with no build time prints the build alone
     Given the build "v1.7.4" is installed and pinned
