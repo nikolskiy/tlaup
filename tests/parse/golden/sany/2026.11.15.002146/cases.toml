@@ -1,0 +1,442 @@
+# The SANY golden cases of this build, one table per <case>.out (design 01 T3, package 07).
+# Generated once from the research records named in each source; never guessed.
+
+[sany-badthengood]
+spec = "ParseErr"
+args = ["-error-codes", "ParseErr.tla", "Good.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-badthengood.txt"
+
+[sany-d-scripted]
+spec = "Good"
+args = ["-d", "Good.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+stdin = "cst\nquit\n"
+source = "research 12, v1.8.0/outputs/sany-d-scripted.txt"
+
+[sany-dcst]
+spec = "Good"
+args = ["-d", "Good.tla", "cst"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-dcst.txt"
+
+[sany-errorcodes-good]
+spec = "Good"
+args = ["-error-codes", "Good.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-errorcodes-good.txt"
+
+[sany-errorcodes-level]
+spec = "Level"
+args = ["-error-codes", "Level.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-errorcodes-level.txt"
+
+[sany-errorcodes-missing]
+spec = "MissingMod"
+args = ["-error-codes", "MissingMod.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-errorcodes-missing.txt"
+
+[sany-errorcodes-parse]
+spec = "ParseErr"
+args = ["-error-codes", "ParseErr.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-errorcodes-parse.txt"
+
+[sany-errorcodes-sem]
+spec = "SemErr"
+args = ["-error-codes", "SemErr.tla"]
+exit = 4
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-errorcodes-sem.txt"
+
+[sany-good]
+spec = "Good"
+args = ["Good.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-good.txt"
+
+[sany-goodthenbad]
+spec = "Good"
+args = ["-error-codes", "Good.tla", "SemErr.tla"]
+exit = 4
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-goodthenbad.txt"
+
+[sany-grouped-dl]
+spec = "Good"
+args = ["-dl", "Good.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+stdin = "quit\n"
+source = "research 22, v1.8.0/sany-grouped-dl.out"
+
+[sany-grouped-lerror-codes]
+spec = "LevelErr"
+args = ["-l", "-error-codes", "LevelErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-grouped-lerror-codes.out"
+
+[sany-grouped-ls]
+spec = "Good"
+args = ["-ls", "Good.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-grouped-ls.out"
+
+[sany-grouped-ls-semerr]
+spec = "SemErr"
+args = ["-ls", "SemErr.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-grouped-ls-semerr.out"
+
+[sany-grouped-unknown]
+spec = "Good"
+args = ["-xy", "Good.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-grouped-unknown.out"
+
+[sany-h]
+args = ["-h"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-h.out"
+
+[sany-help]
+args = ["-help"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-help.out"
+
+[sany-level]
+spec = "Level"
+args = ["Level.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-level.txt"
+
+[sany-level-174]
+spec = "Level"
+args = ["Level.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-level-174.out"
+
+[sany-levelerr]
+spec = "LevelErr"
+args = ["LevelErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-levelerr.txt"
+
+[sany-levelerr-174]
+spec = "LevelErr"
+args = ["LevelErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-levelerr-174.out"
+
+[sany-levelerr-errorcodes]
+spec = "LevelErr"
+args = ["-error-codes", "LevelErr.tla"]
+exit = 4
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-levelerr-errorcodes.txt"
+
+[sany-levelerr-errorcodes-174]
+spec = "LevelErr"
+args = ["-error-codes", "LevelErr.tla"]
+exit = 4
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-levelerr-errorcodes-174.out"
+
+[sany-lint]
+spec = "Lint"
+args = ["Lint.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-lint.txt"
+
+[sany-missing-module-ext]
+spec = "MissMod"
+args = ["MissMod.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-missing-module-ext.out"
+
+[sany-missingmod]
+spec = "MissingMod"
+args = ["MissingMod.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-missingmod.txt"
+
+[sany-msgaserr]
+spec = "Good"
+args = ["-messagesAsErrors", "1", "Good.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-msgaserr.txt"
+
+[sany-multi]
+spec = "Multi"
+args = ["Multi.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-multi.txt"
+
+[sany-name-mismatch-ext]
+spec = "Mismatch"
+args = ["Mismatch.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-name-mismatch-ext.out"
+
+[sany-namemismatch]
+spec = "NameMismatch"
+args = ["NameMismatch.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-namemismatch.txt"
+
+[sany-noargs]
+args = []
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-noargs.txt"
+
+[sany-nofile]
+args = ["Nope.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+note = "The file named in args does not exist, on purpose."
+source = "research 12, v1.8.0/outputs/sany-nofile.txt"
+
+[sany-nolevel]
+spec = "LevelErr"
+args = ["-l", "LevelErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-nolevel.txt"
+
+[sany-parseerr]
+spec = "ParseErr"
+args = ["ParseErr.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-parseerr.txt"
+
+[sany-parseerr-s]
+spec = "SemErr"
+args = ["-s", "SemErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-parseerr-s.txt"
+
+[sany-s-semerr]
+spec = "SemErr"
+args = ["-s", "SemErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-s-semerr.out"
+
+[sany-semerr]
+spec = "SemErr"
+args = ["SemErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-semerr.txt"
+
+[sany-separate-d-l]
+spec = "Good"
+args = ["-d", "-l", "Good.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+stdin = "quit\n"
+source = "research 22, v1.8.0/sany-separate-d-l.out"
+
+[sany-separate-l-s]
+spec = "Good"
+args = ["-l", "-s", "Good.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-separate-l-s.out"
+
+[sany-stale-alg]
+spec = "2026.11.15.002146/PcalStaleAlg"
+args = ["PcalStaleAlg.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-stale-alg.out"
+
+[sany-stale-both]
+spec = "2026.11.15.002146/PcalStaleBoth"
+args = ["PcalStaleBoth.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-stale-both.out"
+
+[sany-stale-tla]
+spec = "2026.11.15.002146/PcalStaleTla"
+args = ["PcalStaleTla.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-stale-tla.out"
+
+[sany-stale-two-files]
+spec = "2026.11.15.002146/PcalStaleAlg"
+args = ["PcalStaleAlg.tla", "PcalStaleTla.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-stale-two-files.out"
+
+[sany-stutter]
+spec = "Stutter"
+args = ["Stutter.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-stutter.txt"
+
+[sany-suppress]
+spec = "Good"
+args = ["-suppressMessages", "1,2", "Good.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-suppress.txt"
+
+[sany-twofiles]
+spec = "Good"
+args = ["Good.tla", "Two.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-twofiles.txt"
+
+[sany-warn]
+spec = "Warn"
+args = ["Warn.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warn.txt"
+
+[sany-warn-aserr]
+spec = "Warn"
+args = ["-messagesAsErrors", "ALWAYS_PROPERTY_SENSITIVE_TO_STUTTERING", "Warn.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warn-aserr.txt"
+
+[sany-warn-errorcodes]
+spec = "Warn"
+args = ["-error-codes", "Warn.tla"]
+exit = 4
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warn-errorcodes.txt"
+
+[sany-warn-suppress]
+spec = "Warn"
+args = ["-error-codes", "-suppressMessages", "ALWAYS_PROPERTY_SENSITIVE_TO_STUTTERING,EVENTUALLY_PROPERTY_SENSITIVE_TO_STUTTERING", "Warn.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warn-suppress.txt"
+
+[sany-warn4802]
+spec = "Warn4802"
+args = ["Warn4802.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.8.0/sany-warn4802.out"
+
+[sany-warning-recclash]
+spec = "RecClash"
+args = ["RecClash.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warning-recclash.txt"
+
+[sany-warning-recclash-aserr]
+spec = "RecClash"
+args = ["-messagesAsErrors", "4802", "RecClash.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warning-recclash-aserr.txt"
+
+[sany-warning-recclash-errorcodes]
+spec = "RecClash"
+args = ["-error-codes", "-messagesAsErrors", "4802", "RecClash.tla"]
+exit = 4
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warning-recclash-errorcodes.txt"
+
+[sany-warning-recclash-suppress]
+spec = "RecClash"
+args = ["-suppressMessages", "4802", "RecClash.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/sany-warning-recclash-suppress.txt"
