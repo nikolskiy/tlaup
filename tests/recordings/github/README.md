@@ -4,6 +4,8 @@ Real answers of `api.github.com` for `tlaplus/tlaplus`, served by the `github` f
 
 `date` and `x-ratelimit-reset` are the values of the recording day; no test may depend on them being current. The fixture does not serve `content-length`, `content-encoding` and `transfer-encoding`: the bodies are trimmed and decoded, so the recorded values are wrong for them. `etag` no longer matches the trimmed body either.
 
+Status lines come in two forms: `HTTP/1.1 <code> <reason>` in the files recorded by the script, and `HTTP/2 <code>` in the moved `rate-limited` file; the loader reads only the code.
+
 Bodies are trimmed to what tlaup reads. Release: `id`, `tag_name`, `name`, `draft`, `prerelease`, `created_at`, `published_at`, `url`, `html_url`, `assets`. Asset: `id`, `name`, `size`, `digest`, `content_type`, `state`, `created_at`, `updated_at`, `browser_download_url`. The fixture rewrites `size` and `digest` of the `tla2tools.jar` asset of `rolling`, `v1.8.0` and `v1.7.4` to the small jar it serves (a `null` digest stays `null`); the files hold what GitHub sent.
 
 | Folder | Asked | When | Notes |

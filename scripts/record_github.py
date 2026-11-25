@@ -60,9 +60,11 @@ def status_and_headers(response: requests.Response) -> str:
 
 
 def fetch(url: str) -> requests.Response:
-    """One unauthenticated request; the environment's tokens are never read."""
+    """One unauthenticated request; the environment's tokens, netrc and proxies are never read."""
     print(f"GET {url}")
-    return requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+    with requests.Session() as session:
+        session.trust_env = False  # no .netrc, no proxy settings: nothing can add credentials
+        return session.get(url, headers=HEADERS, timeout=TIMEOUT)
 
 
 def write_answer(folder: Path, name: str, response: requests.Response, *, trim: str | None) -> None:

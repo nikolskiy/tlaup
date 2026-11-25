@@ -7,6 +7,7 @@ import json
 import os
 import subprocess
 import sys
+import zipfile
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -158,3 +159,32 @@ def test_served_headers_leave_out_what_requests_computes(github: Github) -> None
     assert "content-encoding" not in response.headers
     assert "transfer-encoding" not in response.headers
     assert response.json()  # the body reads whole: no ChunkedEncodingError from a recorded length
+
+
+def test_unreachable_covers_other_methods_and_downloads_and_is_listed(github: Github) -> None:
+    fake = github()
+    url = jar_asset(get(f"{BASE}/releases/tags/rolling").json())["browser_download_url"]
+    fake.clear()
+    fake.unreachable()
+    for attempt in (
+        lambda: requests.head(f"{BASE}/releases", timeout=TIMEOUT),
+        lambda: requests.post(f"{BASE}/releases", timeout=TIMEOUT),
+        lambda: get(url),
+    ):
+        with pytest.raises(requests.ConnectionError):
+            attempt()
+    assert [r.method for r in fake.requests] == ["HEAD", "POST", "GET"]
+
+
+def test_page_two_query_is_not_answered_with_page_one(github: Github) -> None:
+    github("releases-paged")
+    page1 = get(f"{BASE}/releases", params={"per_page": 10}).json()
+    with pytest.raises(requests.ConnectionError):
+        get(f"{BASE}/releases", params={"page": 2})
+    assert page1
+
+
+@pytest.mark.parametrize(("tag", "repl"), [("rolling", True), ("v1.8.0", True), ("v1.7.4", False)])
+def test_small_jars_hold_the_repl_class_as_recorded(github: Github, tag: str, repl: bool) -> None:
+    with zipfile.ZipFile(github().jar(tag)) as jar:
+        assert ("tlc2/REPL.class" in jar.namelist()) is repl
