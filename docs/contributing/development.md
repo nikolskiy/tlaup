@@ -31,14 +31,14 @@ Run `uv run poe lint` and `uv run poe test` before committing.
 
 ## Where tlaup keeps its files
 
-Config, toolsets, modules and the run cache live in the platform's user folders under the name `tlaup` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`), set by `_APP_NAME` in `src/tlaup/config/loader.py`.
+Config, toolsets, modules and the run cache live in the platform's user folders under the name `tlaup` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`), set in `src/tlaup/paths.py`.
 
 ## Running tlaup without touching your own folders
 
 A `tlaup` command run by hand, or by an agent checking something, uses those real folders: `tools uninstall` or a cache cleanup there removes the maintainer's own toolchain. Point tlaup at temporary folders instead, on the `tlaup` command only:
 
 ```bash
-XDG_CONFIG_HOME=<tmp>/config XDG_CACHE_HOME=<tmp>/cache uv run tlaup tools list
+TLAUP_HOME=<tmp>/tlaup uv run tlaup tools list
 ```
 
-Do not export the two variables for the whole shell: `gh` reads `XDG_CONFIG_HOME` too and is logged out when it moves (checked 2026-11-14), and `git` and `uv` read these variables as well. This works on Linux, where the investigations used it; whether the user folders follow these variables on macOS and Windows was not checked. The planned code replaces this with one variable, `TLAUP_HOME`, for all of tlaup's folders ([design 14 F2](../design/14-config-and-cli.md#f2-folder-overrides)), which the test isolation uses too ([design 01 T2](../design/01-testing.md#t2-isolation)).
+`TLAUP_HOME` is tlaup's own variable, so it moves config, cache and data together and no other tool (`gh`, `git`, `uv`) reads it; `TLAUP_CONFIG_DIR`, `TLAUP_CACHE_DIR` and `TLAUP_DATA_DIR` move one folder each ([design 14 F2](../design/14-config-and-cli.md#f2-folder-overrides)). The test isolation uses it too ([design 01 T2](../design/01-testing.md#t2-isolation)).
