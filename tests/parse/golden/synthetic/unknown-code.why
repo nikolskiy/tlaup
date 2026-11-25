@@ -1,0 +1,9 @@
+Why: design 10 P4, interpretation rule 4: a code that is not in codes.py is kept in unknown_messages and shown as
+TLC printed it; at severity 1 it is an error (kind other), at severity 3 a warning, at severity 0 an UnknownMessage.
+No capture has a code outside the table.
+
+How: a copy of tlc/v1.7.4/violation.out with the code of three messages changed, in their start and end markers:
+2110 (severity 1, "Invariant Small is violated.") to 9901, 2401 (severity 3, the garbage collector warning) to 9902,
+and 2190 (severity 0, "Finished computing initial states") to 9903. 9901 to 9903 are in no TLC table that design 10
+P4 and P5 list and not in src/tlaup/tlc/codes.py (checked 2026-11-25); the captures use 9999 only as text a spec
+prints. Nothing else changed.

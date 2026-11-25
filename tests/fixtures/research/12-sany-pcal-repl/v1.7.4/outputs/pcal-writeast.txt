@@ -1,7 +1,0 @@
-$ java -cp tla2tools.jar pcal.trans -writeAST PcalProc.tla
-pcal.trans Version 1.11 of 31 December 2020
-Parsing completed.
-Wrote file AST.tla.
-[exit=255]
--- files before: PcalProc.tla 
--- files after:  AST.tla PcalProc.tla 

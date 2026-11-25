@@ -1,3 +1,0 @@
-$ java -cp tla2tools.jar tla2sany.SANY -error-codes -suppressMessages ALWAYS_PROPERTY_SENSITIVE_TO_STUTTERING,EVENTUALLY_PROPERTY_SENSITIVE_TO_STUTTERING Warn.tla
-Error: -suppressMessages: not an integer: ALWAYS_PROPERTY_SENSITIVE_TO_STUTTERING
-[exit=255]

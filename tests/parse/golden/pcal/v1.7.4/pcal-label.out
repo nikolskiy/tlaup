@@ -1,0 +1,7 @@
+pcal.trans Version 1.11 of 31 December 2020
+The following label was added:
+  Lbl_1 at line 7, column 3
+Parsing completed.
+Translation completed.
+New file PcalNoLabel.tla written.
+New file PcalNoLabel.cfg written.

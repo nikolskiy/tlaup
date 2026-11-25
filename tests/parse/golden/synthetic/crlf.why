@@ -1,0 +1,4 @@
+Why: design 10 P4, "A line is taken with or without its line ending: a trailing \n or \r\n is removed before any
+pattern is tried" (decision D15), and P4's Tests, "a file with \r\n endings".
+
+How: a copy of tlc/v1.7.4/success.out with every line ending \n replaced by \r\n. Nothing else changed.

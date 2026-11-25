@@ -1,6 +1,6 @@
 # 07. Golden files
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 
@@ -93,7 +93,7 @@ How a live jar finds its folder ([01 T9](../design/01-testing.md#t9-integration-
 | Key | Meaning |
 | --- | --- |
 | `spec` | The module name, or a path under `golden/specs/` (`"overrides/legacy_ok/spec"`, `"v1.7.4/PcalStaleAlg"`). Absent for a case with no spec (`version-bad-option`, `tool-noargs`, `sany-noargs`). |
-| `args` | The arguments after the main class, without the spec, and for `tlc` without `-tool` and `-metadir`, which the script always adds: `[]` for `violation`, `["-coverage", "1"]` for `coverage`, `["-config", "ParamsX.cfg"]` for `params-step-violation`. |
+| `args` | The arguments after the main class, without the spec, and for `tlc` without `-tool` and `-metadir`, which the script always adds: `[]` for `violation`, `["-coverage", "1"]` for `coverage`, `["-config", "ParamsX.cfg"]` for `params-step-violation`. For `sany` and `pcal`, the whole argument list after the main class, file names included, since the recorded file argument is not always last or one file (`sany-dcst`, `sany-twofiles`, `pcal-noext`; settled while building 07, a low-impact choice by the stage 5 lead). |
 | `exit` | The exit code as recorded. Absent where the research did not record one (research 2's three files), with a `note` saying so. |
 | `java` | The Java version, `"25.0.5"` for research 1, 2, 12, 13 and 22; research 28 ran on `"11.0.33"` (its 2187 line). |
 | `captured` | The date. For a TLC case the date in its own `Starting... (...)` line (message 2185); otherwise the date the research folder's README gives. |

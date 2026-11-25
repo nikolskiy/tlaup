@@ -1,0 +1,4 @@
+Why: design 10 P4, "At end of input (close()), every open message is closed with truncated=True, with the body it
+has". The file ends inside the 2185 message, after its one body line; there is no end marker.
+
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages are copied from tlc/v1.7.4/success.out: 2262 (version) and the start marker and line of 2185 (start). The 2185 end marker and everything after it were left out.

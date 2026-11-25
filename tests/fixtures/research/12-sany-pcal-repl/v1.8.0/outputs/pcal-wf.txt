@@ -1,9 +1,0 @@
-$ java -cp tla2tools.jar pcal.trans -wf Pcal.tla
-pcal.trans Version 1.12 of 01 July 2024
-Parsing completed.
-Translation completed.
-New file Pcal.tla written.
-New file Pcal.cfg written.
-[exit=0]
--- files before: Pcal.tla 
--- files after:  Pcal.cfg Pcal.old Pcal.tla 

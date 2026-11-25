@@ -1,0 +1,19 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q12/work-v1.8.0/MissingMod.tla
+Parsing file /tmp/tlc-14473172204585413874/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+
+Fatal errors while parsing TLA+ spec in file MissingMod.tla
+
+In module MissingMod
+
+Cannot find source file for module NoSuchModule imported in module MissingMod.
+*** Errors: 1
+
+In module MissingMod
+
+Cannot find source file for module NoSuchModule imported in module MissingMod.
+
+
+

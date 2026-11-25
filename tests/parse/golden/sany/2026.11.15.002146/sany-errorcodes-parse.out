@@ -1,0 +1,27 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q12/work-v1.8.0/ParseErr.tla
+***Parse Error***
+Was expecting "Expression or Instance"
+Encountered "Beginning of definition" at line 4, column 9 and token "==" 
+
+Residual stack trace follows:
+Definition starting at line 4, column 1.
+Module body starting at line 3, column 1.
+Module definition starting at line 1, column 1.
+
+
+Fatal errors while parsing TLA+ spec in file ParseErr.tla
+
+In module ParseErr
+
+Could not parse module ParseErr from file ParseErr.tla
+*** Errors: 1
+
+In module ParseErr
+
+Could not parse module ParseErr from file ParseErr.tla
+
+
+

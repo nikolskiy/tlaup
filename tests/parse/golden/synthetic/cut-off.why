@@ -1,0 +1,5 @@
+Why: design 10 P3, Tests: a run cut off inside a message and before the finish message 2186 has status RUNNING and
+verdict incomplete after close(), and the open message is closed truncated (P4).
+
+How: the first 60 lines of tlc/v1.7.4/violation.out, cut after "/\ n = 2" inside trace state 3 (a 2217
+message). Everything after that line, including the 2217 end marker and the 2186, was left out. Nothing else changed.

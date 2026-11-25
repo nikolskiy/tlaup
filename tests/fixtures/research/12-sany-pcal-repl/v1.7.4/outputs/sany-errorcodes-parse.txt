@@ -1,3 +1,0 @@
-$ java -cp tla2tools.jar tla2sany.SANY -error-codes ParseErr.tla
-Illegal switch: -error-codes
-[exit=255]
