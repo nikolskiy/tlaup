@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.clock import FakeClock
-from tests.github import BASE
+from tests.github import BASE, RECORDINGS
 from tests.jars import make_tools_jar
 from tlaup.versioning.github import GitHubClient
 from tlaup.versioning.jarinfo import read_jar
@@ -150,3 +151,10 @@ def make_client(clock: FakeClock) -> Callable[..., GitHubClient]:
         )
 
     return make
+
+
+def recorded_list() -> list[dict[str, object]]:
+    """The 17 release objects of the ``releases`` recording, as GitHub sent them."""
+    data = json.loads((RECORDINGS / "releases" / "list.body").read_bytes())
+    assert isinstance(data, list)
+    return data

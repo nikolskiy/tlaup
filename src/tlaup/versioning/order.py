@@ -8,6 +8,9 @@ from functools import total_ordering
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from tlaup.versioning.remote import Release
     from tlaup.versioning.store import Build
 
 ROLLING = "rolling"
@@ -70,3 +73,13 @@ def sort_key(build: Build) -> tuple[object, ...]:
         _Descending(build.installed_at),
         build.id,
     )
+
+
+def stable_of(releases: Sequence[Release]) -> Release | None:
+    """The release with the highest version number that is not a prerelease or a draft and has the jar.
+
+    Never the first entry: with no such release the answer is None. GitHub's order is not read.
+    """
+    candidates = [r for r in releases if not r.prerelease and not r.draft and r.asset is not None]
+    numbered = [(key, r) for r in candidates if (key := version_key(r.tag)) is not None]
+    return max(numbered, key=lambda pair: pair[0])[1] if numbered else None

@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.unit.versioning.conftest import commit, make_build, manifest
-from tlaup.versioning.order import name_key, sort_key, version_key
+from tests.unit.versioning.conftest import commit, make_build, manifest, recorded_list
+from tlaup.versioning.order import name_key, sort_key, stable_of, version_key
+from tlaup.versioning.remote import Asset, Release, parse_release
 from tlaup.versioning.spec import VersionSpec, parse_version_spec
 
 if TYPE_CHECKING:
@@ -177,3 +178,64 @@ def test_nothing_matching_is_an_empty_list(store: ToolStore, installed: dict[str
 def test_find_on_an_empty_store(store: ToolStore) -> None:
     assert find(store, "stable") == []
     assert find(store, "rolling") == []
+
+
+# ---------------------------------------------------------------------- releases
+
+
+def release(tag: str, *, prerelease: bool = False, draft: bool = False, jar: bool = True) -> Release:
+    asset = Asset(id=1, size=1, digest=None, updated_at="2026-11-15T00:00:00Z", download_url="https://x.invalid/a")
+    return Release(
+        tag=tag,
+        prerelease=prerelease,
+        draft=draft,
+        created_at="2026-11-15T00:00:00Z",
+        published_at=None,
+        asset=asset if jar else None,
+    )
+
+
+def recorded_releases() -> list[Release]:
+    return [parse_release(item, url="recording") for item in recorded_list()]
+
+
+def test_the_recorded_list_in_shuffled_order_gives_one_order_and_one_stable_row_t6() -> None:
+    recorded = recorded_releases()
+    assert len(recorded) == 17
+    order = [r.tag for r in sorted(recorded, key=lambda r: name_key(r.tag))]
+    stable = stable_of(recorded)
+    assert stable is not None
+    assert stable.tag == "v1.7.4"
+    assert order[0] == "rolling"
+    for seed in range(20):
+        shuffled = recorded[:]
+        random.Random(seed).shuffle(shuffled)
+        assert [r.tag for r in sorted(shuffled, key=lambda r: name_key(r.tag))] == order
+        assert stable_of(shuffled) == stable
+
+
+def test_stable_skips_a_draft() -> None:
+    assert stable_of([release("v1.9.0", draft=True), release("v1.7.4")]) == release("v1.7.4")
+
+
+def test_a_prerelease_with_a_higher_number_does_not_win() -> None:
+    releases = [release("v1.8.0", prerelease=True), release("v1.7.4"), release("rolling", prerelease=True)]
+    assert stable_of(releases) == release("v1.7.4")
+
+
+def test_stable_never_returns_a_release_without_the_jar() -> None:
+    assert stable_of([release("v1.9.0", jar=False), release("v1.7.4")]) == release("v1.7.4")
+
+
+def test_a_release_candidate_is_below_its_final_release() -> None:
+    assert stable_of([release("v1.5.0rc1"), release("v1.5.0")]) == release("v1.5.0")
+    assert stable_of([release("v1.5.0"), release("v1.5.0rc1")]) == release("v1.5.0")
+
+
+def test_a_list_with_only_prereleases_has_no_stable_row_t7() -> None:
+    assert stable_of([release("v1.8.0", prerelease=True), release("rolling", prerelease=True)]) is None
+    assert stable_of([]) is None
+
+
+def test_stable_is_chosen_by_number_not_by_position() -> None:
+    assert stable_of([release("v1.5.6"), release("v1.10.0"), release("v1.7.4")]) == release("v1.10.0")
