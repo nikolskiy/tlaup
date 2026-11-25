@@ -8,12 +8,16 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.clock import FakeClock
+from tests.github import BASE
 from tests.jars import make_tools_jar
+from tlaup.versioning.github import GitHubClient
 from tlaup.versioning.jarinfo import read_jar
 from tlaup.versioning.store import Build, Source, TmpFolder, ToolStore
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Collection, Iterator
+
+    import requests
 
     from tests.conftest import Isolated
     from tlaup.versioning.jarinfo import JarInfo
@@ -104,3 +108,33 @@ def make_build(name: str, build_id: str | None = None, **fields: object) -> Buil
     values.update(fields)
     build_id = build_id or f"{name}-{str(values['sha256'])[:12]}"
     return Build(id=build_id, name=name, path=Path("/nowhere") / build_id, **values)
+
+
+# --- the GitHub client (design 12 V7) ---
+
+TOKEN = "test-token-not-a-secret-0123"  # a made-up value; tests assert on it through the helpers below
+USER_AGENT = "tlaup/0.0.0-test"
+
+
+def has_authorization(request: requests.PreparedRequest) -> bool:
+    """Whether the request carried any Authorization header (a bool, so no failing assert prints a value)."""
+    return "Authorization" in request.headers
+
+
+def has_token(request: requests.PreparedRequest) -> bool:
+    """Whether the request carried the test token as a bearer header."""
+    return request.headers.get("Authorization") == f"Bearer {TOKEN}"
+
+
+@pytest.fixture
+def make_client(clock: FakeClock) -> Callable[..., GitHubClient]:
+    """``make_client(base_url=BASE, token=None, token_hosts=(), attempts=3)``, sleeping on the fake clock."""
+
+    def make(
+        base_url: str = BASE, *, token: str | None = None, token_hosts: Collection[str] = (), attempts: int = 3
+    ) -> GitHubClient:
+        return GitHubClient(
+            base_url, token=token, token_hosts=token_hosts, user_agent=USER_AGENT, sleep=clock.sleep, attempts=attempts
+        )
+
+    return make
