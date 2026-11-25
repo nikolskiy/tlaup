@@ -1,0 +1,62 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "exception",
+      "name": null,
+      "message": {
+        "code": 1000,
+        "severity": 1,
+        "name": "GENERAL",
+        "body": [
+          "TLC threw an unexpected exception.",
+          "This was probably caused by an error in the spec or model.",
+          "See the User Output or TLC Console for clues to what happened.",
+          "The exception was a java.lang.UnsupportedClassVersionError",
+          ": tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0"
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [],
+  "sany": [],
+  "module_files": {
+    "spec": "<tmp>/q28/work/ovr-case/spec.tla",
+    "Naturals": "<jvm-tmp>/tlc-N/Naturals.tla",
+    "TLC": "<jvm-tmp>/tlc-N/TLC.tla",
+    "Ovr": "<tmp>/q28/work/ovr-case/modules/Ovr.tla",
+    "Sequences": "<jvm-tmp>/tlc-N/Sequences.tla",
+    "FiniteSets": "<jvm-tmp>/tlc-N/FiniteSets.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 14,
+  "sany_lines_used": 14,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-18 22:09:21",
+  "finished": "2026-11-18 22:09:21",
+  "duration_ms": 2400
+}

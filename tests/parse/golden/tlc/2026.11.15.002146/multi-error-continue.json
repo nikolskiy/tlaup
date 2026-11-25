@@ -1,0 +1,643 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "errors",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "invariant",
+      "name": "InvA",
+      "message": {
+        "code": 2110,
+        "severity": 1,
+        "name": "TLC_INVARIANT_VIOLATED_BEHAVIOR",
+        "body": [
+          "Invariant InvA is violated."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [
+        {
+          "code": 2121,
+          "severity": 1,
+          "name": "TLC_BEHAVIOR_UP_TO_THIS_POINT",
+          "body": [
+            "The behavior up to this point is:"
+          ],
+          "before": "",
+          "after": "",
+          "truncated": false
+        }
+      ],
+      "trace": {
+        "states": [
+          {
+            "index": 1,
+            "action": null,
+            "location": null,
+            "header": "Initial predicate",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "0",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 0,
+                  "bounds": null
+                },
+                "raw": "0",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "1: <Initial predicate>",
+              "x = 0",
+              ""
+            ]
+          },
+          {
+            "index": 2,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "1",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 1,
+                  "bounds": null
+                },
+                "raw": "1",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "2: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 1",
+              ""
+            ]
+          },
+          {
+            "index": 3,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "2",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 2,
+                  "bounds": null
+                },
+                "raw": "2",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "3: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 2",
+              ""
+            ]
+          }
+        ],
+        "loop_to": null,
+        "stuttering": false
+      }
+    },
+    {
+      "kind": "invariant",
+      "name": "InvB",
+      "message": {
+        "code": 2110,
+        "severity": 1,
+        "name": "TLC_INVARIANT_VIOLATED_BEHAVIOR",
+        "body": [
+          "Invariant InvB is violated."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [
+        {
+          "code": 2121,
+          "severity": 1,
+          "name": "TLC_BEHAVIOR_UP_TO_THIS_POINT",
+          "body": [
+            "The behavior up to this point is:"
+          ],
+          "before": "",
+          "after": "",
+          "truncated": false
+        }
+      ],
+      "trace": {
+        "states": [
+          {
+            "index": 1,
+            "action": null,
+            "location": null,
+            "header": "Initial predicate",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "0",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 0,
+                  "bounds": null
+                },
+                "raw": "0",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "1: <Initial predicate>",
+              "x = 0",
+              ""
+            ]
+          },
+          {
+            "index": 2,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "1",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 1,
+                  "bounds": null
+                },
+                "raw": "1",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "2: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 1",
+              ""
+            ]
+          },
+          {
+            "index": 3,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "2",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 2,
+                  "bounds": null
+                },
+                "raw": "2",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "3: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 2",
+              ""
+            ]
+          },
+          {
+            "index": 4,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "3",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 3,
+                  "bounds": null
+                },
+                "raw": "3",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "4: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 3",
+              ""
+            ]
+          },
+          {
+            "index": 5,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "4",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 4,
+                  "bounds": null
+                },
+                "raw": "4",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "5: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 4",
+              ""
+            ]
+          }
+        ],
+        "loop_to": null,
+        "stuttering": false
+      }
+    },
+    {
+      "kind": "deadlock",
+      "name": null,
+      "message": {
+        "code": 2114,
+        "severity": 1,
+        "name": "TLC_DEADLOCK_REACHED",
+        "body": [
+          "Deadlock reached."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [
+        {
+          "code": 2121,
+          "severity": 1,
+          "name": "TLC_BEHAVIOR_UP_TO_THIS_POINT",
+          "body": [
+            "The behavior up to this point is:"
+          ],
+          "before": "",
+          "after": "",
+          "truncated": false
+        }
+      ],
+      "trace": {
+        "states": [
+          {
+            "index": 1,
+            "action": null,
+            "location": null,
+            "header": "Initial predicate",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "0",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 0,
+                  "bounds": null
+                },
+                "raw": "0",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "1: <Initial predicate>",
+              "x = 0",
+              ""
+            ]
+          },
+          {
+            "index": 2,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "1",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 1,
+                  "bounds": null
+                },
+                "raw": "1",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "2: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 1",
+              ""
+            ]
+          },
+          {
+            "index": 3,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "2",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 2,
+                  "bounds": null
+                },
+                "raw": "2",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "3: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 2",
+              ""
+            ]
+          },
+          {
+            "index": 4,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "3",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 3,
+                  "bounds": null
+                },
+                "raw": "3",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "4: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 3",
+              ""
+            ]
+          },
+          {
+            "index": 5,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "4",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 4,
+                  "bounds": null
+                },
+                "raw": "4",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "5: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 4",
+              ""
+            ]
+          },
+          {
+            "index": 6,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "5",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 5,
+                  "bounds": null
+                },
+                "raw": "5",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "6: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 5",
+              ""
+            ]
+          },
+          {
+            "index": 7,
+            "action": "Next",
+            "location": {
+              "module": "MultiError",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 27
+            },
+            "header": "Next line 5, col 9 to line 5, col 27 of module MultiError",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "6",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 6,
+                  "bounds": null
+                },
+                "raw": "6",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "7: <Next line 5, col 9 to line 5, col 27 of module MultiError>",
+              "x = 6",
+              ""
+            ]
+          }
+        ],
+        "loop_to": null,
+        "stuttering": false
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [],
+  "module_files": {
+    "MultiError": "<tmp>/q01/run/MultiError.tla",
+    "Naturals": "/tmp/tlc-9386460978337808401/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [
+    {
+      "diameter": 7,
+      "generated": 7,
+      "distinct": 7,
+      "queue": 0,
+      "at": "2026-11-14 22:27:08"
+    }
+  ],
+  "stats": {
+    "totalStates": 7,
+    "distinctStates": 7,
+    "queue": 0,
+    "stateDepth": 7,
+    "collision_probability": null,
+    "outdegree": null
+  },
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 5,
+  "sany_lines_used": 5,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-14 22:27:08",
+  "finished": "2026-11-14 22:27:08",
+  "duration_ms": 792
+}

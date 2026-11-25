@@ -34,6 +34,10 @@ IDS = [f"{path.parent.name}/{path.stem}" for path in FILES]
 # Package 15 fills the parts in five pull requests (15a to 15e); each adds its own, and the last removes the constant.
 FILLED = [
     ("synthetic", "", "synthetic"),
+    ("tlc", "2026.11.15.002146", "research 1"),
+    ("tlc", "2026.11.15.002146", "research 2"),
+    ("tlc", "2026.11.15.002146", "research 13"),
+    ("tlc", "2026.11.15.002146", "research 28"),
     ("tlc", "v1.7.4", "research 1"),
     ("tlc", "v1.7.4", "research 2"),
     ("tlc", "v1.7.4", "research 13"),

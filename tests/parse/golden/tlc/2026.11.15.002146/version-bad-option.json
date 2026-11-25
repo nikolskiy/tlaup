@@ -1,0 +1,52 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": null,
+  "workers": null,
+  "phase": "not-started",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "usage",
+      "name": null,
+      "message": {
+        "code": 1102,
+        "severity": 1,
+        "name": "WRONG_COMMANDLINE_PARAMS_TLC",
+        "body": [
+          "Error: unrecognized option: -version",
+          "Usage: java tlc2.TLC [-help] [-option] inputfile"
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [],
+  "sany": [],
+  "module_files": {},
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 0,
+  "sany_lines_used": 0,
+  "unknown_messages": [],
+  "info": [],
+  "started": null,
+  "finished": null,
+  "duration_ms": null
+}

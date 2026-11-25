@@ -1,6 +1,6 @@
 # 15. Golden expected results
 
-Size: L, as five pull requests of size M (15a to 15e). Suggested model: most capable (the generation is one command; the work is the review). Status: 15a and 15b built, 15c to 15e ready.
+Size: L, as five pull requests of size M (15a to 15e). Suggested model: most capable (the generation is one command; the work is the review). Status: 15a to 15c built, 15d and 15e ready.
 
 ## Goal
 
