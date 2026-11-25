@@ -29,7 +29,8 @@ FILES = [path for folder in build_folders("tlc") for path in sorted(folder.glob(
 IDS = [f"{path.parent.name}/{path.stem}" for path in FILES]
 
 # The parts whose expected files are written so far, as (tool, build, origin): origin is the part of a case's
-# cases.toml source before the first comma ("research 1"); the synthetic files are ("synthetic", "", "synthetic").
+# cases.toml source before the first comma ("research 1"); the synthetic files are ("synthetic", "", "synthetic"),
+# and the synthetic sany-* files ("synthetic", "", "synthetic-sany").
 # Package 15 fills the parts in five pull requests (15a to 15e); each adds its own, and the last removes the constant.
 FILLED = [
     ("synthetic", "", "synthetic"),
@@ -104,6 +105,12 @@ def test_the_dictionary_form_holds(path: Path) -> None:
     assert RunResult.from_dict(data) == result
 
 
+def _is_sany_synthetic(path: Path) -> bool:
+    # A synthetic file named sany-* holds SANY's own output, not TLC's (package 12), so it takes the SANY shape
+    # and has its own origin, "synthetic-sany", filled with the other SANY results (lead's decision for 15a).
+    return path.parent.name == "synthetic" and path.stem.startswith("sany-")
+
+
 def _parsed_cases() -> list[tuple[str, str, str, Path]]:
     """Every parsed case as (tool, build, origin, capture): the cases of ``tlc/``, ``sany/`` and ``pcal/`` (not
     ``plain/``, which is not parsed) and every file of ``synthetic/``."""
@@ -113,7 +120,10 @@ def _parsed_cases() -> list[tuple[str, str, str, Path]]:
         for folder in build_folders(tool)
         for path in sorted(folder.glob("*.out"))
     ]
-    cases += [("synthetic", "", "synthetic", path) for path in sorted((golden_root() / "synthetic").glob("*.out"))]
+    cases += [
+        ("synthetic", "", "synthetic-sany" if _is_sany_synthetic(path) else "synthetic", path)
+        for path in sorted((golden_root() / "synthetic").glob("*.out"))
+    ]
     return cases
 
 
@@ -153,7 +163,7 @@ def _serialised(tool: str, path: Path) -> str:
     """The expected file's text for one case: TLC and synthetic ``RunResult.to_dict()``; SANY the result and each
     line's class; PlusCal ``PcalResult.to_dict()``. Keys in the order ``to_dict()`` gives them, not sorted."""
     lines = read_lines(path)
-    if tool == "sany":
+    if tool == "sany" or _is_sany_synthetic(path):
         data = _sany_expected(lines)
     elif tool == "pcal":
         data = _pcal_expected(lines)
