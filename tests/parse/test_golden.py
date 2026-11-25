@@ -178,8 +178,14 @@ def test_expected_result(tool: str, path: Path, request: pytest.FixtureRequest) 
 
 
 def test_every_expected_file_has_its_capture() -> None:
-    left_behind = [path for path in sorted(golden_root().rglob("*.json")) if not path.with_suffix(".out").is_file()]
+    # A .json beside no parsed case (a removed case, a plain/ capture), or in a part not yet in FILLED, would never
+    # be compared: its test does not exist or is pending.
+    parts = {path: (tool, build, origin) for tool, build, origin, path in CASES}
+    expected = sorted(golden_root().rglob("*.json"))
+    left_behind = [path for path in expected if path.with_suffix(".out") not in parts]
     assert left_behind == []
+    unfilled = [path for path in expected if parts[path.with_suffix(".out")] not in FILLED]
+    assert unfilled == []
 
 
 def test_every_filled_case_has_its_expected_file() -> None:
