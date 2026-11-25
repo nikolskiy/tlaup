@@ -1,0 +1,73 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "success",
+  "verdict": "no-error",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [
+    {
+      "tool": "sany",
+      "severity": "warning",
+      "message": "The PlusCal algorithm in module PcalStaleAlg has changed since its last translation.",
+      "module": "PcalStaleAlg",
+      "file": "<tmp>/q22/work/v1.8.0/stale-alg-tool/PcalStaleAlg.tla",
+      "location": null,
+      "details": []
+    }
+  ],
+  "module_files": {
+    "PcalStaleAlg": "<tmp>/q22/work/v1.8.0/stale-alg-tool/PcalStaleAlg.tla",
+    "Naturals": "/tmp/tlc-5197231388561163704/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [
+    {
+      "diameter": 3,
+      "generated": 4,
+      "distinct": 3,
+      "queue": 0,
+      "at": "2026-11-18 22:22:19"
+    }
+  ],
+  "stats": {
+    "totalStates": 4,
+    "distinctStates": 3,
+    "queue": 0,
+    "stateDepth": 3,
+    "collision_probability": "1.6E-19",
+    "outdegree": "The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 1 and the 95th percentile is 1)."
+  },
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 14,
+  "sany_lines_used": 14,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-18 22:22:19",
+  "finished": "2026-11-18 22:22:19",
+  "duration_ms": 908
+}

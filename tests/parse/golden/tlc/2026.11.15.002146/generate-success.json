@@ -1,0 +1,68 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "simulate",
+  "workers": 1,
+  "phase": "checking",
+  "status": "running",
+  "verdict": "incomplete",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [],
+  "module_files": {
+    "Success": "<tmp>/q22/work/v1.8.0/generate-success/Success.tla",
+    "Naturals": "/tmp/tlc-17201297785834338223/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [
+    {
+      "diameter": 379690,
+      "generated": 37968994,
+      "distinct": -1,
+      "queue": -1,
+      "at": "2026-11-18 22:20:30"
+    }
+  ],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 5,
+  "sany_lines_used": 5,
+  "unknown_messages": [],
+  "info": [
+    {
+      "code": 2269,
+      "severity": 0,
+      "name": "TLC_COMPUTING_INIT_PROGRESS",
+      "body": [
+        "Computed 1 initial states..."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "started": "2026-11-18 22:19:30",
+  "finished": null,
+  "duration_ms": null
+}

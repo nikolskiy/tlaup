@@ -1,0 +1,64 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "not-started",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "config",
+      "name": null,
+      "message": {
+        "code": 5001,
+        "severity": 1,
+        "name": "CFG_ERROR_READING_FILE",
+        "body": [
+          "TLC encountered the following error when trying to read the configuration file nope.cfg:",
+          "File not found."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [],
+  "module_files": {},
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 0,
+  "sany_lines_used": 0,
+  "unknown_messages": [],
+  "info": [],
+  "started": null,
+  "finished": null,
+  "duration_ms": null
+}
