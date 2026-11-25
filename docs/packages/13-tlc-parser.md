@@ -1,6 +1,6 @@
 # 13. The TLC parser
 
-Size: L, as two pull requests (13a L, 13b M). Suggested model: most capable. Status: ready.
+Size: L, as two pull requests (13a L, 13b M). Suggested model: most capable. Status: 13a built, 13b ready.
 
 ## Goal
 
@@ -144,7 +144,7 @@ Rows R29 and R30: the facts of the groups above are R30's test (08 wrote them), 
 
 **`test_tlc.py`**:
 
-- Synthetic cases that need a result (P3, P4): the cut-off file ends with `status` `RUNNING` and verdict `incomplete`, and its last message is `truncated` and still has its event; a severity-1 message nested in a severity-0 one is one error; an end marker with text after it at the top level gives an `OutputLine` after the message's own event, and the count above is one higher than the number of `Unframed` items; `STARTMSG -1` and the leading-zero marker are output lines; `invalid-utf8.out` parses, with the replacement character in the output line (13a) and in the value (13b); `unknown-code.out` gives one `ErrorOpened` of kind `other`, one `WarningFound` and one `UnknownMessage`, all three messages in `unknown_messages`, and `status` `FAILURE`.
+- Synthetic cases that need a result (P3, P4): the cut-off file ends with `status` `RUNNING` and verdict `incomplete`, and its last message is `truncated` and still has its event; a severity-1 message nested in a severity-0 one is one error; an end marker with text after it at the top level gives an `OutputLine` after the message's own event, and the count above is one higher than the number of `Unframed` items; `STARTMSG -1` and the leading-zero marker are output lines; `invalid-utf8.out` parses, with the replacement character in the unframed line, which falls inside the SANY window and is counted as SANY's, not as an output line (13a; reworded while building it) and in the value (13b); `unknown-code.out` gives one `ErrorOpened` of kind `other`, one `WarningFound` and one `UnknownMessage`, all three messages in `unknown_messages`, and `status` `FAILURE`.
 - The output bound: a parser built with a small `max_output_lines` (for example 2), fed a capture with more unframed lines (`print-output`), keeps the newest lines in `output`, counts the rest in `output_dropped`, and still emits one `OutputLine` per line.
 - Events in order, for one capture each: `assertion-failure` gives `ErrorOpened`, `ErrorExtended` (2121), three `TraceStateAdded`, `TraceClosed`, `ErrorExtended` (2103); `liveness-back-to-state` ends its trace with a `TraceClosed` that carries the 2122 message; `multi-error-continue` closes each trace before the next `ErrorOpened`; the SANY window of `sany-semantic-error` gives `DiagnosticFound` before the `PhaseChanged` of 2219.
 - The reading-after-every-line check for the roadmap's SANY defect: reading `result.sany` after every `feed` changes nothing.

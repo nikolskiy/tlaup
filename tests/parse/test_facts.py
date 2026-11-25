@@ -21,7 +21,8 @@ if TYPE_CHECKING:
 
     from tests.parse.facts import Fact
 
-PENDING: tuple[str, ...] = ("*",)  # fnmatch patterns over Fact.id; a fact whose id matches one is marked pending
+# fnmatch patterns over Fact.id; a fact whose id matches one is marked pending
+PENDING: tuple[str, ...] = ("*:traces:*",)
 
 
 def _is_pending(fact: Fact) -> bool:
