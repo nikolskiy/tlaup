@@ -23,11 +23,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
-    from types import EllipsisType
 
     from tlaup_parse import CoverageItem, Location, RunResult, TlcError, TlcMessage, Trace, Variable
 
@@ -90,8 +90,11 @@ def _holds(what: str, condition: bool, actual: object) -> None:
 
 
 def _name(member: object) -> str:
-    """An enum member's name (Status, Verdict, Phase)."""
-    return str(getattr(member, "name", member))
+    """An enum member's name (Status, Verdict, Phase); anything that is not an enum member fails."""
+    if not isinstance(member, Enum):
+        msg = f"expected an enum member, got {member!r}"
+        raise AssertionError(msg)  # noqa: TRY004 - a fact reports a mismatch as AssertionError
+    return member.name
 
 
 def _kind(error: TlcError) -> str:
@@ -144,10 +147,7 @@ def _phase(word: str) -> Check:
     return lambda r: _same("phase at the end", _name(r.phase), word)
 
 
-def _mode(mode: str | None, workers: int | EllipsisType | None) -> Check:
-    """The mode, and the workers unless ``workers`` is ``...`` (not asserted)."""
-    if workers is ...:
-        return lambda r: _same("mode", r.mode, mode)
+def _mode(mode: str | None, workers: int | None) -> Check:
     return lambda r: _same("mode and workers", (r.mode, r.workers), (mode, workers))
 
 
@@ -157,6 +157,7 @@ def _not_resumed(result: RunResult) -> None:
 
 def _times(started: bool, finished: bool) -> Check:
     """That the start (2185) and the finish (2186: time and duration) are set or not; never their values."""
+    # Inventory row R30: start time, finish time and duration read from TLC's messages.
 
     def check(r: RunResult) -> None:
         _same("started is set", r.started is not None, started)
@@ -168,6 +169,7 @@ def _times(started: bool, finished: bool) -> Check:
 
 def _progress(read: bool) -> Check:
     """That progress (2200, 2209) was read or not; never its counts."""
+    # Inventory row R30: progress read from TLC's messages.
     return lambda r: _same("progress was read", len(r.progress) > 0, read)
 
 
@@ -180,6 +182,7 @@ def _tool_stable(result: RunResult) -> None:
     _holds("tool revision", tool.revision is not None and re.fullmatch(r"[0-9a-f]{7,}", tool.revision), tool)
     _holds("tool date is set on a numbered release", tool.date is not None, tool)
     _holds("tool raw line", tool.raw.startswith(f"TLC2 Version {tool.version} of "), tool)
+    _same("tool raw line", tool.raw, f"TLC2 Version {tool.version} of {tool.date} (rev: {tool.revision})")
 
 
 def _tool_rolling(result: RunResult) -> None:
@@ -191,6 +194,7 @@ def _tool_rolling(result: RunResult) -> None:
     _holds("tool revision", tool.revision is not None and re.fullmatch(r"[0-9a-f]{7,}", tool.revision), tool)
     _same("tool date", tool.date, None)
     _holds("tool raw line", tool.raw.startswith(f"TLC2 Version {tool.version} (rev: "), tool)
+    _same("tool raw line", tool.raw, f"TLC2 Version {tool.version} (rev: {tool.revision})")
 
 
 def _errors(expected: Sequence[tuple[int, str, str | None]]) -> Check:
@@ -285,7 +289,7 @@ def basics(
     verdict: str,
     phase: str = "FINISHED",
     mode: str | None = "exhaustive search",
-    workers: int | EllipsisType | None = 1,
+    workers: int | None = 1,  # relies on package 52 pinning one worker when a case names none
     started: bool = True,
     finished: bool = True,
     progress: bool,
@@ -419,7 +423,7 @@ basics(
     status="SUCCESS",  # 2186 with no 2193 (P3): v1.7.4:29, rolling:40
     verdict="NO_ERROR_BOUNDED",  # 2188 "Random Simulation": v1.7.4:7, rolling:7
     mode="simulate",
-    workers=...,  # P3 reads workers from 2187; this run has 2188, so they are not asserted
+    workers=1,  # "with 1 worker" in 2188 (package 13: 2187, 2188 and 2271 all set workers)
     progress=True,  # 2209: v1.7.4:26, rolling:30 and 33
     info=[2269],  # "Computed 1 initial states...": v1.7.4:23, rolling:24 (P4 rule 3)
     errors=[],
@@ -496,6 +500,7 @@ def _coverage_rows(expected: Sequence[tuple[object, ...]]) -> Check:
     return check
 
 
+# Inventory row R30: coverage read from TLC's messages, on both lines.
 add("coverage", "run", "rows-stable", _coverage_rows(_COVERAGE_COMMON), STABLE)
 add("coverage", "run", "rows-rolling", _coverage_rows(_COVERAGE_VARIABLES + _COVERAGE_COMMON), ROLLING)
 
@@ -810,9 +815,22 @@ def _java_override_exception_shape(r: RunResult) -> None:
     _same("nested 2154 (severity, before, after)", (nested.severity, nested.before, nested.after), (0, ": ", ""))
     _same("nested 2154 lines", len(nested.lines), 4)  # v1.7.4:38-41, rolling:39-42
     _same("nested 2154 last line", nested.lines[-1], "boom from Java override")
-    text = message.text_lines()
-    _same("text lines", len(text), 8)
-    _same("text line 5", text[4], ": Attempted to apply the operator overridden by the Java method")
+    # P4: text_lines() equal the error's lines in plain/java-override-exception.out (v1.7.4:13-20, rolling:13-20,
+    # identical), whose first line carries plain mode's "Error: " prefix, which -tool mode does not print.
+    _same(
+        "text lines",
+        list(message.text_lines()),
+        [
+            "TLC threw an unexpected exception.",
+            "This was probably caused by an error in the spec or model.",
+            "See the User Output or TLC Console for clues to what happened.",
+            "The exception was a java.lang.RuntimeException",
+            ": Attempted to apply the operator overridden by the Java method",
+            "public static tlc2.value.impl.Value tlc2.module.Boom.Boom(tlc2.value.impl.Value),",
+            "but it produced the following error:",
+            "boom from Java override",
+        ],
+    )
 
 
 # --- java-override-stack-trace: BoomTrace.tla, an override whose error is a Java stack ----------------------------
@@ -1136,7 +1154,7 @@ def _method_not_public_shape(r: RunResult) -> None:
         (0, "", ",", False),
     )
     _same("nested 2154 lines", len(nested.lines), 4)
-    _same("last two lines", list(message.lines[-2:]), ["but it produced the following error:", "%2%"])
+    _same("lines after the nested 2154", len(message.body) - message.body.index(nested) - 1, 2)
 
 
 # =================================================================================================================
