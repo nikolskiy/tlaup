@@ -12,8 +12,8 @@ What differs from the spec, and why:
 - A killed tlaup is a ``Proc`` whose step object is dropped, which releases its locks as
   the operating system would and leaves its folders under ``.tmp/``.
 
-The machine runs against ``tlaup.versioning`` (marked ``pending`` until the store is
-built) and against the throwaway model in ``reference_store.py``.
+The machine runs against ``tlaup.versioning``: the store of ``store.py`` and the steps of
+``install.py``.
 """
 
 from __future__ import annotations
@@ -58,20 +58,6 @@ MAX_GIVE_UPS = 1  # failed downloads and lock timeouts in one example, for the s
 ANY = object()  # the pin may become anything (`tool pin`)
 
 
-def reference_impl() -> SimpleNamespace:
-    module = importlib.import_module("tests.stateful.reference_store")
-    return SimpleNamespace(
-        name=module.__name__,
-        steps=module,
-        make_store=module.ToolStore,
-        tool_dir=lambda root: root,
-        release=module.Release,
-        fetch=module.fetch,
-        locked=(module.StoreLocked,),
-        missing=(module.PinnedBuildMissing,),
-    )
-
-
 def tlaup_impl() -> SimpleNamespace:
     errors = importlib.import_module("tlaup.errors")
     paths = importlib.import_module("tlaup.paths")
@@ -83,8 +69,9 @@ def tlaup_impl() -> SimpleNamespace:
         """A small real jar: what read_jar asks for, and bytes that differ by version."""
         jar = dest / "tla2tools.jar"
         with zipfile.ZipFile(jar, "w") as archive:
-            archive.writestr("META-INF/MANIFEST.MF", f"Manifest-Version: 1.0\nX-Git-Revision: {version:040x}\n")
-            archive.writestr("tlc2/TLC.class", f"{name}:{version}")
+            manifest = f"Manifest-Version: 1.0\nX-Git-Revision: {version:040x}\n"
+            archive.writestr(zipfile.ZipInfo("META-INF/MANIFEST.MF", date_time=(2026, 11, 18, 10, 0, 0)), manifest)
+            archive.writestr(zipfile.ZipInfo("tlc2/TLC.class", date_time=(2026, 11, 18, 10, 0, 0)), f"{name}:{version}")
         return jar
 
     def release(name: str, version: int) -> Any:
@@ -502,11 +489,6 @@ def run_machine(impl: SimpleNamespace, base: Path) -> None:
     run_state_machine_as_test(machine, settings=settings(stateful_step_count=80))
 
 
-def test_tool_store_machine_against_the_reference_model(tmp_path: Path) -> None:
-    run_machine(reference_impl(), tmp_path)
-
-
-@pytest.mark.pending
 def test_tool_store_machine(tmp_path: Path) -> None:
     run_machine(tlaup_impl(), tmp_path)
 
@@ -655,12 +637,6 @@ TRACES = [
 
 
 @pytest.mark.parametrize("trace", TRACES)
-def test_counterexample_against_the_reference_model(trace: Any, tmp_path: Path) -> None:
-    trace(reference_impl(), tmp_path)
-
-
-@pytest.mark.pending
-@pytest.mark.parametrize("trace", TRACES)
 def test_counterexample(trace: Any, tmp_path: Path) -> None:
     trace(tlaup_impl(), tmp_path)
 
@@ -713,10 +689,5 @@ def second_process_agrees(impl: SimpleNamespace, impl_name: str, root: Path) -> 
     second.release()
 
 
-def test_a_store_object_stands_for_a_process_reference_model(tmp_path: Path) -> None:
-    second_process_agrees(reference_impl(), "reference_impl", tmp_path)
-
-
-@pytest.mark.pending
 def test_a_store_object_stands_for_a_process(tmp_path: Path) -> None:
     second_process_agrees(tlaup_impl(), "tlaup_impl", tmp_path)
