@@ -175,7 +175,7 @@ repos:
 
       - id: bandit
         name: bandit
-        entry: uv run bandit -c pyproject.toml -r src/tlaup
+        entry: uv run bandit -c pyproject.toml -r src/tlaup src/tlaup_parse
         language: system
         types: [python]
         pass_filenames: false
