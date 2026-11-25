@@ -1,0 +1,3 @@
+Why: design 10 P8, the state machine: an open diagnostic with no message is dropped, and the line that opened it stays counted as used.
+
+How: written by hand in the shape of golden/sany/v1.7.4/sany-semerr.out, with the message of its only error removed.

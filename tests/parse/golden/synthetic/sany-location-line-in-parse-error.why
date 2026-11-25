@@ -1,0 +1,4 @@
+Why: design 10 P8, "A location line counts only when it is the whole line; inside the three parse states it is an ordinary line".
+
+How: written by hand in the shape of tlc-free SANY output (golden/sany/v1.7.4/sany-parseerr.out): a parse error whose message and
+residual stack each hold a line that is a whole location line.

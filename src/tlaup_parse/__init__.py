@@ -46,6 +46,7 @@ from tlaup_parse.model import (
     VersionSeen,
     WarningFound,
 )
+from tlaup_parse.sany import SanyLineClass, SanyParser, SanyResult, SanyStep
 from tlaup_parse.values import Value, parse_value
 
 __all__ = [
@@ -74,6 +75,10 @@ __all__ = [
     "ProgressMade",
     "Recovered",
     "RunResult",
+    "SanyLineClass",
+    "SanyParser",
+    "SanyResult",
+    "SanyStep",
     "StatsUpdated",
     "Status",
     "TlcError",
