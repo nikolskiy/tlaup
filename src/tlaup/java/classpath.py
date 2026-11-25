@@ -1,4 +1,5 @@
 import os
+from collections.abc import Sequence
 from enum import Enum, auto
 from pathlib import Path
 
@@ -28,13 +29,15 @@ class ClasspathResolver:
     Follows a strict Specific-to-General hierarchy: CLI > Project > Config > Global.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - the signature package 30 gives
         self,
         config: Settings,
         project_root: Path | None = None,
         tool_jar: Path | None = None,
         extra_libs: list[str] | None = None,
         extra_modules: list[str] | None = None,
+        *,
+        module_dirs: Sequence[Path] | None = None,
     ):
         """
         Initialize the resolver.
@@ -45,12 +48,24 @@ class ClasspathResolver:
             tool_jar: Path to tla2tools.jar.
             extra_libs: Explicit library paths from CLI.
             extra_modules: Explicit module paths from CLI.
+            module_dirs: The folders of the registered modules, in the order Registry.list() gives them.
+                None: walk <cache>/modules as release 0.8.x does; only the old callers pass None.
         """
         self.config = config
         self.project_root = project_root
         self.tool_jar = tool_jar
         self.extra_libs = extra_libs or []
         self.extra_modules = extra_modules or []
+        self.module_dirs = module_dirs
+
+    def _managed_module_dirs(self) -> list[Path]:
+        """The registered modules' folders as given, or the subfolders of the old cache when none were given."""
+        if self.module_dirs is not None:
+            return list(self.module_dirs)
+        managed_dir = get_modules_dir()
+        if not managed_dir.is_dir():
+            return []
+        return [item for item in sorted(managed_dir.iterdir()) if item.is_dir()]
 
     def get_project_path(self, subdir: SubdirType) -> Path | None:
         """Helper to find a project-local directory."""
@@ -87,20 +102,16 @@ class ClasspathResolver:
         if config_path:
             raw_paths.append(str(Path(config_path).absolute()))
 
-        # 4. Managed Modules (Global Cache)
-        managed_dir = get_modules_dir()
-        if managed_dir.is_dir():
-            # Add all subdirectories of managed_dir to raw_paths so they are expanded for JARs/TLA files
-            for item in sorted(managed_dir.iterdir()):
-                if item.is_dir():
-                    if subdir == SubdirType.LIB:
-                        mod_lib = item / "lib"
-                        if mod_lib.is_dir():
-                            raw_paths.append(str(mod_lib.absolute()))
-                    elif subdir == SubdirType.MODULES:
-                        mod_modules = item / "modules"
-                        if mod_modules.is_dir():
-                            raw_paths.append(str(mod_modules.absolute()))
+        # 4. Managed Modules: the registered modules' folders, or the old cache's subfolders
+        for item in self._managed_module_dirs():
+            if subdir == SubdirType.LIB:
+                mod_lib = item / "lib"
+                if mod_lib.is_dir():
+                    raw_paths.append(str(mod_lib.absolute()))
+            elif subdir == SubdirType.MODULES:
+                mod_modules = item / "modules"
+                if mod_modules.is_dir():
+                    raw_paths.append(str(mod_modules.absolute()))
 
         # Deduplicate while preserving order
         seen = set()
@@ -142,13 +153,10 @@ class ClasspathResolver:
             classpath.extend(modules)
 
         # Cached module classes are included as dependencies in all modes (RUNTIME & COMPILE)
-        managed_dir = get_modules_dir()
-        if managed_dir.is_dir():
-            for item in sorted(managed_dir.iterdir()):
-                if item.is_dir():
-                    mod_classes = item / "classes"
-                    if mod_classes.is_dir():
-                        classpath.append(str(mod_classes.absolute()))
+        for item in self._managed_module_dirs():
+            mod_classes = item / "classes"
+            if mod_classes.is_dir():
+                classpath.append(str(mod_classes.absolute()))
 
         # Tool JAR
         if self.tool_jar:

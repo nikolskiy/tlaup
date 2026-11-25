@@ -52,7 +52,7 @@ Changes:
 
 - `src/tlaup/cli.py`: the line that registers `modules` becomes the line that registers `module` from `tlaup.cmd.module`. One line; every switch package edits one, and [48](48-command-tree.md) rewrites the block.
 - `src/tlaup/java/classpath.py`: `module_dirs` becomes required (keyword-only, `Sequence[Path]`, no `None`); the walk of `<cache>/modules` in `_resolve_paths` and `resolve`, and the import of `get_modules_dir`, are deleted; `ResolveMode.COMPILE` and its branch are deleted (the old `cmd/modules/add.py` was its last caller). `ResolveMode` keeps its one member and `resolve` its parameter, so no call line changes. If [33](33-tlc-invocation.md) is merged first, make the same three changes on its version of the file.
-- `src/tlaup/tlc/runner.py`: the one `ClasspathResolver(...)` call in the old `build_tlc_command` gets `module_dirs=[m.path for m in Registry(AppPaths.from_env(os.environ).modules).list()]`, with its imports. Nothing else in the old runner changes. See "The old `tlaup tlc` after this package" under Context.
+- `src/tlaup/tlc/runner.py`: the one `ClasspathResolver(...)` call in the old `build_tlc_command` gets `module_dirs=[m.path for m in Registry(AppPaths.from_env(os.environ).modules, now=...).list()]`, with its imports. Nothing else in the old runner changes. See "The old `tlaup tlc` after this package" under Context.
 - `src/tlaup/versioning/paths.py`: delete `get_modules_dir`. What is left (`get_run_dir`, `get_tlc_run_dir`) is [39](39-tlc-command.md)'s.
 - `tests/unit/java/test_classpath.py` ([30](30-module-build.md)'s new file): nothing, as long as its cases pass `module_dirs` and use `ResolveMode.RUNTIME`, as 30 writes them; a case that does not is given the folders. The old file of that name, and its `test_cached_modules_resolved` and `test_resolve_compile_order`, went in 03b.
 - `README.md`: the section "Custom Java Modules (`tlaup modules`)" names `tlaup module add|list|remove|dir`.
@@ -84,7 +84,7 @@ Each command module imports only `typer`, `tlaup.errors` and `tlaup.context` at 
 
 ```python
 ctx = get_context()
-registry = Registry(ctx.paths.modules)
+registry = Registry(ctx.paths.modules, now=...)
 built = build_module(
     Path(path),
     registry=registry,
@@ -190,13 +190,15 @@ Not here: C1's rename line ("`tlaup tools` and `tlaup modules` are now `tlaup to
 
 ## Context for the worker
 
+**`Registry` needs a clock** (noted at the merge of 30, 2026-11-25). Every `Registry(...)` call passes `now=`, since package 30 (as `ToolStore` does): pass the UTC clock, for example `now=lambda: datetime.now(UTC)`, or the test's clock.
+
 **State of `main` when this starts.** 29 is merged: `tlaup tool` writes the new store (`<cache>/tool/`), and `tlc/compiler.py`'s `get_tlc_jar_path` reads the pinned jar from it. No old test is left (03b). 30 is merged: `tlaup/modules/` exists and `ClasspathResolver` takes `module_dirs`, with `None` meaning the old walk. The old `tlaup modules add|list|remove|path` (`cmd/modules/`) still copies into `<cache>/modules/<name>/` with a `metadata.json`, imports `tlc/compiler.py`, `tlc/run_cache.py`, `versioning/paths.get_modules_dir` and `java/classpath.ResolveMode.COMPILE`, and runs a bare `javac`. The old `tlaup tlc` (`cmd/tlc.py`, `tlc/runner.py`) builds its classpath with `ClasspathResolver(config, project_root=..., tool_jar=...)`, which walks `<cache>/modules`. [33](33-tlc-invocation.md) and [34](34-override-check.md) may or may not be merged.
 
 **The old `tlaup tlc` after this package.** Nothing promises that the old `tlc` keeps working until [39](39-tlc-command.md) replaces it (decision D62; no CI job runs real TLC through it), but `module_dirs` becomes required, so its resolver calls need an argument for `main` to type-check. The registry's folders are the argument that costs nothing, and with them the old runner reads the new layout, because the new layout keeps the three subfolders the resolver reads:
 
 | The old runner reads | Before this package | After it |
 | --- | --- | --- |
-| The registered modules | every folder under `<cache>/modules` | `Registry(AppPaths.from_env(os.environ).modules).list()`: the folders under `<cache>/module` with a valid name and a `module.json`; `.tmp/` and leftovers are not modules |
+| The registered modules | every folder under `<cache>/modules` | `Registry(AppPaths.from_env(os.environ).modules, now=...).list()`: the folders under `<cache>/module` with a valid name and a `module.json`; `.tmp/` and leftovers are not modules |
 | Each module's classes, on the classpath before the tool jar | `<module>/classes` | the same subfolder |
 | Each module's jars | `<module>/lib/*.jar` | the same |
 | Each module's TLA+ modules, on the classpath and in `-DTLA-Library` | `<module>/modules` | the same |
