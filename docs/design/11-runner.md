@@ -26,24 +26,29 @@ def run_tlc_raw(inv: TlcInvocation, java_inv: JavaInvocation, *, paths: AppPaths
 Both functions have the same frame, and only the middle differs:
 
 ```python
-with signals_held() as signals, run_folder(inv, paths, now) as folder:    # 20 G3, R6
+with signals_held() as signals, run_folder(inv, paths, now) as folder:  # 20 G3, R6
     try:
-        if folder.kept_summary.count: notice(reminder(folder.kept_summary)) # R6, "Kept folders are visible"
-        reporter.start(run_info)                                           # run_tlc only; the last thing before the child
-        process = run_streaming(..., on_held=...) or run_passthrough(...)  # the middle; starts nothing if a signal came first;
-                                                                           # on_held hands the waiting line to reporter.notice (R2)
-        settled = folder.settle(process)                                   # R6: decided before anything is printed
+        if folder.kept_summary.count:
+            notice(reminder(folder.kept_summary))  # R6, "Kept folders are visible"
+        reporter.start(run_info)  # run_tlc only; the last thing before the child
+        process = run_streaming(..., on_held=...) or run_passthrough(
+            ...
+        )  # the middle; starts nothing if a signal came first;
+        # on_held hands the waiting line to reporter.notice (R2)
+        settled = folder.settle(process)  # R6: decided before anything is printed
         outcome = RunOutcome(...)
-        reporter.finish(outcome)                                           # run_tlc only
+        reporter.finish(outcome)  # run_tlc only
     except BaseException as error:
-        settled = folder.settle(None)                                      # R6: the first decision stands if there is one
-        if settled.kept: error.add_note(...)                               # R6, "The note"
+        settled = folder.settle(None)  # R6: the first decision stands if there is one
+        if settled.kept:
+            error.add_note(...)  # R6, "The note"
         raise
     finally:
-        reporter.close()                                                   # run_tlc only; 22 O1
+        reporter.close()  # run_tlc only; 22 O1
 # leaving the block deletes or keeps the folder, releases the lock, restores the handlers
-if reporter.write_error:                                                   # run_tlc only; 22 O1: close() never raises
-    if settled.kept: reporter.write_error.add_note(...)                    # R6, "The note": the outcome is lost, the note is not
+if reporter.write_error:  # run_tlc only; 22 O1: close() never raises
+    if settled.kept:
+        reporter.write_error.add_note(...)  # R6, "The note": the outcome is lost, the note is not
     raise reporter.write_error
 return outcome
 ```

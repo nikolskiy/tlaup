@@ -65,4 +65,3 @@ def test_tlc_with_missing_cfg(mocker, tmp_path, runner, base_settings):
     result = runner.invoke(app, ["tlc", str(spec_dir / "Test.tla"), "--cfg", "NonExistentVariant"])
     assert result.exit_code == 1
     assert "Error:" in result.output or "Could not find" in result.output
-

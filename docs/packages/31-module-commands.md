@@ -86,11 +86,15 @@ Each command module imports only `typer`, `tlaup.errors` and `tlaup.context` at 
 ctx = get_context()
 registry = Registry(ctx.paths.modules)
 built = build_module(
-    Path(path), registry=registry,
+    Path(path),
+    registry=registry,
     get_build=lambda: ensure_tools(store, remote, client, ctx.ui, auto_install=None, may_install=False),
-    get_javac=lambda: require_javac(ctx.env, min_version=ctx.settings.java.min_version,
-                                    cache_file=ctx.paths.java_cache),
-    release=ctx.settings.java.min_version, now=lambda: datetime.now(timezone.utc))
+    get_javac=lambda: require_javac(
+        ctx.env, min_version=ctx.settings.java.min_version, cache_file=ctx.paths.java_cache
+    ),
+    release=ctx.settings.java.min_version,
+    now=lambda: datetime.now(timezone.utc),
+)
 ctx.ui.note(f"{'Replaced' if built.replaced else 'Added'} module {built.name}")
 for text in built.warnings:
     ctx.ui.warning(text)

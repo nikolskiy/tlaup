@@ -133,7 +133,6 @@ def tlc(  # noqa: PLR0912, PLR0913, PLR0915, PLR0917
         exit_code = run_tlc(spec, coverage=coverage, raw=True, cfg=cfg)
         raise typer.Exit(exit_code)
 
-
     tlc_version = get_tlc_version() or "unknown"
     formatter = TlcFormatter(tlc_version=tlc_version)
     layout = formatter.create_layout()

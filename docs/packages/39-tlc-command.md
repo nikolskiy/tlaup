@@ -122,12 +122,20 @@ def make_reporter(ctx: AppContext, options: ReporterOptions) -> Reporter     # w
 The command function is G1's sketch; nothing else belongs in it:
 
 ```python
-inv = resolve_tlc_invocation(request, paths=..., settings=..., env=..., cwd=..., home=..., get_build=..., now=..., rng=...)
+inv = resolve_tlc_invocation(
+    request, paths=..., settings=..., env=..., cwd=..., home=..., get_build=..., now=..., rng=...
+)
 java_inv = build_tlc_command(inv)
 if show_command:
-    ui.out.print(join(replace(java_inv, lifeline=False).argv()),           # 11 R9: no lifeline; one line,
-                 markup=False, highlight=False, soft_wrap=True); return      # never wrapped or read as markup; exit 0
-for text in inv.warnings: ui.warning(text)
+    ui.out.print(
+        join(replace(java_inv, lifeline=False).argv()),  # 11 R9: no lifeline; one line,
+        markup=False,
+        highlight=False,
+        soft_wrap=True,
+    )
+    return  # never wrapped or read as markup; exit 0
+for text in inv.warnings:
+    ui.warning(text)
 if request.raw:
     outcome = run_tlc_raw(inv, java_inv, paths=paths, now=now, notice=ui.note)
 else:

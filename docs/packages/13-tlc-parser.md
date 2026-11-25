@@ -63,8 +63,8 @@ Provides ([10 P2](../design/10-parser.md#p2-the-tlaup_parse-package)):
 ```python
 class TlcParser:
     def __init__(self, *, max_output_lines: int = 10_000): ...
-    def feed(self, line: str) -> list[Event]: ...     # one line, with or without its newline
-    def close(self) -> list[Event]: ...               # end of input: flush anything still open
+    def feed(self, line: str) -> list[Event]: ...  # one line, with or without its newline
+    def close(self) -> list[Event]: ...  # end of input: flush anything still open
     @property
     def result(self) -> RunResult: ...
 ```

@@ -17,7 +17,6 @@ def test_tlc_help_coverage():
     assert "Purge" in output
 
 
-
 def test_tlc_cleanup_command(mocker):
     """Test tlaup tlc --cleanup purges run cache."""
     mock_clear = mocker.patch("tlaup.cmd.tlc.clear_tlc_run_cache")

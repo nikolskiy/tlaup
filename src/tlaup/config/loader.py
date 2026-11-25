@@ -60,9 +60,7 @@ def cache_dir() -> Path:
 def _default_config_content() -> str:
     """Read the default config shipped with the package."""
     # Safer than __file__, correctly handles zipped wheels and zipapps.
-    return (
-        importlib.resources.files("tlaup.resources").joinpath("default_config.yaml").read_text(encoding="utf-8")
-    )
+    return importlib.resources.files("tlaup.resources").joinpath("default_config.yaml").read_text(encoding="utf-8")
 
 
 def ensure_config() -> Path:

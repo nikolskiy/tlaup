@@ -69,5 +69,3 @@ def test_tools_help_shows_list_help_text(runner):
     assert result.exit_code == 0
     assert "list" in result.stdout
     assert "List available and installed TLC versions." in result.stdout
-
-

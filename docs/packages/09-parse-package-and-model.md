@@ -88,8 +88,8 @@ Defaults of a fresh `RunResult()` (written by stage 4 where the design gives non
 ```python
 @dataclass(frozen=True)
 class Value:
-    kind: str            # "int", "bool", "string", "model", "set", "seq", "record", "function", "interval", "raw"
-    text: str            # field(compare=False)
+    kind: str  # "int", "bool", "string", "model", "set", "seq", "record", "function", "interval", "raw"
+    text: str  # field(compare=False)
     items: tuple["Value", ...] = ()
     fields: tuple[tuple[str, "Value"], ...] = ()
     pairs: tuple[tuple["Value", "Value"], ...] = ()
@@ -110,31 +110,128 @@ class Value:
 
 ```python
 @dataclass(frozen=True)
-class VersionSeen:        message: TlcMessage; tool: ToolInfo
-class ModeSeen:           message: TlcMessage; mode: str | None; workers: int | None
-class PhaseChanged:       message: TlcMessage; phase: Phase
-class ProgressMade:       message: TlcMessage; progress: Progress
-class OutputLine:         line: str                                   # no message
-class DiagnosticFound:    diagnostic: Diagnostic                      # no message
-class ErrorOpened:        message: TlcMessage; error: TlcError
-class ErrorExtended:      message: TlcMessage; error: TlcError
-class TraceStateAdded:    message: TlcMessage; error: TlcError; state: TraceState
-class TraceClosed:        message: TlcMessage | None; error: TlcError; trace: Trace
-class WarningFound:       message: TlcMessage
-class OverrideLoaded:     message: TlcMessage; operator: str; java_class: str
-class CoverageAdded:      message: TlcMessage; item: CoverageItem
-class StatsUpdated:       message: TlcMessage; stats: FinalStats
-class CheckpointStarted:  message: TlcMessage; folder: str
-class CheckpointWritten:  message: TlcMessage
-class Recovered:          message: TlcMessage; examined: int | None; queued: int | None
-class Information:        message: TlcMessage
-class UnknownMessage:     message: TlcMessage
-class Finished:           message: TlcMessage; duration_ms: int | None; finished: str | None
+class VersionSeen:
+    message: TlcMessage
+    tool: ToolInfo
 
-Event = (VersionSeen | ModeSeen | PhaseChanged | ProgressMade | OutputLine | DiagnosticFound | ErrorOpened
-         | ErrorExtended | TraceStateAdded | TraceClosed | WarningFound | OverrideLoaded | CoverageAdded
-         | StatsUpdated | CheckpointStarted | CheckpointWritten | Recovered | Information | UnknownMessage
-         | Finished)
+
+class ModeSeen:
+    message: TlcMessage
+    mode: str | None
+    workers: int | None
+
+
+class PhaseChanged:
+    message: TlcMessage
+    phase: Phase
+
+
+class ProgressMade:
+    message: TlcMessage
+    progress: Progress
+
+
+class OutputLine:
+    line: str  # no message
+
+
+class DiagnosticFound:
+    diagnostic: Diagnostic  # no message
+
+
+class ErrorOpened:
+    message: TlcMessage
+    error: TlcError
+
+
+class ErrorExtended:
+    message: TlcMessage
+    error: TlcError
+
+
+class TraceStateAdded:
+    message: TlcMessage
+    error: TlcError
+    state: TraceState
+
+
+class TraceClosed:
+    message: TlcMessage | None
+    error: TlcError
+    trace: Trace
+
+
+class WarningFound:
+    message: TlcMessage
+
+
+class OverrideLoaded:
+    message: TlcMessage
+    operator: str
+    java_class: str
+
+
+class CoverageAdded:
+    message: TlcMessage
+    item: CoverageItem
+
+
+class StatsUpdated:
+    message: TlcMessage
+    stats: FinalStats
+
+
+class CheckpointStarted:
+    message: TlcMessage
+    folder: str
+
+
+class CheckpointWritten:
+    message: TlcMessage
+
+
+class Recovered:
+    message: TlcMessage
+    examined: int | None
+    queued: int | None
+
+
+class Information:
+    message: TlcMessage
+
+
+class UnknownMessage:
+    message: TlcMessage
+
+
+class Finished:
+    message: TlcMessage
+    duration_ms: int | None
+    finished: str | None
+
+
+Event = (
+    VersionSeen
+    | ModeSeen
+    | PhaseChanged
+    | ProgressMade
+    | OutputLine
+    | DiagnosticFound
+    | ErrorOpened
+    | ErrorExtended
+    | TraceStateAdded
+    | TraceClosed
+    | WarningFound
+    | OverrideLoaded
+    | CoverageAdded
+    | StatsUpdated
+    | CheckpointStarted
+    | CheckpointWritten
+    | Recovered
+    | Information
+    | UnknownMessage
+    | Finished
+)
 ```
 
 `message` is always the top-level message, with its nested messages inside it. `TraceClosed.message` is the one point the table leaves open: it is the 2122 or 2218 message when that is what closed the trace, and `None` when the trace was closed by the arrival of another message or by `close()` (that other message has its own event). Events that hold a `TlcError` or a `Trace` hold the live object of the result, not a copy. Events have no `to_dict()`: the JSON result of milestone 4 is the `RunResult`.
