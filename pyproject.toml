@@ -48,6 +48,7 @@ include = ["tlaup*"]
 [tool.setuptools.package-data]
 tlaup = ["py.typed"]
 "tlaup.resources" = ["*.yaml"]
+"tlaup.java" = ["lifeline.jar", "lifeline/*.java"]
 
 [dependency-groups]
 dev = [
@@ -157,6 +158,8 @@ test-integration = "pytest tests/integration --no-cov"
 install-hooks = "pre-commit install --install-hooks"
 audit = "detect-secrets audit .secrets.baseline"
 build = "uv build"
+build-lifeline = "python scripts/build_lifeline.py"
+test-lifeline = "pytest tests/lifeline --no-cov -p no:randomly"
 clean = "rm -rf dist"
 
 twine-check = "twine check dist/*.whl dist/*.tar.gz"
