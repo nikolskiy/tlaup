@@ -6,6 +6,7 @@ private.
 """
 
 from tlaup_parse.exit_status import ExitStatus, describe_exit_status
+from tlaup_parse.framing import Framer, Unframed, render_framed
 from tlaup_parse.model import (
     CheckpointStarted,
     CheckpointWritten,
@@ -61,6 +62,7 @@ __all__ = [
     "ExitStatus",
     "FinalStats",
     "Finished",
+    "Framer",
     "Information",
     "Location",
     "ModeSeen",
@@ -81,6 +83,7 @@ __all__ = [
     "TraceClosed",
     "TraceState",
     "TraceStateAdded",
+    "Unframed",
     "UnknownMessage",
     "Value",
     "Variable",
@@ -88,4 +91,5 @@ __all__ = [
     "VersionSeen",
     "WarningFound",
     "describe_exit_status",
+    "render_framed",
 ]
