@@ -15,6 +15,7 @@ Size: S. Suggested model: mid-tier. Status: ready.
   - [23 C5](../design/23-command-layout.md#c5-help-and-the-cli-reference), in full.
   - [01 T8](../design/01-testing.md#t8-expected-output-files): the generated CLI reference is one of the expected files the helper compares.
   - [14 F7](../design/14-config-and-cli.md#f7-help-text), Tests: "The generated reference is an expected file; CI fails when it drifts."
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row P5 (owner 51): help shows every command with a one-line description, and `tlc --help` lists its options. The checked-in reference and its drift test hold it.
 
 ## Depends on
 
@@ -22,7 +23,7 @@ Size: S. Suggested model: mid-tier. Status: ready.
 - [03](03-test-foundation.md): `assert_matches` and `--update-expected` (`tests/expected.py`).
 - [17](17-error-handler.md): `tlaup.cli.app` built with `TlaupGroup`.
 
-Change from the draft (50): 03 and 17 are named for what the script and the test use; 48 through 50. The order stays as the cut has it: 50's pull request carries a full help dump for review, and this package's first checked-in reference is that reviewed text (the index has a proposal to swap the two; this file is written for the order as cut).
+Change from the draft (50): 03 and 17 are named for what the script and the test use; 48 through 50. 50's pull request carries a full help dump for review, and this package's first checked-in reference is that reviewed text (the index's "Why the cut is this way" settles the order).
 
 ## Files
 
@@ -34,13 +35,13 @@ Creates:
 
 Changes:
 
-- `pyproject.toml`: the poe task `docs-cli` (`python scripts/gen_cli_reference.py`, run through `uv run poe docs-cli`); the per-file exemption from `T20` for `scripts/` if [58](58-lint-rules.md) has not added it yet ([30 I8](../design/30-ci-and-release.md#i8-lint-rules): "`scripts/` and `tests/fakes/` are exempt per file"). mypy checks `scripts/` (I8).
+- `pyproject.toml`: the poe task `docs-cli` (`python scripts/gen_cli_reference.py`, run through `uv run poe docs-cli`). Nothing else: the `T20` exemption for `scripts/` is [58](58-lint-rules.md)'s (58c, which switches `T20` on) (review finding D12), and the script writes its file rather than printing, so it needs none. mypy checks `scripts/` (I8).
 - `docs/README.md`: one row for `reference/`, saying what it holds (the command-line reference, generated from the code by `uv run poe docs-cli`; do not edit by hand) and when to read it (you need a command's exact arguments and options) ([conventions](../contributing/conventions.md#documentation): a new document gets a line in the index above it).
 - `docs/contributing/development.md`: the command `uv run poe docs-cli` in its commands list, with one line on when to run it (after changing any help string; the drift test fails otherwise).
 
 Deletes: nothing.
 
-Shared: `pyproject.toml` (one task line; [58](58-lint-rules.md) and the CI packages edit other lines), `docs/README.md` (one row).
+Shared: `pyproject.toml` (one task line; [58](58-lint-rules.md), which may run beside this package, and the CI packages edit other lines), `docs/README.md` (one row).
 
 ## Interfaces
 
@@ -70,7 +71,7 @@ Consumes: `tlaup.cli.app` (17, 48); `assert_matches` (03).
 
 T12 rule 6: the pull request shows the test failing on a help string changed by hand and passing after `uv run poe docs-cli`.
 
-No feature file, no stateful test; no old test is deleted.
+No feature file, no stateful test. The pull request names inventory row P5 as covered: the reference lists every command with its one-line description and `tlc`'s options, and the drift test fails when one goes missing.
 
 ## Changelog
 

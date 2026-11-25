@@ -22,14 +22,13 @@ A release can only be tagged from a clean, pushed, green `main` whose lock file,
   - [30 L4](../design/30-ci-and-release.md#l4-version-bump-task): all of it.
   - [30 L6](../design/30-ci-and-release.md#l6-lock-refresh-before-a-release) and [30 L7](../design/30-ci-and-release.md#l7-version-rule): what they change in files, the release guide.
   - [30 I5](../design/30-ci-and-release.md#i5-workflow-hygiene): for `release.yml`.
-  - [20 G3](../design/20-groundwork.md#g3-java-launcher), "The jar": the release build of the lifeline jar, only if [06](06-lifeline-agent.md) chose to build it per release.
+  - [30 I2](../design/30-ci-and-release.md#i2-unit-job), in part: `release.yml`'s step `uv run tlaup tools install`, the one place outside `test.yml` that runs an old command. It runs only on a tag, nothing is tagged between packages (D6), and this package removes it; no earlier package needs to touch it (decision D62).
 
 ## Depends on
 
-- [53](53-ci-workflows.md): `poe check-release` and `scripts/check_wheel.py` (L1 step 8, and L2's "the wheel check of I4"); the check run named `Test` that L1 step 7 asks GitHub about; `shellcheck scripts/*.sh` in the `lint` job, which checks the new script; the pinned hashes and the way to look them up.
-- [06](06-lifeline-agent.md): whether the lifeline jar is checked in (then the release build does nothing more) or built per release (then the release build job sets up Temurin 11 and runs `poe build-lifeline` before `uv build`).
+- [53](53-ci-workflows.md): `poe check-release` and `scripts/check_wheel.py` (L1 step 8, and L2's "the wheel check of I4"); the check run named `Test` that L1 step 7 asks GitHub about; `shellcheck scripts/*.sh` in the `lint` job, which checks the new script; the pinned hashes and the way to look them up. Through 53, [06](06-lifeline-agent.md)'s checked-in lifeline jar, which the wheel check asserts.
 
-Changed from the draft (53): 06 is added, for that choice.
+Changed from the draft (53): none. An earlier revision added 06 for its choice between a checked-in jar and one built per release; the jar is checked in (review finding A9), so the release build needs nothing of 06 beyond what 53 already does.
 
 ## Files
 
@@ -48,7 +47,7 @@ Creates:
 
 Deletes: nothing.
 
-Shared files: `pyproject.toml` (one URL line and one task here; [56](56-build-and-metadata.md) writes other parts of `[project]`); `release.yml` with [29](29-tool-commands.md), which changes or removes the step `uv run tlaup tools install` if it is still there when 29 runs. This package removes that step whatever form it has, since the release build's unit tests need no jar after [03](03-test-foundation.md). Nothing under `src/` changes.
+Shared files: `pyproject.toml` (one URL line and one task here; [56](56-build-and-metadata.md) writes other parts of `[project]`). `release.yml` is this package's alone: its `uv run tlaup tools install` step goes here, since the release build's unit tests need no jar after [03](03-test-foundation.md). Nothing under `src/` changes.
 
 ## Interfaces
 
@@ -81,7 +80,7 @@ Prints the body of the section under the heading `## [X.Y.Z] - YYYY-MM-DD` of `C
 
 | Job | Permissions | Timeout | Does |
 | --- | --- | --- | --- |
-| `build` | `contents: read` | 20 (stage 4: it runs lint, the unit tests and the build) | Checkout with `persist-credentials: false` and `fetch-depth: 0`. If 06 builds the lifeline jar per release: Temurin 11 and `uv run poe build-lifeline` before the build. Fail unless `v$(uv version --short)` equals the tag (`$GITHUB_REF_NAME`) and `git merge-base --is-ancestor "$GITHUB_SHA" origin/main`. `uv sync --locked`; `uv run poe lint`; `uv run poe test`; `uv run poe check-release` (build, `twine check`, the wheel check). `uv run python scripts/changelog_section.py "$VERSION" > release-notes.md`. Upload two artifacts with `actions/upload-artifact`: `dist`, exactly the `.whl` and the `.tar.gz`, and `release-notes`. |
+| `build` | `contents: read` | 20 (stage 4: it runs lint, the unit tests and the build) | Checkout with `persist-credentials: false` and `fetch-depth: 0`. No Java: the lifeline jar is checked in. Fail unless `v$(uv version --short)` equals the tag (`$GITHUB_REF_NAME`) and `git merge-base --is-ancestor "$GITHUB_SHA" origin/main`. `uv sync --locked`; `uv run poe lint`; `uv run poe test`; `uv run poe check-release` (build, `twine check`, the wheel check). `uv run python scripts/changelog_section.py "$VERSION" > release-notes.md`. Upload two artifacts with `actions/upload-artifact`: `dist`, exactly the `.whl` and the `.tar.gz`, and `release-notes`. |
 | `publish` | `id-token: write` only; `environment: pypi` | 10 (stage 4) | Needs `build`. Download `dist` with `actions/download-artifact`; publish with `pypa/gh-action-pypi-publish`. No checkout, no project code. Waits for the maintainer's approval in the `pypi` environment (L5). |
 | `release-page` | `contents: write` | 5 (stage 4) | Needs `publish`. Download both artifacts; then `gh release create "$GITHUB_REF_NAME" dist/*.whl dist/*.tar.gz --title "tlaup $VERSION" --notes-file release-notes.md --verify-tag`, with `GH_TOKEN: ${{ github.token }}` and `GH_REPO: ${{ github.repository }}` in the step's environment, because there is no checkout for `gh` to read the repository from. No checkout, no project code. |
 
@@ -89,7 +88,7 @@ Prints the body of the section under the heading `## [X.Y.Z] - YYYY-MM-DD` of `C
 
 The pins research 29 found on 2026-11-19, to be looked up again on the day (53 gives the method): `pypa/gh-action-pypi-publish` `7245906fb61fa33a13554f9d5fb856fe61758086` (v1.14.3; today's `release/v1` is a branch and can move, so this pin is the largest gain), `actions/download-artifact` `9000827ccba6bdab643e8b6fd33ac0654aef8333` (v8.0.2), `actions/upload-artifact` `cf430e030ddbb5b0abf93d22962f4752f3646cd9` (v7.0.2), and the four of 53's table. `softprops/action-gh-release` and `actions/setup-python` are no longer used.
 
-Consumes: `poe check-release`, `poe lint`, `poe test` (53, 03); `poe build-lifeline` (06), if needed.
+Consumes: `poe check-release`, `poe lint`, `poe test` (53, 03).
 
 ## Tests that must pass
 
@@ -129,7 +128,7 @@ Keep its "Repository rules" section and add what this milestone sets: the rulese
 
 **Reading the version.** `uv version --short` replaces today's `grep | sed` on `pyproject.toml` (the roadmap's "Read the version robustly").
 
-**State of `main` when this starts.** `release.sh` checks only that the tag is absent locally and that the changelog mentions the version, makes a lightweight tag and pushes non-atomically. `release.yml` has two jobs: `build-release` with `contents: write` (setup-python, Java 17, `uv run tlaup tools install` or what 29 made of it, lint, tests, build, upload, `softprops/action-gh-release` with `generate_release_notes` and `files: dist/*`), then `pypi-publish`. `project.urls.Changelog` points at `CHANGELOG.md` on `main`.
+**State of `main` when this starts.** `release.sh` checks only that the tag is absent locally and that the changelog mentions the version, makes a lightweight tag and pushes non-atomically. `release.yml` has two jobs: `build-release` with `contents: write` (setup-python, Java 17, `uv run tlaup tools install`, lint, tests, build, upload, `softprops/action-gh-release` with `generate_release_notes` and `files: dist/*`), then `pypi-publish`. Its install step names a command that may no longer exist; that is harmless, since nothing pushes a tag before 0.9.0 and this package rewrites the file. `project.urls.Changelog` points at `CHANGELOG.md` on `main`.
 
 ## Done when
 
@@ -143,7 +142,7 @@ Keep its "Repository rules" section and add what this milestone sets: the rulese
 
 - `test.yml`, `poe check-release` and `scripts/check_wheel.py`: [53](53-ci-workflows.md).
 - The repository settings (L5, I7) and the backfill of old pages (L3): maintainer actions.
-- The lifeline jar's build recipe: [06](06-lifeline-agent.md).
+- The lifeline jar and its build recipe: [06](06-lifeline-agent.md); it is checked in, so no release step builds it.
 - Changing a changelog entry or the version itself: the first release does that, following the guide.
 - The documentation track's "Changelog checks: CI warns when code changes without a changelog change" (roadmap line 506): not designed; not built here.
 

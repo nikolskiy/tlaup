@@ -1,6 +1,6 @@
 # 15. Golden expected results
 
-Size: L. Suggested model: most capable (the generation is one command; the work is the review). Status: ready. The PlusCal results need `PcalResult.to_dict()`, which package 14 adds (reconciled by stage 4; the index lists the missing dictionary form as a gap in the design).
+Size: L, as five pull requests of size M (15a to 15e). Suggested model: most capable (the generation is one command; the work is the review). Status: ready.
 
 ## Goal
 
@@ -15,16 +15,16 @@ Every parsed golden case, of TLC, SANY and PlusCal on both builds, and every syn
   - [01 T3](../design/01-testing.md#t3-golden-files): "Two kinds of expectation", item 2 (the full expected result, generated, then reviewed line by line by a separate agent).
   - [01 T8](../design/01-testing.md#t8-expected-output-files): its use for the parsed results, and its rule that the reviewer reads the diff of every expected file.
   - [10 P1](../design/10-parser.md#p1-golden-files): the expected results. [10 P3](../design/10-parser.md#p3-result-model) (Tests): "The expected files of P1 are this model serialised". [10 P8](../design/10-parser.md#p8-sany-output) (Tests): "For every SANY golden file the classes are part of the expected result".
-  - [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal): "a full expected result" per SANY and PlusCal case.
+  - [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal): "a full expected result" per SANY and PlusCal case, which S5 now names as `SanyResult.to_dict()` and `PcalResult.to_dict()` (question Q18).
 
 ## Depends on
 
 - [03](03-test-foundation.md): `assert_matches(actual, expected, request)` and the `--update-expected` option ([01 T8](../design/01-testing.md#t8-expected-output-files)), including the list of rewritten files it prints.
 - [07](07-golden-files.md): the golden folders, their `cases.toml`, `synthetic/`.
-- [08](08-golden-facts.md): `tests/parse/drive.py`; and, as the gate, its `PENDING` tuple empty: every fact passes before any expected file is generated.
-- [12](12-sany-parser.md): `SanyParser`, `SanyStep.line_class`, `SanyResult.to_dict()` (stage 4 added the dictionary form there).
+- [08](08-golden-facts.md): `tests/parse/drive.py`; and, as the gate, its `PENDING` tuple empty (13b empties it): every fact passes before any expected file is generated.
+- [12](12-sany-parser.md): `SanyParser`, `SanyStep.line_class`, `SanyResult.to_dict()` ([10 P8](../design/10-parser.md#p8-sany-output)).
 - [13](13-tlc-parser.md): `TlcParser`, `RunResult.to_dict()` (from [09](09-parse-package-and-model.md)), and `tests/parse/test_golden.py`, which 13 creates.
-- [14](14-pcal-parser.md): `PcalParser` and a dictionary form of `PcalResult` (see the question under Context).
+- [14](14-pcal-parser.md): `PcalParser` and `PcalResult.to_dict()` ([21 S2](../design/21-other-tools.md#s2-pcal)).
 
 Changed from the draft (13, 12, 14): 03, 07 and 08 are named; 08 as the gate that the parsers pass their facts.
 
@@ -44,14 +44,14 @@ No expected file for `plain/` (not parsed). How long the JSON is was not measure
 
 Creates:
 
-- `tests/parse/golden/tlc/<build>/<case>.json`, `synthetic/<case>.json`, `sany/<build>/<case>.json`, `pcal/<build>/<case>.json`: beside the `.out`, as T3's layout puts them (not under an `expected/` folder, which T8 says for other expected files; see the report).
+- `tests/parse/golden/tlc/<build>/<case>.json`, `synthetic/<case>.json`, `sany/<build>/<case>.json`, `pcal/<build>/<case>.json`: beside the `.out`, as T3's layout puts them. That is T8's one exception to its `expected/` folders, which T8 now states.
 
 Changes:
 
 - `tests/parse/test_golden.py` (created by 13): the comparison with the expected files, and the check that every case has one (Tests).
 - `src/tlaup_parse/*.py` and `tests/parse/facts.py`, only where the review finds a wrong value (Context, "A wrong value").
 
-Deletes: nothing. The old `tests/unit/tlc/test_parser.py` and `test_sany.py` are "replaced by golden tests" ([01 T11](../design/01-testing.md#t11-the-existing-tests)); with this package the replacement is complete, but the old files test the old modules, which ship until the switch, and package 39 deletes both together.
+Deletes: nothing. The old parser tests went with the old suite in 03b.
 
 Shared: none within the parser track; 15 comes after the other parser packages.
 
@@ -79,16 +79,18 @@ Provides: the expected files, in these shapes (written by stage 4; T3 says only 
 
 - **TLC and synthetic**: `json.dumps(result.to_dict(), indent=2, ensure_ascii=False) + "\n"`, with keys in the order `to_dict()` gives them (the model's field order, which reads in the order of a run), not sorted.
 - **SANY**: an object `{"result": <SanyResult.to_dict()>, "lines": [{"class": "<class>", "text": "<line>"}, ...]}` with one entry per line fed, in order: the class `SanyStep.line_class` gave the line (its name in lower case, as 12 defines the dictionary value) and the line without its ending. The text is repeated so that the reviewer can check every class against its line in one file. Same serialisation.
-- **PlusCal**: `PcalResult.to_dict()`, same serialisation, once 14 provides it.
+- **PlusCal**: `PcalResult.to_dict()`, same serialisation.
 
 ## Tests that must pass
 
 Added to `tests/parse/test_golden.py`, plain pytest, parametrised by globbing (so a later capture is covered without editing the test), each file driven as T3 says (binary read, lines keep their ending, decoded as UTF-8 with replacement, one line per `feed`, then `close()`):
 
 - `test_expected_result[<tool>/<build>/<case>]` for every case of `tlc/` (not `plain/`), `sany/` and `pcal/`, and every file of `synthetic/`: the serialised result `assert_matches` its `<case>.json`. Run once with `--update-expected` to create the files; from then on without it.
-- Every `.json` under `golden/` has its `.out`, and every case that needs one has one: an expected file is never left behind for a removed case, and a new case without one fails.
+- Every `.json` under `golden/` has its `.out`, and every case that needs one has one: an expected file is never left behind for a removed case, and a new case without one fails. Until the last of the five pull requests, the second half of this check covers only the parts already filled, through one constant in `test_golden.py` (`FILLED`, a list of tool, build and origin); each pull request adds its own part, and the one that fills the last part removes the constant.
 
 Already there and still passing: 13's properties in the same file, 08's facts with `PENDING` empty, 10's rebuild, 12's and 14's golden tests.
+
+Preserved-behaviour rows: none is this package's; the expected files guard the parser rows (R28 to R31) against regressions after their owners' tests.
 
 ## Changelog
 
@@ -96,7 +98,7 @@ None.
 
 ## Context for the worker
 
-**State of `main`.** 07 to 14 are in, and every fact passes (08's `PENDING` is empty). The old parser in `src/tlaup/tlc/` still ships and is still used by the old `tlaup tlc`; nothing here touches it.
+**State of `main`.** 07 to 14 are in, and every fact passes (08's `PENDING` is empty). The old parser in `src/tlaup/tlc/` is still in the tree for the old `tlaup tlc`; nothing here touches it.
 
 **Generating.** `uv run pytest tests/parse/test_golden.py --update-expected` writes every file and prints the list (T8). Commit the generated files as they come, in a commit of their own, before any review fix, so that each later fix is a diff of its own.
 
@@ -110,11 +112,9 @@ None.
 
 The reviewer writes, per sitting, the cases checked and what was found, in the pull request.
 
-**How many sittings.** About 323 files, of which 185 are TLC results of an estimated 40,000 lines or more. That is not one sitting, and not one pull request a reviewer can take in one sitting either. The review can be made shorter without being made shallower: many research 22 cases repeat a research 1 spec with one flag changed (`difftrace-*` and their `-nodiff` twins, `simulate-*`, `dfid-*`, `deadlock-flag*`), and the rolling result of a case often differs from the v1.7.4 one in a few known places (the version, `Linting` lines, 2779, the cfg nesting); a reviewer who has checked one file of a pair in full can check its twin as a diff against it, and say so. Suggested sittings of 15 to 20 cases, grouped by origin: research 1's cases; research 2's and the override cases; research 22's by family (difftrace, simulation and generate, dfid, alias and params, deadlock flag, the `tool-*` errors, warnings and stale PlusCal, checkpoint and recover); the synthetic cases; SANY; PlusCal. Stage 4 proposes to the index that this package be three pull requests (see Risks).
+**How many sittings.** About 323 files, of which 185 are TLC results of an estimated 40,000 lines or more: hence five pull requests, split by build and by origin (review finding A2; below). The review can be made shorter without being made shallower: many research 22 cases repeat a research 1 spec with one flag changed (`difftrace-*` and their `-nodiff` twins, `simulate-*`, `dfid-*`, `deadlock-flag*`), and the rolling result of a case often differs from the v1.7.4 one in a few known places (the version, `Linting` lines, 2779, the cfg nesting); a reviewer who has checked one file of a pair in full can check its twin as a diff against it, and say so. Within a pull request, sittings of 15 to 20 cases: research 22's by family (difftrace, simulation and generate, dfid, alias and params, deadlock flag, the `tool-*` errors, warnings and stale PlusCal, checkpoint and recover).
 
 **A wrong value** found in review is a parser defect, not a file to edit by hand: add a fact to `facts.py` (or a test to 10's, 12's, 13's or 14's file) that fails, show it red, fix the parser, regenerate, and let the reviewer read the new diff. If the fix changes a name or a shape of the model, the facts and other expected files change with it, in the same commit. A capture is never edited.
-
-**Question: the dictionary form of `PcalResult`.** [10 P2](../design/10-parser.md#p2-the-tlaup_parse-package) and [21 S2](../design/21-other-tools.md#s2-pcal) give `PcalResult` no `to_dict()`, and S5 wants a full expected result per PlusCal case. Package 12 wrote one for `SanyResult` as stage 4; package 14 does the same for `PcalResult` (stage 4 put it there when the packages were reconciled). The index keeps the gap in its list of questions, so that the design can name the form.
 
 **Decisions this rests on.** D8 (the parsed result carries everything a reporter needs, so it is what the files hold), D9 (nothing is lost: the review checks every line), D19 (two builds), D54 (the verdict is in the result). The dictionary form becomes milestone 4's JSON schema (P3, Risks): a name that reads badly in the files is cheap to change now and costly after 0.9.0; the reviewer may say so, and the change is the model's package's kind of change, made here with the facts and files it touches.
 
@@ -122,7 +122,7 @@ The reviewer writes, per sitting, the cases checked and what was found, in the p
 
 - Every case has its `<case>.json`; `test_golden.py`, `test_facts.py` and the other `tests/parse/` tests pass without `--update-expected`; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - A separate review agent has read every expected file against its capture; the pull request holds its notes per sitting and the measured size of the JSON; every review finding is fixed in the parser with a test shown red first, or answered in the pull request.
-- Per pull request, if the index splits it: the part it covers is complete in the same sense.
+- Per pull request: the part it covers is complete in the same sense, and `FILLED` names it.
 
 ## Out of scope
 
@@ -135,15 +135,17 @@ The reviewer writes, per sitting, the cases checked and what was found, in the p
 
 - From T3 and T8: a generated file accepted without reading guards nothing; it pins whatever the parser does, wrong values included. The separate review is the only guard, which is why it is the bulk of the package.
 - From P3: the names become the JSON schema in milestone 4.
-- From the cut: one pull request cannot be reviewed in one sitting. Stage 4 proposes three, each small enough for a few sittings: 15a, the extension of `test_golden.py`, the synthetic results and the TLC results of `v1.7.4`; 15b, the TLC results of the rolling folder (reviewed partly as diffs against 15a's, case by case); 15c, the SANY and PlusCal results of both builds (about 126 small files, after 14 has `PcalResult.to_dict()`). Alternatively the SANY and PlusCal expected files could go to 12 and 14 themselves, whose authors know the classes best; but the review should still be another agent's. Until the files of a part exist, `test_golden.py`'s check that every case has a file would fail, so in a split each pull request limits that check to the folders it has filled, and the last removes the limit.
+- From the cut: even split in five, each pull request is a long read (15b, research 22 on v1.7.4, is the largest, about 59 results). Twins checked as diffs are what keeps 15c and 15d short. The SANY and PlusCal expected files could have gone to 12 and 14 themselves; they stay here so that another agent than the parser's author reviews them.
 - Value trees with source text on every node make the files long; a reviewer may skim them. Checking twin cases as diffs, and saying so, is the honest way to shorten it.
 
 ## Pull requests (decided by stage 4)
 
-This package is delivered as three pull requests, as proposed above; the index lists them as 15a, 15b and 15c. Each is reviewed line by line by a separate agent, in as many sittings as it needs, before it merges.
+This package is delivered as five pull requests, split by build and by origin (review finding A2: three were still too large for the reviewer); the index lists them as 15a to 15e. Each is reviewed line by line by a separate agent before it merges.
 
-- **15a**: the extension of `test_golden.py`, the synthetic results and the TLC results of `v1.7.4`. Depends on 13.
-- **15b**: the TLC results of the rolling build, reviewed partly as differences from 15a. Depends on 15a.
-- **15c**: the SANY and PlusCal results of both builds. Depends on 15a, 12 and 14.
+- **15a** (M): the extension of `test_golden.py` with `FILLED`, the synthetic results, and the TLC results of `v1.7.4` for the cases of research 1, 2, 13 and 28 (about 47 files). Depends on 13.
+- **15b** (M): the TLC results of `v1.7.4` for research 22's cases (about 59). Depends on 15a.
+- **15c** (M): the TLC results of the rolling build for the cases of research 1, 2, 13 and 28 (about 35), reviewed partly as differences from 15a's twins. Depends on 15a.
+- **15d** (M): the TLC results of the rolling build for research 22's cases (about 58), reviewed partly as differences from 15b's twins. Depends on 15b and 15c.
+- **15e** (M): the SANY and PlusCal results of both builds (about 126 small files). Depends on 15a, 12 and 14.
 
-A package that names 15 as a dependency waits for all three.
+Whichever of them merges last removes `FILLED`. A package that names 15 as a dependency waits for all five.

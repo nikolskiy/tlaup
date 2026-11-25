@@ -48,7 +48,7 @@ Changes:
 
 Shared with other packages: the `filelock` line in `pyproject.toml` and the lock file. Packages 30 (the module folder's lock) and 35 (run folders) need the same line; whichever merges first adds it and the others find it there. It is one line. `spec.py` is also 22's, but 22 is finished before this starts.
 
-Must not touch: the old modules `versioning/api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `versioning/__init__.py`, `cmd/tools/`, their tests under `tests/unit/version_manager/` and `tests/unit/tools/`, and everything under `tests/stateful/`. `tests/unit/version_manager/test_resolution.py` tests the old `resolve_latest_version`; [01 T11](../design/01-testing.md#t11-the-existing-tests) says its ordering cases are "rewritten for D32" with V2. The rewrite is this package's `test_order.py`; the old file is deleted by package 29 together with `resolver.py`, because a test file goes in the pull request that removes what it tests. No new module name collides with an old one: `store.py` and `order.py` are new; the old `versioning/paths.py` is not `tlaup/paths.py`.
+Must not touch: the old modules `versioning/api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `versioning/__init__.py`, `cmd/tools/`, and everything under `tests/stateful/`. Their old tests went in 03b (decision D62); the ordering cases of the old `test_resolution.py`, rewritten for D32, are this package's `test_order.py`. No new module name collides with an old one: `store.py` and `order.py` are new; the old `versioning/paths.py` is not `tlaup/paths.py`.
 
 Deletes: nothing.
 
@@ -150,7 +150,8 @@ Plain pytest and one property test, all on a store in `tmp_path` with small real
 `tests/unit/versioning/test_store.py`, V1's list:
 
 - add, then list; a folder without `build.json` is not a build; a `build.json` with `"schema": 99` is not a build; a jar without metadata is not a build.
-- pin, unpin; `pinned()` is `None` with no pin file and raises `PinnedBuildMissing` when the build's folder is removed.
+- pin, unpin; `pinned()` is `None` with no pin file and raises `PinnedBuildMissing` when the build's folder is removed, and when the pinned build's folder holds no jar (inventory row T30).
+- An empty `pin` file, and one holding only a newline, give `pinned()` `None`; `pin(build)` on that store writes the build's id over it (inventory row T4, owner this package; [12 V1](../design/12-tools-and-downloads.md#v1-version-store)). That `Install` pins its build over an empty pin file, the other half of T4's test, needs `install.py` and is [27](27-install-steps.md)'s.
 - ids for a tag with a hyphen and a slash (no character outside `[A-Za-z0-9._-]` in the folder name).
 - two builds of one commit with different CalVers coexist; two different jars with the same name, the same commit and no build time coexist; a jar with no commit is stored with `commit` null and an id like any other.
 - the same jar under two names gives two builds; the same jar under `a-b` and then `a_b` gives two builds with two ids.
@@ -161,7 +162,7 @@ Plain pytest and one property test, all on a store in `tmp_path` with small real
 - after `remove`, nothing of the build is left under the tool folder outside `.tmp/`, also when the delete step is made to fail (for example by making the moved-out folder's content read-only; skipped with the reason when the suite runs as root).
 - `update` rewrites `build.json` only: the jar's bytes and the id are unchanged.
 - `build.json` and `pin` are complete after every write: a reader that lists while a second store object adds never sees a folder without both files (a plain test that interleaves the calls, not a race).
-- an unreadable pin file is `FileOperationError` naming the file ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), last bullet of its notes).
+- an unreadable pin file (for example a folder named `pin`) is `FileOperationError` (code 5) naming the file ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), last bullet of its notes); [29](29-tool-commands.md)a has its scenario.
 
 The store's part of V11, in the same file:
 
@@ -179,11 +180,11 @@ The store's part of V11, in the same file:
 
 `tests/unit/versioning/test_format_build_props.py`, X3's round trip, with Hypothesis: for every build `b` of a generated store, `store.find(parse_version_spec(format_build(b, store.builds())))` is exactly `[b]`, with no exception. The generator makes what a store can hold: names that fit the `tag` grammar and are not `stable`, `latest` or of CalVer shape; no two builds with the same name and SHA-256; commits, build times and SHA-256 values drawn from small pools, so that shared commits, shared seven-digit prefixes, shared build times and shared twelve-digit SHA-256 prefixes all occur; builds with no commit, with no build time, and with neither. The first run's Hypothesis statistics are quoted in the pull request ([01 T7](../design/01-testing.md#t7-property-tests-for-values), Risks, applies here too).
 
-The stateful test. `tests/stateful/test_tool_store.py` mirrors the checked spec on the step functions, and its `tlaup_impl` imports `tlaup.versioning.install`, `remote` and `jarinfo` beside the store. Until package 27 has written `install.py` (and 25 `remote.py`) it cannot be imported, so **this package removes no `pending` marker and does not delete `tests/stateful/reference_store.py`**; package 27 does both as its first commit. Meanwhile the store is tested by the unit tests above, which cover each step function alone, and by the second-process lock test. Read the stateful test before writing the store all the same: it shows exactly how the steps are called (`acquire(timeout=0)`, `new_tmp()`, `tmp.path`, `builds()`, `pinned()`, `build.id`, `build.jar`, `build.sha256`), and the store must fit it unchanged.
+The stateful test. `tests/stateful/test_tool_store.py` mirrors the checked spec on the step functions, and its `tlaup_impl` imports `tlaup.versioning.install`, `remote` and `jarinfo` beside the store. Until package 27 has written `install.py` (and 25 `remote.py`) it cannot be imported, so **this package removes no `pending` marker and does not delete `tests/stateful/reference_store.py`**; package 27 does both as the first commit of 27a. Meanwhile the store is tested by the unit tests above, which cover each step function alone, and by the second-process lock test. Read the stateful test before writing the store all the same: it shows exactly how the steps are called (`acquire(timeout=0)`, `new_tmp()`, `tmp.path`, `builds()`, `pinned()`, `build.id`, `build.jar`, `build.sha256`), and the store must fit it unchanged.
 
-About `filelock` and the reference-model tests. `tests/stateful/test_tool_store.py` and `test_run_folders.py` skip themselves when `filelock` cannot be imported. In the development environment it already can: `filelock` 4.2.10 is in `uv.lock` today as a dependency of a development tool. So their `..._reference_model` tests have been running since package 03 added `hypothesis`, not since this package. What changes here is that they no longer rest on another tool's dependency. If they do not run on `main` when this package starts (check the test run's skip reasons), they start with this package's first commit, and a failure then is a finding to report in the pull request, not a test to edit: the machines are reviewed artefacts of the formal check.
+About `filelock` and the reference-model tests. `tests/stateful/test_tool_store.py` and `test_run_folders.py` skip themselves when `filelock` cannot be imported. In the development environment it already can: `filelock` 4.2.10 is in `uv.lock` today as a dependency of a development tool. So their `..._reference_model` tests have been running since package 03 added `hypothesis`, not since this package. What changes here is that they no longer rest on another tool's dependency. If they do not run on `main` when this package starts (check the test run's skip reasons), they start with this package's first commit, and a failure then is a finding to report in the pull request, not a test to edit: the machines are reviewed artefacts of the formal check (03b fixed the `ResourceWarning`s that `filterwarnings = error` gave them, question Q17, without changing what they check).
 
-Old tests: none is deleted or rewritten here.
+Old tests: none is left (03b). The pull request names the inventory rows it covers: T4 (its store half) and T30.
 
 ## Changelog
 
@@ -195,9 +196,10 @@ Decisions:
 
 - D37: the store is built in milestone 1; milestone 3 keeps `ToolStore`'s interface and changes the layout beneath it. That is why the id is opaque and every path comes from `AppPaths`.
 - D46: the design was checked as `specs/ToolStore.tla` before any code. The step functions are the spec's actions, so their boundaries are fixed: `move_out` is exactly one rename, `delete_out` the deletion, `acquire` and `release` are apart. [The specs' README](../../specs/README.md#toolstore) says what was modelled and what was not (the `-2` suffix rule, `--force`, the lock files under `.tmp/` as files).
-- D47: the folder is `<cache>/tool/`. V1's prose still says `tools/` in three places ("under `tools/`"); the layout block and `AppPaths.tools` are right.
+- D47: the folder is `<cache>/tool/`.
 - D59: `filelock>=4.2.1`, uncapped. Earlier versions unlink the lock file on release (3.20.4 to 3.29.4) or change its modification time when locking (3.29.5 to 4.2.0), and the one-hour rule for lock files reads that time.
 - D50: an uninstall killed between its two steps can leave a pin that names a removed build. The store's part is only that `pinned()` then raises `PinnedBuildMissing` and never falls back.
+- The empty pin file (inventory row T4, [12 V1](../design/12-tools-and-downloads.md#v1-version-store)): an empty `pin`, or one holding only white space, is "nothing pinned" for every reader, as 0.8.x has it; strip the text before reading the id.
 - D14: no migration. The old layout lived in `<cache>/tools/`; the new store never reads it.
 - D15: no Windows CI. The id has no character that is invalid on Windows; writes use `os.replace`; on Windows a folder holding a jar that a running JVM has open cannot be renamed, and `remove` then fails with `FileOperationError` and the build stays. Not tried on Windows.
 

@@ -15,12 +15,13 @@ Size: M. Suggested model: most capable. Status: ready.
 - Design sections:
   - [10 P7](../design/10-parser.md#p7-values): all of it except the `Value` dataclass, which [09](09-parse-package-and-model.md) defines.
   - [01 T7](../design/01-testing.md#t7-property-tests-for-values): the four value properties. Its last paragraph, the framing property, is [10](10-framing-and-codes.md).
+  - Preserved-behaviour row R28 (a trace variable's value is parsed into its structure, and kept as raw text when it cannot be parsed): its owner ([inventory](../design/preserved-behaviour-2026-11-22.md)).
 
 ## Depends on
 
 - [09](09-parse-package-and-model.md): `src/tlaup_parse/values.py` with the `Value` dataclass (`text` declared with `field(compare=False)`), and `__init__.py`.
 - [07](07-golden-files.md): `tests/parse/golden/tlc/<build>/violation.out`, for the wrapped sequence of records.
-- [03](03-test-foundation.md): `hypothesis` as a development dependency.
+- [03](03-test-foundation.md): `hypothesis` as a development dependency and its profiles in `tests/conftest.py`.
 
 Changed from the draft: 03 is named for Hypothesis; no other change. This package needs nothing from [10](10-framing-and-codes.md) and runs beside it and beside [12](12-sany-parser.md).
 
@@ -34,11 +35,10 @@ Changes:
 
 - `src/tlaup_parse/values.py`: add `parse_value` and its private helpers beside the `Value` type.
 - `src/tlaup_parse/__init__.py`: export `parse_value` (and `Value`, if 09 did not).
-- `tests/conftest.py`: the Hypothesis profiles are registered in `tests/stateful/conftest.py` today. If neither package 03 nor package 10 has moved the registration to `tests/conftest.py`, move it there (the same note is in 10; whichever merges second finds it done).
 
-Deletes: nothing. `src/tlaup/tlc/values.py` and `tests/unit/tlc/test_values.py` stay until package 39 (see "Old tests" below).
+Deletes: nothing. `src/tlaup/tlc/values.py` stays until package 39; its old test went in 03b.
 
-Shared with 10 and 12, which run beside this package: `src/tlaup_parse/__init__.py` (one import line and one `__all__` entry) and, with 10, the profile move.
+Shared with 10 and 12, which run beside this package: `src/tlaup_parse/__init__.py` (one import line and one `__all__` entry).
 
 ## Interfaces
 
@@ -101,7 +101,7 @@ Plain pytest and Hypothesis in `tests/parse/`.
 - **The golden value**: the `log` variable of the last state of `violation`, a sequence of three records that TLC wraps over several lines, read from `tests/parse/golden/tlc/<build>/violation.out` on both builds and not typed (it is multi-line tool output, T12 rule 3). This package has no trace parser, so the test cuts the text out itself: in the last state message, from the line starting `/\ log = ` to the line before the next line starting `/\ ` or the blank line that ends the state, with the `/\ log = ` prefix removed. Assert kind `seq`, three items, each a `record`, and the fields the capture shows.
 - **Raw**: `[S -> T]`, `SUBSET S`, an unbalanced bracket, the empty string and text after a complete value each give one `raw` value whose `text` and `scalar` are the input; two raw values with different text are unequal; a failure deep inside a nested value gives a raw root, not a tree with a raw leaf.
 - **Deep nesting**: a value nested deeper than the interpreter's recursion limit returns `raw` and does not raise.
-- **The seven cases of `tests/unit/tlc/test_values.py`** (an integer, a string, a boolean, a set, a sequence, a record, a nested value) are among the unit cases above, rewritten for the new tree. T11 keeps them "until P7"; this is where they are carried to.
+- **Row R28**: the unit cases, the golden value and the raw cases above are its test (structure for sets, sequences, records, functions and nesting; the whole text kept when a value cannot be parsed); the pull request names the row. The seven forms the old `test_values.py` checked (an integer, a string, a boolean, a set, a sequence, a record, a nested value) are among the unit cases.
 
 `test_values_props.py` ([01 T7](../design/01-testing.md#t7-property-tests-for-values)): a strategy builds a value tree (integers, booleans, strings with escapes, model values, sets, sequences, records, functions with non-string keys, intervals, nested to depth 4) and a printer writes it in TLC's notation. Properties:
 
@@ -110,9 +110,9 @@ Plain pytest and Hypothesis in `tests/parse/`.
 - For any text at all (`st.text()`), `parse_value` returns without raising and the result's `text` equals the input.
 - A parse that fails anywhere yields a single value of kind `raw`: for any text, the result is either `raw` at the root or contains no `raw` node.
 
-Old tests. `tests/unit/tlc/test_values.py` tests the old `tlaup.tlc.values.parse_variable_value`, and that module is still imported by the old parser until package 39. T11's table says the file is kept "until P7"; under the build-beside rule of the cut that reads as: its seven cases move into the new `test_values.py` here, rewritten for `parse_value`, and the old file stays unchanged and green until package 39 deletes it together with `src/tlaup/tlc/values.py`. Deleting it here would leave an old module in `src/` with its tests gone and the coverage figure of `tlaup` lower for no gain in truth (T11: "never earlier, so coverage does not fall in between").
+Old tests: none are left (03b, decision D62).
 
-`pending` markers: this package removes none. The value facts of `tests/parse/facts.py` (for example "state 2's `n` is the integer 1", "`log` in state 4 is a sequence of 3 records") are stated on trace states, which need package 13. If package 08 wrote facts that call `parse_value` directly, remove the marker from exactly those as this package's first commit.
+`pending` markers: this package removes none. The value facts of `tests/parse/facts.py` (for example "state 2's `n` is the integer 1", "`log` in state 4 is a sequence of 3 records") are stated on trace states, which need package 13.
 
 ## Changelog
 
@@ -132,7 +132,7 @@ None in this package. P7's entry ("Fixed: Function values such as `(a :> 1 @@ b 
 
 ## Done when
 
-- `test_values.py` and `test_values_props.py` pass; `uv run poe lint` and `uv run poe test` pass; CI is green; the old `tests/unit/tlc/test_values.py` is unchanged and still passes.
+- `test_values.py` and `test_values_props.py` pass; `uv run poe lint` and `uv run poe test` pass; CI is green; the pull request names row R28.
 - The tests were committed before `parse_value`, and the pull request shows the red run (T12 rule 6) and the Hypothesis statistics (T7).
 - The import-isolation test of 09 still passes.
 - No changelog entry; no document to update.
@@ -141,7 +141,7 @@ None in this package. P7's entry ("Fixed: Function values such as `(a :> 1 @@ b 
 
 - Splitting a state's body into variables and joining a variable's lines: [13](13-tlc-parser.md) (P5).
 - The value diff and the changed-variable mark: 38.
-- Deleting `src/tlaup/tlc/values.py` and `tests/unit/tlc/test_values.py`, and the changelog entry: 39.
+- Deleting `src/tlaup/tlc/values.py`, and the changelog entry: 39.
 - The framing property of T7: [10](10-framing-and-codes.md).
 
 ## Risks

@@ -1,6 +1,6 @@
 # 21. The Java launcher
 
-Size: L. Suggested model: most capable. Status: waiting on question "SIGQUIT in the signals machine" for one edit of `tests/stateful/test_signals.py` (see "Context for the worker", "The open question"); everything else is ready.
+Size: L. Suggested model: most capable. Status: ready. The one edit of `tests/stateful/test_signals.py` that D60 needs was settled with the maintainer (question Q5; see "Context for the worker", "The SIGQUIT edit").
 
 ## Goal
 
@@ -24,7 +24,7 @@ Size: L. Suggested model: most capable. Status: waiting on question "SIGQUIT in 
 - [02](02-errors-and-paths.md): `ToolStartError` and `InternalError` (family `Failed`, code 5) from `tlaup/errors.py`.
 - [03](03-test-foundation.md): the isolation fixture; the fake `java` of `tests/fakes/` and its log ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges)); `hypothesis` as a development dependency and the pytest settings (`pending`, coverage of child processes).
 - [06](06-lifeline-agent.md): `src/tlaup/java/lifeline.jar`, whose path `argv()` names.
-- [17](17-error-handler.md): `reader_gone(fd) -> bool` ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks)). Added to the draft's list by stage 4: G3 and R1 poll it from both run functions. The design does not say which module holds it, and the launcher must not import `tlaup.cli` (it would pull Typer in and point the wrong way). If 17 left it in `cli.py`, move it, with `is_pipe` if it needs it, to a module that imports neither Typer nor Rich, and say so in the pull request.
+- [17](17-error-handler.md): `reader_gone(fd) -> bool` from `tlaup/stdio.py` ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), [00](../design/00-overview.md#packages-after-the-first-wave)), a module that imports neither Typer nor Rich. G3 and R1 poll it from both run functions; the launcher must not import `tlaup.cli`.
 
 ## Files
 
@@ -35,17 +35,16 @@ Creates:
 
 Changes:
 
-- `tests/stateful/test_signals.py`: first commit, remove the two `pending` markers; then delete what belonged to the throwaway model (below) and bring the module's docstring up to date.
+- `tests/stateful/test_signals.py`: first commit, remove the two `pending` markers; give `FAKE_CHILD` its SIGQUIT handler and the rule its assertion ("The SIGQUIT edit" below, question Q5, settled); then delete what belonged to the throwaway model (below) and bring the module's docstring up to date. The file is as 03b left it, with Q17's resource fixes ([03, "Edits settled 2026-11-24"](../design/03-run-stages-and-specs.md#specs-and-their-tests)).
 - `specs/README.md`, "The stateful tests": one sentence that the signals machine now runs against `tlaup.java.launcher` and that `reference_launcher.py` and its tests are gone. The README names the file as present.
-- `tests/fakes/java` (the fake of package 03), only if one of the fields checked under "The fake `java`" below is missing; each added field needs its reason in the pull request ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges), Risks).
-- The module that holds `reader_gone`, only in the case named under "Depends on".
+- `tests/fakes/java.py` (the fake of package 03), only if one of the fields checked under "The fake `java`" below is missing; each added field needs its reason in the pull request ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges), Risks).
 
 Deletes:
 
 - `tests/stateful/reference_launcher.py`.
 - In `tests/stateful/test_signals.py`: `reference_impl`, `test_signals_machine_against_the_reference_model`, `test_a_signal_from_this_process_stands_for_one_from_outside_reference_model`, `test_child_ends_with_tlaup_reference_model`, `test_without_the_lifeline_the_child_runs_on_reference_model`, and with the last two `STAND_IN`, `tlaup_dies`, `STEPS` and the `LIFELINE_PID` branch of `FAKE_CHILD`, which only the throwaway model sets.
 
-No file of the old suite is deleted: `tests/unit/tlc/test_runner.py` and `test_raw.py` test the old runner and go with it in [39](39-tlc-command.md).
+No file of the old suite is left to delete: 03b deleted `tests/unit/` and `tests/integration/` as they were (decision D62). No row of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) names this package as its owner; the signal rows are [39](39-tlc-command.md)'s scenarios.
 
 Shared with other packages of the groundwork track: none under `src/`. [20](20-java-location.md) adds `locate.py` to the same folder.
 
@@ -122,7 +121,7 @@ Written by stage 4, each from what the design says in words. They are the intend
 - **`ProcessOutcome.stopped_for_closed_pipe: bool = False`.** G3: a stop for a closed pipe "is not a signal: `Signals.first` stays unset, `ProcessOutcome.stopped_by` is `None`, and the outcome records `stopped_for_closed_pipe`". The dataclass as written has no such field; `RunOutcome` of [37](37-run-tlc.md) copies it. The design does not say what the field holds when a signal was recorded first and the closed pipe was seen second; the exit code is then the signal's.
 - **`pass_fds` and the closed-pipe poll reach `ChildRun`.** The two run functions take `pass_fds` and `stop_when_reader_gone`; `ChildRun.__init__` as written takes neither. Give it both as keyword arguments. `run_streaming` always polls ("at each turn of the loop ... the main thread also asks `reader_gone(1)`"); `run_passthrough` only with `stop_when_reader_gone`.
 - **`reader_gone` can be passed in.** [11 R1](../design/11-runner.md#r1-run-errors-reported-as-what-they-are) asks for a unit test of `run_passthrough` "with `reader_gone` injected false (the Windows case)". Both run functions and `ChildRun` take `reader_gone: Callable[[int], bool]` with the real function as the default.
-- **`on_held`, for the waiting line.** G3's table says that when a first signal is held, "the main thread prints on its next turn, on stderr, one line that names the signal". [03](../design/03-run-stages-and-specs.md#specs-and-their-tests) and the stateful test say that line is "the runner's, not the launcher's", and only the runner has a way to print (`notice`, [11](../design/11-runner.md)); but the runner gets a turn only when a line arrives, and TLC may be silent while it writes. So `run_streaming` and `ChildRun` take `on_held: Callable[[Literal["int", "term", "hup"]], None] | None = None`, called once per held signal, from the main thread, on the first turn after the handler set `held`, never from the handler. Package 37 passes a function that turns the name into G3's wording and prints it.
+- **`on_held`, for the waiting line**, now in G3's own signatures (question Q12, settled). `run_streaming` and `ChildRun` take `on_held: Callable[[Literal["int", "term", "hup"]], None] | None = None`, called once per held signal, from the main thread, on the first turn after the handler set `held`, never from the handler: the runner gets a turn only when a line arrives, and TLC may be silent while it writes. The launcher prints nothing. Package [37](37-run-tlc.md) passes a function that turns the name into G3's wording and hands the line to the reporter's `notice` ([11 R2](../design/11-runner.md#r2-signals), [22 O1](../design/22-reporters.md#o1-reporter-interface)).
 
 Consumes: `ToolStartError`, `InternalError` ([02](02-errors-and-paths.md)); `reader_gone` ([17](17-error-handler.md)); the jar ([06](06-lifeline-agent.md)).
 
@@ -130,7 +129,7 @@ Consumed by: [33](33-tlc-invocation.md) (`build_tlc_command` returns a `JavaInvo
 
 ## Tests that must pass
 
-**Stateful, test first.** `tests/stateful/test_signals.py`. The package's first commit removes the `pending` marker from `test_signals_machine` and `test_a_signal_from_this_process_stands_for_one_from_outside`; the pull request shows that run red ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 6). Both pass at the end, with the CI profile (`CI=1`, 200 examples), subject to the open question. The package deletes `reference_launcher.py` and the four `*_reference_model` tests.
+**Stateful, test first.** `tests/stateful/test_signals.py`. The package's first commit removes the `pending` marker from `test_signals_machine` and `test_a_signal_from_this_process_stands_for_one_from_outside`; the pull request shows that run red ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 6). Both pass at the end, with the CI profile (`CI=1`, 200 examples), with the SIGQUIT edit below. The package deletes `reference_launcher.py` and the four `*_reference_model` tests.
 
 What happens to `test_child_ends_with_tlaup`: its two tests run against the throwaway model only and have no `pending` twin, on purpose ([03](../design/03-run-stages-and-specs.md#specs-and-their-tests), "What could not be mirrored"). The real lifeline is a Java agent, which a fake `java` cannot carry; the model stood in for it with an environment variable. So they are deleted with the model, and nothing replaces them in this file. For the real launcher the property `ChildEndsWithTlaup` rests on three other tests: the agent ends a real JVM whose parent was killed ([06](06-lifeline-agent.md), run by the lifeline job of [53](53-ci-workflows.md)); `argv()` puts the agent first with tlaup's process id (unit, below); and tlaup killed with SIGKILL during a real run leaves no `java` process ([52](52-integration-tests.md)).
 
@@ -161,7 +160,7 @@ What happens to `test_child_ends_with_tlaup`: its two tests run against the thro
 
 **Unit, `argv()`** (`tests/unit/java/test_launcher_argv.py`). The lifeline comes first after `java` and names `os.getpid()`; the three encoding options come next, before `jvm_options`, so that a user's `-Dfile.encoding=ISO-8859-1` comes last; then each system property as `-Dk=v`, `-cp` with the classpath joined by `os.pathsep`, the main class, the arguments; `lifeline=False` leaves the agent out and keeps the encoding options; the same order for the main classes of `tlc`, `sany`, `pcal` and `repl`.
 
-Old test files deleted or rewritten: none (01 T11 gives the old runner's tests to the switch).
+Old test files deleted or rewritten: none; none is left (03b).
 
 ## Changelog
 
@@ -173,7 +172,8 @@ None in this package: no command uses the launcher until [39](39-tlc-command.md)
 - Fixed: "If tlaup is killed, the Java tool it started stops within about two seconds."
 - Fixed: "TLC, SANY, PlusCal and the REPL now always write UTF-8; under a C locale non-ASCII characters were printed as `?`, and with Java 11 and v1.7.4 the PlusCal translator wrote them as `?` into the spec."
 - Changed: "Ctrl-C exits with 130."
-- Changed: "In a run that is not `--raw`, a first Ctrl-C while TLC writes a checkpoint waits for it to finish, on Linux and macOS."
+
+The entry for a first Ctrl-C during a checkpoint is [11 R6](../design/11-runner.md#r6-run-folders)'s, written once by 39; G3's second entry for it was dropped (index, "Clerical").
 
 ## Context for the worker
 
@@ -241,11 +241,11 @@ The loop:
 
 Nothing here runs on Windows in CI; write it so that it should work. Install handlers only for signals the platform has (`hasattr(signal, "SIGHUP")`, `"SIGQUIT"`); no `process_group` and no `pass_fds` there (stated from the standard library's documentation, not tried: `subprocess` refuses both on Windows); `reader_gone` is always false there, so a raw run cannot see a closed pipe; `terminate()` kills at once, and there is no SIGTERM or SIGHUP to receive; a console Ctrl-C reaches every process attached to the console. Join the classpath with `os.pathsep`. The stateful test skips itself where there is no SIGHUP.
 
-### The open question: SIGQUIT in the signals machine
+### The SIGQUIT edit (question Q5, settled)
 
-`tests/stateful/test_signals.py` was last revised for D51 and D52, before D60 added "forwards SIGQUIT to the JVM of a parsed run". Its fake child (`FAKE_CHILD`) handles SIGTERM and SIGUSR1 and nothing else, so a SIGQUIT ends it, as the default action does for any process that is not a JVM (tried on Linux on 2026-11-21: the script's return code is -3). The machine's rule `signal_arrives` draws `quit` in every phase and expects nothing to change. Against a launcher that follows G3, a `quit` drawn in a streaming run while the child is attached is forwarded, the fake child dies, and the next `turn_with_nothing_to_do` fails. The throwaway model does not forward, which is why the test passes today.
+`tests/stateful/test_signals.py` was last revised for D51 and D52, before D60 added "forwards SIGQUIT to the JVM of a parsed run". Its fake child (`FAKE_CHILD`) handles SIGTERM and SIGUSR1 and nothing else, so a SIGQUIT ends it, as the default action does for any process that is not a JVM (tried on Linux on 2026-11-21: the script's return code is -3). The machine's rule `signal_arrives` draws `quit` in every phase and expects nothing to change. Against a launcher that follows G3, a `quit` drawn in a streaming run while the child is attached is forwarded, the fake child dies, and the next `turn_with_nothing_to_do` fails.
 
-The design is clear and the test is behind it. What waits for the maintainer is the edit of a signed-off test. Recommended: give `FAKE_CHILD` a SIGQUIT handler that notes the signal in a file and carries on, as a JVM does, and let the rule assert that the note appears in a streaming run and does not in a passthrough run. Not recommended: keeping `quit` away from an attached streaming child, which checks less. Not an option: a launcher that does not forward. Until the question is answered, write the launcher as G3 says and leave the machine's first failure in the pull request as it is.
+The maintainer settled the edit ([03, "Edits settled 2026-11-24"](../design/03-run-stages-and-specs.md#specs-and-their-tests), [20 G3](../design/20-groundwork.md#g3-java-launcher), Tests): `FAKE_CHILD` gets a SIGQUIT handler that notes the signal in a file and carries on, as a JVM does after its thread dump, and the rule asserts that the note appears in a parsed (streaming) run whose child is attached and does not appear in a passthrough run. No other rule, invariant or step changes. Keeping `quit` away from an attached child was rejected, because it checks less. The pull request shows the edit as its own commit, after the one that removes the markers.
 
 ### The fake `java`: what these tests need from package 03
 
@@ -257,7 +257,7 @@ Checked against [01 T4](../design/01-testing.md#t4-fakes-at-the-edges), not agai
 | A pause between two lines: `line_delay_ms` | Yes. |
 | Ignore SIGTERM, or exit with a given code on a signal: `on_sigterm`, `on_sigint` | Yes. |
 | Text on stderr: `stderr` | Yes. |
-| A log with `start` (process id, process group, whether stdout is a pipe), `signal` (also for a signal it ignores, SIGQUIT among them) and `exit` | Yes. Check that a SIGQUIT is logged and does not end the fake. |
+| A log with `start` (process id, process group, whether stdout is a pipe), `signal` (also for a signal it ignores, SIGQUIT among them) and `exit` | Yes. T4: a SIGQUIT is logged and the fake carries on. |
 | The main class found when `-javaagent:...` and three `-D` options come first | Not said. It follows if the fake skips options as `java` does; check. |
 | A file of bytes that are not valid UTF-8, replayed as they are | Partly. `stdout` names "a golden file ... or literal text", and the one such file, `synthetic/invalid-utf8.out`, comes with [07](07-golden-files.md), which this package does not depend on. A file the test writes itself (plain lines with the bytes `FF FE`; not TLC output, so rule 3 of T12 is untouched) needs the fake to take an absolute path. If it does not, add that and say why. |
 | A child that reports which descriptors it has open (`pass_fds`) | No. Use a small script of the test's own as `JavaInvocation.java`, as `tests/stateful/test_signals.py` does: it takes its last arguments and ignores the JVM options before them. |
@@ -282,16 +282,16 @@ Forwarding SIGTSTP (Ctrl-Z stops tlaup alone; the JVM of a parsed run runs on un
 
 ### State of `main` when this starts
 
-Release 0.8.x code with `tlaup/errors.py`, `tlaup/paths.py`, `tlaup/ui.py` and the error handler beside or in place of the old pieces, the test foundation, and the lifeline jar. `src/tlaup/tlc/runner.py` is the old runner with its two copied loops; leave it and its tests alone. Nothing imports `launcher.py` when this package merges.
+Release 0.8.x code with `tlaup/errors.py`, `tlaup/paths.py`, `tlaup/ui.py`, `tlaup/stdio.py` and the error handler beside or in place of the old pieces, the test foundation (no old test, 03b), and the lifeline jar. `src/tlaup/tlc/runner.py` is the old runner with its two copied loops; leave it alone. Nothing imports `launcher.py` when this package merges.
 
 ## Done when
 
-- The open question is answered and `test_signals_machine` and `test_a_signal_from_this_process_stands_for_one_from_outside` pass without the `pending` marker under `CI=1`; the pull request shows them red after the first commit.
+- `test_signals_machine`, with the SIGQUIT edit, and `test_a_signal_from_this_process_stands_for_one_from_outside` pass without the `pending` marker under `CI=1`; the pull request shows them red after the first commit.
 - `reference_launcher.py` and the four `*_reference_model` tests are gone; `tests/stateful/test_signals.py` imports nothing that is gone and its docstring says what it runs against.
 - The unit tests above pass on Linux and on the macOS job; `uv run poe lint` (mypy in strict mode covers `launcher.py`) and `uv run poe test` pass; CI is green.
 - No test waits for an amount of time ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 5): the grace period is a parameter or the injected clock, and every wait is for a condition with a timeout.
 - `specs/README.md` has its sentence.
-- The pull request lists every signature that differs from this file, says what was done with `pass_fds` on the two paths the design leaves open, where `reader_gone` lives, and what was run on which system.
+- The pull request lists every signature that differs from this file, says what was done with `pass_fds` on the two paths the design leaves open, and what was run on which system.
 - No changelog entry (none is due).
 
 ## Out of scope
@@ -330,6 +330,6 @@ From the cut:
 
 - No command reaches the launcher until 37 and 39, so its real-process and terminal scenarios, the ones that prove forwarding from outside the process and D60 on a real terminal, come many packages later. A fault they find then is fixed there, in this module.
 - After the throwaway model is deleted, no test kills a process that runs this launcher until [52](52-integration-tests.md). The three tests named under "Tests that must pass" cover the parts; the whole is seen first in the integration job.
-- Four joints are written by stage 4 (`stopped_for_closed_pipe`, the arguments of `ChildRun`, `reader_gone` as a parameter, `on_held`). 35 and 37 are cut against them; a change here must reach those packages.
+- Three joints are written by stage 4 (`stopped_for_closed_pipe`, the arguments of `ChildRun`, `reader_gone` as a parameter), settled with the index's readings on 2026-11-24, and `on_held` is G3's own. 35 and 37 are cut against them; a change here must reach those packages.
 - The stateful test fixes the step functions' names and arguments. If a step needs another argument, the test changes with it, and the specs' README says a worker may find that.
 - The package is large for one pull request: one module, three test files and an edited stateful test. It was not split, because the stateful test needs the whole of `ChildRun` and `Signals` before it can pass.

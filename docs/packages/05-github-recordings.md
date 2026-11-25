@@ -11,9 +11,9 @@ Real GitHub answers, trimmed to what tlaup reads, live under `tests/recordings/g
 - Roadmap items:
   - "Unit tests cannot reach the network or start an unmocked subprocess; ..." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), roadmap line 360), in part: the network half (recorded responses at the `requests` adapter). The socket block, the closed-port address and the process fakes are package [03](03-test-foundation.md).
 - Design sections:
-  - [01 T4](../design/01-testing.md#t4-fakes-at-the-edges), "Network": the recordings, the `github` fixture, the small jar, `scripts/record_github.py`. The socket block and `TLAUP_TOOL_REPOSITORY`'s closed port are in the isolation fixture (03). The tests that use the fixture are the packages of the store track (24, 25, 26, 27, 28) and the GitHub steps of the feature harness (18).
+  - [01 T4](../design/01-testing.md#t4-fakes-at-the-edges), "Network": the recordings, the `github` fixture, the small jar, `scripts/record_github.py`. The socket block and `TLAUP_TOOL_REPOSITORY`'s closed port are in the isolation fixture (03). The tests that use the fixture are the packages of the store track (24, 25, 26, 27, 28) and the GitHub steps of the feature vocabulary, which package 29 writes on it.
   - [01 T3](../design/01-testing.md#t3-golden-files), two rows of "What moves": research 29's `releases-paged` and `rate-limited` to `tests/recordings/github/` ("by T3's rule", T4), and the last row, `03-jar-identity/manifest-*.txt` and `14-jar-manifest/*.MF` to `tests/unit/data/manifests/`. The rest of T3 is packages 07 and 08.
-  - Not here: T3's sentence "The two old fixtures `tests/fixtures/releases.json` and `tags.json` are deleted (superseded by the recordings)". Their reader still exists; see Context. Package 29 deletes them.
+  - Not here: T3's sentence that the old fixtures `tests/fixtures/releases.json` and `tags.json` are superseded by the recordings and deleted. They went with the old suite in 03b (decision D62).
 
 ## Depends on
 
@@ -51,7 +51,7 @@ Changes:
 - `tests/fixtures/research/29-ci-facts-and-recordings/README.md`: the same note, since its table describes the moved files.
 - `.secrets.baseline`, only if the scan flags a line of a new recording: then an `exclude_lines` pattern for that exact line shape, never a file or a folder ([conventions](../contributing/conventions.md#secrets-and-personal-data)).
 
-Deletes: nothing. `tests/fixtures/releases.json` and `tests/fixtures/tags.json` stay (Context).
+Deletes: nothing. `tests/fixtures/releases.json` and `tests/fixtures/tags.json` are already gone (03b).
 
 Shared with packages of the same period: `tests/conftest.py` (one fixture; 03 wrote the file, 18 and 29 add steps elsewhere), `tests/fixtures/research/README.md` (one line per moved folder; package 07 adds its own lines for the golden move). The manifest move is done here and only here: packages 07 and 22, which also need the manifests in their new place, find them moved and must not move them again.
 
@@ -130,7 +130,7 @@ Plain pytest, new. They use `requests` directly, which is the edge itself, not t
 - `tests/unit/test_jars.py`: the jar is a valid zip (`ZipFile.testzip()` returns `None`), holds `META-INF/MANIFEST.MF` with the given bytes unchanged and `tlc2/TLC.class`, and holds `tlc2/REPL.class` only with `repl=True`.
 - The recording script: `uv run python scripts/record_github.py --help` exits 0 (a test that starts it as a child process, with no network needed). Recording itself is not run in CI.
 
-Old tests: none deleted or rewritten. No stateful test applies. No feature file (the GitHub steps are package 29's, on this fixture; reconciled by stage 4).
+Old tests: none are left (03b). Preserved-behaviour rows: none is this package's; the store track's owners test theirs on this fixture. No stateful test applies. No feature file (the GitHub steps are package 29's, on this fixture).
 
 ## Changelog
 
@@ -163,8 +163,6 @@ About six requests in all, well inside the unauthenticated limit of 60 an hour. 
 
 **A new recording is not research 29's list.** Upstream may have published or replaced releases since 2026-11-19 (the `rolling` asset is replaced on every upstream build). Research 29 and the packages written from it say "17 releases", "the stable release is `v1.7.4`", "`v1.8.0` is a prerelease", "`rolling` and `v1.8.0` hold the same jar". The tests of this package read such facts from the recording, and the pull request states what the new recording holds for each of them, so that packages 24 to 29 can check theirs. If `releases-paged` no longer spans exactly two pages at `per_page=10`, keep what GitHub answered and say so: T6's row only needs "two pages with their real Link headers", and the script follows `next` to the end.
 
-**Who still reads `tests/fixtures/releases.json` and `tags.json`:** `tests/unit/version_manager/test_remote.py` (through the `fixtures_dir` fixture), which tests the old `tlaup.versioning.api.fetch_remote_versions` and stays until that module goes in package 29 ([01 T11](../design/01-testing.md#t11-the-existing-tests), "Replaced by T6": a test goes in the pull request that rewrites what it tests). So the two files stay; package 29 deletes them with the test (its file and package 25's say so). The inline lists in `tests/unit/tools/conftest.py` are not these files.
-
 **The manifests** are moved here, all five files, keeping their names (both copies of the v1.7.4 manifest and the rolling manifest under their research names are kept; tests use the three `*.MANIFEST.MF`). The `detect-secrets` pattern for `X-Git-Revision` lines is a line shape, not a path, so it keeps working after the move (T3, Risks: "check when moving"); check it with `uv run poe check`.
 
 **Points that are easy to miss.**
@@ -177,7 +175,7 @@ About six requests in all, well inside the unauthenticated limit of 60 an hour. 
 - The request list is the place to assert on the token: `requests[i].headers.get("Authorization")`. Never print or log a header value in a test.
 - `tests/recordings/` holds no Python file and is not collected; `tests/github.py` and `tests/jars.py` are helpers, not tests (no `test_` prefix).
 
-State of `main` when this starts: the test foundation of 03 (isolation, fakes, settings, `responses` installed); the old `versioning/api.py` and `downloader.py` serve the old commands with their own mocked tests. Package 07 (golden files) and package 22 (jar info) may run at the same time; they need the manifests in `tests/unit/data/manifests/` and get them from this package.
+State of `main` when this starts: the test foundation of 03 (isolation, fakes, settings, `responses` installed); the old `versioning/api.py` and `downloader.py` serve the old commands, with no tests left (03b, D62). Package 07 (golden files) and package 22 (jar info) may run at the same time; they need the manifests in `tests/unit/data/manifests/` and get them from this package.
 
 ## Done when
 
@@ -191,7 +189,6 @@ State of `main` when this starts: the test foundation of 03 (isolation, fakes, s
 - `GitHubClient` and every T6 row: packages 24 (client), 25 (listing), 26 (download), 27 (install steps).
 - The GitHub steps of the feature vocabulary (`GitHub answers from "<recording>"`, `GitHub answers <status> to "<path>"`, `GitHub is unreachable`, the request and download counts, `no request carried a token to "<host>"`): package 29, on this fixture.
 - A synthetic 429: the test of package 24 that needs it writes it itself, saying in its first line that it is synthetic (T4).
-- Deleting `tests/fixtures/releases.json`, `tags.json` and `test_remote.py`: package 29.
 - The golden move of T3 and `tests/parse/`: package 07.
 
 ## Risks

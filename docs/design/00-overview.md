@@ -31,13 +31,19 @@ src/
   tlaup/
     cli.py              the Typer app, the root options, the root group that maps errors     14 F10
     __main__.py         so `python -m tlaup` works; the real-process tests start it this way  14 F10
+    stdio.py            reader_gone, is_pipe and other stream helpers; no Typer, no Rich     14 F10
     context.py          AppContext: paths, settings, ui; built once                          below
     paths.py            AppPaths: every folder, from the environment                         14 F2
     errors.py           TlaupError and its four families                                     20 G2
     ui.py               the two consoles; error, warning, hint, note                         14 F6
+    doctor.py           run_checks: doctor's checks as values; prints nothing                23 C1
     config/             schema.py, loader.py (layers)                                        14 F1
+    project/
+      core.py           find_project_root; the folder names spec, modules, classes, lib     11 R10
+      spec.py           resolve_spec, resolve_cfg, the -config argument                      11 R4, R5
     java/
       locate.py         find java and javac; version check, remembered                       13 J2, J3
+      opts.py           the JVM options: settings, TLAUP_JAVA_OPTS, --java-opt               13 J1
       classpath.py      ClasspathResolver (kept)
       launcher.py       JavaInvocation, run_streaming, run_passthrough                       20 G3
     tlc/
@@ -48,6 +54,7 @@ src/
       overrides.py      which override classes will load on this build                       11 R7
     tools/              sany.py, pcal.py, repl.py: invocation and run for each               21
     reporters/          base.py, terminal.py, layout.py, collecting.py                       22
+      text.py           pure text functions: durations, counts, diagnostics, lines           22 O3
     versioning/
       spec.py           VersionSpec                                                          02 X3
       order.py          sort key, stable                                                     02 X4
@@ -57,12 +64,16 @@ src/
       remote.py         releases, the lookup cache                                           12 V8
       download.py       download, verify                                                     12 V5
       install.py        install, upgrade, uninstall as functions                             12 V12, V3, V4
+      first_run.py      ensure_tools: the first-run prompt and --auto-install                12 V9
     modules/
       registry.py       registered modules; names                                            13 M1
       build.py          build_module                                                         13 M2
       classfile.py      read a class file's interfaces                                       13 M3
     cmd/                one thin module per command or group                                 23
+      common.py         what the run commands share: the get_build wrapper                   21
 ```
+
+(Stage 4 review, 2026-11-24: the tree lists the modules stage 4 placed, `stdio.py`, `doctor.py`, `project/core.py` and `project/spec.py`, `java/opts.py`, `reporters/text.py`, `versioning/first_run.py` and `cmd/common.py`; index, "Clerical".)
 
 Rules that hold across the tree, all taken from the roadmap's "Keep" list or its milestone 5 items:
 
@@ -190,7 +201,7 @@ The two guessed rules are exact for the builds decision D19 supports. A user on 
 Milestones are groups, not a strict order (decision D6). The dependencies between items give this order; stage 4 cuts packages along it.
 
 1. **One mechanical commit: `ruff format`** on the whole tree, then enforce it ([30 I5](30-ci-and-release.md#i5-workflow-hygiene)). First, because every later package would otherwise conflict with it.
-2. **Test foundation** (early milestone 2): folder overrides F2, isolation T2, fakes T4, pytest settings T10, delete dead tests T11. CI, release and hygiene items of [30](30-ci-and-release.md) that do not touch `src/` can run in parallel from here on.
+2. **Test foundation** (early milestone 2): folder overrides F2, isolation T2, fakes T4, pytest settings T10, and the old tests deleted, all of `tests/unit/` and `tests/integration/` at once (decision D62, [01 T11](01-testing.md#t11-the-existing-tests)); what they protected is carried by the [preserved-behaviour inventory](preserved-behaviour-2026-11-22.md), each kept row with the item that owns its new test. CI, release and hygiene items of [30](30-ci-and-release.md) that do not touch `src/` can run in parallel from here on. (Stage 4 review, 2026-11-24: the old tests go here, not one by one at each switch, D62.)
 3. **Delete dead code**: display code O2, URL installs V6, old layouts V10. Pure removal; makes everything after it smaller.
 4. **Parser**: move the golden files (T3), write the facts (failing), then P2 to P9. Independent of everything else in `src/tlaup`.
 5. **Groundwork**: errors G2, messages F6 and the error handler F10, the launcher G3, Java location J2 and J3.
@@ -209,3 +220,4 @@ Items 4, 5 and 6 can run in parallel; so can 8, 9 and 10 once 7 is in.
 - The exit codes of [02 X1](02-cross-cutting.md#x1-exit-codes) and the stream rule of [02 X2](02-cross-cutting.md#x2-stdout-and-stderr).
 - The test rules of [01 T12](01-testing.md#t12-rules-for-writing-tests).
 - Decision D15: no Windows CI, but write code so it should work there. Use `os.pathsep` and `pathlib`; no `:` in folder names; signal code guarded by `hasattr(signal, ...)`; executables found with `shutil.which`, which adds `.exe`.
+- Between packages `main` is green: it builds, lint and the type checks pass, and the tests still in the suite pass. Nothing is released in between (D6), so an old command is not promised to keep working until the package that switches it (decision D62). The one exception is a CI job that runs real TLC through an old command: that command keeps working for as long as the job runs it ([30 I2](30-ci-and-release.md#i2-unit-job) names the one job and when it stops). (Stage 4 review, 2026-11-24: D62.)

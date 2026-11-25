@@ -1,6 +1,6 @@
 # 10. Framing and the code table
 
-Size: M. Suggested model: most capable. Status: ready (one clerical point, the upstream name of code 2285, is under Context).
+Size: M. Suggested model: most capable. Status: ready.
 
 ## Goal
 
@@ -15,7 +15,8 @@ Size: M. Suggested model: most capable. Status: ready (one clerical point, the u
 - Design sections:
   - [10 P4](../design/10-parser.md#p4-framing-and-never-losing-output): "Facts", "Framing", the framing half of "Never losing output" (the exact rebuild), "Reading a message's text" as a test against the captures (the method itself is 09's), and `codes.py`. The part headed "Interpretation" (rules 1 to 4) and the event-level count are package 13.
   - [10 P2](../design/10-parser.md#p2-the-tlaup_parse-package): `Framer`, `render_framed`, `Unframed` of the public surface.
-  - [10 P5](../design/10-parser.md#p5-error-traces): only the data of its "Kind" bullet, as the `kind` column of the code table. The behaviour built on it is 13.
+  - [10 P5](../design/10-parser.md#p5-error-traces): only the data of its "Kind" bullet, as the `kind` column of the code table, and the upstream name of 2285 its information bullet records. The behaviour built on it is 13.
+  - Preserved-behaviour row R29 (a message's severity, not its code, decides whether it is an error or a warning), with package 13: the framing half ([inventory](../design/preserved-behaviour-2026-11-22.md)).
   - [01 T7](../design/01-testing.md#t7-property-tests-for-values): the framing property in `test_framing_props.py`.
   - [01 T3](../design/01-testing.md#t3-golden-files): the first of the three properties ("nothing is lost at the framing level"), over every file. Stage 4 gives it to this package and not to 15, because it needs only the `Framer` and is the proof of this package's work.
 
@@ -23,9 +24,9 @@ Size: M. Suggested model: most capable. Status: ready (one clerical point, the u
 
 - [09](09-parse-package-and-model.md): the package skeleton and `__init__.py`; `TlcMessage` with `lines`, `nested` and `text_lines()`; `ErrorKind`; the import-isolation test, which covers the two new modules without change.
 - [07](07-golden-files.md): `tests/parse/golden/tlc/<build>/*.out` and `plain/*.out`, `sany/`, `pcal/`, and `synthetic/` with its `.why` files.
-- [03](03-test-foundation.md): `hypothesis` as a development dependency and the mechanical check that no `.py` file under `tests/` contains `@!@!@STARTMSG`.
+- [03](03-test-foundation.md): `hypothesis` as a development dependency, its profiles in `tests/conftest.py`, and the mechanical check that no `.py` file under `tests/` contains `@!@!@STARTMSG`.
 
-Changed from the draft: 03 is named because the Hypothesis dependency and profile come from it; no other change. This package runs beside [11](11-values.md) and [12](12-sany-parser.md).
+Changed from the draft: 03 is named because the Hypothesis dependency and profiles come from it; no other change. This package runs beside [11](11-values.md) and [12](12-sany-parser.md).
 
 ## Files
 
@@ -35,16 +36,15 @@ Creates:
 - `src/tlaup_parse/codes.py`: `CodeInfo`, `CODES`.
 - `tests/parse/test_framing.py`, `tests/parse/test_framing_props.py` (both named in T3's layout).
 - `tests/parse/test_codes.py` (stage 4's name; the layout lists none): the table tests.
-- `tests/parse/golden/synthetic/crlf.out` and `crlf.why`, only if package 07 did not write a file with `\r\n` endings: P4's Tests name one and T3's list of synthetic cases does not. Make it from a real capture (say how in the `.why` file) and check that the pre-commit hooks for line endings and trailing white space do not rewrite it; if they would, exclude that one file by its exact path.
 
 Changes:
 
 - `src/tlaup_parse/__init__.py`: export `Framer`, `Unframed`, `render_framed`. `CODES` and `CodeInfo` are not in P2's public surface and stay private to the package.
-- `tests/conftest.py`: the Hypothesis profiles (`ci`: `derandomize=True`, 200 examples, no example database; `dev`) are registered today in `tests/stateful/conftest.py`, where `tests/parse/` does not see them. If package 03 did not move the registration to `tests/conftest.py`, move it there. Package 11 needs the same move; whichever merges second finds it done.
+- `.pre-commit-config.yaml`: the hook `no-typed-tool-output` gets `tests/parse/test_framing_props.py` in its `exclude`, by exact path, with a comment naming [01 T12](../design/01-testing.md#t12-rules-for-writing-tests) rule 3, which exempts Hypothesis strategies (03's rule for these exceptions).
 
 Deletes: nothing. `src/tlaup/tlc/codes.py` and `parser.py` stay until package 39.
 
-Shared with 11 and 12, which run beside this package: `src/tlaup_parse/__init__.py` (one import line and `__all__` entries each) and, with 11, the profile move above.
+Shared with 11 and 12, which run beside this package: `src/tlaup_parse/__init__.py` (one import line and `__all__` entries each).
 
 ## Interfaces
 
@@ -91,7 +91,7 @@ render_framed(m)              = [m.before + "@!@!@STARTMSG <code>:<severity> @!@
 
 - Every code of the old table is carried over with its name (the old constants are the upstream names). The old `Info`, `Warning`, `Error` and `Ignore` types are not carried over: the class of a message comes from the severity in its marker (package 13), and `Ignore` "was how output got lost" (P4).
 - The six missing codes are added with their upstream names: 1003 `SYSTEM_OUT_OF_MEMORY_LIVENESS`, 2148 `TLC_STATE_NOT_COMPLETELY_SPECIFIED_LIVE`, 2254 `SYSTEM_FINGERPRINT_OVERFLOW_ERROR`, 2256 `TLC_NO_STATES_SATISFYING_INIT_AND_CONSTRAINT`, 2404 `TLC_POSTCONDITION_FALSE`, 2405 `TLC_POSTCONDITION_EVALUATION_ERROR`.
-- Code 2285 is added: the rolling build prints it (severity 3, `-recover` with other settings than the checkpoint's) and the old table does not have it. See Context for its name.
+- Code 2285 is added as `TLC_CHECKPOINT_RECOVER_SETTINGS_MISMATCH`: the rolling build prints it (severity 3, `-recover` with other settings than the checkpoint's) and the old table does not have it. The name was read from `tlc2.output.EC` in the rolling jar of research 22 with `javap -constants` ([10 P5](../design/10-parser.md#p5-error-traces)).
 - `kind`, from P5's "Kind" bullet: 2110 `invariant`; 2114 `deadlock`; 2116 and 2112 `property`; 2132 `assertion`; 2104 `assumption`; 2179 `evaluation`; 2404 and 2405 `postcondition`; 5001, 5003, 5006 and 2229 `config`; 1000, 1005, 2147, 2154 and 2173 `exception`; 3002 `parse`; 1102 `usage`. Every other code has `kind = None`, which package 13 reads as `other` when the message is an error. Stage 4 puts this data here because the table is this package's file; 13 owns what is done with it.
 
 Consumes: `TlcMessage`, `ErrorKind` from [09](09-parse-package-and-model.md).
@@ -110,18 +110,19 @@ All plain pytest in `tests/parse/`; the golden files are read from disk, in bina
   - `override-ctor_private`: a 1000 nested in a 1000, one top-level message.
   - `print-marker`: the quoted marker lines are `Unframed`, and no message with code 9999 exists.
   - `text_lines()` against the `plain/` capture, for the five cases P4 names (`java-override-exception` and `java-override-stack-trace` on both builds, `postcondition-false` on v1.7.4): the lines of the error message equal the same error's lines in the plain capture. In the plain captures TLC puts `Error: ` in front of the first line (seen in `java-override-exception`); the test strips that prefix and nothing else.
-- **Synthetic cases**, one test each, on the files of `synthetic/` (never typed into the test): `STARTMSG -1` is plain text and nothing raises; a marker with a leading zero is plain text; a start with no end gives a `truncated` message from `close()`; an end with no start is plain text; crossed ends close the inner one `truncated`; an end marker with text after it at the top level gives a message whose `after` holds the text; a severity-1 message nested in a severity-0 one frames as one top-level message with the nested one in its body (that it counts as one error is 13's test); the `\r\n` file frames like its `\n` twin; quoted `Print` marker text with text after it is plain text; `invalid-utf8.out` frames and rebuilds (after decoding with replacement, compared with the decoded lines).
+- **Synthetic cases**, one test each, on the files of `synthetic/` that package 07 wrote (never typed into the test): `STARTMSG -1` is plain text and nothing raises; a marker with a leading zero is plain text; a start with no end gives a `truncated` message from `close()`; an end with no start is plain text; crossed ends close the inner one `truncated`; an end marker with text after it at the top level gives a message whose `after` holds the text; a severity-1 message nested in a severity-0 one frames as one top-level message with the nested one in its body (that it counts as one error is 13's test); the `\r\n` file frames like its `\n` twin; quoted `Print` marker text with text after it is plain text; `invalid-utf8.out` frames and rebuilds (after decoding with replacement, compared with the decoded lines).
 
-`test_framing_props.py` ([01 T7](../design/01-testing.md#t7-property-tests-for-values), last paragraph): a Hypothesis test over sequences of lines drawn from start markers and end markers with small codes (so that they often match), markers with text before or after them, malformed markers (a negative code, a leading zero, no severity) and plain text asserts the exact rebuild, and that `feed` and `close` never raise. The strategy builds marker text from pieces; T12 rule 3 exempts Hypothesis strategies from the ban on typed marker text, and the mechanical check looks for the literal `@!@!@STARTMSG`, so build the marker from a constant imported from `tlaup_parse.framing` or from pieces.
+`test_framing_props.py` ([01 T7](../design/01-testing.md#t7-property-tests-for-values), last paragraph): a Hypothesis test over sequences of lines drawn from start markers and end markers with small codes (so that they often match), markers with text before or after them, malformed markers (a negative code, a leading zero, no severity) and plain text asserts the exact rebuild, and that `feed` and `close` never raise. T12 rule 3 exempts Hypothesis strategies from the ban on typed marker text, so the strategy may write the marker literally; the file is excluded from the mechanical check by its exact path (Files), which is the one way rule 3's exceptions are made. Do not split the marker into pieces to get past the check.
 
 `test_codes.py`:
 
 - Every code of a message framed from any golden file under `tests/parse/golden/tlc/` (top level or nested) has an entry in `CODES` (P4 Tests, last sentence). Collect the codes through the `Framer`, not with a text search: `print-marker` contains quoted marker text with code 9999 that is not a message.
-- The six added codes and 2285 are present; 2404 and 2405 have kind `postcondition`; the kinds listed under Interfaces are as listed; no name occurs twice.
+- The six added codes and 2285 are present with their names; 2404 and 2405 have kind `postcondition`; the kinds listed under Interfaces are as listed; no name occurs twice.
+- Row R29, the framing half: `CodeInfo` holds a name and a kind and nothing that says error, warning or information, so no table entry can decide a message's class; and in `test_framing.py`, the framed messages of `synthetic/unknown-code.out` keep the severities 1, 3 and 0 of their markers. That the severity then decides the class, whatever the code, is 13's half of the row.
 
-Old tests: none deleted or changed. `tests/unit/tlc/test_parser.py` tests the old `tlaup.tlc.parser`, which stays; package 39 deletes both together ([01 T11](../design/01-testing.md#t11-the-existing-tests)).
+Old tests: none are left (03b).
 
-`pending` markers: as the design describes the facts (assertions on a `RunResult`, shared with the integration tests of T9), none of them can pass on the `Framer` alone, and this package removes none. If package 08 wrote some facts so that they run on framed messages only (the four golden shapes above are the candidates), remove the marker from exactly those as this package's first commit and drop the duplicate test from `test_framing.py`.
+`pending` markers: the facts are assertions on a `RunResult` (08), so none of them can pass on the `Framer` alone, and this package removes none.
 
 ## Changelog
 
@@ -134,7 +135,6 @@ None in this package. P4's entry ("Fixed: Errors with a TLC message code tlaup d
 - **Why the rules are what they are.** D9: nothing is lost, stated so it can be tested as an exact rebuild. Both anchors come from captures: TLC really prints `: @!@!@STARTMSG 2154:0 @!@!@` (text before a start marker) and `@!@!@ENDMSG 2154 @!@!@,` (text after an end marker), and never the other two positions. A message can be nested in one of the same code (2154 in 2154, 1000 in 1000), so nesting is a stack, not a lookup by code.
 - **What was checked before.** The design agent ran these rules as a script on 2026-11-15: 117 capture files with markers (1,618 messages) rebuilt exactly, none with a truncated message, nesting never deeper than one level, and 200,000 random sequences rebuilt. The captures of research 22 (about as many files again, among them a run stopped by a signal) were not run through that script. So do not assert "no real capture has a truncated message" or "nesting depth is at most one" over all files; the rebuild is the property.
 - **The leading-zero rule** exists so that the code, kept as an integer, can be written back as read. Do not relax it to be friendly.
-- **Code 2285, clerical.** Neither the design nor the research records its upstream constant name. Read it from `tlc2/output/EC.class` of a rolling `tla2tools.jar` (`javap -constants -cp tla2tools.jar tlc2.output.EC`, by hand, not in a test) and say in the pull request where the name came from. If no jar is at hand, use a placeholder name that says so and note it in the pull request; the test needs the entry, not the name.
 - **Codes in the captures today** (counted over the research folders that become golden files): all are in the old table except 2285 and 2404. 9999 appears only as quoted text.
 - **`codes.py` is not generated** from upstream's `EC.java` (P4, Rejected); the test over the golden codes is the guard.
 - **Windows (D15):** the `\r\n` rule is for output read there; it was not tried on Windows.
@@ -146,7 +146,7 @@ None in this package. P4's entry ("Fixed: Errors with a TLC message code tlaup d
 - The three test files pass, with the rebuild parametrised over every golden and synthetic file; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - The tests were committed before the code, and the pull request shows the red run and the Hypothesis statistics (T12 rule 6, T7).
 - The import-isolation test of 09 still passes with the two new modules.
-- The pull request says where the name of 2285 came from. No changelog entry; no document to update.
+- No changelog entry; no document to update. The pull request names the rows it covers (R29, its framing half).
 
 ## Out of scope
 

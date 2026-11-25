@@ -1,6 +1,6 @@
 # 17. The error handler, `main()` and `--debug`
 
-Size: M. Suggested model: most capable. Status: ready, except one part that waits on question "debug filter" of the index: passing `--debug` output through the token and query-string filter (see Interfaces). Everything else is built now.
+Size: M. Suggested model: most capable. Status: ready. The debug filter that `--debug` output passes through is [24](24-github-client.md)'s (`redact`, question Q6, settled); this package builds the one function it goes into (see Interfaces).
 
 ## Goal
 
@@ -9,13 +9,13 @@ Every exception that leaves a command, the root callback or the parsing of the r
 ## Covers
 
 - Roadmap items:
-  - "No tracebacks for users: missing Java, missing jar with `--raw` or `--show-command`, a broken config, an unreadable pin file. Turn off Typer's decorated crash reports, add one top-level handler that prints a one-line error, and add `--debug` to show the full traceback." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 238), in part: the handler, `--debug`, `TLAUP_DEBUG`, the crash reports off. The four cases are each a `TlaupError` raised by the code that builds them, with their scenarios: missing Java and the missing jar with `--raw` or `--show-command` ([39](39-tlc-command.md)), a broken config ([19](19-layered-config.md) raises, [44](44-config-commands.md) has the scenarios), an unreadable pin file ([23](23-tool-store.md) raises, [29](29-tool-commands.md) has the scenario).
+  - "No tracebacks for users: missing Java, missing jar with `--raw` or `--show-command`, a broken config, an unreadable pin file. Turn off Typer's decorated crash reports, add one top-level handler that prints a one-line error, and add `--debug` to show the full traceback." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 238), in part: the handler, `--debug`, `TLAUP_DEBUG`, the crash reports off. The four cases are each a `TlaupError` raised by the code that builds them, with their scenarios: missing Java and the missing jar with `--raw` or `--show-command` ([39](39-tlc-command.md)), a broken config ([19](19-layered-config.md) raises, [44](44-config-commands.md) has the scenarios), an unreadable pin file ([23](23-tool-store.md) raises `FileOperationError`, code 5; [29](29-tool-commands.md)a has the scenario).
   - "A small family of domain errors (spec not found, tool not installed, Java missing or too old) mapped to exit codes in one place." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 284), in part: the one place that maps them. The classes are [02](02-errors-and-paths.md)'s.
   - "Report run errors as what they are." (milestone 1), in part: exit 141 at the top and the stream helpers the launcher polls. The rest is [21](21-java-launcher.md), [37](37-run-tlc.md), [39](39-tlc-command.md).
   - "Exit codes: documented; ... 2 for usage errors that are hand-written today; non-zero when an operation failed" ([milestone 4](../roadmap.md#milestone-4-automation-surface), line 471), in part: the mapping. Each command's codes come with its switch.
 - Design sections:
   - [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), all of its Design, the contract tests of Typer (the public half), and the Tests that can be written without the step vocabulary (see "Tests that must pass" for where each of F10's tests goes). Not here: completion in `main()` ([47](47-completion.md), [23 C3](../design/23-command-layout.md#c3-completion)), the private-name half of the contract tests (47), the scenarios that need steps ([18](18-feature-harness.md) and later).
-  - [02 X1](../design/02-cross-cutting.md#x1-exit-codes): rules 1, 6, 7 and 8 as far as the handler and `main()` make them true; the changelog entry. The table's examples are raised by the packages that build each command.
+  - [02 X1](../design/02-cross-cutting.md#x1-exit-codes): rules 1, 6, 7 and 8 as far as the handler and `main()` make them true (its Breaking changelog entry is [48](48-command-tree.md)'s). The table's examples are raised by the packages that build each command.
   - [20 G2](../design/20-groundwork.md#g2-domain-errors): "mapped to exit codes in one place", and the printing of an exception's notes.
   - [00, application context](../design/00-overview.md#application-context): the root callback builds the context from the environment and the root options and stores it on Typer's context object.
 
@@ -43,12 +43,12 @@ Changes:
 - `src/tlaup/cli.py`: `TlaupGroup`, `mapped`, `reported`, `report`, `report_internal_error`, `own_exit`, `run_app`, `main`; `app` built with `cls=TlaupGroup`, `name="tlaup"`, `add_completion=False`, `no_args_is_help=True`, `pretty_exceptions_enable=False`; the root callback gains `--debug`, builds the context and stores it on `ctx.obj`, and no longer calls `load_config()` ([14 F4](../design/14-config-and-cli.md#f4-config-commands-with-a-broken-file): nothing loads settings in the root callback). The `-v`/`--version` flag and its text stay as they are ([48](48-command-tree.md) moves it to `-V`); only its printing moves to `Ui.for_process()`. The registrations of the old commands do not change.
 - `src/tlaup/context.py`: `build_context` (see Interfaces).
 - `pyproject.toml` and `uv.lock`: `typer>=0.27.2,<1.0.0` ([30 B2](../design/30-ci-and-release.md#b2-build-fixes), D59), because `typer.TyperException` is public from 0.27.2 only. One dependency line; [56](56-build-and-metadata.md) owns the other bounds.
+- `pyproject.toml`, `[tool.ruff.lint.per-file-ignores]`: `"src/tlaup/cmd/**" = ["PLC0415"]` and `"src/tlaup/cli.py" = ["PLC0415"]`, with a comment naming [14 F9](../design/14-config-and-cli.md#f9-startup-cost). F9 makes function-level imports the rule in command modules, and ruff's `PLC0415` (in the `PL` group the project selects, active on the locked ruff 0.17.5) flags them; F9 wants the ignore in place before the first command module written that way, and every command package (29, 31, 39, 41 to 47) comes after this one. [49](49-startup-cost.md) checks that it is there.
 - `CHANGELOG.md`: see Changelog.
-- Old tests, only where one asserted exit 1 from an exception the command did not catch (that is now 5): the worker runs the suite and changes such an assertion to 5, listing each in the pull request. A first look found none: the old tests that assert 1 get it from a `typer.Exit(1)` the command raises itself, which is unchanged.
 
 Deletes: nothing.
 
-Shared with packages of the same group: `src/tlaup/cli.py` with [19](19-layered-config.md) (19 does not touch it; listed because both work near the root callback) and with the switch packages later (one registration block each); `src/tlaup/context.py` with 16 and 19; `pyproject.toml` and `uv.lock` with 16 and 56, one line each; `CHANGELOG.md`.
+Shared with packages of the same group: `src/tlaup/cli.py` with [19](19-layered-config.md) (19 does not touch it; listed because both work near the root callback), with [24](24-github-client.md) (one call in the debug-printing function) and with the switch packages later (one registration block each); `src/tlaup/context.py` with 16 and 19; `pyproject.toml` and `uv.lock` with 16 and 56, one line each; `CHANGELOG.md`.
 
 ## Interfaces
 
@@ -98,11 +98,11 @@ def build_context(env: Mapping[str, str], *, debug: bool) -> AppContext
 
 The root callback calls it once per run of the app and stores the result on `ctx.obj`. A fresh context per run of the app is what makes each in-process call (`I run`, a second `CliRunner.invoke`) print into its own captured streams.
 
-**Debug filter: waits on question "debug filter".** V7 and F10 say that `--debug` output passes through a filter that replaces the GitHub token with `***` and removes query strings; no section gives the filter a module or a signature ([24](24-github-client.md) has the question). Package 24 proposes a stateless `redact(text: str, env: Mapping[str, str]) -> str` in a light top-level module that imports neither `requests` nor the client. When the question is answered that way, this package's handler passes every line it prints under debug (the traceback and the one-line message before it) through `redact(text, env)`. Until then, build the debug printing so that all of it goes through one function of `cli.py`, which is then the one line to change. No token can leak through it before [29](29-tool-commands.md): no command reads `GH_TOKEN` or `GITHUB_TOKEN` until 29 switches the `tool` commands to the new client, so the filter must be in place before 29 is merged (the index's question says so).
+**The debug filter** (question Q6, settled; [12 V7](../design/12-tools-and-downloads.md#v7-github-client), [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks)). Every line the handler prints under debug, the one-line message and the traceback, passes through `redact(text, os.environ)` of `tlaup/versioning/redact.py`, a stand-alone function with no state that [24](24-github-client.md) owns. Build the debug printing so that all of it goes through one function of `cli.py` (for example `_debug_text(text: str) -> str`, which returns its argument unchanged here); 24 adds `redact.py` and turns that function into the call, one line. No token can leak before then: no command reads `GH_TOKEN` or `GITHUB_TOKEN` until [29](29-tool-commands.md) switches the `tool` commands to the new client, and 29 waits for 24.
 
-Consumes: `Ui`, `Ui.for_process` (16); `TlaupError` and subclasses, `AppContext`, `get_context`, `AppPaths` (02); `redact` (24 or the package the question names, when answered).
+Consumes: `Ui`, `Ui.for_process` (16); `TlaupError` and subclasses, `AppContext`, `get_context`, `AppPaths` (02). Not `redact`: 24 wires it in.
 
-Used later by: the launcher ([21](21-java-launcher.md): `reader_gone`); the feature harness ([18](18-feature-harness.md): `python -m tlaup` and the in-process `app`); every command (errors raised are printed here; notes added with `add_note` are printed here, [11 R6](../design/11-runner.md#r6-run-folders)); completion ([47](47-completion.md): `main()` switches completion on).
+Used later by: the GitHub client ([24](24-github-client.md): the debug-printing function, which it points at `redact`); the launcher ([21](21-java-launcher.md): `reader_gone`); the feature harness ([18](18-feature-harness.md): `python -m tlaup` and the in-process `app`); every command (errors raised are printed here; notes added with `add_note` are printed here, [11 R6](../design/11-runner.md#r6-run-folders)); completion ([47](47-completion.md): `main()` switches completion on).
 
 ## Tests that must pass
 
@@ -118,7 +118,7 @@ Where each of F10's and X1's tests goes. Feature scenarios need the step vocabul
 - `report`: an error with a hint, details and two notes added with `add_note` prints the `error:` line, the hint, the details, then the two notes, in that order.
 - A command that adds a note to a `BrokenPipeError` and raises it: 141, and the note alone on stderr.
 - `--debug` before the command, and separately `TLAUP_DEBUG=1` set with `monkeypatch`: the same `TlaupError` and the same `RuntimeError` print the line and then a traceback. `--debug` after a subcommand: 2.
-- `TLAUP_HOME` set to a relative path with `monkeypatch`, then tlaup's own `app` with the old `tools dir` command: exit 3, one `error:` line, no traceback; with `--debug` a traceback. This is the error before the context exists ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), "In-process"). The test resets the context.
+- `TLAUP_HOME` set to a relative path with `monkeypatch`, then tlaup's own `app` with the old `tools dir` command: exit 3, one `error:` line, no traceback; with `--debug` a traceback. This is the error before the context exists ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), "In-process"). The test resets the context. [29](29-tool-commands.md)a, which removes `tools dir`, changes the command in this test to `tool dir`.
 - `tlaup` alone and a group alone (`tlaup config`): exit 2, help on stdout, stderr empty ([02 X1](../design/02-cross-cutting.md#x1-exit-codes) rule 7).
 - D57: an app built with a subclass of `TlaupGroup` whose closed-pipe test answers "Windows and a pipe" (see Context, "Testing the Windows rule"): a command whose print raises `OSError(errno.EINVAL, ...)` exits 141 with nothing printed; with tlaup's own rule on Linux the same error is 5.
 - A command whose write raises `OSError(errno.ENOSPC, ...)` with no file name: 5 and `error: cannot write output: ...`; the same error with a file name: an internal error (5, `internal error:`).
@@ -159,7 +159,7 @@ The console script for the last row is found beside `sys.executable` (the isolat
 **What the step vocabulary's packages must add, so nothing of F10 and X1 is lost:**
 
 - [18](18-feature-harness.md), `errors.feature`, with the commands that exist then (old names until their switch): the three real-process 141 scenarios that need no new command (`tlaup --help` with stdout on a closed pipe, no `Traceback`; an unknown option with stdout and stderr on a closed pipe; an unknown option with stdout on the null device and stderr on a closed pipe); the no-command pair (`tlaup`, and a group alone) exit 2, help on stdout, stderr empty; one in-process scenario each for an unknown option, a missing argument and an unknown command (exit 2, stdout empty, stderr names the problem, no assertion on Typer's layout); `--debug` after the subcommand exits 2; `TLAUP_HOME=relative/path` with the cheapest command exits 3 with one `error:` line, and with `--debug` and with `TLAUP_DEBUG=1` has a `Traceback`.
-- [29](29-tool-commands.md): `tlaup tool list` with two builds installed and stdout on a closed pipe, 141 and no `Traceback`; `tlaup tool pin nosuch` with both streams on a closed pipe, 141; the plain pytest `tlaup tool list` with stdout on `/dev/full` (Linux), 5 and `cannot write output`; an unreadable pin file exits 3 with no `Traceback`, with one under `--debug` and under `TLAUP_DEBUG=1` (one of F10's four cases); `tlaup tool` alone exits 2 with help on stdout; the X1 examples its commands reach.
+- [29](29-tool-commands.md): `tlaup tool list` with two builds installed and stdout on a closed pipe, 141 and no `Traceback`; `tlaup tool pin nosuch` with both streams on a closed pipe, 141; the plain pytest `tlaup tool list` with stdout on `/dev/full` (Linux), 5 and `cannot write output`; an unreadable pin file exits 5 (`FileOperationError`) with no `Traceback`, with one under `--debug` and under `TLAUP_DEBUG=1` (one of F10's four cases); `tlaup tool` alone exits 2 with help on stdout; the X1 examples its commands reach.
 - [39](39-tlc-command.md) (already in its file): the parsed run whose reader closes after one line, 141; missing Java and the missing jar with `--raw` and `--show-command`, each with and without `--debug` and `TLAUP_DEBUG=1`.
 - [44](44-config-commands.md): a broken config with and without `--debug` and `TLAUP_DEBUG=1`.
 - Every switch and command package: the X1 table's examples and the G2 subclasses its commands can reach, in `errors.feature`, each asserting the code, an empty stdout and exactly one `error:` line.
@@ -175,11 +175,7 @@ From [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks):
 - Fixed: "Several failures printed a Python traceback. tlaup now prints one `error:` line; `tlaup --debug ...` or `TLAUP_DEBUG=1` shows the traceback."
 - Added: "`--debug`, and `python -m tlaup`."
 
-From [02 X1](../design/02-cross-cutting.md#x1-exit-codes) (this package owns it; [39](39-tlc-command.md) and the other switch packages do not repeat it):
-
-- Breaking: "Exit codes changed. tlaup's own errors now return 2 (usage), 3 (not set up), 4 (not found) or 5 (failed) instead of 1; Ctrl-C returns 130 (was 143 or 130); a closed output pipe returns 141 (was 1); `tlaup tool uninstall` returns 5 when a build could not be removed (was 0)."
-
-The entry describes the released 0.9.0. On `main` it becomes fully true only when the last old command is replaced (see Context); nothing is released in between (D6).
+Not here: [02 X1](../design/02-cross-cutting.md#x1-exit-codes)'s Breaking entry on exit codes ("Exit codes changed. tlaup's own errors now return 2 ... instead of 1; ..."). [48](48-command-tree.md) writes it, where tlaup's own exit 1 ends and the entry becomes true (finding B10); [39](39-tlc-command.md) and the other switch packages do not repeat it.
 
 ## Context for the worker
 
@@ -195,7 +191,7 @@ The entry describes the released 0.9.0. On `main` it becomes fully true only whe
 
 **How debug is decided.** Not from the context, because the failure may have happened while it was built: `ctx.params["debug"]` when a context exists; `TLAUP_DEBUG=1` in the environment always; when the failure was in `make_context` and no context exists yet, whether `--debug` stands among the arguments before the first word that does not start with `-`. `--debug` is a root option, so it goes before the subcommand; after it Typer says "No such option" (exit 2).
 
-**What the old commands do after this package.** They still raise `typer.Exit(1)` for their own errors until their switch (29 `tools`, 31 `modules`, 39 `tlc`, 44 `config`, 46 and 48 for `check-java` and `fetch-cache`). `mapped` lets a `typer.Exit` through unchanged and notes it, so those runs keep exiting 1, also with a closed pipe: a 1 a command asked for is never turned into 141, because it may be the wrapped tool's own 1 (X1 rule 1's exception). So X1's "tlaup never returns 1 itself" holds only once [48](48-command-tree.md) is in. Two more changes the old commands see at once: an exception they do not catch is an internal error, 5 with one line, instead of a traceback and 1; and the old prompts (`typer.prompt`, `typer.confirm` in `tools pin` and `tools uninstall`) raise `typer.Abort` at end of input or when declined, which `mapped` turns into 130 instead of Typer's "Aborted." and 1. Both are accepted until 29 replaces those prompts with `Ui.ask`. No old test asserts the declined path (checked: the old `uninstall` tests all answer `y`).
+**What the old commands do after this package.** They still raise `typer.Exit(1)` for their own errors until their switch (29 `tools`, 31 `modules`, 39 `tlc`, 44 `config`, 46 and 48 for `check-java` and `fetch-cache`). `mapped` lets a `typer.Exit` through unchanged and notes it, so those runs keep exiting 1, also with a closed pipe: a 1 a command asked for is never turned into 141, because it may be the wrapped tool's own 1 (X1 rule 1's exception). So X1's "tlaup never returns 1 itself" holds only once [48](48-command-tree.md) is in. Two more changes the old commands see at once: an exception they do not catch is an internal error, 5 with one line, instead of a traceback and 1; and the old prompts (`typer.prompt`, `typer.confirm` in `tools pin` and `tools uninstall`) raise `typer.Abort` at end of input or when declined, which `mapped` turns into 130 instead of Typer's "Aborted." and 1. Both are accepted until 29 replaces those prompts with `Ui.ask`: `main` need only be green between packages (decision D62).
 
 **Testing the Windows rule.** F10 asks for "the platform given as Windows and a pipe as stdout". Rule 2 of [01 T12](../design/01-testing.md#t12-rules-for-writing-tests) forbids patching tlaup, and setting `os.name` breaks `pathlib`. So `closed_pipe_on_windows` takes `os_name` and `pipe` as keyword arguments, unit-tested directly, and `TlaupGroup` calls it through one overridable static method, so the in-process test builds its small app with a subclass that answers true. That is a subclass in the test, not a patch. Say in the pull request how it was done.
 
@@ -212,24 +208,24 @@ The entry describes the released 0.9.0. On `main` it becomes fully true only whe
 - `/dev/full` exists on Linux only; skip those rows elsewhere with the reason.
 - `CliRunner(env=...)` assigns to `os.environ`; set variables with `monkeypatch.setenv` instead (T12 rule 7).
 
-**State of `main` when this starts.** Release 0.8.x commands; `errors.py`, `paths.py`, `context.py` (02); the isolation fixture (03); `Ui` (16). `cli.py` has today's root callback with `-v` and a `load_config()` call. Settings may or may not have been replaced yet ([19](19-layered-config.md) runs beside this package); removing the `load_config()` call from the root callback is right in both cases.
+**State of `main` when this starts.** Release 0.8.x commands; `errors.py`, `paths.py`, `context.py` (02); the isolation fixture, and no old test under `tests/unit/` or `tests/integration/` (03b); `Ui` (16). `cli.py` has today's root callback with `-v` and a `load_config()` call. Settings may or may not have been replaced yet ([19](19-layered-config.md) runs beside this package); removing the `load_config()` call from the root callback is right in both cases.
 
 ## Done when
 
 - The tests above pass on Linux and macOS in CI; the `/dev/full` rows run on Linux.
 - `python -m tlaup --help` works; `uv run tlaup --debug tools dir` and `TLAUP_DEBUG=1 uv run tlaup tools dir` run.
 - `tlaup/stdio.py` imports nothing from `typer` or `rich` (its test).
-- Every old test passes, with any changed assertion listed in the pull request.
-- The changelog entries are written.
+- F10's two changelog entries are written.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
-- The pull request says where the debug printing goes through one function, ready for the filter, and links question "debug filter".
+- The pull request names the one function the debug printing goes through, which [24](24-github-client.md) points at `redact`.
+- The `PLC0415` per-file ignores are in `pyproject.toml`.
 
 ## Out of scope
 
 - The scenarios that need the step vocabulary: [18](18-feature-harness.md) and the packages listed above.
 - `-V` and the version text `tlaup 0.9.0`: [48](48-command-tree.md) ([23 C4](../design/23-command-layout.md#c4-version-flag)).
 - Completion in `main()` and the private half of the contract tests: [47](47-completion.md).
-- The filter for debug output: question "debug filter", [24](24-github-client.md).
+- The filter for debug output, `redact`, and its call in the debug-printing function: [24](24-github-client.md).
 - Raising the right `TlaupError` in each command: the command packages.
 - Signals during a run: the launcher ([21](21-java-launcher.md)); this handler sees only a `KeyboardInterrupt` outside a run.
 - A raw run stopping TLC when its reader goes (D58): [21](21-java-launcher.md) and [37](37-run-tlc.md), with `reader_gone` from here.
@@ -238,5 +234,5 @@ The entry describes the released 0.9.0. On `main` it becomes fully true only whe
 
 - From F10: the handler subclasses `typer.core.TyperGroup`, overrides two of its methods and relies on the order in which Typer handles exceptions; a Typer release can change any of these. Part 2 of the closed-pipe handling relies on what Rich does in a console tlaup does not own. The guards are the version bounds, the contract tests, the real-process tests above and the newest-dependencies job ([30 I3](../design/30-ci-and-release.md#i3-newest-dependencies-job)).
 - From X1: the codes rest on one Typer and one Rich behaviour each; macOS is first seen in CI.
-- From the cut: until the debug filter exists, debug output is unfiltered. Harmless until [29](29-tool-commands.md) makes a command read the token; the index must not let 29 merge first.
+- From the cut: until [24](24-github-client.md) is in, debug output is unfiltered. Harmless until [29](29-tool-commands.md) makes a command read the token, and 29 depends on 24.
 - From the cut: between this package and 48 the old commands still exit 1, and their prompts now give 130 at end of input.

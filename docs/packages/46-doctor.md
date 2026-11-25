@@ -1,6 +1,6 @@
 # 46. `tlaup doctor`, replacing `check-java`
 
-Size: M. Suggested model: mid-tier. Status: ready. One reading of stage 4, the level (`ok`, `warning`, `error`) each finding gets, is put to the maintainer as question "doctor levels" of the index; the package is built on that reading, and a different answer changes one table and the scenarios that assert a level, not the structure.
+Size: M. Suggested model: mid-tier. Status: ready.
 
 ## Goal
 
@@ -12,12 +12,12 @@ Size: M. Suggested model: mid-tier. Status: ready. One reading of stage 4, the l
   - "Review the layout of every command so it follows the most common CLI patterns ... a `doctor` command that checks Java, `javac`, the pinned jar, config and folders and absorbs `check-java` ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 325), in part: `doctor`. The tree as a whole is [48](48-command-tree.md).
   - "Use `JAVA_HOME` when set, falling back to `PATH`, for both `java` and `javac`." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)), in part: "`tlaup doctor` prints both tools with their source" ([13 J2](../design/13-modules-and-java.md#j2-finding-java)). The functions are [20](20-java-location.md).
 - Design sections:
-  - [23 C1](../design/23-command-layout.md#c1-command-tree): the row "`check-java` becomes `doctor`" in full, `doctor.feature` of the Tests, and that row's changelog line.
+  - [23 C1](../design/23-command-layout.md#c1-command-tree): the row "`check-java` becomes `doctor`" in full, with the rule for the levels C1 now states (question Q15, confirmed as this package built it), `doctor.feature` of the Tests, and that row's changelog line.
   - [13 J3](../design/13-modules-and-java.md#j3-one-java-start), Risks: "`tlaup doctor` always re-runs the check and rewrites the entry".
   - [12 V1](../design/12-tools-and-downloads.md#v1-version-store): "`tlaup doctor` reports such folders as leftovers" (twice in V1), with the store method it needs (Interfaces).
   - [14 F2](../design/14-config-and-cli.md#f2-folder-overrides): "`tlaup doctor` ... print the folders in effect".
   - [23 C1](../design/23-command-layout.md#c1-command-tree), the row "`modules path` is removed ... the folders are shown by `doctor`": the module folder is one of the folders shown.
-  - [01 T11](../design/01-testing.md#t11-the-existing-tests): `check_java/test_check_java.py`, "kept until J2", deleted here with the code it tests ([20](20-java-location.md), Context).
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row M15 (changed on purpose): a module folder with no or damaged `module.json` is no longer listed by `module list`; [31](31-module-commands.md) hands showing such folders to `doctor`. Row O1 (`check-java`) is changed on purpose by C1 and needs no test of its own.
 
 ## Depends on
 
@@ -28,8 +28,9 @@ Size: M. Suggested model: mid-tier. Status: ready. One reading of stage 4, the l
 - [39](39-tlc-command.md): the old runner is gone. `tlc/runner.py` of release 0.8.x is the last caller of `java/inspector.py` other than `check-java` ([20](20-java-location.md), Context); this package deletes `inspector.py` and cannot before 39.
 - [16](16-ui-messages.md), [17](17-error-handler.md), [18](18-feature-harness.md): `Ui`, the root group that maps a raised error to its code, the steps and `doctor.feature`'s home.
 - [29](29-tool-commands.md): the store steps of the scenarios (`the build ... is installed and pinned`, `no build is installed`, `the jar of the build ... is truncated`).
+- [30](30-module-build.md): `Registry.list()` and what makes a folder a module (a valid name and a readable `module.json`), for the `module folder` check's leftovers (row M15).
 
-Changes from the draft (20, 23, 19, 30, 17, 18): 30 is dropped (`doctor` reads no module: it shows the module folder, which is an `AppPaths` property, and the design names no module check); 39 is added for the reason above; 16, 22, 24 and 29 are named because the command and the scenarios use them directly.
+Changes from the draft (20, 23, 19, 30, 17, 18): 39 is added for the reason above; 16, 22, 24 and 29 are named because the command and the scenarios use them directly. 30 stays, for the module folder's leftovers (an earlier revision of this file dropped it; inventory row M15 brings it back).
 
 ## Files
 
@@ -51,13 +52,14 @@ Deletes:
 
 - `src/tlaup/cmd/check_java.py`.
 - `src/tlaup/java/inspector.py` (`get_java_version`, `validate_java_version` and the rest). If a module other than `cmd/check_java.py` still imports it when this starts, that module's switch package has not been merged; stop and say so.
-- `tests/unit/check_java/` (`test_check_java.py`, `__init__.py`), which [03](03-test-foundation.md) drove with the fake `java` and assigned to this package.
+
+The old tests of `check-java` went in 03b with the rest of the old suite (decision D62).
 
 Shared with packages that may run beside it (40 to 47 after 39): `src/tlaup/cli.py` (one registration block each), `CHANGELOG.md`. `src/tlaup/versioning/store.py` is 23's; no other package of the period touches it.
 
 ## Interfaces
 
-The command, from [23 C1](../design/23-command-layout.md#c1-command-tree): `tlaup doctor`, no arguments, no options. No network, never prompts, never installs, creates no folder.
+The command, from [23 C1](../design/23-command-layout.md#c1-command-tree): `tlaup doctor`, no arguments, no options. No network, never prompts, never installs. The one thing it writes is the remembered Java check, `<cache>/java.json` ([13 J3](../design/13-modules-and-java.md#j3-one-java-start)), which `refresh=True` rewrites for a plain `java` or `javac` binary; on a fresh home that also creates the cache folder. It writes nothing else: no config file, no run folder, no store file.
 
 **Written by stage 4** (C1 gives the checks and the three words, not the form):
 
@@ -68,7 +70,7 @@ Level = Literal["ok", "warning", "error"]
 @dataclass(frozen=True)
 class Check:
     name: str                 # "java", "javac", "pinned build", "tool folder", "config file",
-                              # "config folder", "cache folder", "data folder", "module folder", "run folder",
+                              # "module folder", "config folder", "cache folder", "data folder", "run folder",
                               # "GitHub token"
     level: Level
     detail: str               # one line: what was found
@@ -87,7 +89,7 @@ class ToolStore:
         # (.lock, pin, .tmp); sorted by name. Reads only; takes no lock.
 ```
 
-**The checks**, with C1's words and the level stage 4 gives each finding (question "doctor levels"). The rule behind the levels: **an error is what makes `tlaup tlc Spec` stop with code 3 ("not set up", [02 X1](../design/02-cross-cutting.md#x1-exit-codes)) or that a run cannot do without; a warning is what a run survives but something else will trip on, or what is off without breaking anything.**
+**The checks**, with C1's words and the level of each finding. The rule behind the levels is C1's (question Q15, confirmed as this package built it): **an error is what makes `tlaup tlc Spec` stop with code 3 ("not set up", [02 X1](../design/02-cross-cutting.md#x1-exit-codes)) or what a run cannot do without (a damaged pinned jar, a cache folder that cannot be written); a warning is what a run survives, but something else will trip on or is off.**
 
 | Check | What it does | ok | warning | error |
 | --- | --- | --- | --- | --- |
@@ -96,7 +98,8 @@ class ToolStore:
 | `pinned build` | `ToolStore.pinned()`; for a build, the jar's SHA-256 against `Build.sha256`. Shows the build with `format_build(build, store.builds())` and its jar's path. | Present, the jar matches. | Never. | Nothing pinned (hint `tlaup tool install` when no build is installed, else `tlaup tool pin`); `PinnedBuildMissing`; the jar missing, or its SHA-256 differs (hint `tlaup tool install --force <its printed form>`, [12 V12](../design/12-tools-and-downloads.md#v12-install)). |
 | `tool folder` | `AppPaths.tools` with the writable test of the folders row, then `ToolStore.leftovers()`. | Writable (or not there yet), no leftovers. | Each leftover named (V1: a folder tlaup cannot read may belong to a newer tlaup, so it is reported, never removed). | Not writable: `tool install` cannot add a build. |
 | `config file` | `load_settings(paths, env)`. Shows the path, and "not present (defaults in use)" when there is none. | Loads with no warning. | Loads with warnings: each unknown or removed key, as the loader words them ([14 F1](../design/14-config-and-cli.md#f1-layered-configuration), [F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay)). | `ConfigInvalid`: the file, the line and column or the key (hint `tlaup config edit`). |
-| `config folder`, `cache folder`, `data folder`, `module folder`, `run folder` | `AppPaths.config`, `cache`, `data`, `modules`, `runs` (the tool folder's path is the detail of the `tool folder` check, which also applies this row's writable test and gives an error when it fails): the path, whether it exists, and whether it is writable (for a folder that does not exist yet, whether its nearest existing parent is). A missing folder is not a fault: tlaup makes each when it first needs it. | Writable, or not there yet with a writable parent. | `config folder` or `data folder` not writable (only `config set` and `config edit` write the first; the data folder is unused in the first wave). | `cache folder`, `module folder` or `run folder` not writable: a run writes its run folder there, and `tool install` and `module add` write under the cache. |
+| `module folder` | `AppPaths.modules` with the writable test of the folders row, then every entry directly under it that `Registry.list()` does not return: a folder whose name is not a valid module name, or whose `module.json` is missing or unreadable (inventory row M15). Reads only. | Writable (or not there yet), every entry a module. | Each such entry named ("not a module: no readable module.json", "not a valid module name"); never removed. | Not writable: `module add` cannot register a module. |
+| `config folder`, `cache folder`, `data folder`, `run folder` | `AppPaths.config`, `cache`, `data`, `runs` (the tool and module folders' paths are the details of their own checks, which apply this row's writable test too): the path, whether it exists, and whether it is writable (for a folder that does not exist yet, whether its nearest existing parent is). A missing folder is not a fault: tlaup makes each when it first needs it. | Writable, or not there yet with a writable parent. | `config folder` or `data folder` not writable (only `config set` and `config edit` write the first; the data folder is unused in the first wave). | `cache folder` or `run folder` not writable: a run writes its run folder there, and `tool install` and `module add` write under the cache. |
 | `GitHub token` | `token_from_env(env)`: whether a token is set, and from which variable (`GITHUB_TOKEN` or `GH_TOKEN`). Never the value (C1: "yes or no, never the value"). | Set, or not set ("not set; GitHub allows 60 requests an hour without one"). | Never. | Never. |
 
 With an invalid config file the Java checks use the packaged default of `java.min_version` (11) and say so in the detail; the config's own line is the error.
@@ -120,10 +123,13 @@ Consumes: `locate`, `require_java`, `require_javac`, `ask_version` (20); `ToolSt
 - `the jar of the build "v1.7.4" is truncated` with it pinned: exit 3, `pinned build: error`, `stdout contains "--force"`.
 - A pin naming a build that is gone (`a file "{tools}/pin" containing:` an id with no folder): exit 3, `pinned build: error`.
 - A leftover: `a file "{tools}/old-build/tla2tools.jar" containing:` some text, everything else set up: exit 0, `stdout contains "tool folder: warning"`, `stdout contains "old-build"`, and the folder still exists afterwards.
+- A module folder that is not a module: `a file "{modules}/broken/module.json" containing:` text that is not JSON, everything else set up: exit 0, `stdout contains "module folder: warning"`, `stdout contains "broken"`, and the folder still exists (row M15).
 - `the config file contains:` a file with an unknown key: exit 0 when everything else is set up, `stdout contains "config file: warning"`. With invalid YAML: exit 3, `config file: error`, `stdout contains "tlaup config edit"`, and the `java` line still present.
 - `the environment variable "GITHUB_TOKEN" is "doctor-secret-value"`: `stdout contains "GITHUB_TOKEN"`, and neither stream contains `doctor-secret-value`.
 - `the folder "{runs}" is read-only` (the folder made first with `a file "{runs}/x" containing:`; skipped as root, T5): exit 3, `stdout contains "run folder: error"`.
-- Nothing is created: on a fresh home with `java is version "25.0.5"`, after `tlaup doctor`, `the file "{config}/config.yaml" does not exist` and `the cache holds no run folders`.
+- The macOS stub with no JDK ([13 J3](../design/13-modules-and-java.md#j3-one-java-start)): `java answers its version check with "Unable to locate a Java Runtime." on stderr and exit code 1` (T5's step for T4's object form of `version`): exit 3, `stdout contains "java: error"`, `stdout contains "Unable to locate a Java Runtime."`.
+- An answer that is not a version: `java answers its version check with "not a version" on stdout and exit code 0`, everything else set up: exit 0, `stdout contains "java: warning"` (J3: the run goes on).
+- Nothing but the Java check is written: on a fresh home with `java is version "25.0.5"`, after `tlaup doctor`, `the file "{config}/config.yaml" does not exist` and `the cache holds no run folders`. (The fake `java` is a script, so here not even `java.json` is written; the unit test below covers a remembered binary.)
 - `tlaup doctor` makes no request: the isolation fixture's closed-port repository address would change the outcome if it did (T4); and it is in-process with no `GitHub answers` step, so a request would be stopped by the socket block and fail the scenario.
 
 `tests/features/errors.feature`: none new; `doctor`'s only error is `NotSetUp` with its count, covered above.
@@ -133,11 +139,11 @@ Consumes: `locate`, `require_java`, `require_javac`, `ask_version` (20); `ToolSt
 - The re-run (J3, Risks): with a real file named `java` that does not start with `#!` (a small executable the test writes; `ask_version` passed as a counting function returning a `25.0.5` banner), `require_java` without `refresh` asks once across two calls, and `run_checks` twice asks twice and leaves `java.json` holding the entry. This is the test the feature cannot be, since the fake `java` is a script and never remembered ([20](20-java-location.md), Context).
 - `ToolStore.leftovers()`: a folder with a jar and no `build.json`, one with `"schema": 99`, a stray file, and a real build (through `ToolStore.add` with [05](05-github-recordings.md)'s `make_tools_jar`): the first three are leftovers, the build, `.lock`, `pin` and `.tmp` are not.
 - `run_checks` never raises: with no `java`, an invalid config, nothing pinned and a read-only cache folder (skipped as root), it returns one `Check` per name with the levels of the table.
-- The macOS stub answer (`Unable to locate a Java Runtime.`, exit 1, [13 J3](../design/13-modules-and-java.md#j3-one-java-start)) through a counting `ask_version` that returns it: `java: error`. Plain pytest because T5's vocabulary has no step that scripts a version answer that is not a version (`java is version "<v>"` takes a version; [03](03-test-foundation.md)'s fake supports the object form, no step writes it).
+- `run_checks` on a home where only the cache folder's parent exists, with a remembered binary as above: afterwards the cache folder holds `java.json` and nothing else, and no other folder of `AppPaths` was made.
 - The SHA-256 comparison: a pinned build whose jar was rewritten with other bytes of the same length is an error; an unchanged one is ok.
 - No check's `detail` holds the token's value.
 
-Old tests deleted: `tests/unit/check_java/test_check_java.py` and its folder ([03](03-test-foundation.md) assigned it here; it tests `inspector.py` and `check-java`, both deleted). No stateful test applies.
+No stateful test applies.
 
 ## Changelog
 
@@ -159,16 +165,18 @@ J2's and J3's entries are [39](39-tlc-command.md)'s and say nothing about `docto
 
 **What `check-java` did**, for the pull request's description: it loaded the old config, ran `java -version` through `PATH` only, printed "Detected Java version" and exited 1 with `Error:` for a Java that was missing or too old. `doctor` covers that line as its `java` check, with `JAVA_HOME` first.
 
-**The level table is a reading.** C1 gives the checks and the three words, and "exit 0 when nothing is an error, else 3"; it does not say which finding is which. The rule above (an error is what stops a run with 3) gives every row; the two that a reader could place otherwise are `javac` (a warning here, because a run never needs it) and "nothing pinned" (an error here, because `tlaup tlc Spec` with nothing pinned stops with 3 wherever it cannot ask). The question in the index asks the maintainer to confirm both.
+**The levels.** C1 gives the rule above and places the two findings a reader could place otherwise: a missing or too old `javac` is a warning, since only `module add` with Java sources needs it, and nothing pinned is an error, since `tlaup tlc Spec` with nothing pinned stops with 3 wherever it cannot ask. The maintainer confirmed both as this package built them (question Q15). Warnings never change the code.
 
-**State of `main` when this starts.** `tlaup tlc` on the new runner (39); the old runner is gone, so `inspector.py`'s only caller is `cmd/check_java.py`; the store and the `tool` commands (29); the new loader (19, and the `config` commands if 44 is merged); `locate.py` with `refresh` (20). `check-java` is still registered. Packages 40 to 47 may be in flight beside this one.
+**The module folder's leftovers** (inventory row M15). `module list` shows only what `Registry.list()` returns ([31](31-module-commands.md)), so a folder with a damaged `module.json` would otherwise be seen nowhere; 31 hands it to `doctor`. C1's list of checks does not name it (reported to the index); it is a warning, like the tool folder's leftovers, because a run skips such a folder and nothing breaks.
+
+**State of `main` when this starts.** `tlaup tlc` on the new runner (39); the old runner is gone, so `inspector.py`'s only caller is `cmd/check_java.py`; the store and the `tool` commands (29); the registry and the `module` commands (30, 31); the new loader (19, and the `config` commands if 44 is merged); `locate.py` with `refresh` (20). `check-java` is still registered, with no tests (03b). Packages 40 to 47 may be in flight beside this one.
 
 ## Done when
 
 - The scenarios and unit tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
-- `tlaup doctor` exists; `tlaup check-java` does not (the scenario that it exits 2 is [48](48-command-tree.md)'s); nothing under `src/` imports `tlaup.java.inspector`, and the file is gone, as are `cmd/check_java.py` and `tests/unit/check_java/`.
+- `tlaup doctor` exists; `tlaup check-java` does not (the scenario that it exits 2 is [48](48-command-tree.md)'s); nothing under `src/` imports `tlaup.java.inspector`, and the file is gone, as is `cmd/check_java.py`.
 - The changelog entry is written.
-- The pull request pastes one `tlaup doctor` output with everything set up and one with two errors, and names the levels it built (question "doctor levels").
+- The pull request pastes one `tlaup doctor` output with everything set up and one with two errors.
 
 ## Out of scope
 
@@ -176,7 +184,7 @@ J2's and J3's entries are [39](39-tlc-command.md)'s and say nothing about `docto
 - Repairing anything: `doctor` reports; `tool install --force`, `tool pin` and `config edit` repair, and the hints name them.
 - Removing leftover folders: never by tlaup (V1).
 - The tree test and the `check-java` removed-name scenario: [48](48-command-tree.md).
-- Checking registered modules (whether their classes load on the pinned build): not asked for by C1; the override check of [11 R7](../design/11-runner.md#r7-override-modules-that-do-not-load) runs at each `tlc` start.
+- Checking registered modules (whether their classes load on the pinned build): not asked for by C1; the override check of [11 R7](../design/11-runner.md#r7-override-modules-that-do-not-load) runs at each `tlc` start. `doctor` names only folders under the module folder that are not modules (row M15).
 - A `--json` form of the report: milestone 4.
 
 ## Risks

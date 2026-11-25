@@ -1,6 +1,6 @@
 # 08. Golden facts
 
-Size: L. Suggested model: most capable. Status: ready.
+Size: L, as two pull requests of size M (08a, 08b). Suggested model: most capable. Status: ready.
 
 ## Goal
 
@@ -11,8 +11,10 @@ Size: L. Suggested model: most capable. Status: ready.
 - Roadmap items:
   - "Capture real `-tool` output from TLC 1.7.4 and the current rolling build ... Add expected parsed results. Drive the parser exactly as the runner does, with lines that keep their newline. These tests should fail first." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 147), in part: the tests that fail first, and the driving of the parser. The files are [07](07-golden-files.md); the full expected results are [15](15-golden-expected-results.md); the parser is [09](09-parse-package-and-model.md) to [13](13-tlc-parser.md).
 - Design sections:
-  - [01 T3](../design/01-testing.md#t3-golden-files): "Two kinds of expectation", item 1 (the facts) and the sentence on `facts.py` and the integration tests; "How the parser is driven" for the facts. The three properties are [10](10-framing-and-codes.md) and 13; item 2 is 15.
-  - [10 P1](../design/10-parser.md#p1-golden-files): "every case that has a capture has facts", for the TLC cases.
+  - [01 T3](../design/01-testing.md#t3-golden-files): "Two kinds of expectation", item 1 (the facts) and the sentence on `facts.py` and the integration tests, which now says that the file holds TLC facts only (question Q18); "How the parser is driven" for the facts. The three properties are [10](10-framing-and-codes.md) and 13; item 2 is 15.
+  - [10 P1](../design/10-parser.md#p1-golden-files): "every TLC case that has a capture has facts".
+  - [01 T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings): the `pending` marker on the facts, which T10 now names beside the stateful tests.
+  - Preserved-behaviour row R30 (start time, progress, finish time and duration, and coverage read from TLC's messages), with package 13: the facts are its test ([inventory](../design/preserved-behaviour-2026-11-22.md)).
   - The facts that the Tests parts of [10 P3](../design/10-parser.md#p3-result-model), [P4](../design/10-parser.md#p4-framing-and-never-losing-output), [P5](../design/10-parser.md#p5-error-traces), [P6](../design/10-parser.md#p6-json-traces-from-tlc), [P8](../design/10-parser.md#p8-sany-output) ("Golden, inside TLC") and [P9](../design/10-parser.md#p9-tlc-version) name, written as facts. The code that makes them pass is 13.
 
 ## Depends on
@@ -33,7 +35,7 @@ Creates:
 
 Changes: none. Deletes: none.
 
-Shared within the parser track: `tests/parse/__init__.py` (whoever creates `tests/parse/` first); `drive.py`, which 10, 11 and 12 may not use (they read files their own way and may switch later) and which 13 and 15 use; `facts.py` and `test_facts.py`, which 13 edits (the markers, and facts a capture proves wrong).
+Shared within the parser track: `tests/parse/__init__.py` (whoever creates `tests/parse/` first); `drive.py`, which 10, 11 and 12 may not use (they read files their own way and may switch later) and which 13 and 15 use; `facts.py` and `test_facts.py`, which 13 edits (the markers, and facts a capture proves wrong). 08a creates the files and 08b adds to them ("Pull requests" below).
 
 ## Interfaces
 
@@ -94,7 +96,7 @@ Consumes: from 07, the layout and the two TOML files. At run time of a fact, not
 
 In `tests/parse/test_facts.py`, not pending, passing in this pull request:
 
-- Every case of every `tlc/` build folder (not `plain`) has at least one fact for that folder's line (P1: "every case that has a capture has facts").
+- Every case of every `tlc/` build folder (not `plain`) has at least one fact for that folder's line (P1: "every TLC case that has a capture has facts"). In 08a the check covers the cases whose `source` in `cases.toml` names research 1, 2, 13 or 28, through one constant in `test_facts.py` (`COVERED_SOURCES`); 08b removes the constant, so the check covers every case.
 - Every fact names a case that exists in a folder of every line in its `lines`, so a typo or a fact for a build-only case without `lines` fails.
 - Fact ids are unique.
 - Every pattern in `PENDING` matches at least one fact, so a stale pattern is noticed.
@@ -111,9 +113,11 @@ Which facts belong to which later package, as far as the design lets one tell:
 | [13](13-tlc-parser.md) | All of them: `run`, `errors` and `sany` first, then `traces`. |
 | [14](14-pcal-parser.md) | None. |
 
-So the draft's "each parser package removes the markers of the cases it makes pass" comes down to one package, 13, in one or two pull requests.
+So "each parser package removes the markers of the cases it makes pass" comes down to one package, 13, in two pull requests.
 
-**SANY run on its own and PlusCal get no facts in `facts.py`.** [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal) asks for "facts and a full expected result" per SANY and PlusCal case "as for TLC". Stage 4 reads that as: the hand-written per-case assertions of those cases are the golden tests in `tests/parse/test_sany.py` ([12](12-sany-parser.md), which lists every S5 SANY case) and `tests/parse/test_pcal.py` (14), written as each package's first commit and shown red; the full expected results are 15's. `facts.py` holds TLC facts only, for three reasons: T3 shares it with the integration tests, which run TLC through `run_tlc` and assert on a `RunResult` ([01 T9](../design/01-testing.md#t9-integration-tests)); a `Fact` takes a `RunResult`; and `SanyResult` and `PcalResult` are different types. The synthetic cases get no facts either (10 and 13 test them one by one), nor do the `plain/` captures (not parsed).
+**What gets no facts.** SANY run on its own and PlusCal ([01 T3](../design/01-testing.md#t3-golden-files), [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal), question Q18): a `Fact` takes a `RunResult`, and `facts.py` is shared with the integration tests, which run TLC. The hand-written assertions of those cases are their parsers' own tests, in `test_sany.py` ([12](12-sany-parser.md)) and `test_pcal.py` ([14](14-pcal-parser.md)), written failing first in the same way. The synthetic cases (10 and 13 test them one by one) and the `plain/` captures (not parsed) get none either.
+
+Preserved-behaviour row R30: its test is the facts that a finished run has `started`, `finished` and `duration_ms` set and its progress read (that they are set, never their values, which a live run changes; see "Facts must hold for a live run too"), and the coverage rows of `coverage`, on both builds; the pull request that writes them (08a for research 1's cases, which hold all four) names the row. 13 makes them pass.
 
 ## Changelog
 
@@ -121,11 +125,11 @@ None.
 
 ## Context for the worker
 
-**State of `main`.** 07 is in: the golden folders, `cases.toml`, `build.toml`. `tlaup_parse` may not exist, or 09 may have added the model with no parser; 10, 11 and 12 may be in flight beside this package. The old parser and its typed-output tests stay until package 39.
+**State of `main`.** 07 is in: the golden folders, `cases.toml`, `build.toml`. `tlaup_parse` may not exist, or 09 may have added the model with no parser; 10, 11 and 12 may be in flight beside this package. The old parser stays until package 39; its old tests went in 03b.
 
 **Why pending, and lazy.** The design's order is "the golden move and `facts.py` (T3), failing. Then the parser work" ([01](../design/01-testing.md#order-of-work)). `main` must be green between packages, so the facts carry the `pending` marker that is registered in `pyproject.toml` since 2026-11-18 ("written before the code it tests; the work package that builds the code removes the marker") and deselected by `-m 'not pending'` ([01 T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings)). A deselected test is still collected, so collection must not import `tlaup_parse`: the tests of `tests/stateful/` solve the same problem with `importlib.import_module` inside the code that runs, and so does `drive.parse_tlc`.
 
-**The size.** About 93 TLC cases on v1.7.4 and 92 on rolling, about 95 distinct names, counted from 07's tables: research 1's 20 per build, research 2's three, research 13's ten, research 28's two, and about 59 of research 22's per build. With several facts per case, several hundred facts. Most cases have the same facts on both lines; read both captures before deciding.
+**The size.** About 93 TLC cases on v1.7.4 and 92 on rolling, about 95 distinct names, counted from 07's tables: research 1's 20 per build, research 2's three, research 13's ten, research 28's two (about 35 names, 08a), and about 59 of research 22's per build (08b). With several facts per case, several hundred facts. Most cases have the same facts on both lines; read both captures before deciding.
 
 **How to read a capture and write a fact.** T3's example for `violation` is the pattern: "one error of kind `invariant` named `Small`; a trace of 4 states; state 1 has no location; state 2's action is `Next` at line 10, column 59; state 2's `n` is the integer 1; `log` in state 4 is a sequence of 3 records." Read the file, not the parser and not the design's summary:
 
@@ -137,22 +141,22 @@ None.
 6. Decide the verdict by P3's table, in its order.
 7. Write each fact as an exact assertion (a count, a name, a kind, a line and column, a value's kind and contents), with a comment naming the capture line it was read from (`# violation.out:41`). A fact that would differ between the builds gets `lines`.
 
-Every case gets at least, from stage 4: its verdict and status (`run`); the number of errors and their kinds in order, with names where the message has one (`errors`); the number of SANY diagnostics, usually none (`sany`); and for each trace the number of states and whether it loops or stutters (`traces`). On top of that, the facts the design names, all of which 13's package file lists by group; the main ones: status for `success`, `simulate` (no 2193), `violation`, `sany-semantic-error`; verdicts (`success` `no-error`; `simulate` and `dfid-success` `no-error-bounded`; `violation` and `deadlock-flag-multierror` `errors`; `sany-semantic-error`, `version-bad-option` and the cfg errors `not-checked`; `tool-assum` `errors`; `checkpoint-recover` `resumed`); coverage rows of `coverage`, with the three `Next` rows differing in `sub_location`; P4's message shapes; P5's traces and the research 22 trace cases (the ten `-difftrace` pairs, the `-dfid` states with no action, `Step(1)`, the evaluation errors, the action property, the cfg errors, the 2285 warning); P8's diagnostics inside TLC (`sany-semantic-error`: line 5, columns 18 to 31, module `SanyError`, message ``Unknown operator: `undefinedThing'.``, a file ending in `SanyError.tla`; `parse-error`: line 6, column 1, module `ParseError`; the later 3002 is an error of kind `parse`, not a diagnostic); P9's version for both `success` cases and `version-bad-option`; P6's `dump-trace-live` keeping the `CounterExample written:` line as output.
+Every case gets at least, from stage 4: its verdict and status (`run`); the number of errors and their kinds in order, with names where the message has one (`errors`); the number of SANY diagnostics, usually none (`sany`); and for each trace the number of states and whether it loops or stutters (`traces`). On top of that, the facts the design names, all of which 13's package file lists by group; the main ones: status for `success`, `simulate` (no 2193), `violation`, `sany-semantic-error`; verdicts (`success` `no-error`; `simulate` and `dfid-success` `no-error-bounded`; `violation` and `deadlock-flag-multierror` `errors`; `sany-semantic-error`, `version-bad-option` and the cfg errors `tool-badcfg`, `tool-cfgsyn`, `tool-nocfg` and `tool-cfg-missing` `not-checked`; `tool-assum` `errors`; `checkpoint-recover` `resumed`); coverage rows of `coverage`, with the three `Next` rows differing in `sub_location`; P4's message shapes; P5's traces and the research 22 trace cases (the ten `-difftrace` pairs, the `-dfid` states with no action, `Step(1)`, the evaluation errors, the action property, the cfg errors, the 2285 warning); P8's diagnostics inside TLC (`sany-semantic-error`: line 5, columns 18 to 31, module `SanyError`, message ``Unknown operator: `undefinedThing'.``, a file ending in `SanyError.tla`; `parse-error`: line 6, column 1, module `ParseError`; the later 3002 is an error of kind `parse`, not a diagnostic); P9's version for both `success` cases and `version-bad-option`; P6's `dump-trace-live` keeping the `CounterExample written:` line as output.
 
 **Facts must hold for a live run too** (T3, T9): the same facts later run against a live TLC run of a newer rolling build, with real paths. So never assert a time, a duration, a date, a pid, a seed, an `fp` number, heap sizes, rates, intermediate progress counts, or a path with `<tmp>` or `<repo>` in it (assert the file name, as P8 does: "a file ending in `SanyError.tla`"). Assert final state counts only for exhaustive search, and not for a resumed run (D54: its counts can be approximate). Wording is asserted only where it is the fact (an invariant's name, a diagnostic's message the design quotes), per T12 rule 4.
 
 **Line, not build.** Facts are keyed by case, and by case and line where the lines differ, never by an exact build (T3). The known differences: `postcondition-false` (rolling 2404, kind `postcondition`; v1.7.4 a 1000 holding 5006, kind `config`), `stack-overflow` (v1.7.4 a raw Java stack inside 1000; rolling 1005), `coverage` (2779 on rolling only); and from research 22, the cfg errors (5001 and 5003 at the top level on rolling, nested in a 1000 on v1.7.4; kind `config` on both), the `-dfid` state messages (2216 with header `1:` on v1.7.4, 2217 with `1: ` on rolling), `ALIAS`, `-generate` and `-noGenerateSpecTE` (refused on v1.7.4), and the override cases (v1.7.4 does not honour the overrides property for these, research 13).
 
-**If 07 left a point open.** Facts follow 07's case names. Where 07's "Waiting on the maintainer" answered differently from its recommendation, the cases differ accordingly; read the folders, not 07's package file.
+**Case names** are 07's, after T3's five placements (no `tool-live`, no `q01-*` or `q12-*`, the two `override-class-too-new-*` cases of research 28); read the folders, not 07's package file.
 
 **Decisions this rests on.** D7 (the parser's tests live with it), D9 (nothing is lost: facts on `output`, `info` and `unknown_messages` are the check), D19 (two lines), D54 (the verdict comes from TLC's messages, not the exit code; the facts never read the exit code, which the parser cannot see).
 
 ## Done when
 
-- `facts.py` has facts for every TLC case of both builds; the four non-pending tests pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
-- The pull request shows `uv run pytest -m pending tests/parse/test_facts.py` failing, with its summary line.
+- `facts.py` has facts for every TLC case of both builds (after 08b; after 08a, for the cases of research 1, 2, 13 and 28); the four non-pending tests pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
+- Each pull request shows `uv run pytest -m pending tests/parse/test_facts.py` failing, with its summary line.
 - Every fact carries the comment naming its capture line, so the reviewer can check it against the file; the pull request says which facts are per line and why.
-- One pull request. A separate review agent checks every fact against its capture; for several hundred facts that may take two sittings (see Risks).
+- A separate review agent checks every fact of a pull request against its capture, one pull request at a sitting.
 
 ## Out of scope
 
@@ -167,5 +171,14 @@ Every case gets at least, from stage 4: its verdict and status (`run`); the numb
 - From T3: the facts are what fails first; a weak fact ("at least one error") passes against a wrong parser. Facts are exact.
 - From the cut: the facts are written against P3's names before 09 or 13 may have adjusted one. A parser package that changes a name changes the facts with it, in its own commit, and says so; it does not weaken a fact to fit. If a fact is wrong against the capture, the capture wins (13's package says the same).
 - A fact that depends on a volatile value passes on the capture and fails on every live run (T9). The rule above is the guard; the reviewer checks it.
-- The size. Several hundred facts read from about 12,000 lines of captures is a long review. If the index wants it, the natural seam is two pull requests: the cases of research 1, 2, 13 and 28 (about 35 names, the ones the design names facts for), then research 22's (about 59). Both are pending, so the split costs nothing on `main`.
+- The size. Several hundred facts read from about 12,000 lines of captures is a long review; hence the two pull requests below, along the seam by origin. Both are pending, so the split costs nothing on `main`.
 - A `PENDING` pattern left in place hides facts. The check that every pattern matches something does not catch a pattern that is too wide; package 13 empties the tuple, and 59 removes the marker.
+
+## Pull requests (decided by stage 4)
+
+This package is delivered as two pull requests along the seam by origin (review finding A1); the index lists them as 08a and 08b, each reviewed on its own.
+
+- **08a** (M): `drive.py`, `facts.py` and `test_facts.py` with the four self-checks (the completeness check limited by `COVERED_SOURCES`), and the facts of the cases of research 1, 2, 13 and 28 on both builds (about 35 names, the ones the design names facts for). Depends on 03 and 07.
+- **08b** (M): the facts of research 22's cases on both builds (about 59 names: `-difftrace` and its twins, simulation and `-generate`, `-dfid`, `ALIAS` and parameters, the deadlock flags, the `tool-*` errors, the stale-PlusCal and lint cases, checkpoint and recover), and the removal of `COVERED_SOURCES`. Depends on 08a.
+
+A package that names 08 as a dependency waits for 08b.

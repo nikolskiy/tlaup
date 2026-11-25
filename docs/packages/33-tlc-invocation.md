@@ -31,10 +31,10 @@ Size: M. Suggested model: most capable. Status: ready.
 - [20](20-java-location.md): `require_java` and `JavaRuntime` ([13 J2](../design/13-modules-and-java.md#j2-finding-java)).
 - [21](21-java-launcher.md): `JavaInvocation` ([20 G3](../design/20-groundwork.md#g3-java-launcher)). Only the dataclass and `argv()`; nothing is started here.
 - [23](23-tool-store.md): `Build` with `jar` and `capabilities` ([12 V1](../design/12-tools-and-downloads.md#v1-version-store)). Not `ensure_tools` ([28](28-first-run.md)): the build arrives through the injected `get_build`.
-- [30](30-module-build.md): `ClasspathResolver` as that package leaves it, asking the modules `Registry` for the module folders ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder)).
+- [30](30-module-build.md): `ClasspathResolver` as that package leaves it, with its `module_dirs` parameter, and the modules `Registry`, whose `list()` gives the registered modules in name order ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder)); and the classpath test file 30 writes, which this package extends.
 - [32](32-spec-resolution.md): `resolve_spec`, `resolve_cfg`, `config_arg`, `find_project_root`.
 
-Change from the draft: 02 and 03 are named (the draft had them through 32). The rest is the draft's list.
+Change from the draft: 02 and 03 are named (the draft had them through 32). The rest is the draft's list. No change from the stage 4 review: the classpath test file is 30's now (decision D62), which 30 already gives.
 
 ## Files
 
@@ -47,12 +47,10 @@ Creates:
 
 Changes:
 
-- `src/tlaup/java/classpath.py`, only as far as the preflight needs paths back: the runtime classpath as `list[Path]` and the TLA-Library folders as a list, not a joined string. The order (command line, project, config, managed modules) does not change (roadmap, "Keep"). Added beside the existing methods, not in their place (reconciled by stage 4): the old runner joins `resolver.resolve(...)` with `os.pathsep` and uses `get_tla_library_property()` as a string, so the string-returning methods stay unchanged until [39](39-tlc-command.md) deletes the old runner, and 39 deletes them with it.
-- `tests/unit/java/test_classpath.py`: the one file that holds the order, de-duplication and TLA-Library assertions from here on ([01 T11](../design/01-testing.md#t11-the-existing-tests): "merged into one file ... until G1").
+- `src/tlaup/java/classpath.py`, only as far as the preflight needs paths back: the runtime classpath as `list[Path]` and the TLA-Library folders as a list, not a joined string, in the order [13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder) writes out under "The classpath of a run" (below). Added beside the existing methods, not in their place: the old runner joins `resolver.resolve(...)` with `os.pathsep` and uses `get_tla_library_property()` as a string, and it has to type-check until [39](39-tlc-command.md) deletes it, so the string-returning methods stay and 39 deletes them with it.
+- `tests/unit/java/test_classpath.py`, the new file [30](30-module-build.md) writes with its whole-list test (the old file of that name went with the old suite in [03](03-test-foundation.md), decision D62): 30's whole-list test adapted to the path-returning methods, and C6's case added (see Tests). No second whole-list test.
 
-Deletes:
-
-- `tests/unit/spec/test_classpath.py` and `tests/unit/test_tlc_modules_path.py`, if [03](03-test-foundation.md) has not already merged them into `tests/unit/java/test_classpath.py`. They assert the classpath order through the old command with replaced functions; their assertions move into the merged file, on the resolver itself.
+Deletes: nothing. The old classpath tests (`tests/unit/java/test_classpath.py`, `tests/unit/spec/test_classpath.py`, `tests/unit/test_tlc_modules_path.py`) are gone already (D62).
 
 Does not touch (which is why the old string-returning methods of `classpath.py` stay): `src/tlaup/tlc/runner.py` (the old `build_tlc_command`, `resolve_spec_file`, `get_override_classes`), `src/tlaup/cmd/tlc.py`, `src/tlaup/config/schema.py`. The old and the new `build_tlc_command` live in different modules until [39](39-tlc-command.md).
 
@@ -169,7 +167,17 @@ def jvm_options(setting: Sequence[str], env: Mapping[str, str], flags: Sequence[
 - `fp` and `seed`, each decided on its own: `None` when TLC's arguments hold the flag; else the recovered run's recorded value when there is one; else random, `-fp` from 0 to 130 inclusive and `-seed` a random integer (see "Traps" for its range).
 - `suppress_te_spec`: the build has the capability `no_generate_spec_te` and TLC's arguments hold none of the three trace-spec flags.
 
-**`find_recovered_run`** ([R6](../design/11-runner.md#r6-run-folders), "`-recover PATH` among TLC's arguments"). The word after `-recover`; a relative `PATH` is read against `cwd`, as TLC reads it; links are resolved; when the result lies under `runs/<id>/`, the function returns that run with what its `run.json` says, and `None` otherwise (a path that does not exist, or one outside `runs/`). A `run.json` that is missing or cannot be read gives `keep=False` and no values; the run is still returned, because [35](35-run-folders.md) takes its lock whatever the file says. The function reads only; it takes no lock.
+**`find_recovered_run`** ([R6](../design/11-runner.md#r6-run-folders), "`-recover PATH` among TLC's arguments"). The word after `-recover`; a relative `PATH` is read against `cwd`, as TLC reads it; links are resolved as far as the path exists; when the result lies under `runs/<id>/` and that run folder exists, the function returns that run with what its `run.json` says, whether or not `PATH` itself exists (a `-recover <runs>/<id>/states` whose `states/` is missing still names the run, question Q9 as settled); and `None` otherwise (a path outside `runs/`, or under a `runs/<id>/` that has no folder). A `run.json` that is missing or cannot be read gives `keep=False` and no values; the run is still returned, because [35](35-run-folders.md) takes its lock whatever the file says. The function reads only; it takes no lock.
+
+**The classpath of a run** ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder), "The classpath of a run"; inventory rows S10 to S12). The preflight builds the resolver with `module_dirs=[m.path for m in Registry(paths.modules).list()]`, so the registered modules come in name order, and takes the lists back from the new path-returning methods. The order, most specific layer first (command line, project, config, registered modules; the command-line layer is empty in the first wave and is kept first in steps 2 and 5 for when a command passes folders):
+
+1. the project's `classes/`, ahead of the tools jar, so that its classes win over the jar's;
+2. the folders of TLA+ modules: the project's `modules/`, the folder `module_path` names, then each registered module's `modules/`;
+3. each registered module's `classes/`;
+4. the build's `tla2tools.jar`;
+5. the jars directly in the project's `lib/`, in the folder `module_lib_path` names, and in each registered module's `lib/`, in that order, each folder's `*.jar` sorted by name.
+
+An entry that appears twice, compared as an absolute path, keeps its first place only. `tla_library` holds the folders of step 2 in the same order. A relative `module_path` or `module_lib_path` is read against `cwd`, as 0.8.x reads it against the working folder (inventory row C6; [14 F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay) now writes the rule down).
 
 **The argument order `build_tlc_command` produces**, and the only place it is written (G1):
 
@@ -183,7 +191,7 @@ def jvm_options(setting: Sequence[str], env: Mapping[str, str], flags: Sequence[
 
 The lifeline and the three encoding options are added by `JavaInvocation.argv()` ([21](21-java-launcher.md)), not by the builder. The builder fills `java` (the runtime's path), `jvm_options`, `system_properties`, `classpath`, `main_class`, `args`, leaves `cwd` as `None` (D34) and `lifeline` at its default. A system property is left out when its list is empty. `-DTLA-Library` is joined with `os.pathsep`; the override class names are joined with `os.pathsep` too, as today's code does (`tlc/runner.py`, `build_tlc_command`).
 
-Consumes: `resolve_spec`, `resolve_cfg`, `config_arg`, `find_project_root` (32); `require_java`, `JavaRuntime` (20); `Build` (23); `JavaInvocation` (21); `Settings` (19); `AppPaths` and the errors (02); `ClasspathResolver` (30).
+Consumes: `resolve_spec`, `resolve_cfg`, `config_arg`, `find_project_root` (32); `require_java`, `JavaRuntime` (20); `Build` (23); `JavaInvocation` (21); `Settings` (19); `AppPaths` and the errors (02); `ClasspathResolver` and `Registry` (30).
 
 ## Tests that must pass
 
@@ -199,20 +207,21 @@ Plain pytest. The builder's tests need no fixture; the preflight's use real file
 
 - R8: the table, row by row: each conflict raises `ConflictingOptions`; each "without" cell gives the field value named above.
 - `workers`: `auto`, `4`, the setting when the request has none; `0`, `x`, `+3`, `AUTO` raise `UsageError`.
-- The order. With a `get_build` that fails the test when called: a missing spec raises `SpecNotFound`; two conflicting options raise `ConflictingOptions` although the spec is also missing; a `--cfg` that does not exist raises `CfgNotFound`. With a `get_build` that raises `NoPinnedBuild` and no `java` on `PATH`: `NoPinnedBuild` comes out, and the fake `java`'s log is empty. These are stage 4's unit forms of R11's order; the design's own tests of the order are the scenarios of `tlc_errors.feature` in [39](39-tlc-command.md).
+- The order. With a `get_build` that fails the test when called: a missing spec raises `SpecNotFound`; two conflicting options raise `ConflictingOptions` although the spec is also missing; a `--cfg` that does not exist raises `CfgNotFound`. With a `get_build` that raises `NoPinnedBuild` and the fake `java` on `PATH`: `NoPinnedBuild` comes out, and the fake `java`'s log is empty (step 4 was not reached). These are stage 4's unit forms of R11's order; the design's own tests of the order are the scenarios of `tlc_errors.feature` in [39](39-tlc-command.md).
 - R4: the spec in the invocation is absolute; `config_arg` is the value of [32](32-spec-resolution.md) for a cfg outside the project with a decoy of the same name in the project root; with no `--cfg`, `cfg` and `config_arg` are `None` and a missing default `Spec.cfg` raises nothing.
 - R3: a spec path with `é` and an environment that says `LC_ALL=C` gives the warning; the same with `C.UTF-8` gives none; a cfg path with `é` likewise.
 - The per-run values: with a seeded `rng` and a fixed `now`, `run_id` has the form `20261115T100000Z-` plus eight hex digits and `metadir` is `paths.runs / run_id`; nothing exists under `paths.runs` afterwards; `fp` is in 0 to 130 and `seed` is set when TLC's arguments have neither; with `-fp 3` among them `fp` is `None` and `seed` is set; `-metadir X` gives `metadir=None`.
 - `keep`: the request wins over the setting; the setting is used when the request has none.
-- `find_recovered_run` and its use: a run folder written by the test under `paths.runs` with a `run.json` holding `"keep": true`, `"fp": 58`, `"seed": 7`; `-recover <a folder inside it>` gives `keep=True`, `fp=58` and `seed=7`, also with `request.keep=False`; a `run.json` with `"kept": true` and `"keep": false` counts as keep (review finding FC1); a relative `PATH` is read against `cwd`; a `PATH` through a link into the run folder is found; a `PATH` outside `runs/`, and one that does not exist, give `None` and fresh random values; an unreadable `run.json` gives `keep=False`.
+- `find_recovered_run` and its use: a run folder written by the test under `paths.runs` with a `run.json` holding `"keep": true`, `"fp": 58`, `"seed": 7`; `-recover <a folder inside it>` gives `keep=True`, `fp=58` and `seed=7`, also with `request.keep=False`; a `run.json` with `"kept": true` and `"keep": false` counts as keep (review finding FC1); a relative `PATH` is read against `cwd`; a `PATH` through a link into the run folder is found; `-recover <that folder>/states` where `states/` does not exist still gives the run (Q9); a `PATH` outside `runs/`, one that does not exist outside `runs/`, and `<runs>/<an id with no folder>/states` give `None` and fresh random values; an unreadable `run.json` gives `keep=False`.
 - `suppress_te_spec`: true for a build with the capability, false without it, false with each of the three flags.
 - The warnings of `require_java` (a `JAVA_HOME` that holds no `java`, built with a fake JDK folder) are in `TlcInvocation.warnings`.
+- The classpath through the preflight: with two modules registered under `paths.modules` in the reverse of their name order, `classpath` and `tla_library` follow `Registry.list()`'s name order. With `module_path` set to a relative folder, `classpath` and `tla_library` hold its absolute path under `cwd`, and the built command (`build_tlc_command`) has it in `-cp` and in `-DTLA-Library` (inventory row C6, whose owner this package is; written as a unit test on the preflight and the builder, since no command calls them until [39](39-tlc-command.md)).
 
 `tests/unit/java/test_opts.py` (J1): the three sources combine in order; `-Dx="a b"` in the variable is one option; an unbalanced quote raises `UsageError` naming `TLAUP_JAVA_OPTS`; `JAVA_OPTS` in the environment changes nothing.
 
-`tests/unit/java/test_classpath.py`: the order, the de-duplication and the TLA-Library folders, on the resolver directly, with real folders and jars under `tmp_path` and the modules folder of the isolation fixture.
+`tests/unit/java/test_classpath.py`, extended (M2's unit test of `ClasspathResolver`; inventory row S11, whose owner this package is, and rows S10 and S12, whose order test is this one). [30](30-module-build.md) wrote the file with the one whole-list test of the runtime order (a project with `classes/`, `modules/` and two jars in `lib/`, `module_path` and `module_lib_path` set, two registered modules in the reverse of their name order, a tool jar; one expected list written out in the test). This package adapts that test to the path-returning methods it adds (the expected list as `list[Path]`, the TLA-Library folders as a list, still entry for entry and each jar once in its first place) and writes no second whole-list test. It adds C6's case on the resolver: a relative `module_path` and `module_lib_path` are read against `cwd`, and appear as absolute paths in both lists. The preflight as the resolver's caller is tested above (the name order of the registered modules, C6 through `build_tlc_command`). An empty TLA-Library list leaves the property out (G1's builder test above).
 
-Old tests ([01 T11](../design/01-testing.md#t11-the-existing-tests)): `tests/unit/spec/test_classpath.py` and `tests/unit/test_tlc_modules_path.py` are deleted here once their assertions are in the merged file. `tests/unit/test_settings.py` (T11: "rewritten for `TLAUP_JAVA_OPTS`, until J1") is replaced in substance by `test_opts.py`, but it is not deleted here: [19](19-layered-config.md) rewrites it against the old commands' `load_config()`, which carries today's `JAVA_OPTS` replacement until the old runner goes, and [39](39-tlc-command.md) deletes it (reconciled by stage 4). No stateful test applies.
+Old tests: none. The old suite went in [03](03-test-foundation.md) (D62); `test_opts.py` is J1's test. No stateful test applies.
 
 ## Changelog
 
@@ -240,12 +249,12 @@ None. No command reaches this code. The entries that describe it are written by 
 
 **What [34](34-override-check.md) adds.** `override_classes` is `()` when this package is merged, and the preflight has one marked place, after the classpath is known, where 34 puts two calls. The builder already writes the property when the tuple is not empty, and its expected file proves it with a hand-built value. Do not port `get_override_classes` from the old runner.
 
-**Points where stage 4 had to read between the lines.** Say in the pull request what was built.
+**Points the design leaves open, and what is built** (stage 4's choices, listed in the index as readings and taken; each is internal or follows the design's words, so none is a user-visible decision of its own).
 
-- *The locale of R3.* The design says the warning is given "while the locale tlaup runs under is not UTF-8" and that the test injects `LC_ALL=C`. Stage 4's reading: the locale is taken from the `env` argument, the first of `LC_ALL`, `LC_CTYPE`, `LANG` that is set and not empty; it counts as UTF-8 when its value names UTF-8 in any spelling (`C.UTF-8`, `en_US.utf8`); with none set it is the C locale. On Windows these variables do not say what the JVM does and the warning is not given. The hint is `TLC cannot open a file whose name has non-ASCII characters under the C locale; run with LC_ALL=C.UTF-8`.
-- *A warning with a hint.* `TlcInvocation.warnings` is a tuple of strings and `Ui.warning` takes one message ([14 F6](../design/14-config-and-cli.md#f6-messages)). R3 wants a hint with this one warning. Stage 4's reading: the hint sentence is part of the warning's text. If the worker prefers pairs, the type changes in G1's value and in [39](39-tlc-command.md)'s loop; that is allowed, and has to be said.
-- *`-recover` with one of `-fp` and `-seed` given.* R6 says the recorded values are passed "when the user gave neither", and R8 that each of the two is decided on its own. The rule above (each missing one comes from the recovered folder when it has it) is both at once when neither is given, and stage 4's choice when one is.
-- *`-recover` naming the run folder itself* (`runs/<id>`, not a folder inside it): TLC cannot resume from it. Stage 4's reading: it still counts as inside, so the lock is taken; TLC reports the rest.
+- *The locale of R3.* The design says the warning is given "while the locale tlaup runs under is not UTF-8" and that the test injects `LC_ALL=C`. Built so: the locale is taken from the `env` argument, the first of `LC_ALL`, `LC_CTYPE`, `LANG` that is set and not empty; it counts as UTF-8 when its value names UTF-8 in any spelling (`C.UTF-8`, `en_US.utf8`); with none set it is the C locale. On Windows these variables do not say what the JVM does and the warning is not given. The hint is `TLC cannot open a file whose name has non-ASCII characters under the C locale; run with LC_ALL=C.UTF-8`.
+- *A warning with a hint.* `TlcInvocation.warnings` is a tuple of strings and `Ui.warning` takes one message ([14 F6](../design/14-config-and-cli.md#f6-messages)). R3 wants a hint with this one warning. The hint sentence is part of the warning's text.
+- *`-recover` with one of `-fp` and `-seed` given.* R6 says the recorded values are passed "when the user gave neither", and R8 that each of the two is decided on its own. The rule above (each missing one comes from the recovered folder when it has it) is both at once when neither is given, and is what is built when one is.
+- *`-recover` naming the run folder itself* (`runs/<id>`, not a folder inside it): TLC cannot resume from it. It still counts as under the run folder, so the lock is taken; TLC reports the rest.
 
 **Traps.**
 
@@ -265,8 +274,8 @@ None. No command reaches this code. The entries that describe it are written by 
 
 - The four test files pass; every expected file under `tests/unit/tlc/expected/command/` was read by the worker against the order above before it was committed (T8: an updated expected file is a change to review).
 - `uv run poe lint` (mypy strict on `src`) and `uv run poe test` pass; CI is green.
-- The old `tlaup tlc` is unchanged: its old tests pass untouched, apart from the two classpath files this package merges.
-- The pull request names every signature it adjusted and each reading listed under Context that it did not follow.
+- The old `tlaup tlc` still type-checks; nothing in it is changed.
+- The pull request names every signature it adjusted, any choice listed under Context that it did not follow, and the inventory rows it covers (S10, S11, S12, C6).
 
 ## Out of scope
 

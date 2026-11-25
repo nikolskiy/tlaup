@@ -1,6 +1,6 @@
 # 07. Golden files
 
-Size: M. Suggested model: most capable. Status: waiting on question (research 22 adoption): five placement choices under "Waiting on the maintainer" below, each with the answer stage 4 recommends. The rest of the package does not wait, and a worker may start with it.
+Size: M. Suggested model: most capable. Status: ready.
 
 ## Goal
 
@@ -12,11 +12,10 @@ The research captures that the design adopts are golden files under `tests/parse
   - "Capture real `-tool` output from TLC 1.7.4 and the current rolling build ... as golden files kept with the parser's tests, filed by TLC version (decision D7) ..." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 147), in part: the captures become the golden files, filed by build. The failing facts are [08](08-golden-facts.md); the parser that makes them pass is [09](09-parse-package-and-model.md) to [13](13-tlc-parser.md); the expected parsed results are [15](15-golden-expected-results.md).
   - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 306), in part: the SANY and PlusCal captures moved. The tests are [12](12-sany-parser.md) and [14](14-pcal-parser.md), the expected results 15, passthrough the feature files of 41 and 42.
 - Design sections:
-  - [01 T3](../design/01-testing.md#t3-golden-files): "Where they live", "What moves" (every row but the last), "Captures this design named before they existed", the research README lines, `cases.toml`, `build.toml`, "Re-capturing", "Synthetic cases", and the `detect-secrets` check under Risks. The facts are 08; "How the parser is driven" and the three properties are 10 and 13; the full expected results are 15. The last row of the move table (the manifests to `tests/unit/data/manifests/`) is [05](05-github-recordings.md).
+  - [01 T3](../design/01-testing.md#t3-golden-files): "Where they live" (with `specs/<build>/`), "What moves" (every row but the last, research 28's row included), "Captures this design named before they existed" with its five placements, the research README lines, `cases.toml`, `build.toml`, "Re-capturing", "Synthetic cases" (all twelve), and the `detect-secrets` check under Risks. The facts are 08; "How the parser is driven" and the three properties are 10 and 13; the full expected results are 15. The last row of the move table (the manifests to `tests/unit/data/manifests/`) is [05](05-github-recordings.md).
   - [10 P1](../design/10-parser.md#p1-golden-files): the files. P1 is done only when facts and expected results pass too (08, 13, 15).
   - [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal): the move of the SANY and PlusCal captures, from research 12 and research 22. The tests are 12 and 14.
-  - Synthetic cases named outside T3's list, made here so that all hand-made tool output arrives in one reviewed pull request: the file with `\r\n` endings of [10 P4](../design/10-parser.md#p4-framing-and-never-losing-output) (Tests), the file cut off before message 2186 of [10 P3](../design/10-parser.md#p3-result-model) (Tests), and the unknown-code file stage 4 added for P4's rule 4 (see [13](13-tlc-parser.md)).
-  - From [11 R7](../design/11-runner.md#r7-override-modules-that-do-not-load) (Tests, "Golden"): research 28's two class-version captures, which R7 calls golden and T3's table does not list (question 5 below).
+  - From [11 R7](../design/11-runner.md#r7-override-modules-that-do-not-load) (Tests, "Golden"): research 28's two class-version captures, which T3's table now lists.
 
 ## Depends on
 
@@ -40,14 +39,14 @@ Size of the move, counted on the tree of 2026-11-21 (tracked files): about 500 r
 | `12-sany-pcal-repl/v1.7.4/inputs/` | 20 | `specs/`. The v1.8.0 inputs are byte-identical and stay as evidence. |
 | `13-override-loading/<v>/out/<case>.txt` for the ten cases T3 names | 20 | `tlc/<build>/override-<case>.out` |
 | `13-override-loading/v1.7.4/cases/<case>/` for the same ten | 41 | `specs/overrides/<case>/` (spec, cfg, `modules/`, `java/`, and `noprop` where it exists). The v1.8.0 copies are identical and stay. |
-| `22-more-tool-captures/<v>/<case>.out`, the 84 cases per build that are not `q01-*` or `q12-*` | about 162 (question 1 to 4) | `tlc/<build>/`, `tlc/<build>/plain/` (the three cases run without `-tool`), `sany/<build>/` |
-| `22-more-tool-captures/v1.7.4/tool-missing-module.err` | 1 (question 2) | `tlc/v1.7.4/tool-missing-module.err` |
+| `22-more-tool-captures/<v>/<case>.out`, the 84 cases per build that are not `q01-*` or `q12-*` | about 162 (placements 1 to 4 below) | `tlc/<build>/`, `tlc/<build>/plain/` (the three cases run without `-tool`), `sany/<build>/` |
+| `22-more-tool-captures/v1.7.4/tool-missing-module.err` | 1 (placement 2) | `tlc/v1.7.4/tool-missing-module.err` |
 | `22-more-tool-captures/specs/` | 21 | `specs/` |
-| `22-more-tool-captures/<v>/inputs/` | 12 (question 4) | `specs/<build>/` |
-| `15-exit-codes/specs/` used by research 22's `tool-*` cases | 19 (`Act`, `Asrt`, `Assum`, `BadCfg`, `CfgSyn`, `Eval`, `NextEval`, `Ok`, `Oom` with their cfg; `NoCfg.tla`), not `Live` (question 3) | `specs/` |
-| `28-java-11-and-macos-java/out/` (question 5) | 4 | `tlc/<build>/override-class-too-new-index.out`, `override-class-too-new-listed.out` |
+| `22-more-tool-captures/<v>/inputs/` | 12 (placement 4) | `specs/<build>/` |
+| `15-exit-codes/specs/` used by research 22's `tool-*` cases | 19 (`Act`, `Asrt`, `Assum`, `BadCfg`, `CfgSyn`, `Eval`, `NextEval`, `Ok`, `Oom` with their cfg; `NoCfg.tla`), not `Live` (placement 3) | `specs/` |
+| `28-java-11-and-macos-java/out/` (placement 5) | 4 | `tlc/<build>/override-class-too-new-index.out`, `override-class-too-new-listed.out` |
 
-The specs of every adopted case move with it, because `scripts/capture_golden.py` runs each case from `golden/specs/` and the feature steps take "a spec from the golden specs" ([01 T5](../design/01-testing.md#t5-feature-files-and-steps)). Within `specs/` no two sources share a file name except `Live` (question 3), checked by script.
+The specs of every adopted case move with it, because `scripts/capture_golden.py` runs each case from `golden/specs/` and the feature steps take "a spec from the golden specs" ([01 T5](../design/01-testing.md#t5-feature-files-and-steps)). Within `specs/` no two sources share a file name except `Live` (placement 3), checked by script.
 
 Creates:
 
@@ -110,7 +109,7 @@ How a live jar finds its folder ([01 T9](../design/01-testing.md#t9-integration-
 
 Every value is copied from a research record (`commands.txt`, the README tables, the `[exit=N]` lines, `.cmd` and `.exit` files), never guessed. Generating the six files with a one-off script from those records is the sensible way; the script is not committed, and the pull request says how the files were made.
 
-**Synthetic cases** (T3, and the three named above), each made from a real capture with the smallest edit that produces the shape, and each with `<case>.why` saying why it exists, which capture it came from and exactly what was changed. The note is never inside the `.out` file. Suggested names (packages 10 and 13 use the last four):
+**Synthetic cases** (T3's list of twelve), the last four each made from a real capture with the smallest edit that produces the shape, the first eight written by hand, and each with `<case>.why` saying why it exists, which capture it came from and exactly what was changed. The note is never inside the `.out` file. Suggested names (packages 10 and 13 use the last four):
 
 | Case | Shape (P4's rule it exercises) |
 | --- | --- |
@@ -142,7 +141,7 @@ Consumes: nothing.
 - `synthetic/crlf.out` contains `\r\n` on every line, and `synthetic/invalid-utf8.out` contains the bytes `FF FE` and `E9`: so a hook or a git setting that rewrote them would be caught.
 - No `.out` file under `tlc/`, `sany/` or `pcal/` contains the research 12 framing lines (a first line starting `$ java`, a line `[exit=`), so the edit is complete.
 
-The existing suite is untouched and stays green. No old test file is deleted or rewritten ([01 T11](../design/01-testing.md#t11-the-existing-tests)): nothing today reads `tests/fixtures/research/` (checked by search on 2026-11-21: `tests/conftest.py` points at `tests/fixtures/`, read only for `releases.json`, `tags.json` and the `naming_*` folders, none of which moves).
+Nothing else changes: no test reads `tests/fixtures/research/` (checked by search on 2026-11-21), and the old suite is gone (03b). Preserved-behaviour rows: none is this package's; the golden files are what the parser packages' rows are tested on.
 
 ## Changelog
 
@@ -150,7 +149,7 @@ None. Nothing a user sees changes.
 
 ## Context for the worker
 
-**State of `main` when this starts.** Package 03 is in: the isolation fixture, the fakes, the T10 pytest settings, the development guide update. `tests/parse/` may not exist; packages 08 to 14 of the parser track start from this one. The old parser (`src/tlaup/tlc/parser.py`, `sany.py`) and its typed-output tests in `tests/unit/tlc/` are untouched and stay until package 39.
+**State of `main` when this starts.** Package 03 is in: the isolation fixture, the fakes, the T10 pytest settings, the development guide update, and no old test. `tests/parse/` may not exist; packages 08 to 14 of the parser track start from this one. The old parser (`src/tlaup/tlc/parser.py`, `sany.py`) is untouched and stays until package 39.
 
 **What reads the old paths, and what happens to it.** No test and no tool of the project reads `tests/fixtures/research/` today. `pyproject.toml` excludes the folder from ruff for its helper scripts; that stays, and nothing with a `.py` extension moves. The research helper scripts (`22-more-tool-captures/run.py`, `13-override-loading/run-cases.sh`, `28-java-11-and-macos-java/java_matrix.py` and others) name the old paths and stop matching the tree; they did not run as they are anyway (the research README says why), and they stay as evidence. The design and research documents quote the old paths; they are historical, and the research README records the move (T3, Risks). Do not edit them.
 
@@ -158,7 +157,7 @@ None. Nothing a user sees changes.
 
 **Traps in the research 12 files.** SANY prints an empty line before its banner; that line is tool output and stays. v1.7.4's `sany-noargs` printed nothing, so its `.out` is an empty file. `sany-d-scripted` (rolling) ends `>>[rc=0]`, with the explorer's last prompt `>>` written without a newline and the record glued to it: the `.out` ends with `>>` and no newline, and `exit = 0` goes into `cases.toml`. `sany-message-codes.txt` is a list written by hand from SANY's message table, not output, and stays. `pcal-retranslate-and-lint.txt` is several commands with notes and stays (T3); research 22's `sany-stale-*` captures replace it as golden input.
 
-**Traps in the research 22 files.** `checkpoint-recover`'s recorded command names the folder `checkpoint-run` left (`<tmp>/q22/meta/<v>/checkpoint-run/26-11-18-...`); `recover_from` replaces it. `generate-success` on rolling was killed by the driver at 120 s (exit 137), on v1.7.4 it is the refusal (exit 1). `checkpoint-run` was stopped by SIGTERM at 80 s (exit 143). The `q01-*` and `q12-*` cases are re-runs of research 1 and 12 with the streams apart (question 1). Several captures carry ANSI escape codes (`sany-help` and `tool-help` on rolling, `tool-help` on v1.7.4); they are part of the output and stay.
+**Traps in the research 22 files.** `checkpoint-recover`'s recorded command names the folder `checkpoint-run` left (`<tmp>/q22/meta/<v>/checkpoint-run/26-11-18-...`); `recover_from` replaces it. `generate-success` on rolling was killed by the driver at 120 s (exit 137), on v1.7.4 it is the refusal (exit 1). `checkpoint-run` was stopped by SIGTERM at 80 s (exit 143). The `q01-*` and `q12-*` cases are re-runs of research 1 and 12 with the streams apart (placement 1). Several captures carry ANSI escape codes (`sany-help` and `tool-help` on rolling, `tool-help` on v1.7.4); they are part of the output and stay.
 
 **Traps in the research 13 files.** The `.txt` files hold TLC's output; the `.cmd` beside each holds a `cd` into the case folder and the full command with machine paths replaced. The ten cases are identical in `v1.7.4/cases/` and `v1.8.0/cases/` (checked), so one copy moves. Their `classes/` folders were never committed; the capture script compiles `java/` itself.
 
@@ -170,13 +169,13 @@ None. Nothing a user sees changes.
 
 **Platform (D15).** Folder names hold no `:`; the rolling folder is named by its CalVer with dots. The capture script builds paths with `pathlib`, finds `java` and `javac` with `shutil.which`, and starts them from argument lists, never through a shell.
 
-**Waiting on the maintainer: how research 22's captures join the golden folders.** T3 adopts research 22's captures "like research 1's", "moving to `tests/parse/golden/` by the same rule", but research 22 re-ran research 1's and 12's cases under the same names, captured stdout and stderr apart where the earlier research joined them, generated build-specific inputs, and used a spec whose name another moved spec already has. Five choices follow, and stage 4 recommends an answer for each. The worker follows the recommendation unless the index says otherwise.
+**How research 22's captures join the golden folders** (T3's five placements, question Q3, settled by the maintainer on 2026-11-24). Research 22 re-ran research 1's and 12's cases under the same names, captured stdout and stderr apart where the earlier research joined them, generated build-specific inputs, and used a spec whose name another moved spec already has. What T3 now says, with what it means for the move:
 
-1. *Duplicates.* `q01-*` (20 per build) and `q12-*` (60 per build) repeat research 1's and 12's cases. Recommended: the research 1 and 12 files are the golden files, as T3's table says, and the `q01-*` and `q12-*` re-runs stay with research 22 as evidence. The design's counts (P4: 117 files, 1,618 messages; P8: the SANY script run) and its examples were made on those files; research 22 found stderr empty in all 40 `q01` runs, so research 1's joined files are TLC's stdout; and [21 S1](../design/21-other-tools.md#s1-sany) says the SANY golden files hold both streams joined, which only research 12's do (its v1.7.4 `File does not exist` line is in the joined file, where P8's tests look for it).
-2. *Stderr.* Recommended: for a TLC case, the `.err` file moves beside the `.out` when it is not empty (only v1.7.4's `tool-missing-module`), and `cases.toml` names it; empty `.err` files stay. Research 22's two SANY cases with a non-empty `.err` (`sany-missing-module-ext` on v1.7.4, `sany-nofile-no-sep` on both builds) stay as evidence on both builds: their streams were captured apart, so no file holds them in the order SANY wrote them, and research 12's `sany-missingmod` and `sany-nofile` are the same cases joined.
-3. *`Live`.* Research 2's `Live.tla` moves to `specs/` (T3), and research 22's `tool-live` ran research 15's different `Live.tla`; a module's name must equal its file's, so neither can be renamed without changing its capture. Recommended: `tool-live` is not adopted. Liveness violations are covered by research 1's two liveness cases, research 2's `json-live` and research 22's `difftrace-liveness`.
-4. *Build-specific inputs.* The PlusCal-stale specs (`PcalStaleAlg`, `PcalStaleTla`, `PcalStaleBoth`) were generated by research 22 with each build's own translator, and differ between the builds; T3's `specs/` is "shared by all builds". Recommended: `golden/specs/<build>/` holds the inputs of one build only, named like the build folders, and the cases name them by that path.
-5. *Research 28.* R7's tests use research 28's two `-tool` captures on Java 11 (message 2173 for a too-new index class; a 1000 holding `UnsupportedClassVersionError` for a too-new listed class), and P5 takes the kind of 2173 from them; T3's table does not list them, and package 34 depends on finding them. Recommended: move `ovr-javac25-default-<build>-java11-tool.txt` and `ovr-mixed-index-release11-listed-javac25-default-<build>-java11-tool.txt` (with the `.exit` content in `cases.toml`) to `tlc/<build>/override-class-too-new-index.out` and `override-class-too-new-listed.out`; `<build>` `rolling` is the same jar as the rolling folder (its version line is `2026.11.15.002146`). Research 28 kept their specs inside its script, not as files, so the cases have no `spec` and the capture script skips them with a note.
+1. *Re-runs of older cases.* `q01-*` (20 per build) and `q12-*` (60 per build) repeat research 1's and 12's cases. The research 1 and 12 files are the golden files, and the re-runs stay with research 22 as evidence. The design's counts (P4: 117 files, 1,618 messages; P8: the SANY script run) and its examples were made on those files; research 22 found stderr empty in all 40 `q01` runs, so research 1's joined files are TLC's stdout; and [21 S1](../design/21-other-tools.md#s1-sany) wants SANY's two streams joined, which only research 12's files hold (its v1.7.4 `File does not exist` line is in the joined file, where P8's tests look for it).
+2. *Stderr.* For a TLC case, the `.err` file moves beside the `.out` when it is not empty (only v1.7.4's `tool-missing-module`), and `cases.toml` names it; empty `.err` files stay. Research 22's two SANY cases with a non-empty `.err` (`sany-missing-module-ext` on v1.7.4, `sany-nofile-no-sep` on both builds) stay as evidence: their streams were captured apart, so no file holds them in the order SANY wrote them, and research 12's `sany-missingmod` and `sany-nofile` are the same cases joined.
+3. *`Live`.* Research 2's `Live.tla` moves to `specs/`, and research 22's `tool-live` ran research 15's different `Live.tla`; a module's name must equal its file's, so `tool-live` is not adopted. Liveness violations are covered by research 1's two liveness cases, research 2's `json-live` and research 22's `difftrace-liveness`.
+4. *Build-specific inputs.* The PlusCal-stale specs (`PcalStaleAlg`, `PcalStaleTla`, `PcalStaleBoth`) were generated by research 22 with each build's own translator and differ between the builds; they go to `golden/specs/<build>/`, named like the build folders, and the cases name them by that path. `golden/specs/` itself stays shared by all builds.
+5. *Research 28.* Its two `-tool` captures on Java 11 (message 2173 for a too-new index class; a 1000 holding `UnsupportedClassVersionError` for a too-new listed class), which R7's tests use and P5 takes the kind of 2173 from: `ovr-javac25-default-<build>-java11-tool.txt` and `ovr-mixed-index-release11-listed-javac25-default-<build>-java11-tool.txt` (with the `.exit` content in `cases.toml`) move to `tlc/<build>/override-class-too-new-index.out` and `override-class-too-new-listed.out`; `<build>` `rolling` is the same jar as the rolling folder (its version line is `2026.11.15.002146`). Research 28 kept their specs inside its script, not as files, so the cases have no `spec` and the capture script skips them with a note. Package 34 depends on finding them.
 
 ## Done when
 
@@ -184,13 +183,13 @@ None. Nothing a user sees changes.
 - `tests/parse/test_golden_files.py` passes; `uv run poe lint` and `uv run poe test` pass; pre-commit passes on every moved and new file; CI is green.
 - The research README has its lines; `detect-secrets` passes with at most an exact line-shape pattern added.
 - The capture script was run, if a JVM and the two jars were at hand, for at least one case of each tool on each build into a scratch folder outside the repository, and its output had the shape of the moved captures (paths replaced, timestamps differing); the pull request says whether this was done. Its output is not committed.
-- The pull request lists the counts per destination folder, says how `cases.toml` was generated, and names the points of "Waiting on the maintainer" as decided.
+- The pull request lists the counts per destination folder and says how `cases.toml` was generated.
 - One pull request; a separate review agent can review it in one sitting by checking the renames by `--stat`, the research 12 edit as a diff, `cases.toml` against the research records on a sample per source, and every synthetic file with its `.why` in full.
 
 ## Out of scope
 
 - The manifests (`03-jar-identity/manifest-*.txt`, `14-jar-manifest/*.MF` to `tests/unit/data/manifests/`, T3's last row) and the `detect-secrets` manifest pattern check: [05](05-github-recordings.md). The GitHub recordings of research 29: 05.
-- `tests/fixtures/releases.json`, `tags.json` (deleted with the tests that read them, T11, packages 24 and 25) and `naming_fixed`, `naming_dynamic` (deleted with the integration rewrite, [52](52-integration-tests.md)).
+- `tests/fixtures/releases.json`, `tags.json` and `naming_dynamic` (deleted with the old suite in 03b, D62) and `naming_fixed` (moved beside its T9 row by [52](52-integration-tests.md)).
 - `facts.py` and `test_facts.py`: [08](08-golden-facts.md). The framing rebuild over every file: [10](10-framing-and-codes.md). The SANY and PlusCal golden tests: [12](12-sany-parser.md), [14](14-pcal-parser.md). `test_golden.py` and the TLC parser: [13](13-tlc-parser.md). The expected `<case>.json` files: [15](15-golden-expected-results.md).
 - The fake `java` that replays these files: [03](03-test-foundation.md); the feature files that replay them: 18 and later.
 - A rolling capture newer than 2026.11.15.002146: a later pull request with the capture script.
@@ -199,6 +198,6 @@ None. Nothing a user sees changes.
 
 - From T3: moving breaks the paths quoted in the research result files; they are historical and the README records the move. A live rolling build newer than the rolling folder is checked against that folder's facts (T9); a failing fact then means upstream changed its output, and the answer is a new capture.
 - From the cut: about 500 renames in one pull request. Reviewable only because the renames are a commit of their own with no content change; a worker who mixes edits into that commit makes the pull request unreviewable.
-- The five choices above. If the maintainer answers one differently after the package is merged, the fix is a small follow-up move, but facts (08) and expected files (15) keyed by those case names move with it.
+- The five placements above are settled; a later change to one is a small follow-up move, but facts (08) and expected files (15) keyed by those case names move with it.
 - `cases.toml` grows beyond T3's five keys. Each key is there for the capture script or the integration tests; a key nobody reads should not be added.
-- No `.gitattributes` rule protects the bytes of the golden files on a checkout with `core.autocrlf` (Windows, D15). The consistency test catches a rewritten `crlf.out` or `invalid-utf8.out`; other files would only change their line endings, which the parser ignores by design. Not tried on Windows.
+- Under `core.autocrlf` (Windows, D15) Git could rewrite the golden files' line endings until package [57](57-repo-hygiene.md) adds the `.gitattributes` rule of [30 H2](../design/30-ci-and-release.md#h2-clean-task-and-gitignore) (`tests/parse/golden/** -text`); 57 may land before or after this package. The consistency test catches a rewritten `crlf.out` or `invalid-utf8.out`; other files would only change their line endings, which the parser ignores by design. Not tried on Windows.

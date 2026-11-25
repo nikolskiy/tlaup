@@ -4,15 +4,15 @@ Size: S. Suggested model: mid-tier. Status: ready.
 
 ## Goal
 
-`import tlaup.cli`, `tlaup --help` and a command that needs neither the network nor the settings load none of `requests`, `yaml`, `truststore`, `rich.progress`, `rich.live`, `tlaup.config.schema` or `tlaup.versioning.github`; `tlaup --version` starts `git` only for an editable install, with a timeout. Two tests in fresh interpreters keep it so.
+`import tlaup.cli`, `tlaup --help` and a command that needs neither the network nor the settings load none of `requests`, `yaml`, `truststore`, `rich.progress`, `rich.live`, `tlaup.config.schema` or `tlaup.versioning.github`; `tlaup --version` starts `git` only for an editable install, with a timeout; Typer's completion stays switched off unless `_TLAUP_COMPLETE` is set. Three tests in fresh interpreters keep it so.
 
 ## Covers
 
 - Roadmap items:
   - "Skip the `git rev-parse` call on normal installs; load heavy libraries (requests, Rich progress, pydantic schema) only in the commands that need them; set up the OS trust store where the network is used, not as a side effect of importing the package. `tlaup --help` took about a third of a second when measured." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 273), in full, with the design's correction that `pydantic` itself cannot be kept out.
 - Design sections:
-  - [14 F9](../design/14-config-and-cli.md#f9-startup-cost), in full: the empty `tlaup/__init__.py`, function-level imports in command modules and the lint configuration that says so, `get_app_version`, the import tests, `test_app_version` with the fake `git`. `truststore` in `GitHubClient.__init__` is [24](24-github-client.md)'s; this package checks it.
-  - [01 T11](../design/01-testing.md#t11-the-existing-tests): `version_manager/test_app_version.py` ("the editable-install and version-string cases, with the fake `git`. Until F9").
+  - [14 F9](../design/14-config-and-cli.md#f9-startup-cost), in full: the empty `tlaup/__init__.py`, function-level imports in command modules with the one exception of `tlaup/cmd/completion.py`, the check that the lint configuration says so, `get_app_version`, the three import tests (the third, on Typer's shell registry, as corrected by review finding D1), `test_app_version` with the fake `git`. `truststore` in `GitHubClient.__init__` is [24](24-github-client.md)'s, and the `PLC0415` per-file ignores are [17](17-error-handler.md)'s (review finding D2: they must be in place before the first command module); this package checks both.
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row P3 (a development install shows `+<short commit>` after the version): its test is here.
 
 ## Depends on
 
@@ -23,20 +23,18 @@ Size: S. Suggested model: mid-tier. Status: ready.
 Changes:
 
 - `src/tlaup/__init__.py`: only the docstring. The `truststore.inject_into_ssl()` call and its import go (if [29](29-tool-commands.md) did not already remove them with the old network code).
-- `src/tlaup/cli.py`: imports at the top only what registration needs (`typer`, `tlaup.errors`, `tlaup.context`, `tlaup.ui` for the handler, and the command modules).
-- Every command module under `src/tlaup/cmd/` as [48](48-command-tree.md) left the tree: the `tool`, `module`, `config` and `cache` groups, `tlc`, `sany`, `pcal`, `repl`, `doctor` and `completion`. Each imports only `typer`, `tlaup.errors` and `tlaup.context` at the top; everything else (the store, the GitHub client, `tlaup.versioning.*`, `tlaup.tlc.*`, `tlaup.tools`, `tlaup.reporters`, `tlaup.modules`, the loader, `yaml`, `subprocess`, Rich beyond `rich.console`) is imported inside the command function. Many of these files will already follow the rule, because the command packages were told to; this package makes it hold everywhere.
+- `src/tlaup/cli.py`: imports at the top only what registration needs (`typer`, `tlaup.errors`, `tlaup.context`, `tlaup.ui` for the handler, the command modules, and `tlaup.cmd.completion`, F9's one exception).
+- Every command module under `src/tlaup/cmd/` as [48](48-command-tree.md) left the tree: the `tool`, `module`, `config` and `cache` groups, `tlc`, `sany`, `pcal`, `repl`, `doctor` and `completion`. Each imports only `typer`, `tlaup.errors` and `tlaup.context` at the top, and, where it names a completer, `tlaup.cmd.completion` ([47](47-completion.md); F9's one exception); everything else (the store, the GitHub client, `tlaup.versioning.*`, `tlaup.tlc.*`, `tlaup.tools`, `tlaup.reporters`, `tlaup.modules`, the loader, `yaml`, `subprocess`, Rich beyond `rich.console`) is imported inside the command function. Many of these files will already follow the rule, because the command packages were told to; this package makes it hold everywhere.
 - `src/tlaup/context.py`, `src/tlaup/ui.py`, `src/tlaup/errors.py`, `src/tlaup/stdio.py`: checked; changed only if one imports something on the list at its top (the context imports the loader inside `settings`, [19](19-layered-config.md)).
-- `src/tlaup/versioning/app_version.py`: `get_app_version` as below.
-- `src/tlaup/cmd/` and `pyproject.toml`: the lint configuration says that function-level imports are the rule in command modules. Ruff's `PLC0415` (`import-outside-top-level`) is in the `PL` group the project selects; if it is active on the ruff in the lock, add a per-file ignore for `src/tlaup/cmd/**` with a comment naming F9, and for any other file where F9 needs a local import (`cli.py`'s completion import, [47](47-completion.md)). If it is not active, add the comment beside the `PL` selection so a later ruff upgrade does not surprise anyone.
-- `tests/unit/versioning/test_app_version.py`: rewritten from `tests/unit/version_manager/test_app_version.py` with the fake `git`.
+- `pyproject.toml`: checked, not changed. Ruff's `PLC0415` (`import-outside-top-level`, in the `PL` group, active on the locked ruff 0.17.5) flags function-level imports; the per-file ignores `"src/tlaup/cmd/**" = ["PLC0415"]` and `"src/tlaup/cli.py" = ["PLC0415"]`, with a comment naming F9, have been there since [17](17-error-handler.md). If either is missing, add it here and say which package should have.
+- `src/tlaup/versioning/app_version.py`: `get_app_version` as below; `get_git_commit_hash` resolves `git` with `shutil.which` and runs the absolute path ([30 I8](../design/30-ci-and-release.md#i8-lint-rules)'s `B607` row, D15; review finding D16).
 
 Creates:
 
-- `tests/unit/test_startup.py`: the two import tests.
+- `tests/unit/test_startup.py`: the three import tests.
+- `tests/unit/versioning/test_app_version.py`, with the fake `git` (the old `version_manager/test_app_version.py` went in 03b with the old suite, decision D62).
 
-Deletes:
-
-- `tests/unit/version_manager/test_app_version.py` (moved and rewritten above; [01 T11](../design/01-testing.md#t11-the-existing-tests)).
+Deletes: nothing.
 
 Shared: none within a parallel group; this package runs after 48 alone, beside [50](50-help-and-messages.md), which edits help strings in the same command modules. The conflict is small (imports at the top against strings in decorators); land one, rebase the other.
 
@@ -52,8 +50,8 @@ def get_app_version(base_version: str | None = None, *, editable: bool | None = 
     # editable: written by stage 4; None means is_editable_install(). Returns the metadata version,
     # with "+<short commit>" only when editable is true and git answers within 2 seconds.
 def get_git_commit_hash(base_dir: Path | None = None) -> str | None
-    # ["git", "rev-parse", "--short", "HEAD"], found through PATH, check=False, timeout=2;
-    # None on a non-zero exit, a timeout, OSError, or an answer shorter than 7 characters
+    # [shutil.which("git"), "rev-parse", "--short", "HEAD"], check=False, timeout=2; None when
+    # which finds no git, on a non-zero exit, a timeout, OSError, or an answer shorter than 7 characters
 ```
 
 Today's other conditions for adding the suffix (`base_dir is not None`, a `.git` folder three levels up) go: only `is_editable_install()` decides (F9).
@@ -66,6 +64,7 @@ Consumes: the command modules of 48; `GitHubClient` (24), whose constructor sets
 
 - `python -c "import tlaup.cli, sys; print(sorted(m for m in ('requests','yaml','truststore','rich.progress','rich.live','tlaup.config.schema','tlaup.versioning.github') if m in sys.modules))"` prints `[]`.
 - The same list is empty after running `tlaup tool dir` in-process in that interpreter (`typer.testing.CliRunner().invoke(app, ["tool", "dir"])`), a command that needs neither settings nor the network; the child also checks that the command exited 0.
+- Completion is off unless asked: after `import tlaup.cli`, `typer._click.shell_completion._available_shells` is empty; after `typer._completion_classes.completion_init()` it holds `bash`, `zsh` and `fish` (F9's third test; the locked Typer 0.29.1 fills five shells). The name is private; [47](47-completion.md)'s Typer contract test checks that it exists, so a rename fails there with the name. Do not assert that `typer._completion_classes` is absent from `sys.modules`: `import typer` loads it.
 - `pydantic` is not in the list, on purpose: on the locked Typer 0.29.1 Typer itself imports `pydantic` when any command runs (it is absent after `import typer` and after `--help`). Do not add it.
 
 `tests/unit/versioning/test_app_version.py`, plain pytest with the fake `git` of [01 T4](../design/01-testing.md#t4-fakes-at-the-edges) (it prints a fixed short hash and logs each start):
@@ -74,7 +73,9 @@ Consumes: the command modules of 48; `GitHubClient` (24), whose constructor sets
 - `get_app_version("0.9.0", editable=True)`: `"0.9.0+<the fake's hash>"`, one start logged with `rev-parse --short HEAD`.
 - `editable=True` with no `git` on `PATH`: `"0.9.0"`.
 - `is_editable_install` on real distributions built by the test: a `tlaup-0.9.0.dist-info` folder under `tmp_path` with `METADATA` and a `direct_url.json` saying `{"dir_info": {"editable": true}}`, then one saying `{"url": "file:///x"}`, then one with none, each read with `importlib.metadata.PathDistribution`: true, false, false. No stand-in object and no patch ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests) rule 2).
-- The version-string cases of today's file that still apply (a base version taken from the metadata when none is given).
+- A base version taken from the metadata when none is given (the one case of 0.8.x's file, deleted in 03b, that still applies).
+
+The pull request names inventory row P3 as covered.
 
 No test measures time ([14 F9](../design/14-config-and-cli.md#f9-startup-cost)).
 
@@ -99,7 +100,7 @@ Under `## [Unreleased]`, word for word from [14 F9](../design/14-config-and-cli.
 - `get_app_version` started `git rev-parse` before deciding whether the install is a development one.
 - `pydantic` cannot be kept out: on Typer 0.29.1 Typer imports it when any command runs. tlaup can keep its own schema module (`tlaup.config.schema`) from loading, not `pydantic`. What that costs was not measured.
 - `truststore.inject_into_ssl()` belongs in `GitHubClient.__init__` ([12 V7](../design/12-tools-and-downloads.md#v7-github-client), [24](24-github-client.md)): set up where the network is used.
-- Completion's private module is imported by `main()` only when `_TLAUP_COMPLETE` is set ([23 C3](../design/23-command-layout.md#c3-completion), [47](47-completion.md)); check it is still so.
+- `tlaup/cmd/completion.py` is imported at the top of `cli.py` and of the command modules that name a completer, F9's one exception ([23 C3](../design/23-command-layout.md#c3-completion), [47](47-completion.md)): Typer has loaded its own completion modules on `import typer` by then, so it costs one small module, as long as that module imports nothing heavy at its top. What stays off is the shell registry, filled only by `init_completion()`, which `main()` calls when `_TLAUP_COMPLETE` is set; the third test checks it.
 
 **Traps.**
 
@@ -107,16 +108,16 @@ Under `## [Unreleased]`, word for word from [14 F9](../design/14-config-and-cli.
 - `from __future__ import annotations` and `TYPE_CHECKING` blocks let a module name a type in a signature without importing it at run time; ruff's `TCH` rules, which the project selects, push in that direction already.
 - Typer reads a command function's annotations when the app is built, so a type used in an option's annotation must exist at that moment; keep option types to built-ins and `typer` types, and import domain types inside the function.
 - The second test runs a command in-process inside the child interpreter; run it with the isolation fixture's environment so it reads the test's `TLAUP_HOME`.
-- The fake `git` is found through `PATH`; `get_git_commit_hash` must find `git` the same way (`shutil.which` or the bare name in an argument list), not by an absolute path.
-- `check=False` is stated explicitly on the `subprocess.run` call: the `PLW1510` ignore goes in [58](58-lint-rules.md) ([30 I8](../design/30-ci-and-release.md#i8-lint-rules)).
+- The fake `git` is found through `PATH`; `get_git_commit_hash` finds `git` with `shutil.which`, which looks there too, and runs the absolute path it returns, so bandit's `B607` has nothing to flag when [58](58-lint-rules.md) (58e) removes its skip.
+- `check=False` is stated explicitly on the `subprocess.run` call: the `PLW1510` ignore goes in [58](58-lint-rules.md) (58d; [30 I8](../design/30-ci-and-release.md#i8-lint-rules)).
 
 **State of `main` when this starts.** Every command of [23 C1](../design/23-command-layout.md#c1-command-tree) exists and is registered explicitly in `cli.py` (48); no old command module is left; `-V` prints `tlaup 0.9.0` and the summary (48, [23 C4](../design/23-command-layout.md#c4-version-flag)), through `get_app_version`.
 
 ## Done when
 
-- The two import tests and the version tests pass; the old test file is gone.
+- The three import tests and the version tests pass.
 - `tlaup/__init__.py` holds only a docstring.
-- The lint configuration states the function-level import rule for `src/tlaup/cmd/`.
+- The lint configuration states the function-level import rule for `src/tlaup/cmd/` and `src/tlaup/cli.py` (17's lines, checked).
 - The pull request gives the measurements described above.
 - The changelog entries are written.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
@@ -125,7 +126,7 @@ Under `## [Unreleased]`, word for word from [14 F9](../design/14-config-and-cli.
 
 - `truststore` in the client's constructor: [24](24-github-client.md).
 - Lazy settings: [19](19-layered-config.md).
-- Completion's lazy import: [47](47-completion.md).
+- The completion module and its completers: [47](47-completion.md). The per-file ignores: [17](17-error-handler.md).
 - The `print` and `PLW1510` lint changes: [58](58-lint-rules.md).
 - Making `pydantic` lazy: not possible on the locked Typer (F9).
 

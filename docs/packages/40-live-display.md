@@ -1,10 +1,10 @@
 # 40. The live display
 
-Size: L. Suggested model: most capable. Status: ready. One part follows a recommendation the index has not yet had confirmed: the waiting line goes through the reporter (question "waiting line under the layout", raised by [37](37-run-tlc.md)); see Interfaces. Stage 4 proposes splitting this package in two along the line between parts A and B of the Tests section (see Risks); the file is written so that the split needs no rewriting.
+Size: L. Suggested model: most capable. Status: ready. Delivered as two pull requests, 40a and 40b (see the end).
 
 ## Goal
 
-On a terminal, `tlaup tlc` shows the full-screen layout of [22 O4](../design/22-reporters.md#o4-live-display) on stderr while TLC runs, redrawn at `--refresh-interval`, and when the run ends, however it ends, the layout closes and the complete result is printed as plain output. `--plain` and `tlc.plain` give plain output on a terminal. The old, never-rendered layout code and its tests are gone.
+On a terminal, `tlaup tlc` shows the full-screen layout of [22 O4](../design/22-reporters.md#o4-live-display) on stderr while TLC runs, redrawn at `--refresh-interval`, and when the run ends, however it ends, the layout closes and the complete result is printed as plain output. `--plain` and `tlc.plain` give plain output on a terminal. The old, never-rendered layout code is gone (its tests went with the old suite in [03](03-test-foundation.md), decision D62).
 
 ## Covers
 
@@ -15,23 +15,22 @@ On a terminal, `tlaup tlc` shows the full-screen layout of [22 O4](../design/22-
   - "Snapshot tests through a fixed-width, colourless console with an injected clock, replacing assertions on Rich internals." (line 321). In part: the layout half; the plain half is 38's.
   - "Delete display code that nothing in `src/` references ..." (line 314). In part: nothing of the item's own list (package 04 deleted that), but the rows of O2's table marked O4, which this package finishes or replaces and then deletes.
 - Design sections:
-  - [22 O4](../design/22-reporters.md#o4-live-display): all of it.
+  - [22 O4](../design/22-reporters.md#o4-live-display): all of it, the waiting line in the Status panel included (question Q12, settled: shown in place of the hint and copied to stderr on close).
   - [22 O5](../design/22-reporters.md#o5-refresh-interval): all of it.
-  - [22 O6](../design/22-reporters.md#o6-snapshot-tests): "Drawing without a terminal", "Layout frames", "The two modes give one text", "The two streams", "`close`", the markup test in layout mode, and the deletion of the nine layout tests. The plain-mode parts are 38's.
+  - [22 O6](../design/22-reporters.md#o6-snapshot-tests): "Drawing without a terminal", "Layout frames", "The two modes give one text", "The two streams", "`close`", the markup test in layout mode, and the waiting line in layout mode. The plain-mode parts are 38's.
   - [22 O7](../design/22-reporters.md#o7-rendering-cost-and-memory): the layout-mode test and the changelog entry.
   - [22 O2](../design/22-reporters.md#o2-delete-dead-display-code): the rows marked O4 (`HeaderComponent`, `StatusInfoComponent`, `LogsComponent`, `StatsTableComponent`, `StatusInfoRenderable`; `TlcDisplay`, `_Section`, the layout functions of `TlcFormatter`; `LogDeduplicator`).
-  - [22 O1](../design/22-reporters.md#o1-reporter-interface): the rule inside `make_reporter`.
+  - [22 O1](../design/22-reporters.md#o1-reporter-interface): the rule inside `make_reporter`; `notice` in layout mode (the protocol method is [36](36-reporter-interface.md)'s, the plain mode [38](38-terminal-reporter.md)'s).
   - [02 X2](../design/02-cross-cutting.md#x2-stdout-and-stderr), "Where the live layout is drawn".
   - [01 T5](../design/01-testing.md#t5-feature-files-and-steps), situation 4 for the layout: the screen steps that need a terminal emulator, and `tlc_live.feature`. [01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 5: the one test that depends on the real clock.
-  - [01 T11](../design/01-testing.md#t11-the-existing-tests): the last of `tests/unit/tlc/test_formatter.py`.
-  - [14 F1](../design/14-config-and-cli.md#f1-layered-configuration), [F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay): `tlc.plain` and `tlc.refresh_interval` take effect, with their flags.
+  - [14 F1](../design/14-config-and-cli.md#f1-layered-configuration), [F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay): `tlc.plain` and `tlc.refresh_interval` take effect, with their flags; F1's rule that the schema checks the type only and a range is the command's (question Q16, kept as built).
 
 ## Depends on
 
 - [39](39-tlc-command.md): the new `cmd/tlc.py` (this package adds two options), `make_reporter` and `ReporterOptions` in `reporters/__init__.py`, `tlc/runner.py` (the renamed `run.py`), `tlc_run.feature`'s expected file for `violation`, and the old layout code it left for this package.
 - [38](38-terminal-reporter.md): `TerminalReporter` (plain), `render_event`, `render_status`, `header_lines`, `render_summary`, the replay helper and the plain expected files.
-- [37](37-run-tlc.md): the frame (unchanged but for the waiting line, below), `waiting_line`, the deferral tests.
-- [36](36-reporter-interface.md): `Reporter`, `RunInfo`, `CollectingReporter`.
+- [37](37-run-tlc.md): the frame, unchanged, whose `on_held` already hands the waiting line to `reporter.notice`.
+- [36](36-reporter-interface.md): `Reporter` (with `notice`), `RunInfo`, `CollectingReporter`.
 - [16](16-ui-messages.md): `Ui` with `terminal` and `size`.
 - [18](18-feature-harness.md): the steps, the pty helper (`in a terminal <w> by <h>`, which sets `TERM`, the window size and removes `COLUMNS` and `LINES`), the real-process helpers.
 - [19](19-layered-config.md): the settings `tlc.plain` and `tlc.refresh_interval`, `TLAUP_TLC_PLAIN`, `TLAUP_TLC_REFRESH_INTERVAL`.
@@ -50,24 +49,21 @@ Creates:
 
 Changes:
 
-- `src/tlaup/reporters/terminal.py`: the constructor gains `mode`, `interval`, `refresh_thread`; layout mode with its spools, `Live`, `refresh()`, the `atexit` hook and its `close`; `notice`.
+- `src/tlaup/reporters/terminal.py`: the constructor gains `mode`, `interval`, `refresh_thread`, with defaults (below); layout mode with its spools, `Live`, `refresh()`, the `atexit` hook and its `close`; `notice` in layout mode (38's plain `notice` is unchanged).
 - `src/tlaup/reporters/__init__.py`: `ReporterOptions` gains `plain` and `refresh_interval`; `make_reporter` gets the rule.
-- `src/tlaup/reporters/base.py` and `collecting.py`: the protocol and the collecting reporter gain `notice` (the waiting line, below).
-- `src/tlaup/tlc/runner.py`: one line of the frame: `on_held` calls `reporter.notice(waiting_line(name))` instead of `notice(...)`. `tests/unit/tlc/test_runner.py`: the deferral tests read the waiting line from the reporter.
 - `src/tlaup/cmd/tlc.py`: the options `--plain` and `--refresh-interval SECONDS`, their help lines, the range check, and the two values passed in `ReporterOptions`.
 - `src/tlaup/config/schema.py` and `src/tlaup/resources/default_config.yaml`: only if [19](19-layered-config.md) left out `tlc.plain` (false) or `tlc.refresh_interval` (1.0), or gave the latter a range (see Context, "The range").
 - `pyproject.toml` and `uv.lock`: `pyte` as a development dependency, if 18 did not add it.
 - `tests/features/tlc_errors.feature` ([39](39-tlc-command.md)'s): O5's usage-error scenarios are added to it.
 - `CHANGELOG.md`.
 
-Deletes ([22 O2](../design/22-reporters.md#o2-delete-dead-display-code), [01 T11](../design/01-testing.md#t11-the-existing-tests)), in the pull request that adds the layout frames:
+Deletes ([22 O2](../design/22-reporters.md#o2-delete-dead-display-code)), in the pull request that adds the layout frames:
 
-- `src/tlaup/tlc/formatter.py`, `src/tlaup/tlc/components.py`, `src/tlaup/tlc/models.py`, whole: what [39](39-tlc-command.md) left (`_Section`, `TlcDisplay`, the layout part of `TlcFormatter`, `StatusInfoRenderable`; `LogDeduplicator` and the four panel components; the old models they import). Nothing else imports them by then; mypy and ruff confirm.
-- `tests/unit/tlc/test_formatter.py`, whole: the nine tests on the never-rendered layout (`test_update_stats`, `test_update_header`, `test_update_logs`, `test_update_clock`, `test_initial_layout_state`, `test_header_component`, `test_status_info_component`, `test_logs_component`, `test_stats_table_component`), replaced by the layout snapshots; and the two of `LogDeduplicator` (`test_log_deduplicator`, `test_log_deduplicator_strip`), which go with it, since the finished Output panel shows the same lines plain mode prints without folding repeats.
+- `src/tlaup/tlc/formatter.py`, `src/tlaup/tlc/components.py`, `src/tlaup/tlc/models.py`, whole: what [39](39-tlc-command.md) left (`_Section`, `TlcDisplay`, the layout part of `TlcFormatter`, `StatusInfoRenderable`; `LogDeduplicator` and the four panel components; the old models they import). Nothing else imports them by then; mypy and ruff confirm. `LogDeduplicator` goes with them, since the finished Output panel shows the same lines plain mode prints without folding repeats. Their old tests (`tests/unit/tlc/test_formatter.py`) went with the old suite in 03 (D62).
 
 **What this package starts from.** It writes `layout.py` fresh from O4. O2's table says the old components are "rewritten against `RunResult` as the four panels" and `TlcDisplay` is "replaced by `render_layout`, built on Rich's own `Layout`": the old classes read `ModelCheckResult`, compute the elapsed time from the wall clock, fold repeated log lines and grow sections as data appears, and none of that survives a full-screen frame drawn from a `LayoutView`. Read them for what they sketched (the four panel titles, the progress table's columns), import nothing from them, and delete them. After this package `src/tlaup/tlc/` holds only the new modules.
 
-Shared with packages of the same period (41 to 47 run beside this one): `src/tlaup/cmd/tlc.py` with nobody else; `tests/steps/*.py` (each package adds functions); `CHANGELOG.md`; `pyproject.toml` and `uv.lock` (one development dependency line).
+Shared with packages of the same period (41 to 47 run beside this one): `src/tlaup/cmd/tlc.py` with [47](47-completion.md), which adds `autocompletion=` to `SPEC` (finding D9; different lines); `tests/steps/*.py` (each package adds functions); `CHANGELOG.md`; `pyproject.toml` and `uv.lock` (one development dependency line).
 
 ## Interfaces
 
@@ -84,21 +80,21 @@ class LayoutView:                       # everything a frame needs; replaced who
     warnings: int
     progress: tuple[Progress, ...]      # newest 50
     tail: tuple[Text, ...]              # newest 200 lines of the result text and of TLC's stderr
+    notice: str | None = None           # the waiting line (O1), shown in place of the hint
     header: tuple[Text, ...] = ()       # stage 4: the header lines (two, or three with TLC's version line)
     interrupted: bool = False           # stage 4: finish got an outcome stopped by a signal
-    held: str | None = None             # stage 4: the waiting line while a first signal is held
 
 def render_layout(view: LayoutView, now: float, width: int, height: int) -> RenderableType
 def format_clock(seconds: float) -> str          # stage 4: "00:02:13", the Status panel's elapsed
 
 # tlaup/reporters/terminal.py
 class TerminalReporter:
-    def __init__(self, ui: Ui, *, mode: Literal["plain", "layout"], interval: float,
+    def __init__(self, ui: Ui, *, mode: Literal["plain", "layout"] = "plain", interval: float = 1.0,
                  clock: Callable[[], float], refresh_thread: bool = True): ...
+                                        # stage 4: defaults for mode and interval, so 38's helper and tests stand
     live: Live | None                   # public, for O5's one test that reads a Rich object
     def refresh(self) -> None           # tests with refresh_thread=False draw a frame themselves
-    def notice(self, line: str) -> None # stage 4, following the recommendation: a line of tlaup's own during the run
-    # start, handle, stderr_line, finish, close as in 38
+    # start, handle, stderr_line, notice, finish, close as in 38; layout mode below
 
 # tlaup/reporters/__init__.py
 @dataclass(frozen=True)
@@ -115,6 +111,8 @@ def make_reporter(ctx: AppContext, options: ReporterOptions) -> Reporter
 - `TERM` in `ctx.env` is not `dumb`;
 - plain output was not asked for: `options.plain` is false and `ctx.settings.tlc.plain` is false (the flag wins over the setting; there is no `--no-plain`, and `TLAUP_TLC_PLAIN=false` is how an environment undoes a `tlc.plain: true` for one run).
 
+O4's interface says the flag is "already merged into" `settings.tlc.plain`, as F1's flags layer would do it. Here `--plain` and `--refresh-interval` travel in `ReporterOptions` and the rule reads both, as [33](33-tlc-invocation.md) does for `--workers` and `--keep` (stage 4's choice, finding C8): what the user sees is the same either way, and the range check has to know whether the value came from the option, the environment or the file to name it. Low impact: internal, and a change later touches no user.
+
 `--raw` never reaches `make_reporter`. The interval is `options.refresh_interval` if given, else `ctx.settings.tlc.refresh_interval`. The clock is `time.monotonic`. The fourth condition of O4, at least 60 columns and 15 lines, is checked by the reporter at `start`, because O4 says the size "is the stderr console's, read once, at `start`": a reporter made in layout mode whose stderr console is smaller writes plain output for the whole run.
 
 **Layout mode** (O4, "How it is built" and the stream table):
@@ -123,7 +121,7 @@ def make_reporter(ctx: AppContext, options: ReporterOptions) -> Reporter
 - `get_renderable` calls `render_layout(self.view, clock(), width, height)` with the size read at `start`; the refresh thread only reads the current view and the clock. The reporter replaces `self.view` with a new frozen `LayoutView` on each event and never changes one in place.
 - `handle`: the lines of `render_event` go to the stdout spool and into the view's `tail`; `render_status`'s lines go to the stderr spool (TLC's version line also into `header`); `ProgressMade` goes into `progress` and the Status panel and is not printed; phase, errors and warnings come from the live result.
 - `stderr_line`: to the stderr spool, and into `tail` marked `stderr:`.
-- `notice`: into `held` (the Status panel shows it in place of the Ctrl-C hint) and to the stderr spool. In plain mode it is written to stderr at once, which is what the runner's `notice` did, so plain output is unchanged.
+- `notice` (O1, O4's stream table): into the view's `notice` (the Status panel shows it in place of the Ctrl-C hint) and to the stderr spool, in arrival order with the tool's stderr lines, so it is copied to stderr with them when the layout closes and is still on the terminal after the layout is gone. In plain mode it is written to stderr at once ([38](38-terminal-reporter.md)).
 - `finish`: `render_summary` into the stdout spool and the tail, the view's phase to `FINISHED` or `interrupted` set when `outcome.stopped_by` is set, one `refresh()` (Rich does not refresh on stop on the alternate screen, so this draws the last frame), then `close()`.
 - `close`, idempotent and never raising: stop `Live` (which leaves the alternate screen), copy the stderr spool to stderr, then the stdout spool to stdout, delete the spools, remove the `atexit` hook. It releases only what `start` recorded. A write that fails while copying stops writes to that stream, the rest is still released, and the first such error is kept in `write_error`. Without `finish` (the middle of `run_tlc` raised) it does the same three steps with what the spools hold: the layout is gone before the `error:` line is printed, and no statistics or result line are written.
 - Copy the spools as text, unchanged, to the underlying streams of `ui.err` and `ui.out`; do not print them through the consoles again, which would re-render them.
@@ -131,13 +129,13 @@ def make_reporter(ctx: AppContext, options: ReporterOptions) -> Reporter
 **The four panels** (O4's mock-up is the reference; `render_layout` builds them on Rich's `Layout`):
 
 - Header: `view.header`.
-- Status, four lines: the phase word, `elapsed` and `format_clock(now - started_at)`, `errors N   warnings M`; the latest progress numbers; the hint `Ctrl-C to interrupt`, or `view.held` when set. Phase words: `PARSING` `Parsing`, `INITIAL_STATES` `Computing initial states`, `CHECKING` `Checking`, `LIVENESS` `Checking liveness`, `FINISHED` `Finished`, and `Interrupted` when `view.interrupted`. O4 names no word for `NOT_STARTED` and `STARTING`; stage 4 reads both as `Starting`.
+- Status, four lines: the phase word, `elapsed` and `format_clock(now - started_at)`, `errors N   warnings M`; the latest progress numbers; the hint `Ctrl-C to interrupt`, or `view.notice` when set. Phase words: `PARSING` `Parsing`, `INITIAL_STATES` `Computing initial states`, `CHECKING` `Checking`, `LIVENESS` `Checking liveness`, `FINISHED` `Finished`, and `Interrupted` when `view.interrupted`. O4 names no word for `NOT_STARTED` and `STARTING`; both show `Starting` (the index's reading, taken).
 - State space progress, up to a third of the height: one row per progress message, newest that fit, columns `Time`, `Diameter`, `Generated`, `Distinct`, `Queue`, numbers with thousands separators.
 - Output, the rest: the newest lines of `tail` that fit, each cut with an ellipsis when longer than the panel (only here is anything cut).
 
-**The waiting line through the reporter** (following the recommendation of question "waiting line under the layout"). [14 F6](../design/14-config-and-cli.md#f6-messages) says nothing prints through `ui` while a reporter is between `start` and `close`, and O4 that nothing reaches the real streams then. [37](37-run-tlc.md)'s frame prints the checkpoint waiting line through the command's `notice` in exactly that interval; under the alternate screen it would be drawn into the screen and lost when it closes. So this package adds `notice(line: str) -> None` to the `Reporter` protocol (36), to `CollectingReporter` (which records it in `calls` and in a list `notices`) and to `TerminalReporter`, and changes the frame's `on_held` in `run_tlc` to `lambda name: reporter.notice(waiting_line(name))`. `run_tlc_raw` is unchanged: it has no reporter and never holds a signal for a checkpoint. The reminder line stays on the command's `notice`, since it is printed before `reporter.start`. If the maintainer answers the question otherwise, this is the one part to change.
+**The waiting line under the layout** (question Q12, settled; [22 O1](../design/22-reporters.md#o1-reporter-interface), O4). [14 F6](../design/14-config-and-cli.md#f6-messages) says nothing prints through `ui` while a reporter is between `start` and `close`, and under the alternate screen a line printed there would be lost. So the line goes through the reporter: [36](36-reporter-interface.md) put `notice` in the protocol, [37](37-run-tlc.md)'s `on_held` calls `reporter.notice(waiting_line(name))`, [38](38-terminal-reporter.md)'s plain mode writes it on stderr at once, and this package's layout mode shows it in the Status panel and copies it to stderr on close. The reminder line stays on the command's `notice`, since it is printed before `reporter.start`.
 
-**`--refresh-interval SECONDS`** (O5): default from `tlc.refresh_interval` (1.0); how often the layout is redrawn and the elapsed time ticks. Below 0.1 or above 60 is a usage error, exit 2, from the option (Typer's own range check) and from the environment variable or the config key (tlaup's `UsageError`, naming where the value came from, raised before the preflight with the other command-line checks of [11 R11](../design/11-runner.md#r11-preflight), step 0). No effect in plain mode or with `--raw`; the help says so in one line. **`--plain`**: plain output on a terminal; with `--raw` no effect, and the help says so.
+**`--refresh-interval SECONDS`** (O5): default from `tlc.refresh_interval` (1.0); how often the layout is redrawn and the elapsed time ticks. Below 0.1 or above 60 is a usage error, exit 2, from the option (Typer's own range check) and from the environment variable or the config key (tlaup's `UsageError`, naming where the value came from, raised before the preflight with the other command-line checks of [11 R11](../design/11-runner.md#r11-preflight), step 0). The schema checks only that the value is a number ([14 F1](../design/14-config-and-cli.md#f1-layered-configuration), question Q16, kept as built): `fast` in the file is `ConfigInvalid` (3), `100` is the command's 2. No effect in plain mode or with `--raw`; the help says so in one line. **`--plain`**: plain output on a terminal; with `--raw` no effect, and the help says so.
 
 Consumes: listed under Depends on.
 
@@ -157,11 +155,9 @@ Plain pytest, a reporter driven with events and in-memory consoles ([01 T12](../
 - **O5**: started with `interval=0.5` and then with `interval=2`, `reporter.live.refresh_per_second` is 2 and then 0.5. This is the one place a test reads a Rich object (O5, O6). With the injected clock, two `refresh()` calls one clock-second apart show `elapsed` values one second apart.
 - **O7**, layout mode: 300,000 numbered lines (`line 1` ...) through a `TlcParser` into the reporter leave a view whose `tail` has 200 lines; the stderr stream holds only the frames drawn by `start`, the test's own two `refresh()` calls and `finish`, a number that does not grow with the events (count them by Rich's frame start in the stream, without reading Rich internals); and the stdout written at `close` has 300,000 lines. No test measures time.
 - **The size, read at `start`**: a layout-mode reporter on 59 by 15 and on 60 by 14 writes plain output (no enter sequence; the output equals plain mode's); 60 by 15 draws the layout.
-- **The waiting line**: in layout mode `notice` appears in the Status panel of the next frame and, after the leave sequence, in the stderr stream; in plain mode it is on stderr at once.
+- **The waiting line** (O6): in layout mode a `notice` shows the line in the Status panel of the next frame, in place of the hint, and after the leave sequence it is in the stderr stream with the tool's stderr lines, in arrival order; stdout has nothing of it. The plain-mode half is 38's test.
 
 `tests/unit/reporters/test_make_reporter.py`: an `AppContext` built in the test with a `Ui` forced to terminal mode on both streams and `TERM=xterm-256color` gives layout mode; each of these gives plain mode: `--plain` (`ReporterOptions(plain=True)`), `tlc.plain: true` in the settings, the same from `TLAUP_TLC_PLAIN=1`, stdout not a terminal, stderr not a terminal, `TERM=dumb`. The interval comes from the option when given, else the setting.
-
-`tests/unit/tlc/test_runner.py` (37's file, renamed by 39): the three deferral tests read `waiting_line(...)` from the reporter's `notices` instead of the `notice` calls; nothing else changes.
 
 `tests/features/tlc_errors.feature`, in-process (O5): `tlaup tlc Spec --refresh-interval 0` and `--refresh-interval 100` exit 2; with no option, `TLAUP_TLC_REFRESH_INTERVAL=0` and a config file with `tlc.refresh_interval: 100` exit 2. Each starts no Java (`java was not started`).
 
@@ -177,7 +173,7 @@ Real processes on a pty ([01 T5](../design/01-testing.md#t5-feature-files-and-st
 
 An error raised while the layout is up has no pty scenario: with the fake `java` every way to make `run_tlc` fail after `start` fails the preflight first, and a step that reached into the process would be a seam (O4). It is the `close` test through `run_tlc` in part A.
 
-Old tests deleted: `tests/unit/tlc/test_formatter.py` (see Files). No stateful test applies.
+Old tests: none (D62). No stateful test applies.
 
 ## Changelog
 
@@ -201,11 +197,11 @@ O7's entry is written here rather than at [39](39-tlc-command.md), whose list do
 
 **What was tried, and on what** (O4's opening paragraph, restated). On the locked Rich 13.9.4, in memory, forced to terminal mode: `Live(screen=True)` writes the enter and leave sequences and frames between them; its refresh thread redraws a changed `get_renderable` value with no call from outside; `Live.stop` does not refresh on the alternate screen; the console takes its size from `COLUMNS` and `LINES` when set; `Live.refresh_per_second` holds the constructor's value. Research 30 ran the first three on a real pty with Rich 13.8.0, 13.9.4, 14.0.0, 14.3.4 and 15.0.0 on Linux, and all but 14.0.0 on macOS, and `pyte` 0.8.2 followed each: four panel titles on one screen, 12 to 14 frames from the refresh thread in 1.5 seconds, the `…` of a cut line, the plain text after the leave sequence. Colours: `pyte` calls bold green `brightgreen`. Not tried: resizing while the layout is up, a Windows console.
 
-**The range** of `--refresh-interval`. O5 makes 0 and 100 usage errors (2) also when they come from the environment or the config file, while [14 F1](../design/14-config-and-cli.md#f1-layered-configuration) makes a value in the file that does not fit its key `ConfigInvalid` (3). They agree if the schema types the key as a number and the range is the command's rule: `fast` in the file is then 3 (F1's own example), and `100` is 2 (O5). So the schema must not carry the range; if [19](19-layered-config.md) gave it one, move it to the command and say so. The index has this reading.
+**The range** of `--refresh-interval` (question Q16, settled as [19](19-layered-config.md) and this package build it). O5 makes 0 and 100 usage errors (2) also when they come from the environment or the config file, and F1 now says the schema checks the type only and a rule beyond it is the command's, which gives 2 wherever the value came from. So the schema carries no range; if [19](19-layered-config.md) gave it one, move it to the command and say so.
 
 **`TERM`.** O4 says "`TERM` is not `dumb`". Rich treats `unknown` like `dumb` too; check the locked Rich, and if a `Live` writes no frames under `TERM=unknown`, treat it as `dumb` in `make_reporter`, or the layout would be chosen and draw nothing.
 
-**The interrupted line.** O4's pty scenario says the terminal ends with "the `Result: interrupted` line"; O3's table writes the line `Result: incomplete, interrupted after 2 min 13 s`. O3 is the table the reporter builds from ([38](38-terminal-reporter.md)), so assert on `Result: incomplete, interrupted`. Clerical; the index has it.
+**The interrupted line.** O4's pty scenario and O3's table agree now (index "Clerical"): the terminal ends with the result line of an interrupted run, which starts `Result: incomplete, interrupted after`.
 
 **Who may print while the layout is up.** Between `start` and `close` only the reporter writes, and only `Live` reaches a real stream. The preflight's warnings and the kept-folders reminder come before `start`; the waiting line goes through `reporter.notice` (above); "Checkpoint kept", the dropped checkpoint of a raw run and the disagreement warning are printed by `print_run_notes` after `close`; the application's `error:` line after the frame has closed the reporter.
 
@@ -221,14 +217,14 @@ O7's entry is written here rather than at [39](39-tlc-command.md), whose list do
 - `refresh_per_second` is a float: `1 / 0.2` is `5.0`, `1 / 60` is small; Rich accepts both (O5 tried the attribute on the locked version only).
 - A spool console must not be one of `Ui`'s: it writes to a temporary file, and a closed pipe cannot happen there. The copy at `close` is where a closed pipe shows, and it is held in `write_error`.
 
-**State of `main` when this starts.** `tlaup tlc` runs on the new chain with plain output everywhere (39). `src/tlaup/tlc/` holds the new modules plus the three old files 39 left for this package; `tests/unit/tlc/test_formatter.py` has eleven tests; `--plain` and `--refresh-interval` are not declared.
+**State of `main` when this starts.** `tlaup tlc` runs on the new chain with plain output everywhere (39); the waiting line already reaches `reporter.notice` and is on stderr in plain mode. `src/tlaup/tlc/` holds the new modules plus the three old files 39 left for this package, with no test; `--plain` and `--refresh-interval` are not declared.
 
 **Known gaps the design postpones.** Keys for scrolling the Output panel (rejected: stdin in raw mode fights Ctrl-C and piped input); a progress bar (TLC does not know the total); resizing while the layout is up; `--json` on a terminal (milestone 4 decides whether it draws the layout). Ctrl-Z under the alternate screen (SIGTSTP is not forwarded, a postponed gap of the launcher).
 
 ## Done when
 
 - Parts A and B pass; part B on Linux and macOS in CI. `uv run poe lint` and `uv run poe test` pass; CI is green; `uv run poe test-clean` leaves the home folder empty.
-- `src/tlaup/tlc/formatter.py`, `components.py`, `models.py` and `tests/unit/tlc/test_formatter.py` are gone; nothing imports them.
+- `src/tlaup/tlc/formatter.py`, `components.py` and `models.py` are gone; nothing imports them.
 - The three changelog entries are under `## [Unreleased]`.
 - The pull request shows the "updates while silent" scenario failing with the refresh thread switched off (`refresh_thread=False` passed by `make_reporter` for one run of the red build), which is the defect only that scenario catches (T12 rule 6); lists the steps it added with the reason for each; says which build the layout frames use, how the spool-file test makes the spools reach the disk, and whether `TERM=unknown` needed the rule above.
 - A reviewer can read every frame file and `tlc_live/violation.txt` as what a user sees.
@@ -237,7 +233,7 @@ O7's entry is written here rather than at [39](39-tlc-command.md), whose list do
 
 - Plain output, the result line, `render_event` and the plain expected files: [38](38-terminal-reporter.md).
 - The command's other options, `print_run_notes`, the switch and the tlc feature files other than the O5 scenarios added to `tlc_errors.feature`: [39](39-tlc-command.md).
-- The frame of `run_tlc` beyond the one `on_held` line: [37](37-run-tlc.md).
+- The frame of `run_tlc`, `on_held` and `waiting_line`: [37](37-run-tlc.md). `notice` in the protocol and in plain mode: [36](36-reporter-interface.md), [38](38-terminal-reporter.md).
 - The tree test that checks `tlc`'s options: [48](48-command-tree.md). Help wording beyond the two lines named above: [50](50-help-and-messages.md).
 - The JSON reporter and `--json`: milestone 4.
 
@@ -257,15 +253,14 @@ From O5, O6, O7: frame files change whenever the layout is adjusted, which is th
 
 From the cut:
 
-- The package is large: a new reporter mode with spools and a thread, a module of panels, `make_reporter`'s rule, two options and a setting, a change to the protocol and the frame, a new development dependency, five pty scenarios with new screen steps, and a deletion. Stage 4 proposes two pull requests: **40a**, part A with O4's reporter mode, `layout.py`, `make_reporter`'s rule, `--plain`, the waiting line, the deletions and the O4 and O7 entries (the reporter takes `interval` from `tlc.refresh_interval` already); **40b**, O5's option, range check, scenarios and entry, `pyte`, the screen steps and `tlc_live.feature`, which needs `--refresh-interval`. 40b depends on 40a; both depend only on what this file lists.
-- The waiting line's route follows a recommendation the maintainer has not confirmed; it touches 36's protocol and 37's frame by one method and one line.
+- The package is large: a new reporter mode with spools and a thread, a module of panels, `make_reporter`'s rule, two options and a setting, a new development dependency, five pty scenarios with new screen steps, and a deletion. It is two pull requests (below); the protocol and the frame already carry the waiting line, so neither touches 36's or 37's files.
 - The "updates while silent" scenario runs for about three seconds of real time and depends on the runner's scheduling within ten-second timeouts; it is the only such test.
 
 ## Pull requests (decided by stage 4)
 
 This package is delivered as two pull requests, along the line between parts A and B of its Tests section; the index lists them as 40a and 40b.
 
-- **40a**: layout mode and `layout.py`, the rule in `make_reporter`, `--plain` and `tlc.plain`, the waiting line through the reporter, the deletion of the old layout code and its tests, and the O4 and O7 entries.
+- **40a**: layout mode and `layout.py`, the rule in `make_reporter`, `--plain` and `tlc.plain`, the waiting line in the Status panel, the deletion of the old layout code, and the O4 and O7 entries (the reporter takes `interval` from `tlc.refresh_interval` already).
 - **40b**: `--refresh-interval` with its check, scenarios and O5 entry; `pyte`, the screen steps and `tlc_live.feature` (the silent-display scenario needs the option, so it is here). Depends on 40a.
 
 A package that names 40 as a dependency waits for 40b.

@@ -11,7 +11,7 @@ Four functions turn what the user typed into the paths a run uses: `resolve_spec
 - Roadmap items ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)):
   - "Pass a `--cfg` file outside the project root to TLC so that TLC reads the file that was validated; today only its name is passed." In part: the functions that find the cfg and compute the `-config` value. The preflight that calls them is [33](33-tlc-invocation.md); the command, the feature scenario and the changelog entries are [39](39-tlc-command.md); the integration test is [52](52-integration-tests.md).
   - "Spec names: a dot in the name is mangled by `with_suffix` (`Foo.v2` becomes `Foo.tla`), `.` raises an error, and any existing file such as a `.cfg` is accepted as the spec." In part: the function and its unit test. The command and the changelog entry are [39](39-tlc-command.md).
-  - "The project-root rule counts a parent folder that has `lib/`, `modules/` or `classes/`, so a spec under `~/work` with `~/lib` present runs with `~` as its root ..." In full, apart from the line of the verbose run header that names the root, which is the terminal reporter's ([38](38-terminal-reporter.md)).
+  - "The project-root rule counts a parent folder that has `lib/`, `modules/` or `classes/`, so a spec under `~/work` with `~/lib` present runs with `~` as its root ..." In full, apart from the line of the verbose run header that names the root, which belongs to milestone 4's `--verbose`: [38](38-terminal-reporter.md) builds no verbose header in the first wave, so that line has no owner until then (finding C14).
 - Design sections:
   - [11 R5](../design/11-runner.md#r5-spec-names): all of the design and its unit test.
   - [11 R4](../design/11-runner.md#r4-spec-cfg-and-working-folder): steps 3 (the spec path, links and `..`), 4 (the `-config` value) and 5 (how `--cfg` is found), with the unit tests. Steps 1, 2 and 6 and "What changes for users" are properties of the command line that [33](33-tlc-invocation.md) builds and [39](39-tlc-command.md) switches on.
@@ -30,17 +30,16 @@ No change from the draft.
 Creates:
 
 - `src/tlaup/project/spec.py`: `resolve_spec`, `resolve_cfg`, `config_arg`. A file that 00's tree does not list; see "Where the functions live" under Context.
-- `tests/unit/spec/test_resolve_spec.py`, `tests/unit/spec/test_resolve_cfg.py`.
+- `tests/unit/spec/test_resolve_spec.py`, `tests/unit/spec/test_resolve_cfg.py`, `tests/unit/spec/test_project_root.py`.
 
 Changes:
 
 - `src/tlaup/project/core.py`: `find_project_root` gets R10's rule and the signature below; the folder names become the constants `SPEC_DIR = "spec"`, `MODULES_DIR = "modules"`, `CLASSES_DIR = "classes"`, `LIB_DIR = "lib"` and the tuple of folder names that allow the parent rule (`spec`, `specs`, `test`, `tests`). `_is_project_root` loses its three name parameters.
 - `src/tlaup/project/__init__.py`: exports unchanged (`find_project_root`).
-- The old callers of `find_project_root`, one line each, so that the old command keeps working with the new signature: `src/tlaup/cmd/tlc.py` (one call, in `tlc`; the second, in `_show_diagnostic_info`, was removed by [04](04-delete-dead-code.md)) and `src/tlaup/tlc/runner.py` (two calls, in `build_tlc_command` and `run_tlc`). Each becomes `find_project_root(spec_file, Path.home())`. Nothing else in those files changes; they are deleted or rewritten by [39](39-tlc-command.md).
-- `tests/unit/spec/test_project.py`: rewritten for R10 (see Tests).
+- The old callers of `find_project_root`, one line each, so that `main` still type-checks with the new signature (`main` between packages need only be green, decision D62): `src/tlaup/cmd/tlc.py` (one call, in `tlc`; the second, in `_show_diagnostic_info`, was removed by [04](04-delete-dead-code.md)) and `src/tlaup/tlc/runner.py` (two calls, in `build_tlc_command` and `run_tlc`). Each becomes `find_project_root(spec_file, Path.home())`. Nothing else in those files changes; they are deleted or rewritten by [39](39-tlc-command.md).
 - `CHANGELOG.md`: R10's entry.
 
-Deletes: nothing. `resolve_spec_file` and `resolve_cfg_file` in `src/tlaup/tlc/runner.py`, and the old tests that reach them (`tests/unit/spec/test_resolution_scenarios.py`, three tests of `tests/unit/tlc/test_runner.py`), stay until [39](39-tlc-command.md).
+Deletes: nothing. `resolve_spec_file` and `resolve_cfg_file` in `src/tlaup/tlc/runner.py` stay for the old command until [39](39-tlc-command.md). The old tests that reached them, and the old `tests/unit/spec/test_project.py`, went with the old suite in [03](03-test-foundation.md) (D62).
 
 Files another package of the same parallel group also touches:
 
@@ -100,7 +99,7 @@ All plain pytest, real files in `tmp_path`, no mocks ([01 T12](../design/01-test
 `tests/unit/spec/test_resolve_spec.py`:
 
 - R5's parametrised cases: `Foo`; `Foo.tla`; `Foo.v2` (finds `Foo.v2.tla`, and does not find `Foo.tla`); `dir/Foo`; `Foo` found under `spec/`; `.`; `""`; `..`; `Foo.cfg` (with and without a `Foo.tla` beside it: the hint is there only with it); a folder name alone (`UsageError`); a folder name with a `.tla` file of the same name beside it (the file).
-- The seven cases of today's `tests/unit/spec/test_resolution_scenarios.py`, as inputs of the same test (R5: "move here"): `my_model.tla`; `my_model` in the working folder; `my_model` under `spec/`; a missing name; `subdir/my_model`; `subdir/my_model` under `subdir/spec/`; a missing name under an existing `subdir/`. The old file drives the old command through mocks and stays until [39](39-tlc-command.md).
+- The seven cases of 0.8.x's `tests/unit/spec/test_resolution_scenarios.py` (deleted in 03), as inputs of the same test (R5: "move here"; inventory row S1): `my_model.tla`; `my_model` in the working folder; `my_model` under `spec/`; a missing name; `subdir/my_model`; `subdir/my_model` under `subdir/spec/`; a missing name under an existing `subdir/`.
 - `SpecNotFound.details` lists every path tried, in order.
 - The result is absolute, and a spec reached through a link (a linked folder, and a link to the file) is returned by the path the user named, not by the target's.
 - R4 step 3: `../rootproj/spec/Spec` from another folder comes back without the `..` (research 16's row F10, below); a spec path with a `..` after a link (`L/lnk/../proj/Spec.tla` in the link tree below, which the operating system reads as `real/proj/Spec.tla` while the textual form `L/proj/Spec.tla` does not exist) comes back with its `..` in place; the same input with `platform="win32"` is `SpecNotFound`.
@@ -111,18 +110,14 @@ All plain pytest, real files in `tmp_path`, no mocks ([01 T12](../design/01-test
 - For each of research 24's rows R1 to R10 (the link tree under Context): the same assertion with the spec's folder reached through a symbolic link, including a cfg outside it reached with `..`.
 - With `platform="win32"`: `config_arg` gives the lexical value for each row, compared with values written out by hand in the test (the table under Context has them, with how they were worked out).
 - `--cfg foo` with a file `foo` and no `foo.cfg` is `CfgNotFound`; `--cfg foo` with `foo.cfg` finds it; an absolute path without `.cfg` gets the suffix.
-- The order: a file of the same name beside the spec, in the working folder and in the project root, removed one at a time, is found in that order.
+- The order (inventory row S5, whose owner this package is): a file of the same name beside the spec, in the working folder and in the project root: the spec's folder wins; with that one removed, the working folder's; with that removed too, the project root's.
 - `CfgNotFound.details` lists the paths tried.
 
-`tests/unit/spec/test_project.py`, rewritten ([01 T11](../design/01-testing.md#t11-the-existing-tests): "kept until R10"). The call becomes `find_project_root(spec_file, home)` with a `home` under `tmp_path`.
+`tests/unit/spec/test_project_root.py` (R10; inventory rows S8, S9 and S13), new, since the old `tests/unit/spec/test_project.py` went with the old suite in 03 (D62). The call is `find_project_root(spec_file, home)` with a `home` under `tmp_path`. The cases of the old file, as behaviour: the spec's own folder holds `classes/` (root); nothing anywhere (no root); with the spec's folder named `spec`, the parent holds `classes/`, `lib/` or `modules/` (root, one case each). New: the spec in `work/` with `lib/` in the parent (no root); the spec in `tests/` with `modules/` in the parent (root); the parent is the home folder (no root); the spec's folder is the home folder and has `lib/` (no root).
 
-- Kept as they are, apart from the call: `spec_dir_has_classes` (the spec's own folder holds the marker) and `none`.
-- Rewritten with the spec's folder named `spec` instead of `subdir`: `parent_has_classes`, `detected_by_lib`, `detected_by_modules`.
-- New: the spec in `work/` with `lib/` in the parent (no root); the spec in `tests/` with `modules/` in the parent (root); the parent is the home folder (no root); the spec's folder is the home folder and has `lib/` (no root).
+Old tests: none (D62). No stateful test applies.
 
-Old tests: `tests/unit/spec/test_project.py` is rewritten in place. The other old tests must stay green with the changed call lines: `tests/unit/spec/test_classpath.py` and `tests/unit/test_tlc_modules_path.py` put their markers in the spec's own folder or use a folder named `spec`, and `tests/unit/tlc/test_raw.py` and `test_runner.py` replace `find_project_root` by name; run them. No stateful test applies.
-
-T12 rule 6: the pull request shows the three rewritten cases of `test_project.py` and the four new ones failing against the old rule before the function is changed.
+T12 rule 6: the pull request shows the cases where R10 changes the answer (the parent of a folder not named `spec`, `specs`, `test` or `tests`; the home folder) failing against the old rule before the function is changed.
 
 ## Changelog
 
@@ -141,7 +136,7 @@ Not written here; they describe `tlaup tlc` once it calls the new functions, and
 
 **Where the functions live** (decided by stage 4). 00's tree names `tlc/invocation.py` for the preflight and no home for these functions; [14 F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay) puts the folder-name constants in `tlaup/project/core.py`, and [40](../design/40-later-milestones.md#milestone-3-reproducibility) says `find_project_root` keeps its signature when milestone 3 changes its body. So the project package stays: `core.py` keeps `find_project_root` and the constants, and `spec.py` is new beside it. Not under `tlc/`, because `sany` and `pcal` call `resolve_spec` too ([21](../design/21-other-tools.md)) and should not import the TLC runner's package.
 
-**Why this package edits old code, when a domain package normally does not.** The cut's rule is "build beside, then switch". For `resolve_spec`, `resolve_cfg` and `config_arg` that holds: they are new names and nothing calls them. `find_project_root` is different: R10 changes the rule of a function that exists, T11 says its test file is kept and rewritten at R10, and a second function of the same name beside the old one would have to be moved again at the switch. So the function is changed in place and its three old callers get the new call. The consequence is wanted and is in the changelog: the old command follows the new rule from here on. The old runner uses the root for three things (the working folder of TLC, the spec argument relative to it, the classpath), and with fewer folders counting as a root it falls back to the spec's folder, as it does today for a spec with no root.
+**Why this package edits old code, when a domain package normally does not.** The cut's rule is "build beside, then switch". For `resolve_spec`, `resolve_cfg` and `config_arg` that holds: they are new names and nothing calls them. `find_project_root` is different: R10 changes the rule of a function that exists, and a second function of the same name beside the old one would have to be moved again at the switch. So the function is changed in place and its three old callers get the new call, which they need to type-check. The consequence is wanted and is in the changelog: the old command follows the new rule from here on. The old runner uses the root for three things (the working folder of TLC, the spec argument relative to it, the classpath), and with fewer folders counting as a root it falls back to the spec's folder, as it does today for a spec with no root.
 
 **Decisions this rests on.**
 
@@ -215,11 +210,11 @@ The spec is typed through the link. The third column is what R4's expression gav
 
 In R9 the spec's folder is `Lf/`, the folder of the link itself, and TLC joins the value to that same folder. On Linux the Windows column can only be compared as text: the files it names by Windows' reading are not the files Linux reaches.
 
-**Points the design leaves to the worker.** None of them is needed by a listed test; say in the pull request what was chosen.
+**Points the design leaves open, and what is built** (stage 4's choices; none is needed by a listed test, and each is low impact under the roadmap's rule for weighing a decision).
 
-- Whether `find_project_root` compares a folder with `home` and with the filesystem root by text or by file identity. Stage 4's reading: by identity (`samefile` or resolved paths), so that a home folder reached through a link is still refused; the root that is returned is built from the spec path as given, with no link resolved, to match R4 step 3.
-- Whether the four folder names of rule 2 are compared case-sensitively. Stage 4's reading: exactly as written, lower case.
-- An empty `--cfg` value. The design names no rule; it must not be a traceback.
+- `find_project_root` compares a folder with `home` and with the filesystem root by file identity (`samefile` or resolved paths), so that a home folder reached through a link is still refused; the root that is returned is built from the spec path as given, with no link resolved, to match R4 step 3.
+- The four folder names of rule 2 are compared exactly as written, lower case.
+- An empty `--cfg` value: the design names no rule; it is a `UsageError` (2), never a traceback.
 
 **Traps.**
 
@@ -231,15 +226,15 @@ In R9 the spec's folder is `Lf/`, the folder of the link itself, and TLC joins t
 
 ## Done when
 
-- The three test files pass, with the F and R rows as parametrised cases; the old unit tests still pass.
+- The three test files pass, with the F and R rows as parametrised cases.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 - R10's changelog entry is under `## [Unreleased]`, Breaking.
-- The pull request shows the red run of the rewritten and new `test_project.py` cases (T12 rule 6), and names any signature it adjusted.
+- The pull request shows the red run of the `test_project_root.py` cases R10 changes (T12 rule 6), names any signature it adjusted, and names the inventory rows it covers (S1 to S5, S8, S9, S13).
 
 ## Out of scope
 
 - The preflight that calls these functions, `TlcInvocation.config_arg`, the warning for a non-ASCII path under a locale that is not UTF-8: [33](33-tlc-invocation.md).
-- Deleting `resolve_spec_file`, `resolve_cfg_file` and their old tests; the feature scenario with a decoy `out.cfg`; the changelog entries of R4 and R5: [39](39-tlc-command.md).
+- Deleting `resolve_spec_file` and `resolve_cfg_file`; the feature scenario with a decoy `out.cfg`; the changelog entries of R4 and R5: [39](39-tlc-command.md).
 - The integration test of R4 with real TLC on both builds, including the link rows: [52](52-integration-tests.md).
 - `ClasspathResolver` and what it does with the root: [30](30-module-build.md) and [33](33-tlc-invocation.md).
 - The project file as the root marker: milestone 3.

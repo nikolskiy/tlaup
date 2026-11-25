@@ -4,7 +4,7 @@ Size: M. Suggested model: mid-tier. Status: ready.
 
 ## Goal
 
-`tlaup module add|list|remove|dir` (D47) is a thin command group under `src/tlaup/cmd/module/` over the domain code of [30](30-module-build.md), with checked names, a build that never destroys the working one, `javac` found through `JAVA_HOME` and checked, and the exit codes of [02 X1](../design/02-cross-cutting.md#x1-exit-codes). The old `modules` group, `modules path`, the old module folder `<cache>/modules` and their tests are gone; `modules.feature` states the behaviour with the fake `javac`; the changelog says what a user sees. The old `tlaup tlc` still runs, and finds the modules registered with the new layout.
+`tlaup module add|list|remove|dir` (D47) is a thin command group under `src/tlaup/cmd/module/` over the domain code of [30](30-module-build.md), with checked names, a build that never destroys the working one, `javac` found through `JAVA_HOME` and checked, and the exit codes of [02 X1](../design/02-cross-cutting.md#x1-exit-codes). The old `modules` group, `modules path` and the old module folder `<cache>/modules` are gone (their old tests went in 03b, decision D62); `modules.feature` states the behaviour with the fake `javac`; the changelog says what a user sees. The old `tlaup tlc` still type-checks: its classpath resolver is given the registry's folders.
 
 ## Covers
 
@@ -22,17 +22,17 @@ Size: M. Suggested model: mid-tier. Status: ready.
   - [13 M3](../design/13-modules-and-java.md#m3-module-build-details): the feature scenarios (the logged `javac` command, `javac 1.8.0_202` gives 3, `javac 25.0.5` compiles) and the changelog.
   - [14 F2](../design/14-config-and-cli.md#f2-folder-overrides): `module dir` prints the folder in effect.
   - [14 F8](../design/14-config-and-cli.md#f8-wording), one row: module build times shown in UTC, its `modules.feature` check and its changelog line, because a user first sees it here. The rest of F8 is [50](50-help-and-messages.md).
-  - [01 T11](../design/01-testing.md#t11-the-existing-tests): `cmd/test_modules.py` becomes `modules.feature`.
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): row M14 (an empty `module list`), whose owner this package is; the kept rows of "Modules" that M1 to M3 specify for the command (M1, M2, M4, M6, M9, M10, M13, M16) are held by `modules.feature`, and M5's feature form (the narrow compile classpath, D61) by the plain test below.
 
 ## Depends on
 
 - [30](30-module-build.md): `validate_module_name`, `Registry`, `RegisteredModule`, `build_module`, `BuiltModule`; the `module_dirs` parameter of `ClasspathResolver`; whatever 30 added to the fake `javac` and the fake class files.
-- [29](29-tool-commands.md): the new store in use (`tlaup tool install` writes it, so a user can have a pinned build that `module add` compiles against); the store steps of the features (`the build "<spec>" is installed and pinned`, `no build is installed`); its edit of `cmd/modules/add.py`, which this package deletes. Without 29 first, `module add` would compile against a store nobody can fill.
+- [29](29-tool-commands.md): the new store in use (`tlaup tool install` writes it, so a user can have a pinned build that `module add` compiles against); the store steps of the features (`the build "<spec>" is installed and pinned`, `no build is installed`); `_shared.py`'s `open_store` and `open_remote`. Without 29 first, `module add` would compile against a store nobody can fill.
 - [28](28-first-run.md): `ensure_tools(..., auto_install=None, may_install=False)`, which returns the pinned build or raises `NoToolsInstalled`, `NoPinnedBuild` or `PinnedBuildMissing` with their hints, asks nothing and installs nothing.
 - [20](20-java-location.md): `require_javac` (with the `javac` pattern and the remembered answer), `JavaRuntime`.
 - [19](19-layered-config.md): the setting `java.min_version`, from `ctx.settings`.
 - [16](16-ui-messages.md), [17](17-error-handler.md): `Ui` (`note`, `warning`, `result`), the root group that maps `TlaupError` to its code and one `error:` line, and `get_context()`.
-- [18](18-feature-harness.md): `tests/test_features.py`, the step modules, the in-process runner, the placeholders `{modules}`, `{tools}`, `{work}`.
+- [18](18-feature-harness.md): `tests/test_features.py`, the step modules (`javac is not installed` and `javac is version "<v>"` among them), the in-process runner, the placeholders `{modules}`, `{tools}`, `{work}`.
 - [02](02-errors-and-paths.md), [03](03-test-foundation.md): the errors, `AppPaths`, the context; the isolation fixture and the fakes.
 
 Changes from the draft (30, 17, 18): 29, 28, 20, 19 and 16 are added because the command uses them directly; 29 also because of the order of the switches (above). None changes the build order, since all are below 30 or already needed by it.
@@ -44,7 +44,7 @@ Creates:
 - `src/tlaup/cmd/module/__init__.py`: the Typer group `module` with `no_args_is_help=True`, each command registered with `app.command(...)`, never by importing a module for its side effect ([23 C1](../design/23-command-layout.md#c1-command-tree), last row).
 - `src/tlaup/cmd/module/add.py`, `list.py`, `remove.py`, `dir.py`.
 - `tests/features/modules.feature` (the name in [01 T5](../design/01-testing.md#t5-feature-files-and-steps)'s layout).
-- `tests/unit/cmd/test_module_command.py`, only for the case named under Tests that the steps cannot express.
+- `tests/unit/cmd/test_module_command.py`: the plain pytest case named under Tests, for the `-d` and `-cp` facts the steps cannot express.
 - In `tests/steps/`: the steps of the list under Tests that [18](18-feature-harness.md) did not write.
 - Module sources for the scenarios, if [03](03-test-foundation.md) and [30](30-module-build.md) did not leave them: folders under `tests/fakes/` (for example `tests/fakes/module-src/Queue/`, `TlaOnly/`, `NoIndex/`) holding `modules/*.tla` and `modules/tlc2/overrides/*.java`, whose prepared class files the fake `javac` copies.
 
@@ -53,19 +53,18 @@ Changes:
 - `src/tlaup/cli.py`: the line that registers `modules` becomes the line that registers `module` from `tlaup.cmd.module`. One line; every switch package edits one, and [48](48-command-tree.md) rewrites the block.
 - `src/tlaup/java/classpath.py`: `module_dirs` becomes required (keyword-only, `Sequence[Path]`, no `None`); the walk of `<cache>/modules` in `_resolve_paths` and `resolve`, and the import of `get_modules_dir`, are deleted; `ResolveMode.COMPILE` and its branch are deleted (the old `cmd/modules/add.py` was its last caller). `ResolveMode` keeps its one member and `resolve` its parameter, so no call line changes. If [33](33-tlc-invocation.md) is merged first, make the same three changes on its version of the file.
 - `src/tlaup/tlc/runner.py`: the one `ClasspathResolver(...)` call in the old `build_tlc_command` gets `module_dirs=[m.path for m in Registry(AppPaths.from_env(os.environ).modules).list()]`, with its imports. Nothing else in the old runner changes. See "The old `tlaup tlc` after this package" under Context.
+- `src/tlaup/cmd/tlc.py`: the `ClasspathResolver(...)` call in `_show_diagnostic_info` (line 57 today) gets the same `module_dirs=` argument, or, since nothing calls that function (the inventory lists it as not user-observable), the function is deleted with the imports only it used; the worker's choice, said in the pull request. Without one of the two, mypy strict fails once `module_dirs` is required (finding B2). Nothing else in the file changes.
 - `src/tlaup/versioning/paths.py`: delete `get_modules_dir`. What is left (`get_run_dir`, `get_tlc_run_dir`) is [39](39-tlc-command.md)'s.
-- `tests/unit/java/test_classpath.py`: delete `test_cached_modules_resolved` (it replaces `get_modules_dir` by name and tests the walk; 30's `module_dirs` test covers the order) and the assertions of `test_resolve_compile_order`. If [33](33-tlc-invocation.md) has already merged the classpath tests into this file, make the same deletions there.
+- `tests/unit/java/test_classpath.py` ([30](30-module-build.md)'s new file): nothing, as long as its cases pass `module_dirs` and use `ResolveMode.RUNTIME`, as 30 writes them; a case that does not is given the folders. The old file of that name, and its `test_cached_modules_resolved` and `test_resolve_compile_order`, went in 03b.
 - `README.md`: the section "Custom Java Modules (`tlaup modules`)" names `tlaup module add|list|remove|dir`.
 - `CHANGELOG.md`: the entries under Changelog.
 
 Deletes:
 
-- `src/tlaup/cmd/modules/` (`__init__.py`, `add.py`, `list.py`, `remove.py`, `path.py`): the old group and `modules path` with it.
-- `tests/unit/cmd/test_modules.py` ([01 T11](../design/01-testing.md#t11-the-existing-tests): it becomes `modules.feature`).
-- `tests/integration/conftest.py`, `test_tlc_integration.py`, `test_community_modules.py`, `test_naming.py`: the conftest imports `find_override_classes` from `tlaup.cmd.modules.add` and the tests drive `tlaup modules add` with replaced functions, so they cannot even be collected after this package. They are outside the default run and no CI job runs them today; [01 T11](../design/01-testing.md#t11-the-existing-tests) has them rewritten as T9 by [52](52-integration-tests.md), and [39](39-tlc-command.md)'s line "if still there" then finds them gone. `tests/fixtures/naming_fixed` and `naming_dynamic` stay for 52 ([01 T3](../design/01-testing.md#t3-golden-files)).
+- `src/tlaup/cmd/modules/` (`__init__.py`, `add.py`, `list.py`, `remove.py`, `path.py`): the old group and `modules path` with it. Its old tests, `tests/unit/cmd/test_modules.py` and the old `tests/integration/` files that drove `modules add`, went in 03b (decision D62).
 - `src/tlaup/tlc/compiler.py` only if [39](39-tlc-command.md) is already merged and nothing else imports it. It cannot be, since 39 depends on this package: after this package its callers are `cmd/tlc.py` and `tlc/runner.py`, and 39 deletes it with them.
 
-Does not touch: `src/tlaup/cmd/tlc.py`, `src/tlaup/tlc/run_cache.py` (its `clear_tlc_run_cache` loses the module commands as callers and keeps `tlc --cleanup` until 39), `src/tlaup/modules/` beyond what a fault found here needs (see Done when).
+Does not touch: `src/tlaup/cmd/tlc.py` beyond the one call above, `src/tlaup/tlc/run_cache.py` (its `clear_tlc_run_cache` loses the module commands as callers and keeps `tlc --cleanup` until 39), `src/tlaup/modules/` beyond what a fault found here needs (see Done when).
 
 Files that packages of the same period also touch: `cli.py` (one registration line each for 29, 39, 44 to 47; 48 rewrites the block), `CHANGELOG.md`, `README.md` (29 and 39 change their own lines), `tests/steps/given.py` and `then.py` (29, 39, 44, 45 add their own functions), `src/tlaup/java/classpath.py` and `tests/unit/java/test_classpath.py` (30 before, 33 in either order; the edits are in different lines), `src/tlaup/tlc/runner.py` (19, 29 and 32 edited other lines before; 39 deletes it), `src/tlaup/versioning/paths.py` (29 before, 39 after), `src/tlaup/modules/build.py` ([34](34-override-check.md) adds its few lines in either order). Each conflict is a few lines.
 
@@ -102,7 +101,7 @@ for text in built.warnings:
 
 Errors a user can meet, all through the handler of 17 as one `error:` line and the code: a name the rule refuses, `InvalidName` (2) with the hint to rename the folder; `PATH` not a folder, `PathNotFound` (4); no build installed, `NoToolsInstalled` (3); builds and no pin, `NoPinnedBuild` (3); the pin names a missing build, `PinnedBuildMissing` (3); no `javac`, `JavacNotFound` (3); a `javac` older than `java.min_version`, `JavaTooOld` naming `javac` and its path (3); a compile error, `ModuleBuildError` (5) whose details (printed after the message) are the compiler's output and the classpath; the timeout, `ModuleBuildError` (5); the modules lock held too long, `StoreLocked` (5).
 
-**`module list`.** On stdout, through `ui.result`, one row per registered module from `Registry.list()`: its name and its build time written as `2026-11-15 10:00 UTC` (F8). With no module registered, nothing on stdout and exit 0 (stage 4's reading: an empty result is an empty result; a note on stderr may say so). The column titles and any further column are the worker's; the help and wording pass of [50](50-help-and-messages.md) may change them.
+**`module list`.** On stdout, through `ui.result`, one row per registered module from `Registry.list()`, in its name order: its name and its build time written as `2026-11-15 10:00 UTC` (F8). With no module registered, stdout is empty, so a script reads no rows, stderr holds one note, `no modules are registered` (through `ui.note`; required, not optional), and the exit is 0 ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder); inventory row M14, owner this package). The column titles and any further column are the worker's; the help and wording pass of [50](50-help-and-messages.md) may change them.
 
 **`module remove NAME`.** `registry.remove(NAME)`, then `ui.note("Removed module NAME")`. `InvalidName` (2) before the disk is touched; `ModuleNotFound` (4) with the hint `tlaup module list`; `FileOperationError` (5). It no longer clears run folders ([11 R6](../design/11-runner.md#r6-run-folders)).
 
@@ -122,7 +121,7 @@ M1:
 
 M2:
 
-- First add: with `v1.7.4` installed and pinned and `a module source "Queue" from the fake sources`, `tlaup module add Queue` exits 0; `the registered modules are:` a table holding `Queue`; stderr contains `Added module Queue`; `javac was started with "-encoding"`, `"UTF-8"`, `"--release"`, `"11"`. The two remaining facts of M2's scenario, that the folder after `-d` is under `{modules}/.tmp/` and that the build's jar is on the `-cp` classpath, need a step that matches part of an argument; see below.
+- First add: with `v1.7.4` installed and pinned and `a module source "Queue" from the fake sources`, `tlaup module add Queue` exits 0; `the registered modules are:` a table holding `Queue`; stderr contains `Added module Queue`; `javac was started with "-encoding"`, `"UTF-8"`, `"--release"`, `"11"`. The remaining facts of M2's scenario (the folder after `-d` under `{modules}/.tmp/`, and the exact `-cp` value) are asserted in the plain test below, since the values hold a random name and a build id.
 - A failing second add: after a first add, `javac fails with "syntax-error"`, a second `tlaup module add Queue` exits 5; stderr contains a line of the recording and `tla2tools.jar` (the classpath is shown); `the file "{modules}/Queue/classes/tlc2/overrides/QueueOverrides.class" exists`.
 - A successful second add: stderr contains `Replaced module Queue`, and the registered modules are still one `Queue`.
 - No `javac`: with a build pinned, `javac is not installed`, `module add Queue` exits 3, stderr contains `javac`, and nothing is registered.
@@ -137,7 +136,7 @@ M3:
 
 C1 and F8:
 
-- `tlaup module list` with `Queue` registered: exits 0; stdout contains `Queue` and `UTC`. With nothing registered: exits 0 and stdout is empty.
+- `tlaup module list` with `Queue` registered: exits 0; stdout contains `Queue` and `UTC`. With nothing registered: exits 0, stdout is empty, and stderr contains `no modules are registered` (row M14).
 - `tlaup module dir`: exits 0 and stdout is exactly `{modules}`.
 - `tlaup module` with nothing after it: help on stdout, exit 2 ([02 X1](../design/02-cross-cutting.md#x1-exit-codes), rule 7).
 
@@ -145,36 +144,36 @@ R7, only if [34](34-override-check.md) is merged when this package starts: with 
 
 **Steps.** The ones these scenarios use, from [01 T5](../design/01-testing.md#t5-feature-files-and-steps)'s list; write those [18](18-feature-harness.md) did not: `the module "<name>" is registered`; `a module source "<name>" from the fake sources` (copies the folder into `{work}`); `javac is not installed`; `javac fails with "<recording>"`; `the registered modules are:` (a table of names, read through `Registry.list()`); and the shared fake steps (`<tool> was started with`, `was not started`, `was started <n> time(s)`), if missing. `the module "<name>" is registered` is best done through `build_module` itself, with the fake `javac` and the scenario's build, so the files are what a real add leaves.
 
-Two needs the vocabulary does not meet, each with its reason for the pull request (T5: a new step needs one):
+`javac is version "<v>"` is in T5's list now and is 18's (M3's scenarios use it). One need the vocabulary does not meet: an argument that starts with or contains a text. So `tests/unit/cmd/test_module_command.py`, plain pytest, runs `tlaup module add` in-process through the app and reads the fake `javac`'s log (one case, no new step):
 
-- **`javac is version "<v>"`**, the `javac` twin of `java is version "<v>"`: M3's scenarios cite it (`javac 1.8.0_202` gives 3), and T5's list has no step for it. It sets the fake `javac`'s answer to `-version`.
-- **An argument that starts with or contains a text.** M2's scenario asserts that `-d` names a folder under `.tmp/` and that the build's jar is on the classpath; both values hold a random name or the build's id, so `was started with "<argument>"`, which names a whole argument, cannot say it. Either add one step, for example `javac was started with an argument after "-d" under "{modules}/.tmp/"`, or put the two facts in `tests/unit/cmd/test_module_command.py`, a plain pytest test that runs `tlaup module add` in-process and reads the fake's log. Stage 4 recommends the plain test: one case, no new step.
+- With `v1.7.4` installed and pinned, another module registered, `module_lib_path` set to a folder holding a jar (through `TLAUP_MODULE_LIB_PATH`), and a source `Queue` whose `lib/` holds `b.jar` and `a.jar`: the argument after `-d` is under `{modules}/.tmp/`, and the `-cp` value is exactly the pinned build's jar (`store.pinned().jar`), then the temporary copy's `lib/a.jar`, then `lib/b.jar`, joined with `os.pathsep`: nothing of the other module and nothing of `module_lib_path` (decision D61; M2's Tests; inventory row M5, its command form).
 
-What the fake `javac` must do for these scenarios, beyond T4: answer `-version` with `javac <version>` on stdout (the coordinator has asked [03](03-test-foundation.md) for it; the version comes from the script, default `25.0.5`); copy the prepared class files for each source; print a recording and exit 1; and, for 30's timeout test, wait. [30](30-module-build.md)'s Context lists the four; this package only uses what 30 or 03 built.
+What the fake `javac` must do for these scenarios: answer `-version` with `javac <version>` on stdout ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges), built by 03); copy the prepared class files for each source; print a recording and exit 1; and, for 30's timeout test, wait. [30](30-module-build.md)'s Context lists the four; this package only uses what 30 or 03 built.
 
-Old tests: `tests/unit/cmd/test_modules.py` is deleted; its eight tests are replaced by the scenarios above (the `modules path` tests by nothing, since the command goes). `tests/unit/java/test_classpath.py` loses the two tests named under Files. The old `tlc` tests that build a classpath (`tests/unit/spec/test_classpath.py`, `tests/unit/test_tlc_modules_path.py`, if [33](33-tlc-invocation.md) has not deleted them) must pass with the old runner reading the registry; run them. No stateful test applies.
+Old tests: none left (03b). The pull request names the inventory rows it covers (M14, M5's command form, and the rows `modules.feature` holds). No stateful test applies.
 
 ## Changelog
 
 The entries of M1, M2 and M3, word for word, and the C1 and F8 lines of this group:
 
-- Fixed (M1): "`tlaup module remove ../tools` deleted the tools folder. Module names are now checked."
+- Fixed (M1): "`tlaup modules remove ../tools` deleted the tools folder. Module names are now checked." (the old command's spelling, as M1 now writes it)
 - Breaking (M1): "A module name must start with a letter or digit and hold only letters, digits, `.`, `_` and `-`, at most 64 characters. `module add` refuses a folder whose name does not fit (for example one with a space); rename the folder."
 - Breaking (M2): "Modules are stored in the cache's `module` folder (was `modules`), each with a `module.json`. Modules added by earlier versions are not found: run `tlaup module add` again. The old `modules` folder can be deleted."
+- Breaking (M2, decision D61; finding B8): "`module add` compiles a module's Java sources against the TLA+ tools jar and the module's own `lib/*.jar` only. Other registered modules and the jars of `module_lib_path` are no longer on the compile classpath (they still take part in runs); a module that needs a jar to compile puts a copy in its own `lib/`."
 - Fixed (M2): "A compile error in `tlaup module add` deleted the module's previous, working build."
 - Changed (M2): "`module add` says when it replaced a module of the same name; it no longer copies a `test` folder."
 - Fixed (M3): "`module add` could misread which classes provide overrides when a source file had `//` inside a string."
 - Breaking (M3): "Override classes are compiled with `-encoding UTF-8 --release 11`. A module whose sources use language features or library classes newer than Java 11 no longer compiles; set `java.min_version` higher to raise the release. `javac` must be version 11 or newer."
 - Removed (C1): "`tlaup modules path` is removed; `tlaup tlc SPEC --show-command` shows the classpath in use and `tlaup module dir` the folder."
-- Changed (F8): "`module list` shows build times in UTC."
+- Changed (F8): "`module list` shows build times in UTC." (written here, where the user first sees it, and not by 50; finding B15)
 
 Not here: C1's rename line ("`tlaup tools` and `tlaup modules` are now `tlaup tool` and `tlaup module`; every subcommand keeps its name."), which [29](29-tool-commands.md) wrote for both groups; J2's line, which [39](39-tlc-command.md) writes for `java` and `javac` together ([20](20-java-location.md)); R6's Fixed line, which names `module add` and `remove` deleting run data and is 39's; R7's Added line, which [34](34-override-check.md) or 39 writes; F7's help text and the rest of F8, which are [50](50-help-and-messages.md)'s. If 50 is cut to write the whole F8 Changed entry, it finds this line there.
 
 ## Context for the worker
 
-**State of `main` when this starts.** 29 is merged: `tlaup tool` writes the new store (`<cache>/tool/`), and `tlc/compiler.py`'s `get_tlc_jar_path` reads the pinned jar from it. 30 is merged: `tlaup/modules/` exists and `ClasspathResolver` takes `module_dirs`, with `None` meaning the old walk. The old `tlaup modules add|list|remove|path` (`cmd/modules/`) still copies into `<cache>/modules/<name>/` with a `metadata.json`, imports `tlc/compiler.py`, `tlc/run_cache.py`, `versioning/paths.get_modules_dir` and `java/classpath.ResolveMode.COMPILE`, and runs a bare `javac`. The old `tlaup tlc` (`cmd/tlc.py`, `tlc/runner.py`) builds its classpath with `ClasspathResolver(config, project_root=..., tool_jar=...)`, which walks `<cache>/modules`. [33](33-tlc-invocation.md) and [34](34-override-check.md) may or may not be merged.
+**State of `main` when this starts.** 29 is merged: `tlaup tool` writes the new store (`<cache>/tool/`), and `tlc/compiler.py`'s `get_tlc_jar_path` reads the pinned jar from it. No old test is left (03b). 30 is merged: `tlaup/modules/` exists and `ClasspathResolver` takes `module_dirs`, with `None` meaning the old walk. The old `tlaup modules add|list|remove|path` (`cmd/modules/`) still copies into `<cache>/modules/<name>/` with a `metadata.json`, imports `tlc/compiler.py`, `tlc/run_cache.py`, `versioning/paths.get_modules_dir` and `java/classpath.ResolveMode.COMPILE`, and runs a bare `javac`. The old `tlaup tlc` (`cmd/tlc.py`, `tlc/runner.py`) builds its classpath with `ClasspathResolver(config, project_root=..., tool_jar=...)`, which walks `<cache>/modules`. [33](33-tlc-invocation.md) and [34](34-override-check.md) may or may not be merged.
 
-**The old `tlaup tlc` after this package.** The module layout changes (D14: no migration), so the old runner must read the new one until [39](39-tlc-command.md) replaces it. It can, with one edit, because the new layout keeps the three subfolders the resolver reads:
+**The old `tlaup tlc` after this package.** Nothing promises that the old `tlc` keeps working until [39](39-tlc-command.md) replaces it (decision D62; no CI job runs real TLC through it), but `module_dirs` becomes required, so its resolver calls need an argument for `main` to type-check. The registry's folders are the argument that costs nothing, and with them the old runner reads the new layout, because the new layout keeps the three subfolders the resolver reads:
 
 | The old runner reads | Before this package | After it |
 | --- | --- | --- |
@@ -184,7 +183,7 @@ Not here: C1's rename line ("`tlaup tools` and `tlaup modules` are now `tlaup to
 | Each module's TLA+ modules, on the classpath and in `-DTLA-Library` | `<module>/modules` | the same |
 | The override classes (`get_override_classes`) | `classes/META-INF/services/tlc2.overrides.ITLCOverrides` of each classpath folder | the same file, now written only when an override class exists (M3) |
 
-So the smallest edit is the one line in `tlc/runner.py` under Files: the resolver is given the registry's folders. `AppPaths.from_env(os.environ)` is used because the old code has no context to read, as 29 did in `compiler.py`; it is the same folder the context gives. The old `tlc` therefore runs modules added with `tlaup module add`, and never sees what an earlier release left in `<cache>/modules`, which is what M2's Breaking entry tells users. One difference the old runner shows, and accepts: a module with Java sources but no override class now has no service file, so the old runner passes no property for it where it used to pass the configured default class name. That is M3's fix. No other line of the old runner changes; in particular its `tlc --cleanup` and `get_tlc_version` stay for 39.
+So the edit is the one line in `tlc/runner.py` under Files (and the call in `cmd/tlc.py`): the resolver is given the registry's folders. `AppPaths.from_env(os.environ)` is used because the old code has no context to read, as 29 did in `compiler.py`; it is the same folder the context gives. The old `tlc` therefore runs modules added with `tlaup module add`, and never sees what an earlier release left in `<cache>/modules`, which is what M2's Breaking entry tells users. One difference the old runner shows, and accepts: a module with Java sources but no override class now has no service file, so the old runner passes no property for it where it used to pass the configured default class name. That is M3's fix. No other line of the old runner changes; in particular its `tlc --cleanup` and `get_tlc_version` stay for 39.
 
 **What the old `tlc` keeps importing.** After this package `tlc/compiler.py` is imported by `cmd/tlc.py` and `tlc/runner.py` only, and `tlc/run_cache.py` by `cmd/tlc.py` (`--cleanup`) and the old runner. [39](39-tlc-command.md) deletes both; that is why 39 depends on this package: the old `cmd/modules` would otherwise still import them.
 
@@ -208,18 +207,17 @@ So the smallest edit is the one line in `tlc/runner.py` under Files: the resolve
 - *`module list` never fails on a damaged folder*: `Registry.list()` skips what it cannot read. Showing such folders is [46](46-doctor.md)'s.
 - *`module dir` reads no setting*, so it works with a broken config file and does not import the settings schema ([14 F9](../design/14-config-and-cli.md#f9-startup-cost)).
 - *The help text.* Give each command a one-line help now; the long description of the layout `module add` expects (`modules/*.tla`, `modules/tlc2/overrides/*.java` or `tlc2/overrides/*.java`, `lib/*.jar`; the folder's name becomes the module's name; a module of that name is replaced) and the examples epilog are [14 F7](../design/14-config-and-cli.md#f7-help-text)'s, package 50. Writing the long description here already is welcome; 50 then reviews it.
-- *The integration tests go.* The old `tests/integration/` cannot be imported after `cmd/modules/` is deleted. They are not in the default run, so `uv run poe test` would not notice; delete them as listed and say so in the pull request.
 
 **Known gaps the design leaves; do not close them.** Per-project modules and community modules (milestone 3). `--json` for `module list` (milestone 4). `javac`'s warnings on success are shown only with `--verbose` (milestone 4), so nothing shows them now. The R7 check at `module add` time needs a pinned build and is skipped for a module with no Java sources.
 
 ## Done when
 
-- `modules.feature` and, if written, `tests/unit/cmd/test_module_command.py` pass; the old `tlc` tests that remain pass with the registry-reading runner.
+- `modules.feature` and `tests/unit/cmd/test_module_command.py` pass.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 - Nothing under `src/` imports `tlaup.cmd.modules` or `get_modules_dir`; `ResolveMode.COMPILE` is gone; `tlaup modules` is an unknown command (exit 2, Typer's own message).
 - The changelog entries above are written once; `README.md` names the `module` commands.
 - A fault in `tlaup/modules/` that the scenarios find is fixed in that module in this pull request if it is small, and the pull request says so.
-- The pull request says which steps it added (with the reason for `javac is version`), how the `-d` and `-cp` facts are asserted, and that the old integration tests were deleted.
+- The pull request says which steps it added and names the inventory rows it covers.
 
 ## Out of scope
 
@@ -238,5 +236,5 @@ So the smallest edit is the one line in `tlc/runner.py` under Files: the resolve
 - From M2: a tlaup killed between the two moves leaves the name unregistered for a day; adding the module again fixes it.
 - From M3: sources that need a Java newer than 11 no longer compile; the changelog names the setting that raises the release.
 - From C1: this is part of the release's second large user-visible change; it lands once, in 0.9.0 (D6).
-- From the cut: between this package and [39](39-tlc-command.md), the old `tlaup tlc` builds its module classpath from the new registry through one edited line. If a module registered here does not load under the old `tlc`, the cause is in that line or in the shared subfolder names, not in the build.
-- From the cut: the old integration tests are deleted before [52](52-integration-tests.md) writes new ones. They were outside every CI job, so no running check is lost, but until 52 nothing runs a real `javac`.
+- From D61: a module that compiled against another registered module or a jar of `module_lib_path` no longer compiles; the Breaking entry says to copy the jar into the module's own `lib/`.
+- From the cut: between this package and [39](39-tlc-command.md), the old `tlaup tlc` builds its module classpath from the new registry through one edited line, untested (D62; [01 T11](../design/01-testing.md#t11-the-existing-tests), Risks). Until [52](52-integration-tests.md) nothing runs a real `javac`.

@@ -1,6 +1,6 @@
 # 09. The tlaup_parse package and its result model
 
-Size: M. Suggested model: most capable. Status: ready, except the word and meaning table of `describe_exit_status`, which waits on question (exit status words) of the index.
+Size: M. Suggested model: most capable. Status: ready.
 
 ## Goal
 
@@ -14,7 +14,7 @@ A second import package, `src/tlaup_parse/`, exists beside `tlaup`, ships in the
 - Design sections:
   - [10 P2](../design/10-parser.md#p2-the-tlaup_parse-package): the package itself, its rules, `pyproject.toml`, the import-isolation test, `ExitStatus`. The modules `framing.py`, `codes.py`, `tlc.py`, `sany.py` and `pcal.py` of P2's table are packages 10, 12, 13 and 14; `values.py` is started here (the `Value` type) and finished in 11.
   - [10 P3](../design/10-parser.md#p3-result-model): every type and every event. How `status` and `verdict` are *set* is the parser's work, package 13; this package defines the types and their defaults.
-  - [02 X1](../design/02-cross-cutting.md#x1-exit-codes): only the paragraph "The meaning of a code" (`describe_exit_status`). The exit-code scheme of tlaup itself is packages 02 and 17.
+  - [02 X1](../design/02-cross-cutting.md#x1-exit-codes): only the paragraph "The meaning of a code" and its table of codes, words and meanings (question Q4, decision D63). The exit-code scheme of tlaup itself is packages 02 and 17.
 
 ## Depends on
 
@@ -145,32 +145,15 @@ Event = (VersionSeen | ModeSeen | PhaseChanged | ProgressMade | OutputLine | Dia
 @dataclass(frozen=True)
 class ExitStatus:
     code: int
-    word: str        # the manifest's word for the code
-    meaning: str     # one sentence
-    known: bool      # False for a code TLC does not document; word is then "failure" (or "success" for 0)
+    word: str        # X1's word for the code; "failure" = TLC checked and found something wrong,
+                     # "error" = TLC could not check (D63); milestone 4's JSON carries it
+    meaning: str     # X1's sentence for the code; the result line of 22 O3 prints it beside the verdict
+    known: bool      # False for a code X1's table does not hold
 
 def describe_exit_status(code: int) -> ExitStatus
 ```
 
-What the design fixes: for 0 and 10 to 13 the word is the tlaplus/Examples manifest's (`success`, `assumption failure`, `deadlock failure`, `safety failure`, `liveness failure`); the meaning of 12 is "an invariant was violated" (the result line of 22 O3); a code TLC does not document has `known = False` and the word `failure`. TLC's own table, restated from the research so the worker need not open it (`tlc2.output.EC.ExitStatus`, the same constants in both supported builds):
-
-| Code | Upstream constant | When the captures show it |
-| --- | --- | --- |
-| 0 | `SUCCESS` | |
-| 10 | `VIOLATION_ASSUMPTION` | A false `ASSUME`; on rolling also a false or failing `POSTCONDITION`. |
-| 11 | `VIOLATION_DEADLOCK` | |
-| 12 | `VIOLATION_SAFETY` | An invariant. |
-| 13 | `VIOLATION_LIVENESS` | A temporal property, and an action property. |
-| 14 | `VIOLATION_ASSERT` | A failed `Assert`. |
-| 75 | `FAILURE_SPEC_EVAL` | An evaluation error while computing initial states; out of memory. |
-| 76, 77 | `FAILURE_SAFETY_EVAL`, `FAILURE_LIVENESS_EVAL` | Not produced by any run. |
-| 150 | `ERROR_SPEC_PARSE` | A spec SANY refuses. |
-| 151 | `ERROR_CONFIG_PARSE` | A cfg error (rolling; v1.7.4 returns 255 for most of them). |
-| 152, 153 | `ERROR_STATESPACE_TOO_LARGE`, `ERROR_SYSTEM` | Defined, never returned by the function that maps errors to codes. |
-| 255 | `ERROR` | Anything unclassified, for example an evaluation error inside `Next`. |
-| 1 | none | TLC rejecting its own command line; the JVM itself also returns 1. |
-
-**What waits on question (exit status words):** the `word` and `meaning` of every code other than the ones fixed above (14, 75 to 77, 150 to 153, 255, 1), the `meaning` sentences of 0, 10, 11 and 13, the `meaning` of an undocumented code, and whether 1, 152 and 153 count as `known`. P2 says X1 "holds the table of codes and words it returns"; X1 holds only the five manifest words. The words go into the JSON result of milestone 4, so they are not the worker's to invent. Build everything else; write the table when the index carries the answer.
+The table is X1's, "The meaning of a code", settled with the maintainer (question Q4, decision D63): one row per code 0, 1, 10 to 14, 75 to 77, 150 to 153 and 255, each with its word, its meaning and `known` true, the words and meanings copied exactly as X1 writes them (75, 76 and 77 share the word `evaluation failure` and differ in the meaning; 1 is `usage error` and its meaning says the JVM also returns 1; 152 and 153 carry upstream's names). Any other integer gives `known = False`, the word `error` and the meaning `TLC returned a code it does not document.`: nobody can say of an undocumented code that something was checked and found wrong (X1, settled 2026-11-24). Write the table as data in `exit_status.py`, one entry per row; the function looks the code up and never raises. The postcondition wording of 10 is the terminal reporter's (22 O3), not a second row here.
 
 Consumes: nothing from another package.
 
@@ -187,9 +170,9 @@ Plain pytest in `tests/parse/`. No golden file is read by this package.
   - `TlcMessage.lines`, `nested` and `text_lines()` on messages built in the test from abstract lines (`"a"`, `"b"`): order kept; a nested message's `before` in front of its first line and `after` behind its last; nesting two deep. These use made-up lines on purpose and no marker text: real output is tested in package 10 against the captures (T12 rule 3).
   - Defaults of `RunResult()` as listed under Interfaces.
   - The union `Event` has exactly the twenty members above (a test over `typing.get_args(Event)`), so a member added later without a reporter case is noticed here as well as by mypy.
-- `test_exit_status.py` (P2 says X1 holds "the test over that table"; X1's Tests paragraph has none, so this is stage 4's wording of it): the words of 0 and 10 to 13 are the manifest's; every documented code has a non-empty word and meaning and `known = True`; an undocumented code (for example 3, 99, 130) has `known = False` and the word `failure`; `code` is returned unchanged; the function never raises for any integer. The cases for the waiting part of the table are added with it.
+- `test_exit_status.py` ([10 P2](../design/10-parser.md#p2-the-tlaup_parse-package)'s test, which X1 points to): parametrised over every row of X1's table, copied once into the test, each code returns that row's word and meaning with `known` true; codes the table does not hold (3, 99, 130, -1) give `known` false, the word `error` and the meaning above; `code` is returned unchanged; the function never raises for any integer. A change to the table or to the test without the other makes it fail.
 
-Old tests: none deleted or changed. `tests/unit/tlc/test_parser.py`, `test_sany.py` and `test_values.py` test the old modules, which stay; they are deleted by package 39 with those modules ([01 T11](../design/01-testing.md#t11-the-existing-tests): a test file goes in the pull request that removes what it tests).
+Old tests: none are left (03b). Preserved-behaviour rows: none is this package's.
 
 `pending` markers: this package removes none. Every fact of `tests/parse/facts.py` is an assertion on a parsed result, and no parser exists yet.
 
@@ -201,7 +184,7 @@ None in this package. P2's entry ("Changed: The TLC output parser is now the imp
 
 - **State of `main`.** The old parser stack (`src/tlaup/tlc/parser.py`, `codes.py`, `models.py`, `values.py`, `sany.py`) is in use by `tlc/runner.py`, `tlc/formatter.py`, `tlc/components.py` and `cmd/tlc.py` and stays untouched. Nothing in `tlaup` may import `tlaup_parse` before packages 36 to 39.
 - **Carried over from `tlc/models.py`: nothing by name.** The new model is written from P3. What goes: `ModelCheckResult`, `CheckState`, `CheckStatus`, `InitialStateStatItem` (it held progress; now `Progress`), `MessageLine`, `TlaValue` (now `Value`), `ErrorTraceItem` (now `TraceState`), `ErrorInfo` and `WarningInfo` (now `TlcError` and `TlcMessage`), every `file_path`, `trace_file_path`, `process_info`, `workers_count`, and timestamps as `datetime` (P3 keeps TLC's text: it prints local time with no zone).
-- **Decisions.** D7 and D39: its own import package in the same wheel, named `tlaup_parse`, so the later split into its own project renames nothing. D8: reporters never parse, so the result must carry everything a reporter needs. D9: nothing is lost, which is why every message event carries its message. D54: the result has a verdict from TLC's messages beside the exit code. D14: no alias for the old module names.
+- **Decisions.** D7 and D39: its own import package in the same wheel, named `tlaup_parse`, so the later split into its own project renames nothing. D8: reporters never parse, so the result must carry everything a reporter needs. D9: nothing is lost, which is why every message event carries its message. D54: the result has a verdict from TLC's messages beside the exit code. D14: no alias for the old module names. D63: the words of the exit-code table ("failure" when TLC checked and found something wrong, "error" when it could not check); they become milestone 4's JSON, so they are copied, never reworded.
 - **The rules of the package** (P2): standard library only; no import of `tlaup`, `rich`, `typer`, `pydantic`; no file, network, clock or environment access; plain dataclasses. They hold for every later package of the track; the isolation test is the mechanical half, review the other.
 - **`Unframed`** is the framer's type (package 10). Do not name anything `Text`: the reporters use Rich's `Text` (P2).
 - **Names are the future JSON schema** (P3, Risks). A worker may adjust a signature under the usual rule, but a renamed field here renames a key of milestone 4's JSON; say every such change in the pull request.
@@ -213,8 +196,8 @@ None in this package. P2's entry ("Changed: The TLC output parser is now the imp
 
 - The three test files pass; `uv run poe lint` (ruff, bandit over both packages, mypy strict) and `uv run poe test` pass; CI is green.
 - The tests were committed before the code and the pull request shows their red run (T12 rule 6).
-- `uv build` was run once by hand and the wheel lists `tlaup_parse/py.typed` and `tlaup_parse/model.py`; the pull request says so. The standing check is [30 I4](../design/30-ci-and-release.md#i4-build-check), package 54.
-- The exit-status table is complete, or the pull request says which rows wait on the question and the index still shows the question open.
+- `uv build` was run once by hand and the wheel lists `tlaup_parse/py.typed` and `tlaup_parse/model.py`; the pull request says so. The standing check is [30 I4](../design/30-ci-and-release.md#i4-build-check), package 53.
+- The exit-status table holds every row of X1's table, word for word.
 - `docs/contributing/development.md` names the new package. No changelog entry.
 
 ## Out of scope
@@ -223,7 +206,7 @@ None in this package. P2's entry ("Changed: The TLC output parser is now the imp
 - `parse_value`: [11](11-values.md). `SanyParser` and its types: [12](12-sany-parser.md). `TlcParser`, and with it how `status`, `verdict`, `resumed` and every other field is filled: [13](13-tlc-parser.md). `PcalParser` and `PcalResult`: 14.
 - The round trip `from_dict(to_dict(r)) == r` over every golden result: [13](13-tlc-parser.md), in `test_golden.py`. The expected JSON files: 15.
 - The result line that prints `describe_exit_status` ([22 O3](../design/22-reporters.md#o3-terminal-reporter)): 38. The warning when TLC's code and the verdict disagree, and its unit test (P3, Tests): `print_run_notes` in `cmd/tlc.py`, package 39.
-- The build check that the wheel holds `tlaup_parse/py.typed`: 54.
+- The build check that the wheel holds `tlaup_parse/py.typed`: 53.
 - Deleting the old modules and writing the changelog entry: 39.
 
 ## Risks

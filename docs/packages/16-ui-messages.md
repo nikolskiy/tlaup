@@ -89,7 +89,7 @@ Plain pytest in `tests/unit/test_ui.py`, every `Ui` built on `io.StringIO` strea
 
 The real-pty scenario of F6 (`tool uninstall rolling` with two builds asks on a pty, and with stderr redirected to a file does not ask) needs the new `tool uninstall`; it is [29](29-tool-commands.md)'s. "Feature assertions on stream and content throughout" is every command package's.
 
-Old tests: none deleted or rewritten. The old tests that assert on today's message text (for example `tests/unit/spec/test_resolution_scenarios.py` and `"Error: Could not find a TLA+ spec file"`) keep passing because the old functions are untouched.
+Old tests: none. The old suite was deleted in 03b ([03](03-test-foundation.md), [01 T11](../design/01-testing.md#t11-the-existing-tests), decision D62). No row of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) names this package as its owner; P6 (the symbols) is changed on purpose by F6, and its entries are written where the user first sees them (Changelog).
 
 No stateful test applies.
 
@@ -98,15 +98,15 @@ No stateful test applies.
 None in this package. F6's entries describe what a user sees once the commands print through `Ui`, which happens command group by command group:
 
 - "A warning from `tool list` went to stdout." (Fixed): [29](29-tool-commands.md).
-- "Messages have the form `error: ...`, `warning: ...`, `hint: ...` on stderr, without symbols." (Changed) and "`NO_COLOR` is honoured everywhere." (Fixed): [50](50-help-and-messages.md), the package after the last command is converted (proposed in the report to the index).
+- "Messages have the form `error: ...`, `warning: ...`, `hint: ...` on stderr, without symbols." (Changed) and "`NO_COLOR` is honoured everywhere." (Fixed): [50](50-help-and-messages.md), the package after the last command is converted.
 
 ## Context for the worker
 
-**What the old commands print through after this package.** Today's `ui.py` has four functions, `warn`, `error`, `info` and `success`, which print with a symbol and a capitalised word through `typer.echo` on stderr; ten modules call them, and many other places call `typer.echo` or build a `Console()` directly. **Keep the four functions exactly as they are, beside `Ui`.** Do not route them through `Ui`. Reasons:
+**What the old commands print through after this package.** Today's `ui.py` has four functions, `warn`, `error`, `info` and `success`, which print with a symbol and a capitalised word through `typer.echo` on stderr; eight modules call them, and many other places call `typer.echo` or build a `Console()` directly. **Keep the four functions exactly as they are, beside `Ui`.** Do not route them through `Ui`. Reasons:
 
-- Routing them through `Ui` changes the old commands' output before their switch (`✖ Error:` becomes `error:`), and old tests assert on today's text (`"Error: Could not find a TLA+ spec file"` in `tests/unit/spec/test_resolution_scenarios.py`, which goes with [39](39-tlc-command.md)).
+- Routing them through `Ui` is work on code that is about to go: each old command is rewritten by its switch package, and nothing promises that an old command keeps its output until then (decision D62, [00, "What every package must respect"](../design/00-overview.md#what-every-package-must-respect)). Leaving them as they are keeps this package small and its review about `Ui` alone.
 - The build-beside rule: the old commands are rewritten by their switch packages, which convert their own call sites to `ctx.ui` or to a raised error ([00](../design/00-overview.md), "What every package must respect"; the brief's cut). A switch package deletes each old function when it deletes the function's last caller. Today's callers: `versioning/paths.py`, `versioning/api.py`, `versioning/metadata.py`, `cache/github.py`, `cmd/tools/uninstall.py`, `cmd/tools/meta/sync.py` (all gone with 29), `java/inspector.py` (gone with its last user, 39 or 46), `cmd/tlc.py` (39).
-- So between this package and the last switch, `main` mixes two message forms. That is allowed: nothing is released between packages (D6).
+- So between this package and the last switch, `main` mixes two message forms. That is allowed: `main` need only be green between packages, and nothing is released in between (D6, D62).
 
 **The message format** (F6):
 
@@ -135,12 +135,12 @@ warning: config.yaml: unknown key "workspace" (ignored)
 
 **Decisions this rests on.** D30 (stdout carries the result, stderr everything else, prompts on stderr with the answer from stdin). The design agent's decision to drop the symbols (they cannot be encoded on some terminals; [README, decisions the design agent made](../design/README.md#decisions-the-design-agent-made)). D15: nothing here is platform-specific; `isatty` works on Windows.
 
-**State of `main` when this starts.** Release 0.8.x commands; `tlaup/errors.py`, `tlaup/paths.py` and `tlaup/context.py` (02); the isolation fixture and the fakes (03). No handler maps errors yet (17).
+**State of `main` when this starts.** Release 0.8.x commands; `tlaup/errors.py`, `tlaup/paths.py` and `tlaup/context.py` (02); the isolation fixture and the fakes (03), and no old test under `tests/unit/` or `tests/integration/` (03b). No handler maps errors yet (17).
 
 ## Done when
 
 - `Ui` and `_PipeConsole` exist as above; `AppContext.ui` exists; `mypy` strict passes.
-- The tests above pass; every old test passes unchanged.
+- The tests above pass.
 - The four old functions in `ui.py` are byte-for-byte unchanged.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 
@@ -148,12 +148,12 @@ warning: config.yaml: unknown key "workspace" (ignored)
 
 - Converting any old call site: the switch and command packages (29, 31, 39, 44, and 41 to 47 for new commands).
 - The error handler and how it prints an error: [17](17-error-handler.md).
-- The `print` and `Console(` lint rules: [58](58-lint-rules.md).
+- The `print` and `Console(` lint rules: [58](58-lint-rules.md) (58c).
 - `--color`, `--quiet`, `--verbose`: milestone 4.
 - The live layout's use of the consoles: [38](38-terminal-reporter.md), [40](40-live-display.md).
 
 ## Risks
 
 - From F6: scripts that matched `Error:` with a capital; the changelog entry (written by 50) covers it.
-- From the cut: two message forms live side by side until the last old command is converted. The old functions are deleted one by one with their callers; if one survives the last switch, [58](58-lint-rules.md)'s rule against `typer.echo` outside the reporters still allows it in `ui.py`, so the index should make [48](48-command-tree.md) or 58 check that no old function is left (proposed in the report).
+- From the cut: two message forms live side by side until the last old command is converted. The old functions are deleted one by one with their callers; if one survives the last switch, [58](58-lint-rules.md)'s rule against `typer.echo` outside the reporters still allows it in `ui.py`, so [48](48-command-tree.md) checks that none is left, and [50](50-help-and-messages.md) deletes any it finds.
 - Rich decides some things from the process environment whatever tlaup passes; a Rich release that reads a new variable can change the expected files. The expected files and the newest-dependencies job ([30 I3](../design/30-ci-and-release.md#i3-newest-dependencies-job)) show it.

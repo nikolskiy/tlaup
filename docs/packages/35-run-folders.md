@@ -1,6 +1,6 @@
 # 35. Run folders and their locks
 
-Size: L. Suggested model: most capable. Status: ready, except one reading marked "waiting on question (recover path that does not exist)" under Context, which changes one test of [33](33-tlc-invocation.md) and nothing here.
+Size: L. Suggested model: most capable. Status: ready.
 
 ## Goal
 
@@ -10,7 +10,7 @@ Size: L. Suggested model: most capable. Status: ready, except one reading marked
 
 - Roadmap items ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)):
   - "Stop run-cache cleanup from deleting other specs' directories: it matches by name prefix across all projects, can delete the directory of a run in progress, and `modules add` and `modules remove` wipe every run directory ..." (roadmap line 181). In part: the run folders, their locks, the sweep and the clean functions. The switch of `tlaup tlc` onto them, `--keep`, removing `--cleanup` and the old run cache are [39](39-tlc-command.md); `cache list` and `cache clean` are [45](45-cache-commands.md); `module add` and `remove` stop touching run data in [31](31-module-commands.md) and 39.
-  - "The run-cache fingerprint covers the default `.cfg` only, not a `--cfg` file or extended modules." (line 196). In part: R12 is settled by having no fingerprint here; the deletion of `compute_spec_hash`, `_cleanup_stale_spec_dirs`, `get_spec_run_dir` and their three tests is 39's.
+  - "The run-cache fingerprint covers the default `.cfg` only, not a `--cfg` file or extended modules." (line 196). In part: R12 is settled by having no fingerprint here; the deletion of `compute_spec_hash`, `_cleanup_stale_spec_dirs` and `get_spec_run_dir` is 39's (their three tests went with the old suite in [03](03-test-foundation.md), decision D62).
 - Design sections:
   - [11 R6](../design/11-runner.md#r6-run-folders): everything that creates, locks, settles, sweeps, lists and cleans run folders, the resume command and the note's two lines; the unit tests of R6's "Tests" marked "Unit (`rundirs`)", "Unit, the resume command" and the stateful test. Not here: the per-run values the preflight decides (`run_id`, `metadir`, `keep`, `fp`, `seed`, `suppress_te_spec`: [33](33-tlc-invocation.md)); the frame that calls `settle` and adds the note to an exception, and R6's "Unit, the frame" test ([37](37-run-tlc.md)); the checkpoint deferral ([21](21-java-launcher.md), 37); the feature scenarios ([39](39-tlc-command.md), [45](45-cache-commands.md)); the integration tests ([52](52-integration-tests.md)).
   - [11 R12](../design/11-runner.md#r12-run-cache-fingerprint): nothing to build; the deletion is 39's.
@@ -47,7 +47,7 @@ Deletes:
 - `tests/stateful/reference_rundirs.py`.
 - In `tests/stateful/test_run_folders.py`: `reference_impl` and the four tests `test_run_folders_machine_against_the_reference_model`, `test_a_lock_object_stands_for_a_process_reference_model`, `test_a_jvm_keeps_the_run_lock_reference_model`, `test_kept_folder_survives_a_second_resume_reference_model`.
 
-Not touched: `src/tlaup/tlc/run_cache.py` and `tests/unit/tlc/test_run_cache.py`. [01 T11](../design/01-testing.md#t11-the-existing-tests) deletes that test "in the pull request that replaces the run cache"; under the build-beside rule that is [39](39-tlc-command.md), which deletes both with the old runner. `get_tlc_run_dir` in `versioning/paths.py` stays for the old code; 39 removes it.
+Not touched: `src/tlaup/tlc/run_cache.py`, which the old runner still calls; [39](39-tlc-command.md) deletes it with the old runner (its test went with the old suite in [03](03-test-foundation.md), D62). `get_tlc_run_dir` in `versioning/paths.py` stays for the old code; 39 removes it.
 
 Shared files: `src/tlaup/tlc/invocation.py` with 33 (finished before) and [34](34-override-check.md) (a different place in the file); the `filelock` line.
 
@@ -70,12 +70,13 @@ class RunStart:                                             # "Start"
     def __init__(self, runs: Path, now: Callable[[], datetime], *, run_id: str | None = None,
                  recover: Path | None = None, info: Mapping[str, object] | None = None,
                  wait: float = 5.0,
-                 invocation: TlcInvocation | None = None): ...   # `invocation`: written by stage 4, see below
+                 tlc_args: Sequence[str] = (),                      # 35a; written by stage 4, see below
+                 invocation: TlcInvocation | None = None): ...   # 35b; written by stage 4, see below
     run_id: str
     path: Path
     def create_lock_file(self) -> None
     def take_lock(self) -> None                             # RunLock.acquire; FileOperationError after `wait`
-    def take_recover_lock(self) -> None                     # nothing to do unless `recover` is inside runs/<id>/
+    def take_recover_lock(self) -> None                     # nothing to do unless `recover` lies under an existing runs/<id>/
     def make_folder(self) -> None
     def write_run_json(self) -> None
     def sweep(self) -> KeptSummary
@@ -110,7 +111,7 @@ class Kept:
     stopped_after: timedelta       # from this run's `started` to the end of the run
     checkpoint_at: datetime        # when the complete checkpoint was written
     reason: str                    # written by stage 4: "interrupted", "tlaup failed" or "TLC crashed (exit N)"
-    resume_command: str | None     # stage 4 made it optional: None only for a RunFolder built without an invocation
+    resume_command: str | None     # stage 4 made it optional: None for a RunFolder built without an invocation (always in 35a)
 
 @dataclass(frozen=True)
 class Settled:
@@ -164,7 +165,7 @@ class CleanReport:
     freed: int                     # bytes
     in_use: tuple[str, ...]        # folders left because their lock was held
 
-# moved here from tlaup/tlc/invocation.py (33), unchanged in behaviour
+# moved here from tlaup/tlc/invocation.py (33), unchanged in behaviour (33 builds R6's rule as settled, Q9)
 @dataclass(frozen=True)
 class RecoveredRun: ...            # run_id, folder, keep, fp, seed, as 33 wrote it
 def find_recovered_run(extra_args: Sequence[str], cwd: Path, runs: Path) -> RecoveredRun | None
@@ -174,10 +175,10 @@ def recovered_run_id(path: Path, runs: Path) -> str | None     # the path-level 
 Notes on the stage 4 shapes:
 
 - **Why `find_recovered_run` moves here.** `rundirs.py` is the one module that knows the layout of `runs/` and the keys of `run.json`, which it writes; 33 reads four of them. `RunStart` is handed the `-recover` path itself (the stateful test passes `runs/<id>/states`), so the rule "is this path inside a run folder, and which" is the path-level `recovered_run_id`, which `find_recovered_run` calls after it has found the word after `-recover` and made it absolute against `cwd`. `invocation.py` imports from here; `rundirs.py` imports `TlcInvocation` only under `TYPE_CHECKING`, so there is no import cycle. 33's tests of the function stay where they are.
-- **`RunStart(invocation=...)`.** The step objects take the runs folder and the fields of `run.json` so that the stateful test needs no invocation (R6, "The steps"). Two things need more than that: the resume command, built from the whole request, and the `"depth-first"` reason, read from TLC's arguments. `run_folder` passes the invocation; the stateful test does not, and then `Kept.resume_command` is `None` and no run counts as `-dfid`.
+- **`RunStart(tlc_args=..., invocation=...)`.** The step objects take the runs folder and the fields of `run.json` so that the stateful test needs no invocation (R6, "The steps"). Two things need more than that: the `"depth-first"` reason, read from TLC's arguments, and the resume command, built from the whole request. They come in separately, so that 35a does not wait for [33](33-tlc-invocation.md) (finding C5 of the stage 4 review): `tlc_args`, TLC's own arguments as plain strings, is 35a's and is all settle needs for `-dfid`; `invocation` is added in 35b, where `run_folder` passes both (`tlc_args=inv.extra_args`), and with it settle fills `Kept.resume_command`. The stateful test passes neither, and then `Kept.resume_command` is `None` and no run counts as `-dfid`.
 - **`settle(..., workers_reported=)`.** The resume command's `--workers` is "the number TLC reported in its start line (2187) when the run was parsed and TLC's arguments held no `-workers`". Only the runner has the parsed result; [37](37-run-tlc.md) passes `result.workers`. The stateful test calls `settle(outcome)` and `settle(None)`, which this keeps.
 - **`resumes_exactly`.** [10 P3](../design/10-parser.md#p3-result-model) and D54: a resumed run's counts are approximate "unless it was resumed with the original `-fp` and `-seed`: tlaup knows that when `-recover` names a folder under `runs/` whose `run.json` has the values this run passed". True when this run holds the recovered folder's lock and that folder's `run.json` (read under the lock) records an `fp` and a `seed` equal to the values this run passes. 37 sets `counts_approximate = result.resumed and not folder.resumes_exactly`.
-- **`Kept.reason`** and **`run.json`'s `"reason"`.** The note's first line names the reason, and `cache list` shows "why it was kept (interrupted, tlaup failed, TLC crashed, or unsettled after a kill)". R6's `run.json` has no field for it, so settle writes `"reason"` with `ended`, `kept`, `keep` and `size` when it keeps. Reported to the index as a gap closed by stage 4.
+- **`Kept.reason`** and **`run.json`'s `"reason"`.** The note's first line names the reason, and `cache list` shows "why it was kept (interrupted, tlaup failed, TLC crashed, or unsettled after a kill)". R6's `run.json` has no field for it, so settle writes `"reason"` with `ended`, `kept`, `keep` and `size` when it keeps. A gap stage 4 closed (the index's reading, taken: the key is internal to tlaup's own folders, and `cache list` shows the words).
 - **`lock_fds` gives fresh duplicates at each read**, owned by the caller, who passes them to `pass_fds` once; the launcher closes them after `Popen` ([21](21-java-launcher.md)). The stateful test reads it once and closes what it got. Read it once per run.
 - **A gap between packages, settled here and in 37 by stage 4:** the outcome carries the whole `Kept` (`RunOutcome.kept`, [37](37-run-tlc.md)), and the two lines are always made by `kept_note`, so the frame's `add_note` and [39](39-tlc-command.md)'s `print_run_notes` print the same text.
 
@@ -207,7 +208,7 @@ Consumed by: [37](37-run-tlc.md) (`run_folder`, `RunFolder`, `Settled`, `Kept`, 
 - `sweep` with an injected clock, for kept, unsettled and `run.json`-less folders, with and without a held lock: a kept folder survives a sweep at 400 days; an unsettled folder that asked and has a complete checkpoint survives; an unsettled one that did not ask is removed at once; a `run.json`-less folder survives at 29 days counted from its newest file and is removed at 31; a lock file with no folder survives at 59 minutes and is removed at 61; a `run.json` that cannot be read counts as none (the 30-day rule), so a damaged kept folder is not removed.
 - `clean_runs` without `include_kept` leaves the resumable unsettled folder, the kept one and the `run.json`-less one, and removes them with `include_kept` or with their id; an unknown id raises the `NotFound` family (4); an id whose lock is held raises `FileOperationError` (5) saying it is in use; `CleanReport` lists what went and the bytes freed.
 - `sweep` and `clean_runs` leave a folder whose lock is held, once by a lock object of the test itself and once by a second Python process started by the test.
-- `run_folder` with `-recover` into a folder whose lock the test holds raises `FileOperationError` after the wait (`wait` set short) and leaves its own folder and lock file removed; with `-metadir` among TLC's arguments it makes no folder and no lock file under `runs/`, and with `-recover` into a managed folder as well it still takes and holds that folder's lock.
+- `run_folder` with `-recover` into a folder whose lock the test holds raises `FileOperationError` after the wait (`wait` set short) and leaves its own folder and lock file removed; the same with `-recover <that folder>/states` where `states/` does not exist (Q9); `-recover <runs>/<an id with no folder>/states` takes no second lock; with `-metadir` among TLC's arguments it makes no folder and no lock file under `runs/`, and with `-recover` into a managed folder as well it still takes and holds that folder's lock.
 - The kept summary counts the recorded `size` of two kept folders, and measures one that has none.
 - `list_runs`: one record per folder, with `in_use` true for a held lock, `reason` "unsettled after a kill" for an unsettled resumable folder, and a `run.json`-less folder listed with its id, size and last change.
 - R9: a folder under `runs/` with no `run.json` survives a sweep and a plain `clean_runs`.
@@ -224,7 +225,7 @@ Consumed by: [37](37-run-tlc.md) (`run_folder`, `RunFolder`, `Settled`, `Kept`, 
 
 **Unit, the resume command and the note** (`tests/unit/tlc/test_resume_command.py`, hand-built `TlcInvocation` and `Kept` values): a relative spec and `--cfg` come out absolute; `--keep` is there; `--raw`, `--coverage`, `--workers 4` and two `--java-opt` are carried, and a `workers` from the settings is not, unless the start line reported a count; an existing `-recover X`, `-fp` or `-seed` among TLC's arguments is replaced, not doubled; the result parses back with `shlex.split` to the expected list; with `windows=True` the join is `subprocess.list2cmdline`'s. Added by stage 4: `kept_note` gives the two lines of "The note" for each of the three reasons, `reminder` gives the singular and the plural form, `format_size` the units.
 
-Old tests deleted or rewritten: none here; `tests/unit/tlc/test_run_cache.py` goes with the old run cache in 39.
+Old tests: none; the old suite went in [03](03-test-foundation.md) (D62), `tests/unit/tlc/test_run_cache.py` with it.
 
 ## Changelog
 
@@ -260,13 +261,13 @@ Read [11 R6](../design/11-runner.md#r6-run-folders) whole, Facts to Risks, then 
 - **Keeping writes** `ended`, `"kept": true`, `"keep": true`, `size` and `reason` into the kept folder's `run.json` (a resumed folder gets a fresh `ended` and `size`).
 - **The sweep's rules** (D53): a kept folder is never removed; an unsettled folder with a `run.json` is removed at once unless it says `keep` and holds a complete checkpoint (D49); a folder with no `run.json`, or one that cannot be read, is removed 30 days after its newest change (the newest modification time of anything under it, not the timestamped folder's own time, research 34); a lock file whose folder is gone is removed only when it is more than an hour old, and only while the sweep holds its lock. An entry whose lock is held is never touched, the process's own locks included (a second lock object on the same file in one process is refused). Errors while deleting are ignored; the next sweep tries again.
 - **`clean_runs`** visits folders only (`list_entries(..., folders_only=True)`, as the stateful test does) and removes a lock file with its folder; lock files without a folder are the sweep's. Default: what the sweep would remove and is not resumable; never a kept folder, an unsettled resumable one, or one without `run.json`. `include_kept`: those too. A run id: that one folder whatever it is, when its lock is free.
-- **`-recover PATH`**: relative to `cwd`, links resolved, then inside `runs/<id>/` or not. Inside: that folder's lock is taken after the run's own and before the sweep, held to the end, and a lock that is not free after the wait is `FileOperationError`, "the run folder <path> is in use by another tlaup run" (rule 2: two TLCs writing one checkpoint would destroy it). Outside, or under no existing run folder: TLC's to judge; no second lock, no note.
-- **The user's `-metadir`**: no folder and no lock of its own, nothing cleaned in the user's folder, `RunFolder.path` is `None`; the `-recover` rules still apply when `PATH` is inside `runs/<id>/`. Stage 4's reading: the sweep of `<cache>/runs/` still runs, because it touches nothing of the user's and the reminder line comes from it.
+- **`-recover PATH`** (question Q9, settled with the maintainer as R6 now says): relative to `cwd`, links resolved as far as the path exists, then under an existing `runs/<id>/` or not, whether or not `PATH` itself exists. The stateful test asks for exactly this: it passes `runs/<id>/states` for any existing folder, often one with no `states/`, and expects the lock taken whenever `runs/<id>/` exists (`take_recover_lock`). Taking the lock for a missing checkpoint folder costs nothing and protects the folder while TLC reports the error. Under one: that folder's lock is taken after the run's own and before the sweep, held to the end, and a lock that is not free after the wait is `FileOperationError`, "the run folder <path> is in use by another tlaup run" (rule 2: two TLCs writing one checkpoint would destroy it). Outside `runs/`, or under a `runs/<id>/` that has no folder: TLC's to judge; no second lock, no note.
+- **The user's `-metadir`**: no folder and no lock of its own, nothing cleaned in the user's folder, `RunFolder.path` is `None`; the `-recover` rules still apply when `PATH` lies under an existing `runs/<id>/`. The sweep of `<cache>/runs/` still runs (stage 4's choice, which the index listed and which follows R6's words): it touches nothing of the user's, and the reminder line comes from it.
 - **A failed start step.** `run_folder` hands what it holds to `entered()` and runs the end steps, so a lock that was taken is released and a folder that was made is deleted, then lets the error go on. When the run's own lock could not be taken, its new lock file is left: removing it without the lock is unsafe, and the one-hour rule removes it. A folder that cannot be created and a `run.json` that cannot be written are `FileOperationError` (5) with the path (R1's table).
 - **`run.json`**: `{"schema": 1, "spec", "cfg", "build", "pid", "started", "tlaup", "keep", "fp", "seed", "ended": null, "kept": false, "size": null}`; `started` in UTC, `2026-11-15T10:00:00Z`; `tlaup` the version string `tlaup --version` prints. `run_folder` passes these through `info`; `RunStart` writes them with `schema`, `started`, `ended`, `kept` and `size`. The stateful test passes only `{"keep": ...}`.
 - **The run id** has no `:`, so it is a valid folder name on Windows.
 - **The resume command**: `tlaup tlc <absolute spec>`, `--cfg <absolute cfg>` only when `--cfg` was given, `--keep`, then in this order `--workers` (TLC's reported count when the run was parsed and TLC's arguments held no `-workers`; else as given on the command line; never when it came from the settings), `--coverage`, `--raw`, each `--java-opt=VALUE`; then `--`, TLC's arguments with every `-recover`, `-fp` and `-seed` and the word after each removed, then `-fp` and `-seed` from `run.json`, then `-recover` and `Kept.checkpoint_dir`. `--auto-install` is left out. Joined with `shlex.join`, `subprocess.list2cmdline` on Windows. It does not carry the environment or the starting folder; the build is whatever is pinned when it is run.
-- **The note**, from `kept_note`: `Checkpoint kept (2.1 GB, interrupted after 2 h 13 min, checkpoint of 14:02): <the run folder>` and `Resume with: <command>`. Stage 4's readings for what R6 shows only by example: sizes in decimal units with one decimal (`kB`, `MB`, `GB`); durations as `45 s`, `13 min`, `2 h 13 min`; the reason as `interrupted`, `tlaup failed` or `TLC crashed (exit 255)`, each followed by `after <duration>`; the checkpoint's time as `HH:MM` in the local zone, with the date before it when it is not the day the run ended. `checkpoint_at` is the newer modification time of `queue.chkpt` and `vars.chkpt`. `stopped_after` runs from this run's own start to settle. A unit test must not depend on the machine's zone: pass a zone in, or set `TZ` with `monkeypatch` and call `time.tzset`.
+- **The note**, from `kept_note`: `Checkpoint kept (2.1 GB, interrupted after 2 h 13 min, checkpoint of 14:02): <the run folder>` and `Resume with: <command>`. What R6 shows only by example is built so (stage 4's choices; the index's reading that this duration form and O3's stay two is taken): sizes in decimal units with one decimal (`kB`, `MB`, `GB`); durations as `45 s`, `13 min`, `2 h 13 min`; the reason as `interrupted`, `tlaup failed` or `TLC crashed (exit 255)`, each followed by `after <duration>`; the checkpoint's time as `HH:MM` in the local zone, with the date before it when it is not the day the run ended. `checkpoint_at` is the newer modification time of `queue.chkpt` and `vars.chkpt`. `stopped_after` runs from this run's own start to settle. A unit test must not depend on the machine's zone: pass a zone in, or set `TZ` with `monkeypatch` and call `time.tzset`.
 - **The reminder**: `1 kept run folder holds 2.1 GB (tlaup cache list)`, `3 kept run folders hold 7.4 GB (tlaup cache list)`. The summary counts the kept folders the sweep visited (a kept folder whose lock is held at that moment, because it is being resumed, is not counted), with `run.json`'s `size`, measuring one that has none.
 
 ### Guessed waits and ages, as the design names them
@@ -292,10 +293,6 @@ Nothing here runs on Windows in CI. Write it so it should work: no `pass_fds` th
 - That the original `-fp` and `-seed` make a resumed run's counts exact rests on one run (rolling, one worker); [52](52-integration-tests.md) checks both builds and two workers.
 - The per-run `java.io.tmpdir` for v1.7.4 is postponed ([13 J1](../design/13-modules-and-java.md#j1-java-options)).
 
-### Waiting on question (recover path that does not exist)
-
-33 says `find_recovered_run` returns `None` for "a path that does not exist", and R6 says such a `PATH` "is TLC's to judge". The stateful test asks for more: it passes `runs/<id>/states` for any existing folder, often one with no `states/`, and expects the lock taken whenever `runs/<id>/` exists (`take_recover_lock`: "a folder that is gone has no lock to wait for"; otherwise it must be taken). So the rule here is "`PATH`, links resolved, lies under `runs/<id>/` and that folder exists", whether or not `PATH` itself exists. Taking the lock for a missing checkpoint folder costs nothing and protects the folder while TLC reports the error. Build it so; the one test of 33 that gives a missing `PATH` under an existing run folder then expects a `RecoveredRun`, not `None`. The index has the question; if the maintainer rules the other way, the stateful test changes, not only this module.
-
 ### State of `main` when this starts
 
 `tlaup tlc` runs through `tlc/runner.py`, which calls `tlc/run_cache.py` (one folder per spec under `<cache>/run/tlc/`); `module add` and `remove` (or their replacements from 31) may still call `clear_tlc_run_cache`. None of that is touched. Beside it exist `tlaup/errors.py`, `tlaup/paths.py` (`AppPaths.runs` names the new `<cache>/runs/`, read by nobody yet), `java/launcher.py`, `versioning/store.py` with `format_build`, `tlc/invocation.py` and `tlc/command.py`. Nothing imports `rundirs.py` when this package merges, except `invocation.py` for the moved function.
@@ -306,14 +303,14 @@ Nothing here runs on Windows in CI. Write it so it should work: no `pass_fds` th
 - The unit tests above pass on Linux and on the macOS job; `uv run poe lint` (mypy strict on `rundirs.py`) and `uv run poe test` pass; CI is green.
 - No test waits for an amount of time ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 5): ages come from the injected clock and `os.utime`, waits are for a condition with a timeout, and `wait` is a parameter.
 - `specs/README.md` has its sentence; 33's tests of `find_recovered_run` pass from the new place.
-- The pull request lists every signature that differs from this file and each reading under Context it did not follow, and says what was run on which system.
+- The pull request lists every signature that differs from this file and each choice under Context it did not follow, and says what was run on which system.
 - No changelog entry (none is due).
 
 ## Out of scope
 
 - `run_id`, `metadir`, `keep`, `fp`, `seed`, `suppress_te_spec` and reading a recovered `run.json` before the lock: [33](33-tlc-invocation.md).
 - The frame (`signals_held` round `run_folder`, settle on every way out, the note on an exception, the reminder printed before `reporter.start`), `RunOutcome`, `counts_approximate` and R6's "Unit, the frame" test: [37](37-run-tlc.md).
-- The checkpoint deferral and its waiting line: [21](21-java-launcher.md), 37.
+- The checkpoint deferral and its waiting line: [21](21-java-launcher.md) (`on_held`), 37 (the line, handed to `Reporter.notice`), the reporters ([36](36-reporter-interface.md), [38](38-terminal-reporter.md), [40](40-live-display.md)).
 - `print_run_notes`, `--keep`, the R6 scenarios of `tlc_run.feature` and `tlc_signals.feature`, removing `--cleanup`, `run_cache.py` and its test: [39](39-tlc-command.md).
 - `tlaup cache dir`, `list`, `clean` and `cache.feature`: [45](45-cache-commands.md).
 - The integration tests: a real violation leaves nothing in `<cache>/runs` and no `_TTrace_` file; a real interrupted `-checkpoint 1` run under `--keep` resumed to the same distinct-state count on both builds with `-workers 2`; tlaup killed with SIGKILL leaves no `java` after five seconds and, on Linux and macOS, a second tlaup's `cache clean <run-id>` is refused until the JVM has gone: [52](52-integration-tests.md).
@@ -339,7 +336,7 @@ From the cut:
 
 This package is delivered as two pull requests; the index lists them as 35a and 35b. The stateful machine needs every step at once, so its markers come off in 35a and nowhere else.
 
-- **35a**: every step function the stateful test calls (`RunLock`, `RunStart`, `RunFolder` with `settle`, the visits with sweep and clean, `list_entries`, the completeness test, the module-level `sweep`), the lock, settle and sweep unit tests, and the stateful test with all four markers removed and the throwaway model deleted. Depends on 02, 03, 21, 23.
-- **35b**: `run_folder(inv, ...)`, the full `run.json`, `Kept` with its size, times and reason, `resume_command`, `kept_note`, `reminder`, `format_size`, `list_runs` and `RunRecord`, `clean_runs` and `CleanReport`, and the move of `find_recovered_run` from 33. Depends on 35a and 33.
+- **35a**: every step function the stateful test calls (`RunLock`, `RunStart` with `tlc_args`, `RunFolder` with `settle`, the visits with sweep and clean, `list_entries`, the completeness test, the module-level `sweep`), `Kept` with every field but `resume_command` (always `None` here: path, checkpoint folder, size, both times and reason, which settle writes into `run.json`), `Settled`, `KeptSummary`, the lock, settle and sweep unit tests (the `-dfid` case through `tlc_args`), and the stateful test with all four markers removed and the throwaway model deleted. Nothing in 35a names `TlcInvocation`, so mypy needs nothing of 33. Depends on 02, 03, 21, 23.
+- **35b**: `RunStart(invocation=...)` and with it `Kept.resume_command`, `run_folder(inv, ...)`, the full `run.json`, `resume_command`, `kept_note`, `reminder`, `format_size`, `list_runs` and `RunRecord`, `clean_runs` and `CleanReport`, the `-recover` tests of `run_folder`, and the move of `find_recovered_run` from 33. Depends on 35a and 33.
 
 A package that names 35 as a dependency waits for 35b.

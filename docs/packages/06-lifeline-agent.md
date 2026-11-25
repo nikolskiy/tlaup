@@ -4,11 +4,11 @@ Size: M. Suggested model: mid-tier. Status: ready.
 
 ## Goal
 
-The repository holds the source of a small Java agent that ends its JVM when a given process is gone, the jar built from it is package data of `tlaup` at `tlaup/java/lifeline.jar`, and tests show that the jar matches its source and that the agent does what [20 G3](../design/20-groundwork.md#g3-java-launcher) says. Nothing starts a JVM with it yet: that is package 21.
+The repository holds the source of a small Java agent that ends its JVM when a given process is gone, the jar built from it is checked in beside it as package data of `tlaup` at `tlaup/java/lifeline.jar`, and tests show that the jar matches its source and that the agent does what [20 G3](../design/20-groundwork.md#g3-java-launcher) says. Nothing starts a JVM with it yet: that is package 21.
 
 ## Covers
 
-- Roadmap items: "The lifeline agent (decision D51): a small Java agent jar, built from source kept in the repository with `--release 11`, shipped as package data in the wheel, ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout)), in part. This package has the source, the jar, the package data, the build recipe and the tests. "Added by the launcher to every Java start" is [21](21-java-launcher.md). "Checked in CI" (the lifeline job and the wheel's file list) is [53](53-ci-workflows.md). The release workflow's part, if the jar is built per release, is [55](55-release-tooling.md).
+- Roadmap items: "The lifeline agent (decision D51): a small Java agent jar, built from source kept in the repository with `--release 11`, shipped as package data in the wheel, ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout)), in part. This package has the source, the checked-in jar, the package data, the build recipe and the tests. "Added by the launcher to every Java start" is [21](21-java-launcher.md). "Checked in CI" (the lifeline job and the wheel's file list) is [53](53-ci-workflows.md). The release workflow has no part in it: the jar is in git, so `uv build` packs it as it is.
 - Design sections: [20 G3](../design/20-groundwork.md#g3-java-launcher), the part "The lifeline" (the agent's behaviour, "The jar") and the test bullet "The lifeline, with a real JVM", apart from its last sentence (see "Tests that must pass"). The rest of G3 is [21](21-java-launcher.md). [30 I2](../design/30-ci-and-release.md#i2-unit-job) (the lifeline job) and [30 I4](../design/30-ci-and-release.md#i4-build-check) (the wheel check) are [53](53-ci-workflows.md); this package provides what they run and check.
 
 ## Depends on
@@ -22,17 +22,16 @@ Nothing else. The package touches no existing module under `src/`. Its tests sit
 Creates:
 
 - The agent's Java source, beside the jar under `src/tlaup/java/` (G3: "its Java source is in the repository beside it"). One class. The file's exact place and the Java package name are the worker's; a sub-folder such as `src/tlaup/java/lifeline/` keeps it apart from the Python modules.
-- `src/tlaup/java/lifeline.jar`, if the worker chooses to check the jar in (see "The choice" below).
+- `src/tlaup/java/lifeline.jar`, checked in (see "The jar is checked in" below).
 - `scripts/build_lifeline.py`: the build recipe. It compiles the source with `javac --release 11` into a temporary folder and writes the jar. One function does the compile, so the comparison test and the recipe share it. It finds `javac` from `JAVA_HOME` first, then `PATH`, and takes the output path as an argument.
 - `tests/lifeline/conftest.py`, `tests/lifeline/test_jar_matches_source.py`, `tests/lifeline/test_lifeline.py`, and the Java sources the tests compile themselves (a class that sleeps; the reused-id stand-in), for example under `tests/lifeline/java/`. These need a real JDK.
 - `tests/unit/java/test_lifeline_jar.py`: checks of the jar that need no Java, in the default suite.
 
 Changes:
 
-- `pyproject.toml`: package data for `tlaup.java` (the jar; see the note on the source below); the marker `lifeline` in `[tool.pytest.ini_options] markers`; the poe tasks `build-lifeline` and `test-lifeline`. [03](03-test-foundation.md) rewrites the pytest block and [56](56-build-and-metadata.md) the build settings of the same file; the conflict is one marker line, one package-data line and two task lines.
+- `pyproject.toml`: package data for `tlaup.java` (the jar; see the note on the source below); the marker line of [01 T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings), `"lifeline: needs a real JDK; run by the lifeline job (30 I2), not the unit job"`, in `[tool.pytest.ini_options] markers`; the poe tasks `build-lifeline` and `test-lifeline`. [03](03-test-foundation.md) rewrites the pytest block with T10's text, which has the same marker line and `tests/lifeline` in `norecursedirs`, and [56](56-build-and-metadata.md) the build settings of the same file; the conflict is one marker line, one package-data line and two task lines.
 - `MANIFEST.in`, if it still exists when this package merges ([56](56-build-and-metadata.md) deletes it): nothing is needed for a file that is package data, since setuptools puts package data into the sdist by itself.
 - `docs/contributing/development.md`: how to rebuild the jar and how to run the lifeline tests, a few lines.
-- `.gitignore`: only if the jar is built per release and not checked in.
 
 Deletes: nothing.
 
@@ -41,13 +40,13 @@ Deletes: nothing.
 Provides:
 
 - **The agent**, from [20 G3](../design/20-groundwork.md#g3-java-launcher), "The lifeline". It is started as `-javaagent:<lifeline jar>=pid=<process id>`. Its `premain` starts a daemon thread that looks the process up with `ProcessHandle.of(pid)` and polls `isAlive()` every 500 milliseconds; when the process is gone, or was already gone when the agent started, it calls `System.exit(143)`. It touches no stream, no file descriptor and no signal disposition. The argument form `pid=<digits>` is fixed: package 21 writes it.
-- **The jar** at `src/tlaup/java/lifeline.jar`, so `tlaup/java/lifeline.jar` in the wheel: the agent's class file or files, compiled with `--release 11`, and a manifest with `Premain-Class`. A few kilobytes.
-- **`uv run poe build-lifeline`**: runs `scripts/build_lifeline.py` and writes the jar to its place.
+- **The jar**, checked in at `src/tlaup/java/lifeline.jar`, so `tlaup/java/lifeline.jar` in the wheel: the agent's class file or files, compiled with `--release 11`, and a manifest with `Premain-Class`. A few kilobytes.
+- **`uv run poe build-lifeline`**: runs `scripts/build_lifeline.py` and writes the jar to its place. A developer runs it after changing the source and commits the new jar with the source.
 - **`uv run poe test-lifeline`**: runs `tests/lifeline` with a real JDK. This is the command the lifeline job of [53](53-ci-workflows.md) calls. Written by stage 4: [30 I2](../design/30-ci-and-release.md#i2-unit-job) says only that "the lifeline tests are marked so that [the unit job] skips them and this job runs them". The arrangement here mirrors the one the design already has for the integration tests ([01 T2](../design/01-testing.md#t2-isolation), [T9](../design/01-testing.md#t9-integration-tests), [T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings)): a folder of its own, outside the default run, with a registered marker (`lifeline`) that its conftest puts on everything in the folder, and its own fixture named `isolated` that keeps the real `PATH` and `JAVA_HOME`.
 
 Consumes: nothing from another package.
 
-Consumed by: [21](21-java-launcher.md) (`JavaInvocation.argv()` names the jar's path), [53](53-ci-workflows.md) (the lifeline job; `scripts/check_wheel.py` asserts the jar is in the wheel), [55](55-release-tooling.md) (only if the jar is built per release), [52](52-integration-tests.md) (real runs carry the agent).
+Consumed by: [21](21-java-launcher.md) (`JavaInvocation.argv()` names the jar's path), [53](53-ci-workflows.md) (the lifeline job; `scripts/check_wheel.py` asserts the jar is in the wheel), [52](52-integration-tests.md) (real runs carry the agent). [55](55-release-tooling.md) needs nothing of it: the release workflow builds the wheel from what is in git.
 
 ## Tests that must pass
 
@@ -66,12 +65,12 @@ Who has the other lifeline tests of G3:
 | Test | Owner |
 | --- | --- |
 | The five above | This package writes them; the lifeline job of [53](53-ci-workflows.md) runs them on `ubuntu-latest` and `macos-latest` with Temurin 11 and is a required check. |
-| "Under a pseudo-terminal with `tlaup repl`'s arguments, the REPL still reads a line from stdin" (last sentence of the same bullet) | [52](52-integration-tests.md). It needs a real `tla2tools.jar` with `tlc2.REPL`, which the lifeline job does not have. |
+| "Under a pseudo-terminal with `tlaup repl`'s arguments, the REPL still reads a line from stdin" (last sentence of the same bullet) | [52](52-integration-tests.md), in `tests/lifeline/test_repl_terminal.py`, marked `lifeline`. It needs a real `tla2tools.jar` with `tlc2.REPL` and the `repl` command (43). The lifeline job of [53](53-ci-workflows.md) runs it, with the current rolling build that [54](54-integration-job.md) installs into that job from the integration job's cache, since v1.7.4 has no REPL ([30 I2](../design/30-ci-and-release.md#i2-unit-job) as revised). This package does not keep it among the integration tests. |
 | `argv()`: "the lifeline comes first and names `os.getpid()`", and `lifeline=False` leaves it out | [21](21-java-launcher.md), unit. |
 | tlaup killed with SIGKILL during a real run: no `java` process is left after five seconds ([11 R6](../design/11-runner.md#r6-run-folders), Tests, "Integration"; [01 T9](../design/01-testing.md#t9-integration-tests)) | [52](52-integration-tests.md). |
 | `test_child_ends_with_tlaup` in `tests/stateful/test_signals.py` | Runs against the throwaway model only and is deleted by [21](21-java-launcher.md); it never tests this agent. |
 
-No old test file is deleted or rewritten. No stateful test applies.
+No old test is touched (none is left after 03b, and this package may land before it). Preserved-behaviour rows: none is this package's. No stateful test applies.
 
 ## Changelog
 
@@ -81,18 +80,7 @@ None. The entry that describes the agent's effect ("If tlaup is killed, the Java
 
 **The decision.** D51: a JVM that tlaup started must end when tlaup ends, however tlaup ended, SIGKILL included, on every system. Without help the JVM outlives a killed tlaup, holds every core, and its run folder can be deleted under it. The agent in the JVM is the one way that works the same on Linux, macOS and Windows and for every tool.
 
-**The choice G3 leaves to this package.** G3, "The jar": "either the release workflow builds it with the JDK it already sets up for the integration tests, or the jar is checked in; the work package chooses". You choose, and say which in the pull request, because 53 and 55 follow from it. What each needs:
-
-| | Checked in | Built per release |
-| --- | --- | --- |
-| In git | The source and the jar. | The source only; the jar's path goes into `.gitignore`. |
-| A fresh checkout | Works at once. | Has no jar. Every real Java start fails until `uv run poe build-lifeline` has run, which needs a JDK. The development guide must say so. |
-| `tests/unit/java/test_lifeline_jar.py` | Runs in the unit job, which has no Java. | Cannot run in the unit job: there is no jar there. It would have to move to the jobs that build one. |
-| The build job of [53](53-ci-workflows.md) ([30 I4](../design/30-ci-and-release.md#i4-build-check)) | Nothing more. | Sets up Temurin 11 and builds the jar before `uv build`, on every push. |
-| The release workflow of [55](55-release-tooling.md) ([30 L2](../design/30-ci-and-release.md#l2-release-workflow)) | Nothing more. | Sets up Temurin 11 and builds the jar before `uv build`. |
-| The comparison test | Guards against a jar that drifted from its source. | Compares a jar built a moment ago with a second build. |
-
-30 I4 calls checking it in "the simpler of the two, since this job builds a wheel on every push". What the design requires either way: the jar is never compiled on the user's machine, which may have only a JRE; it is compiled with `--release 11`; it is package data at `tlaup/java/lifeline.jar` in the wheel; a CI test compiles the source and compares the class files with those in the jar; the lifeline tests run against the jar that ships.
+**The jar is checked in** (G3, "The jar", leaves the choice to the work package; settled for this package on 2026-11-24 as a low-impact choice, and the one [30 I4](../design/30-ci-and-release.md#i4-build-check) calls "the simpler of the two"). In git: the source and the jar. Why: every test run and every wheel then uses the same bytes; a fresh checkout works at once without a JDK; `tests/unit/java/test_lifeline_jar.py` runs in the unit job, which has no Java; and neither the build job of [53](53-ci-workflows.md) nor the release workflow of [55](55-release-tooling.md) needs to set up a JDK for it. The guard against a jar that drifted from its source is the comparison test, which the lifeline job of 53 runs on every push. What the design requires holds: the jar is never compiled on the user's machine, which may have only a JRE; it is compiled with `--release 11`; it is package data at `tlaup/java/lifeline.jar` in the wheel; a CI test compiles the source and compares the class files with those in the jar; the lifeline tests run against the jar that ships. A change to the source without a rebuilt jar fails the comparison; the fix is `uv run poe build-lifeline` and committing both.
 
 **Facts from the investigation that the design restates, and what it measured.** A worker does not need the research files; these are the points.
 
@@ -114,10 +102,10 @@ None. The entry that describes the agent's effect ("If tlaup is killed, the Java
 - *The tests must not sleep for an amount of time* ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 5): wait for "the JVM is gone" with a three-second timeout, and for "the JVM is up" on a condition (a line it prints, a file it writes), not on a delay.
 - *A killed parent leaves the JVM an orphan,* so the test cannot `wait()` for it; it watches the process id. An orphan that has ended may stay a zombie until it is reaped; `tests/stateful/test_signals.py` (`tlaup_dies`) shows one way to tell the two apart on Linux. Find the way that also works on macOS.
 
-**The test folder and the two merge orders.** `tests/lifeline/` is outside the default run. Today `testpaths` is `["tests/unit", "tests/stateful"]`, so it is simply not collected. After [03](03-test-foundation.md) `testpaths` is `["tests"]` with `norecursedirs` naming `tests/integration`, and an autouse fixture `isolated` in `tests/conftest.py` sets `PATH` to a folder of fakes and removes `JAVA_HOME` ([01 T2](../design/01-testing.md#t2-isolation), [T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings)). So:
+**The test folder and the two merge orders.** `tests/lifeline/` is outside the default run. Today `testpaths` is `["tests/unit", "tests/stateful"]`, so it is simply not collected. After [03](03-test-foundation.md) `testpaths` is `["tests"]` with `norecursedirs` naming `tests/integration` and `tests/lifeline` (T10), and an autouse fixture `isolated` in `tests/conftest.py` sets `PATH` to a folder of fakes and removes `JAVA_HOME` ([01 T2](../design/01-testing.md#t2-isolation), [T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings)). So:
 
 - `tests/lifeline/conftest.py` defines its own `isolated` fixture, which replaces the root one for this folder as `tests/integration/conftest.py` does. These tests start no tlaup and read none of its folders; the fixture only has to leave `PATH` and `JAVA_HOME` alone.
-- `tests/lifeline` must be in `norecursedirs` once that setting exists. If 03 has merged, add it here. If 03 merges later, its worker adds it and keeps the `lifeline` marker line; `--strict-markers` makes a forgotten marker fail loudly.
+- `tests/lifeline` must be in `norecursedirs` once that setting exists. T10's block, which 03b writes, has it and the `lifeline` marker line; whichever of 03b and this package merges second keeps one copy of each. `--strict-markers` makes a forgotten marker fail loudly.
 - A missing JDK is an error in these tests, not a skip: they run only when asked for, and the lifeline job is a required check that must not pass with nothing run. Platform skips (the reused-id test off Linux) carry a reason.
 - The hosted runners have a Java on `PATH` even in the unit job, which is why "skip when there is no `javac`" would not keep these tests out of it. Keeping the folder out of the default run does.
 
@@ -127,7 +115,7 @@ None. The entry that describes the agent's effect ("If tlaup is killed, the Java
 
 **The Java source and the built distributions.** The design says where the jar goes and does not say whether the source ships. [56](56-build-and-metadata.md) deletes `MANIFEST.in`, after which only package data reaches the sdist. Making the source package data too keeps it in the sdist and puts the readable source beside the binary in every install; the wheel check of 30 I4 names the files that must be there and does not forbid it. Decide, and say so in the pull request, so that the worker of 53 writes `scripts/check_wheel.py` to match.
 
-**State of `main` when this starts.** Release 0.8.x code. `src/tlaup/java/` holds `__init__.py`, `inspector.py` and `classpath.py`. `[tool.setuptools.package-data]` has `tlaup = ["py.typed"]` and `"tlaup.resources" = ["*.yaml"]`. The one CI job sets up Java 17 for the old unit tests; it does not run `tests/lifeline`.
+**State of `main` when this starts.** Release 0.8.x code. `src/tlaup/java/` holds `__init__.py`, `inspector.py` and `classpath.py`. `[tool.setuptools.package-data]` has `tlaup = ["py.typed"]` and `"tlaup.resources" = ["*.yaml"]`. The one CI job does not run `tests/lifeline`; before 03b it sets up Java 17 for the old tests, after 03b it has no Java.
 
 ## Done when
 
@@ -135,7 +123,7 @@ None. The entry that describes the agent's effect ("If tlaup is killed, the Java
 - `tests/unit/java/test_lifeline_jar.py` passes in `uv run poe test`.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 - A wheel built with `uv build` contains `tlaup/java/lifeline.jar` (look at the file list; the scripted check is 53's).
-- The pull request names the choice (checked in, or built per release), the JDK that built the jar, the result of comparing builds from the JDKs at hand, the behaviour chosen for a malformed argument, whether the source is package data, and what the reused-id test needs to run on the Linux runner.
+- The pull request names the JDK that built the jar, the result of comparing builds from the JDKs at hand, the behaviour chosen for a malformed argument, whether the source is package data, and what the reused-id test needs to run on the Linux runner.
 - `docs/contributing/development.md` says how to rebuild the jar and run the lifeline tests.
 
 ## Out of scope
@@ -149,10 +137,10 @@ None. The entry that describes the agent's effect ("If tlaup is killed, the Java
 
 ## Risks
 
-- From G3: a broken or missing jar stops every Java start. The no-Java unit test and the wheel check of 53 are the guards; with the jar built per release the first of them is lost.
+- From G3: a broken or missing jar stops every Java start. The no-Java unit test and the wheel check of 53 are the guards.
 - From G3: the agent costs 20 to 40 milliseconds per Java start and a poll every half second.
 - On Windows the agent is the only thing that ends an orphan JVM, and nothing in CI runs it there (D15).
 - The comparison test can turn red because the JDK on the runner changed its output, with no change of ours. The fix is a rebuilt jar and a pull request that says which JDK built it.
 - The reused-id test rests on a mechanism nobody has run. It may need privileges the runner gives only through `sudo`.
-- From the cut: this package and 53 agree only through `uv run poe test-lifeline` and the jar's path. A change to either name must reach 54.
+- From the cut: this package and 53 agree only through `uv run poe test-lifeline` and the jar's path. A change to either name must reach 53.
 - From the cut: until 21 and 52 land, nothing checks the agent through tlaup's own launcher. The tests here start `java` by hand.

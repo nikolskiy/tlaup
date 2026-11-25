@@ -19,6 +19,7 @@ Every command's help says what the raised list asks for, the root help is groupe
   - [14 F11](../design/14-config-and-cli.md#f11-error-messages), in full: the checklist and its scenarios.
   - [14 F6](../design/14-config-and-cli.md#f6-messages), in part: the Changed and Fixed entries and the check that no old message helper is left (proposed by stage 4; see Changelog).
   - [23 C4](../design/23-command-layout.md#c4-version-flag), in part: "the package's one-line summary, which is the same text the root help shows". `-V` itself is [48](48-command-tree.md).
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row T8 (an unknown version name is an error naming it): its `errors.feature` scenario is F11's "closest tag" row below.
 
 ## Depends on
 
@@ -42,7 +43,7 @@ Shared: the command modules with [49](49-startup-cost.md), which runs beside thi
 
 ## Interfaces
 
-None new. The help texts, from [14 F7](../design/14-config-and-cli.md#f7-help-text), with the group names of D47 (`tool`, `module`; F7 was written before D47 and says `tools`, `modules`):
+None new. The help texts, from [14 F7](../design/14-config-and-cli.md#f7-help-text):
 
 | Point | Text or change |
 | --- | --- |
@@ -73,7 +74,7 @@ F11: one scenario each in `tests/features/errors.feature`, in-process, asserting
 | --- | --- |
 | Locations searched for a spec | `tlaup tlc Nope` in a folder with no such spec: exit 4, `stderr contains` the path `{work}/Nope.tla` and the path under `{work}/spec/`. |
 | Locations searched for a cfg | With a spec present, `tlaup tlc Spec --cfg nope.cfg`: exit 4, `stderr contains` one of the paths tried ([11 R4](../design/11-runner.md#r4-spec-cfg-and-working-folder)). |
-| A version typed without `v` | No longer an error ([02 X3](../design/02-cross-cutting.md#x3-version-syntax)); `tool pin 1.7.4` pinning `v1.7.4` is [29](29-tool-commands.md)'s scenario. For a name that matches nothing: `GitHub answers from "releases"`, `tlaup tool install v1.7.5`: exit 4, `stderr contains "v1.7.4"` (the closest tag; if 25 or 27 built the suggestion for installed builds only, use `the build "v1.7.4" is installed` and `tool pin v1.7.5`, and say so in the pull request). |
+| A version typed without `v` | No longer an error ([02 X3](../design/02-cross-cutting.md#x3-version-syntax)); `tool pin 1.7.4` pinning `v1.7.4` is [29](29-tool-commands.md)'s scenario. For a name that matches nothing (inventory row T8): `GitHub answers from "releases"`, `tlaup tool install v1.7.5`: exit 4, `stderr contains "v1.7.5"` (the name typed) and `stderr contains "v1.7.4"` (the closest tag; if 25 or 27 built the suggestion for installed builds only, use `the build "v1.7.4" is installed` and `tool pin v1.7.5`, and say so in the pull request). |
 | Rate limit and token | `GitHub answers from "rate-limited"`, `tlaup tool install stable`: exit 5, `stderr contains "GITHUB_TOKEN"`. |
 | Next command for "no pinned version" | `the build "v1.7.4" is installed` (not pinned) and a spec: `tlaup tlc Spec`: exit 3, `stderr contains "tlaup tool pin"`. `no build is installed`, `tlaup tlc Spec --show-command`: exit 3, `stderr contains "tlaup tool install"`. |
 | "Already installed" | `the build "v1.7.4" is installed`, `GitHub answers from "releases"`, `tlaup tool install v1.7.4`: exit 0, `stderr contains "--force"`, `stderr does not contain "Successfully"`. |
@@ -81,20 +82,21 @@ F11: one scenario each in `tests/features/errors.feature`, in-process, asserting
 
 If one of these scenarios already exists in another feature file, it is still added to `errors.feature`, as F11 says; keep the two identical.
 
-No stateful test applies.
+No stateful test applies. The pull request names inventory row T8 as covered.
 
 ## Changelog
 
 Under `## [Unreleased]`, word for word unless said.
 
-From [14 F7](../design/14-config-and-cli.md#f7-help-text), with D47's group names (the design's text says `tools` and `modules`; the report lists it as clerical):
+From [14 F7](../design/14-config-and-cli.md#f7-help-text):
 
 - Changed: "Help text rewritten for `tool`, `module` and `tlc`; root help is grouped."
 
 From [14 F8](../design/14-config-and-cli.md#f8-wording):
 
 - Changed: "A run stopped with Ctrl-C is called 'interrupted' everywhere."
-- Changed: "`module list` shows build times in UTC."
+
+F8's other entry, "`module list` shows build times in UTC.", is [31](31-module-commands.md)'s, where the user first sees it (review findings D5, B15); it is not written here.
 
 From [14 F11](../design/14-config-and-cli.md#f11-error-messages):
 
@@ -105,15 +107,14 @@ From [14 F6](../design/14-config-and-cli.md#f6-messages), written here because t
 - Changed: "Messages have the form `error: ...`, `warning: ...`, `hint: ...` on stderr, without symbols."
 - Fixed: "`NO_COLOR` is honoured everywhere."
 
-F6's third entry, "A warning from `tool list` went to stdout.", is [29](29-tool-commands.md)'s. If the index assigns F6's two entries elsewhere, leave them out here.
+F6's third entry, "A warning from `tool list` went to stdout.", is [29](29-tool-commands.md)'s.
 
 ## Context for the worker
 
 **How 50 and 51 divide the review of help text.** F7 says the review reads the generated CLI reference, not assertions on wording. In the cut, [51](51-cli-reference.md) (the generator `scripts/gen_cli_reference.py`, `uv run poe docs-cli`, `docs/reference/cli.md` and its drift test, [23 C5](../design/23-command-layout.md#c5-help-and-the-cli-reference)) comes after this package. So:
 
 - **50 owns the text.** Every string of the F7 table, the panels, the epilogs, the summary. Its pull request carries the full help of every command, at 100 columns with colour off (`COLUMNS=100 NO_COLOR=1 uv run tlaup <command> --help` for the root, each group and each command), pasted into the description or attached as one file, so the reviewer reads every string in its place. That dump is not committed.
-- **51 owns the generator, the drift test and the first checked-in reference.** Its reviewer reads `docs/reference/cli.md` as a whole against F7's table once, and from then on any help change shows up as a diff of that file in its own pull request.
-- The index has a proposal to swap the two (51 after 48, 50 after 51), so that this package's help changes appear as a diff of `docs/reference/cli.md`, which is what F7 describes. If that is done, regenerate the reference with `uv run poe docs-cli` (or `--update-expected`) here and drop the dump.
+- **51 owns the generator, the drift test and the first checked-in reference.** Its reviewer reads `docs/reference/cli.md` as a whole against F7's table once, and from then on any help change shows up as a diff of that file in its own pull request. The index settles this order under "Why the cut is this way" (help text before the reference), so the text is reviewed once.
 
 **F8, piece by piece, and who built it.**
 
@@ -132,7 +133,7 @@ F6's third entry, "A warning from `tool list` went to stdout.", is [29](29-tool-
 - Help strings are Typer's docstrings and `help=` arguments; Typer renders them with Rich markup on by default (`rich_markup_mode`). Backticks and square brackets in the F7 texts must come out as typed; check the rendered help, not the source.
 - An epilog's example lines must not be re-wrapped into one paragraph; use Typer's way of keeping lines (a blank line between them, or the `\b` marker Click understands) and check the rendered result.
 - No test asserts a help sentence (F7; T12 rule 4). Do not add one.
-- `docs/reference/cli.md` does not exist before 51; do not create it here (unless the swap above is done).
+- `docs/reference/cli.md` does not exist before 51; do not create it here.
 
 **Decisions this rests on.** D47 (singular group names). D38 (no short forms; nothing in the help offers `ls` or `rm`). The design agent's decision that a stopped run is "interrupted" (one word, the usual one for exit 130).
 
@@ -140,7 +141,7 @@ F6's third entry, "A warning from `tool list` went to stdout.", is [29](29-tool-
 
 ## Done when
 
-- Every row of the F7 table is in the rendered help; the root help shows three panels in F7's order and the summary from the metadata; the pull request carries the help dump (or the reference diff, after the swap).
+- Every row of the F7 table is in the rendered help; the root help shows three panels in F7's order and the summary from the metadata; the pull request carries the help dump.
 - The F11 scenarios pass.
 - No user-visible "canceled", "cancelled" or "stopped" for a run is left in `src/`; `module list` shows `UTC`; the two changelog typos are corrected.
 - No old message function is left in `tlaup/ui.py`; no `typer.echo` remains outside `ui.py` and the reporters (`grep`, ahead of [58](58-lint-rules.md)'s rule).
@@ -157,6 +158,6 @@ F6's third entry, "A warning from `tool list` went to stdout.", is [29](29-tool-
 
 ## Risks
 
-- From F7: help text is reviewed by reading it, so a wrong sentence is caught only by a reader. The dump in the pull request (or the reference diff) is what makes every string visible at once.
+- From F7: help text is reviewed by reading it, so a wrong sentence is caught only by a reader. The dump in the pull request is what makes every string visible at once.
 - From the cut: until 51 lands, nothing stops a later pull request from changing help text unreviewed; 51's drift test closes that.
 - From F11: a scenario that asserts a fact can pass while the sentence around it is poor; so the pull request also pastes the stderr of each F11 scenario, and the reviewer reads those lines as text.

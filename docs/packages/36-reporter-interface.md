@@ -11,7 +11,7 @@ Size: S. Suggested model: mid-tier. Status: ready.
 - Roadmap items, [milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout):
   - "A reporter interface fed by the parsed result and run events. Move the streaming state and the final summary out of the command into it; the command shrinks to option parsing, error mapping and the exit code. Terminal and non-terminal output differ only in where they write and in the footer." (line 313). In part: the interface. The order of calls and O1's unit test of it are [37](37-run-tlc.md)'s; the terminal reporter [38](38-terminal-reporter.md)'s; the command that shrinks, and `make_reporter`, [39](39-tlc-command.md)'s.
 - Design sections:
-  - [22 O1](../design/22-reporters.md#o1-reporter-interface): `RunInfo`, the `Reporter` protocol with its rules for `start`, `handle`, `stderr_line`, `finish`, `close` and `write_error`, the `CollectingReporter` of the reporters table, and the signature of `make_reporter` (written here, created in 39). Not this package: the order of the calls as `run_tlc` makes them and O1's Tests paragraph (37); the command sketch (39); the `TerminalReporter`'s own `close` (O6, packages 38 and 40).
+  - [22 O1](../design/22-reporters.md#o1-reporter-interface): `RunInfo`, the `Reporter` protocol with its rules for `start`, `handle`, `stderr_line`, `notice`, `finish`, `close` and `write_error` (`notice` added by the stage 4 review, question Q12), the `CollectingReporter` of the reporters table, which also records the notices, and the signature of `make_reporter` (written here, created in 39). Not this package: the order of the calls as `run_tlc` makes them and O1's Tests paragraph (37); the command sketch (39); the `TerminalReporter`'s own `close` (O6, packages 38 and 40).
 
 ## Depends on
 
@@ -61,23 +61,25 @@ class Reporter(Protocol):
     def start(self, run: RunInfo) -> None: ...
     def handle(self, event: Event, result: RunResult) -> None: ...   # events of 10 P3
     def stderr_line(self, line: str) -> None: ...                    # a line the tool wrote to stderr
+    def notice(self, line: str) -> None: ...                         # a line of tlaup's own during the run (Q12)
     def finish(self, outcome: RunOutcome) -> None: ...               # 11; the run ended and has an outcome
     def close(self) -> None: ...                                     # always called last; never raises
 ```
 
-**`RunInfo.cwd`** (stage 4). O3 asks for the spec and the cfg "relative to the working folder" in the header, and [21 S1](../design/21-other-tools.md#s1-sany)'s editor form, which O3 uses for diagnostics, writes a path "relative to the folder tlaup was started from when it is beneath it". The reporter could read `Path.cwd()`, but then its expected files would depend on the temporary folder a test runs in, and a reporter test with a fixed `RunInfo` could not fix it. So the folder travels in `RunInfo`, and 37 fills it from `inv.cwd`. That is one more field for 37 to fill; the report to the index names it.
+**`RunInfo.cwd`** (stage 4). O3 asks for the spec and the cfg "relative to the working folder" in the header, and [21 S1](../design/21-other-tools.md#s1-sany)'s editor form, which O3 uses for diagnostics, writes a path "relative to the folder tlaup was started from when it is beneath it". The reporter could read `Path.cwd()`, but then its expected files would depend on the temporary folder a test runs in, and a reporter test with a fixed `RunInfo` could not fix it. So the folder travels in `RunInfo`, and 37 fills it from `inv.cwd`. That is one more field for 37 to fill, and 37's file fills it.
 
 **`RunOutcome` without a circular import.** `RunOutcome` is [37](37-run-tlc.md)'s, in `tlaup/tlc/run.py` (renamed `tlc/runner.py` by [39](39-tlc-command.md)), and `run.py` imports `Reporter` and `RunInfo` from here at run time. So `base.py` names `RunOutcome` only for the type checker: `from __future__ import annotations` at the top, and the import inside `if TYPE_CHECKING:`. At run time `base.py` imports nothing from `tlaup.tlc`, and there is no cycle.
 
-When this package merges, `tlaup/tlc/run.py` does not exist yet, and mypy strict fails on an import it cannot resolve. So this package writes the annotation of `finish` as `outcome: object`, with a comment that 37 narrows it; and 37, in the pull request that creates `RunOutcome`, changes that annotation and `CollectingReporter.outcome` to `RunOutcome` under `TYPE_CHECKING` (two lines here, one in `collecting.py`). It cannot stay `object`: a `TerminalReporter.finish(self, outcome: RunOutcome)` does not satisfy a protocol whose parameter is `object` (parameters are contravariant), so 38 would fail mypy. 37's file says it changes nothing outside its own two files; the report to the index flags this as a three-line exception for 37. If the index prefers 37 to stay untouched, the other way is for this package to hold `RunOutcome` and 37 to fill it; the report gives both.
+When this package merges, `tlaup/tlc/run.py` does not exist yet, and mypy strict fails on an import it cannot resolve. So this package writes the annotation of `finish` as `outcome: object`, with a comment that 37 narrows it; and 37, in the pull request that creates `RunOutcome`, changes that annotation and `CollectingReporter.outcome` to `RunOutcome` under `TYPE_CHECKING` (two lines here, one in `collecting.py`). It cannot stay `object`: a `TerminalReporter.finish(self, outcome: RunOutcome)` does not satisfy a protocol whose parameter is `object` (parameters are contravariant), so 38 would fail mypy. 37's file lists these three lines among its changes.
 
 **The rules of O1, stated once for every reporter** (put them in the protocol's docstring):
 
-- The order of calls is fixed by `run_tlc`, the only caller in tlaup: `start` once, immediately before the child starts; `handle` and `stderr_line` any number of times, from the main thread; `finish` once when the run has an outcome; `close` from a `finally`. `finish` may call `close` itself, so `close` must be idempotent.
+- The order of calls is fixed by `run_tlc`, the only caller in tlaup: `start` once, immediately before the child starts; `handle`, `stderr_line` and `notice` any number of times, from the main thread; `finish` once when the run has an outcome; `close` from a `finally`. `finish` may call `close` itself, so `close` must be idempotent.
 - `close` is idempotent, safe before `start`, safe after a `start` that raised half way (it releases exactly what `start` recorded), and never raises. A write that fails inside it is kept in `write_error` (the first one only); `run_tlc` raises it after its frame.
 - `handle`, `stderr_line` and `finish` let a write error pass. Only `close` holds one back.
 - A reporter never parses: what it needs that the result does not carry is added to `tlaup_parse`. It never decides the exit code and never raises for a failed run. It holds its own state.
 - TLC's stderr goes through `stderr_line`, never straight to a console.
+- A line of tlaup's own during the run goes through `notice`, for the same reason: nothing between `start` and `close` prints through `ui` ([14 F6](../design/14-config-and-cli.md#f6-messages)). The one such line in the first wave is the waiting line while a first signal is held during a checkpoint ([11 R2](../design/11-runner.md#r2-signals)); `run_tlc`'s `on_held` hook hands it to `notice` ([37](37-run-tlc.md)). A plain reporter writes it on stderr at once ([38](38-terminal-reporter.md)); the layout shows it in its Status panel and copies it to stderr when it closes ([40](40-live-display.md)). A raw run has no reporter and holds no signal for a checkpoint.
 - A reporter prints only through `ui.out` and `ui.err` of the `Ui` it was given ([14 F6](../design/14-config-and-cli.md#f6-messages)) and never builds a console on a real stream. (The spools of [40](40-live-display.md) are consoles on temporary files, which is allowed.)
 - A reporter says nothing about the run folder: the "Checkpoint kept" note is the command's ([39](39-tlc-command.md)).
 
@@ -89,14 +91,15 @@ class CollectingReporter:            # tests and the Python API; prints nothing
     events: list[Event]
     results: list[RunResult]         # the result object handed with each event (the same object each time)
     stderr_lines: list[str]
+    notices: list[str]               # the lines given to notice, in order (22 O1)
     outcome: RunOutcome | None       # `object | None` until 37 narrows it
-    calls: list[str]                 # "start", "handle", "stderr_line", "finish", "close", in order
+    calls: list[str]                 # "start", "handle", "stderr_line", "notice", "finish", "close", in order
     write_error: OSError | None      # always None here; a test subclass may set it in close
 ```
 
-Stage 4's readings for what O1 leaves to the class:
+What O1 leaves to the class, as built (stage 4's choices, all internal to tests):
 
-- `calls` records the name of each method as it is called. A test that also wants the runner's `notice` calls in the same order passes its own list as `calls` and appends to it from its `notice` function; [37](37-run-tlc.md) does that.
+- `calls` records the name of each method as it is called, `notice` included. A test that also wants the runner's `notice` argument (the kept-folders reminder, printed through `ui.note` before `start`) in the same order passes its own list as `calls` and appends to it from its `notice` function; [37](37-run-tlc.md) does that.
 - `finish` records the outcome and does not call `close`: it holds nothing. `close` appends `"close"` the first time it is called and does nothing on a later call, so O1's sequence "`start`, events, `finish`, `close`" is what a test reads. A test that needs to count every call can count them in a subclass.
 - The methods are plain and do nothing else, so a test may subclass the reporter to act from a callback: send a signal from `start` or `handle` ([37](37-run-tlc.md)'s exact-moment tests), raise from `handle`, or set `write_error` in `close`.
 
@@ -121,15 +124,15 @@ Used by: `run_tlc` and its tests (37); `TerminalReporter` (38, 40); `make_report
 
 Plain pytest in `tests/unit/reporters/test_collecting.py`, a reporter driven directly with events ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 1). Events are built by hand from 09's classes with values that are not TLC output (an `OutputLine("line 1")`, a `PhaseChanged` with a hand-built `TlcMessage` of one plain line); no framed text is typed (rule 3).
 
-- A `CollectingReporter` given `start`, two events, a `stderr_line` and `finish` keeps the `RunInfo`, the events in order, the result handed with each, the stderr line and the outcome; `calls` is `["start", "handle", "handle", "stderr_line", "finish"]`, and `close` adds `"close"` once however often it is called.
+- A `CollectingReporter` given `start`, two events, a `stderr_line`, a `notice` and `finish` keeps the `RunInfo`, the events in order, the result handed with each, the stderr line, the notice and the outcome; `calls` is `["start", "handle", "handle", "stderr_line", "notice", "finish"]`, and `close` adds `"close"` once however often it is called.
 - `close` before `start` returns, records `"close"` and leaves everything empty; `write_error` is `None` throughout.
 - A list passed as `calls` is the list the reporter appends to.
 - A type check that `CollectingReporter` is a `Reporter`: an assignment `reporter: Reporter = CollectingReporter()` in the test module, which mypy checks when it runs on the tests (if the project's mypy run covers `src` only, the same line goes in `collecting.py` under `TYPE_CHECKING`).
 - `RunInfo` is frozen (assigning a field raises `FrozenInstanceError`).
 
-O1's Tests paragraph is not here: every test it names drives `run_tlc` with the fake `java`, and is [37](37-run-tlc.md)'s; the `TerminalReporter`'s `close` is O6's (38, 40).
+O1's Tests paragraph is not here: every test it names drives `run_tlc` with the fake `java`, and is [37](37-run-tlc.md)'s, the waiting line arriving as one `notice` included; the `TerminalReporter`'s `close` is O6's (38, 40).
 
-Old tests deleted or rewritten: none. No stateful test applies.
+Old tests: none (the old suite went in [03](03-test-foundation.md), decision D62). No stateful test applies.
 
 ## Changelog
 
@@ -139,7 +142,7 @@ None. O1 has no entry of its own, and no command reaches this code.
 
 - **D8.** Reporters are one protocol fed by typed events and the result; the terminal reporter, the collecting reporter, and later JSON and other reporters are classes behind it. The protocol is the contract between the runner (37) and every reporter: adding an event is cheap, changing one touches every reporter (O1, Risks).
 - **D9.** Nothing TLC printed is lost: that is why `close` exists and never raises; it runs before the application prints an `error:` line.
-- **D30, D40.** Why `stderr_line` goes through the reporter: a reporter that owns the terminal (the layout of 40) decides where the line appears.
+- **D30, D40.** Why `stderr_line` and `notice` go through the reporter: a reporter that owns the terminal (the layout of 40) decides where the line appears; under the alternate screen a line printed through `ui` would be lost (question Q12).
 - **Why `close` keeps a write error instead of raising it.** It runs in a `finally`, while another exception may be passing; raising there would replace it. `run_tlc` raises the kept error after the frame when nothing else is passing, so a closed pipe still ends in 141 ([02 X1](../design/02-cross-cutting.md#x1-exit-codes)).
 - **Why the consoles of `Ui` only.** tlaup's console class hands a closed pipe back as `BrokenPipeError`; a plain Rich console exits with 1 instead ([14 F6](../design/14-config-and-cli.md#f6-messages), F10).
 - `RunInfo` is not `RunRecord` ([11 R6](../design/11-runner.md#r6-run-folders) says so): `RunRecord` is what `tlaup cache list` shows for one folder ([35](35-run-folders.md)).

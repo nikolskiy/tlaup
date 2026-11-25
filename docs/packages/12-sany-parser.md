@@ -4,7 +4,7 @@ Size: M. Suggested model: mid-tier. Status: ready.
 
 ## Goal
 
-`tlaup_parse.SanyParser` reads SANY's output one line at a time, gives every line a class, and returns each diagnostic once, when it is complete, with its severity, module, file, location and message. It passes the golden tests over the SANY captures of both builds.
+`tlaup_parse.SanyParser` reads SANY's output one line at a time, gives every line a class, and returns each diagnostic once, when it is complete, with its severity, module, file, location and message. It passes the golden tests over the SANY captures of both builds, written first and failing, and `SanyResult` has a dictionary form for the expected files of [15](15-golden-expected-results.md).
 
 ## Covers
 
@@ -13,16 +13,17 @@ Size: M. Suggested model: mid-tier. Status: ready.
   - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout)), in part: the SANY golden tests. PlusCal is package 14; the full expected results are 15; passthrough is tested in the feature files of 41 and 42.
   - "Move the parser stack ... into its own import package" ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)), in part: `sany.py`. See [09](09-parse-package-and-model.md).
 - Design sections:
-  - [10 P8](../design/10-parser.md#p8-sany-output): the line classes, the state machine, the parse-error diagnostic, the duplicate rule, severity (D55), the warning forms, the file of a diagnostic, and the tests headed "Golden, SANY alone". The bullet "Scope inside TLC" and the tests headed "Golden, inside TLC" are package 13.
+  - [10 P8](../design/10-parser.md#p8-sany-output): the line classes, the state machine, the parse-error diagnostic, the duplicate rule, severity (D55), the warning forms, the file of a diagnostic, the tests headed "Golden, SANY alone", and the paragraph that makes them the parser's own tests with `SanyResult.to_dict()` and `from_dict()` (question Q18). The bullet "Scope inside TLC" and the tests headed "Golden, inside TLC" are package 13.
   - [10 P2](../design/10-parser.md#p2-the-tlaup_parse-package): `SanyParser`, `SanyStep`, `SanyLineClass`, `SanyResult` of the public surface.
-  - [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal): the SANY row of its table, as tests. Moving the captures is package 07; the PlusCal row is 14.
+  - [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal): the SANY row of its table, as the parser's own assertions (not facts, Q18). Moving the captures is package 07; the PlusCal row is 14.
+  - Preserved-behaviour row R31 (SANY's output is split into errors and warnings with module and range): its owner ([inventory](../design/preserved-behaviour-2026-11-22.md)).
 
 ## Depends on
 
 - [09](09-parse-package-and-model.md): `Diagnostic` and `Location`; the package skeleton and `__init__.py`.
 - [07](07-golden-files.md): `tests/parse/golden/sany/<build>/` with one `.out` file per case and `cases.toml`.
 
-Changed from the draft: the draft says this package depends on 10. It does not: SANY's text is unframed, and the parser needs neither the `Framer` nor the code table. It needs 09 and 07, so it can run beside [10](10-framing-and-codes.md) and [11](11-values.md). P8's own "Depends on: P2, P4" is about the window inside a TLC run, which is 13's part.
+Changed from the draft: the draft says this package depends on 10. It does not: SANY's text is unframed, and the parser needs neither the `Framer` nor the code table. It needs 09 and 07, so it can run beside [10](10-framing-and-codes.md) and [11](11-values.md). P8's "Depends on" now says the same: P2 for the parser, P4 only for the window inside a TLC run, which is 13's part.
 
 ## Files
 
@@ -35,7 +36,7 @@ Changes:
 
 - `src/tlaup_parse/__init__.py`: export the four names.
 
-Deletes: nothing. `src/tlaup/tlc/sany.py` and `tests/unit/tlc/test_sany.py` stay until package 39.
+Deletes: nothing. `src/tlaup/tlc/sany.py` stays until package 39; its old test went in 03b.
 
 Shared with 10 and 11, which run beside this package: `src/tlaup_parse/__init__.py` (one import line and `__all__` entries).
 
@@ -64,11 +65,15 @@ class SanyResult:
     module_files: dict[str, str]
     other: tuple[str, ...]          # the lines of class OTHER, in order
     lines_used: int                 # how many input lines had another class
+
+    def to_dict(self) -> dict[str, object]: ...
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "SanyResult": ...
 ```
 
-Written by stage 4, because [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal) and P8 want a full expected result per SANY golden file and P2 gives `SanyResult` no dictionary form: `SanyResult.to_dict()` returns `diagnostics` (each as `Diagnostic.to_dict()`), `module_files`, `other` and `lines_used` as JSON types. The dictionary value of a `SanyLineClass` is its name in lower case. Package 15 decides the shape of the expected file around these (it also holds the class of every line).
+[10 P8](../design/10-parser.md#p8-sany-output) gives `SanyResult` its dictionary form, "plain JSON types like the types of P3", with `from_dict` beside it for the same round-trip test (question Q18). Its shape, written by stage 4 from 09's rules: `diagnostics` (each as `Diagnostic.to_dict()`), `module_files`, `other` and `lines_used`, nothing left out when empty. The dictionary value of a `SanyLineClass` is its name in lower case. Package 15 decides the shape of the expected file around these (it also holds the class of every line).
 
-Behaviour, all from P8; the two tables there (the classes, and the state machine with its seven states `preamble`, `semantic_errors`, `parse_error`, `parse_stack`, `parse_tail`, `abort`, `warnings`) are complete and were run as a script over 53 SANY captures and 110 TLC captures. Build them row by row. The points a reader could miss:
+Behaviour, all from P8; the two tables there (the classes, and the state machine with its seven states `preamble`, `semantic_errors`, `parse_error`, `parse_stack`, `parse_tail`, `abort`, `warnings`) are complete and were run as a script over research 12's 52 SANY captures and 110 TLC captures. Build them row by row. The points a reader could miss:
 
 - `feed` strips trailing white space first (a line may arrive with its newline; SANY ends some lines with a space). The stripped line is what `other`, a message and `details` hold.
 - At most one diagnostic is open. "Completes" means: the open diagnostic is returned if it has a message, and dropped if it has none (the line that opened it stays counted as used).
@@ -89,7 +94,7 @@ Used by: package 13 (`TlcParser` owns one and feeds it the unframed lines of the
 
 ## Tests that must pass
 
-`tests/parse/test_sany.py`, plain pytest over `tests/parse/golden/sany/<build>/`, each file read in binary, split into lines that keep their line ending, decoded as UTF-8 with `errors="replace"`, and fed one line per call; `close()` at the end. Case names below are the design's; the ids are the ones package 07 gave in `cases.toml`.
+`tests/parse/test_sany.py`, plain pytest over `tests/parse/golden/sany/<build>/` (research 12's joined captures and research 22's that T3 adopts), each file read in binary, split into lines that keep their line ending, decoded as UTF-8 with `errors="replace"`, and fed one line per call; `close()` at the end. Case names below are the design's; the ids are the ones package 07 gave in `cases.toml`.
 
 Golden, SANY alone (P8 Tests, S5), on both builds unless said:
 
@@ -112,14 +117,17 @@ Properties, over every file of the two folders (parametrised by globbing):
 - Every diagnostic returned by a step is in `result.diagnostics`, in the same order, and none is there twice.
 - Feeding each line with `\n`, without it, and with `\r\n` gives equal results.
 - Driving the parser the way the old runner did, reading `result` after every line, changes nothing: the diagnostics at the end are the same. This is the roadmap's "flushed after every line" defect as a test.
+- `to_dict()` passes `json.dumps` and holds only JSON types, and `SanyResult.from_dict(r.to_dict()) == r`.
 
 Unit: the lines of one error block of a golden file fed twice in a row give the diagnostic once (P8: "feeds one diagnostic twice and gets it once"); the lines are taken from the file, not typed (T12 rule 3).
 
-Not in this package: the class of every line as part of a stored expected result (P8: "for every SANY golden file the classes are part of the expected result"). That is a file per case, written by package 15 from this parser and reviewed against the capture.
+Not in this package: the class of every line as part of a stored expected result (P8: "for every SANY golden file the classes are part of the expected result"). That is a file per case, written by package 15 (15e) from this parser and reviewed against the capture.
 
-Old tests. `tests/unit/tlc/test_sany.py` (two tests on typed output) tests the old `tlaup.tlc.sany`, which the old runner and formatter still import. T11 lists it as "replaced by golden tests"; the replacement arrives here, and the old file stays unchanged until package 39 deletes it together with the old module, so that no module in `src/` loses its tests while it is still shipped ([01 T11](../design/01-testing.md#t11-the-existing-tests)).
+Row R31: the tests headed "Golden, SANY alone" are its test (errors and warnings, each with its module and range, on both builds); the pull request names the row.
 
-`pending` markers: if `tests/parse/facts.py` of package 08 has facts for the SANY-alone cases (S5 says each case gets facts), this package's first commit removes the `pending` marker from all of them, and the pull request shows that run failing before the parser is added (T12 rule 6). If 08 wrote facts for TLC cases only, the list "Golden, SANY alone" above is written as tests in `test_sany.py` first, from reading the captures, committed before the parser, and the same red run is shown. The facts of the TLC cases that contain SANY text (`sany-semantic-error`, `parse-error`, the `stale-*-tool` captures, 4802 inside TLC) stay pending until 13.
+Written first ([01 T3](../design/01-testing.md#t3-golden-files), [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal), question Q18): `facts.py` holds TLC facts only, so the list "Golden, SANY alone" is written as tests in `test_sany.py`, from reading the captures, committed before the parser, and the pull request shows that run red (T12 rule 6). No `pending` marker is involved. The facts of the TLC cases that contain SANY text (`sany-semantic-error`, `parse-error`, the `stale-*-tool` captures, 4802 inside TLC) stay pending until 13.
+
+Old tests: none are left (03b).
 
 ## Changelog
 
@@ -137,7 +145,7 @@ None in this package. P8's entry ("Fixed: A SANY error was reported twice, and T
   - Every capture has an empty line between a position line and its message.
   - v1.7.4's text for the "both changed" PlusCal warning is misspelt; every text is kept as printed.
   - The rolling `-help` page carries ANSI bold codes (ESC `[1m`); they are part of its `OTHER` lines.
-- **The one stderr line.** SANY alone writes everything to stdout except `File does not exist: ...` (v1.7.4: for a missing module and a missing file; rolling: for a missing file only). `tlaup sany` reads both streams through one pipe, so the parser sees one stream. The captures of research 12 were made that way; research 22 recorded the two streams apart. The tests above that expect the line in `other` hold for a golden file in which the streams are merged; check which form package 07 stored for each case and say in the pull request if a case cannot show the line.
+- **The one stderr line.** SANY alone writes everything to stdout except `File does not exist: ...` (v1.7.4: for a missing module and a missing file; rolling: for a missing file only). `tlaup sany` reads both streams through one pipe, so the parser sees one stream. The golden files of these cases are research 12's, captured that way (T3's placements 1 and 2: research 22's re-runs and its two SANY cases with a separate `.err` stay as evidence), so the tests that expect the line in `other` read it there.
 - **What was and was not checked before.** The script run of 2026-11-15 covered research 12's captures. The warning block, the `!! WARNING` line, v1.7.4's level errors, 4802 as its own capture and the help pages were captured later by research 22 and were not run through the script; the golden tests here are their first check. If a capture contradicts a row of the tables, do not bend the test: say so in the pull request (the capture wins, and the design needs a line).
 - **Decisions.** D55: 4802 and the stuttering lints are errors, so that `tlaup sany` and `tlaup tlc` return 150 for the same spec (D29). D9: a line the state machine does not know is `OTHER` and is shown as printed, so a new shape degrades to plain text. D19: two builds are supported; both golden folders must pass.
 - **The parser does no I/O and knows no command line.** When a diagnostic's module was never announced, `file` stays `None`; the `sany` command fills it (package 41).
@@ -145,8 +153,8 @@ None in this package. P8's entry ("Fixed: A SANY error was reported twice, and T
 
 ## Done when
 
-- `test_sany.py` passes on both golden folders; `uv run poe lint` and `uv run poe test` pass; CI is green; the old `tests/unit/tlc/test_sany.py` is unchanged and still passes.
-- The first commit removes the `pending` markers of the SANY facts (or adds the fact tests), and the pull request shows the red run.
+- `test_sany.py` passes on both golden folders; `uv run poe lint` and `uv run poe test` pass; CI is green; the pull request names row R31.
+- The first commit adds the golden assertions, and the pull request shows the red run.
 - The import-isolation test of 09 still passes.
 - No changelog entry; no document to update.
 
@@ -156,10 +164,9 @@ None in this package. P8's entry ("Fixed: A SANY error was reported twice, and T
 - The `tlaup sany` command, its exit code 150, the editor form `path:line:col: severity: message`, and paths relative to the working folder: 41 ([21 S1](../design/21-other-tools.md#s1-sany)).
 - `PcalParser` and the PlusCal golden tests: 14.
 - The expected result files for the SANY cases, with the class of every line: 15.
-- Deleting `src/tlaup/tlc/sany.py` and `tests/unit/tlc/test_sany.py`: 39.
+- Deleting `src/tlaup/tlc/sany.py`: 39.
 
 ## Risks
 
 - From P8: SANY's text is free-form and differs between builds; unknown lines are kept, not dropped, so a new shape degrades to "shown as printed".
 - From P8: the tables were checked by script on research 12's captures only; research 22's captures meet them here for the first time.
-- From the cut: package 08 settled that `facts.py` holds TLC facts only (a fact takes a `RunResult` and is shared with the integration tests), so the SANY-alone assertions are this package's, in `tests/parse/test_sany.py`, written failing first (reconciled by stage 4; the index asks the maintainer to confirm the reading).

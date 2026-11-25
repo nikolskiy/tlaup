@@ -4,7 +4,7 @@ Size: S. Suggested model: mid-tier. Status: ready.
 
 ## Goal
 
-`tlaup_parse.PcalParser` reads the PlusCal translator's output one line at a time and gives a `PcalResult`: the translator's version, the files it says it wrote, the labels it added, its errors as diagnostics, and every line it did not recognise, in order. It passes the golden tests over the PlusCal captures of both builds, and `PcalResult` has a dictionary form for the expected files of [15](15-golden-expected-results.md).
+`tlaup_parse.PcalParser` reads the PlusCal translator's output one line at a time and gives a `PcalResult`: the translator's version, the files it says it wrote, the labels it added, its errors as diagnostics, and every line it did not recognise, in order. It passes the golden tests over the PlusCal captures of both builds, written first and failing, and `PcalResult` has a dictionary form, with `from_dict` beside it, for the expected files of [15](15-golden-expected-results.md).
 
 ## Covers
 
@@ -13,16 +13,16 @@ Size: S. Suggested model: mid-tier. Status: ready.
   - "`pcal` command: run the PlusCal translator; passthrough for its flags." (milestone 1b, line 299), in part: the parser the command feeds. The command is 42.
   - "Move the parser stack ... into its own import package that imports nothing from `tlaup`" ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)), in part: `pcal.py`, the one module of [10 P2](../design/10-parser.md#p2-the-tlaup_parse-package)'s table that is new. See [09](09-parse-package-and-model.md).
 - Design sections:
-  - [21 S2](../design/21-other-tools.md#s2-pcal), step 3 only: `PcalResult` and what the parser recognises. Steps 1, 2, 4 and 5 (the command, its printing, its exit code) are 42.
+  - [21 S2](../design/21-other-tools.md#s2-pcal), step 3 and the `PcalParser` unit test of its Tests: `PcalResult` with `to_dict()` and `from_dict()` (question Q18), and what the parser recognises, both label headings included. Steps 1, 2, 4 and 5 (the command, its printing, the labels on stdout of D67, its exit code) are 42.
   - [10 P2](../design/10-parser.md#p2-the-tlaup_parse-package): `PcalParser` of the public surface, and the package's rules.
-  - [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal): the PlusCal row of its table, as tests. The SANY row is 12; the full expected results are 15.
+  - [21 S5](../design/21-other-tools.md#s5-golden-files-for-sany-and-pluscal): the PlusCal row of its table, as the parser's own assertions (not facts, Q18). The SANY row is 12; the full expected results are 15.
 
 ## Depends on
 
 - [09](09-parse-package-and-model.md): `Diagnostic`, `Location`, their `to_dict()`; the package skeleton, `__init__.py`, the import-isolation test.
 - [07](07-golden-files.md): `tests/parse/golden/pcal/v1.7.4/` and `pcal/2026.11.15.002146/`, one `.out` per case (the command line, `[exit=N]` and the `-- files before/after:` lines removed) and a `cases.toml` with `files_before` and `files_after`.
 
-Unchanged from the draft. Not a dependency: [08](08-golden-facts.md), which decided that `tests/parse/facts.py` holds TLC facts only; the per-case PlusCal assertions are written here, red first. If 08's `tests/parse/drive.py` is on `main` (it should be, since 08 runs early in the track), use its `read_lines`; nothing else of 08 is needed. This package imports nothing from `tlaup` and runs beside [10](10-framing-and-codes.md) to [13](13-tlc-parser.md).
+Unchanged from the draft. Not a dependency: [08](08-golden-facts.md); `tests/parse/facts.py` holds TLC facts only ([01 T3](../design/01-testing.md#t3-golden-files), question Q18), and the per-case PlusCal assertions are written here, red first. If 08a's `tests/parse/drive.py` is on `main`, use its `read_lines`; nothing else of 08 is needed. This package imports nothing from `tlaup` and runs beside [10](10-framing-and-codes.md) to [13](13-tlc-parser.md).
 
 ## Files
 
@@ -59,7 +59,9 @@ class PcalResult:
     diagnostics: list[Diagnostic]         # tool="pcal"
     other: list[str]                      # lines not recognised, kept
 
-    def to_dict(self) -> dict[str, object]     # written by stage 4
+    def to_dict(self) -> dict[str, object]: ...     # plain JSON types, as the types of 10 P3 (S2)
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "PcalResult": ...
 ```
 
 **What is recognised** (S2, step 3). Each line is first stripped of its line ending and of trailing white space; the stripped line is what `other` and a message hold. In the order of the translator's output:
@@ -69,7 +71,7 @@ class PcalResult:
 | The banner, `pcal.trans Version <text>` | `version` is `<text>` as printed: `1.11 of 31 December 2020` (v1.7.4), `1.12 of 01 July 2024` (rolling). |
 | `Parsing completed.`, `Translation completed.` | Nothing is kept. |
 | `New file <X> written.` | `<X>` is appended to `files_written`, as printed (`Pcal.tla`, then `Pcal.cfg`). |
-| `The following label was added:` | Opens the label block. Each following line of the form `<name> at line <L>, column <C>` (indented in the captures) appends `(name, L, C)` to `labels_added`; the first line of another form ends the block and is read as a line of its own. |
+| `The following label was added:` or `The following labels were added:` | Opens the label block. Each following line of the form `<name> at line <L>, column <C>` (indented in the captures) appends `(name, L, C)` to `labels_added`, in the translator's order; the first line of another form ends the block and is read as a line of its own. Only the singular heading was captured (`pcal-label`); the plural is the translator's other text, read from its classes in the rolling jar (S2). |
 | `Unrecoverable error:` | Opens the error block. |
 | ` -- <message>`, directly after `Unrecoverable error:` | Opens a diagnostic with that message (the leading ` -- ` taken off, the rest as printed). |
 | `line <L>, column <C>.` or `at line <L>, column <C>.`, with any indent, directly after the ` -- ` line | Gives the open diagnostic its location and completes it. |
@@ -78,21 +80,21 @@ class PcalResult:
 
 "Completes": the open diagnostic is returned by the `feed` or `close` call that completed it and appended to `result.diagnostics`.
 
-A diagnostic is `Diagnostic(tool="pcal", severity="error", message=..., module=None, file=None, location=..., details=())`: the translator's output names no file and no module (research 12: "Errors give a line and column but no file"). Its `location`, when the message had one, is `Location(module="", line=L, column=C, end_line=None, end_column=None)`; without one, `None`. Written by stage 4: `Location.module` is a `str` in [10 P3](../design/10-parser.md#p3-result-model) and the translator gives none, so it is the empty string (see the report; the alternative is an optional `module` in 09's model). The command fills in the file from its own command line (42), as `tlaup sany` does for a diagnostic whose module was never announced.
+A diagnostic is `Diagnostic(tool="pcal", severity="error", message=..., module=None, file=None, location=..., details=())`: the translator's output names no file and no module (research 12: "Errors give a line and column but no file"). Its `location`, when the message had one, is `Location(module="", line=L, column=C, end_line=None, end_column=None)`; without one, `None`. `Location.module` is a `str` in [10 P3](../design/10-parser.md#p3-result-model) and the translator gives none, so it is the empty string, and the model is not changed for it. This is stage 4's reading, listed in the index's readings (review finding A3); it is low impact, since nothing a user relies on shows the field before the JSON of milestone 4, which the second design wave designs. The command fills in the file from its own command line (42), as `tlaup sany` does for a diagnostic whose module was never announced.
 
 The message is kept as printed, the doubled full stop included (`... --algorithm not found..`): trimming it is a rule of how the command prints (S2, step 4), and the result is what the translator wrote. So is a message's case and spelling.
 
 **Written by stage 4, each from what the design says in words or from the captures:**
 
 - **The empty-line rule** is P8's rule for SANY ([10 P8](../design/10-parser.md#p8-sany-output): "an empty line is `OTHER` only directly after an `OTHER` line"), taken over because S2 says nothing about empty lines. Without it every empty line around an error block would be "not recognised" and printed by the command; with it the help text (`pcal-help`) keeps its paragraphs and the empty lines around the banner and the error block vanish. No look-ahead.
-- **A message on more than one line** (`pcal-spec`: ` -- Could not find resource file Foo.tla.` and two indented lines after it). S2 recognises one ` -- ` line and an optional location line, so the two continuation lines complete the diagnostic and are `other`; the command prints them as written, after the diagnostic, in the order the translator wrote them. Joining them to the message would be a rule the design does not have (see the report).
+- **A message on more than one line** (`pcal-spec`: ` -- Could not find resource file Foo.tla.` and two indented lines after it). S2 recognises one ` -- ` line and an optional location line, so the two continuation lines complete the diagnostic and are `other`; the command prints them as written, after the diagnostic, in the order the translator wrote them. Joining them to the message would be a rule the design does not have. Stage 4's reading, listed in the index's readings with the one above (A3).
 - **`Wrote file AST.tla.`** (`-writeAST`, `-spec`) is not `New file X written.` and is not recognised: it is `other`, and `files_written` stays empty. That is what S2's list says; the command prints it as written.
 - **`result.other` grows as lines are fed.** It is a plain list on the result, not a copy, so a caller can tell after each `feed` which lines were not recognised: the ones that call appended. Package 42 relies on this to print unrecognised lines in their place among the diagnostics, since `feed` returns diagnostics only. Keep it so, or say in the pull request what replaces it.
-- **`to_dict()`**, for package 15's expected files, as package 12 wrote `SanyResult.to_dict()`: `{"version": ..., "files_written": [...], "labels_added": [[name, line, column], ...], "diagnostics": [<Diagnostic.to_dict()>, ...], "other": [...]}`, JSON types only, nothing left out when empty or `None`. No `from_dict`: no test needs one.
+- **`to_dict()` and `from_dict()`** (S2, Q18), for the expected files of package 15 (15e, its SANY and PlusCal part) and the round-trip test, in the shape package 12 gives `SanyResult`'s: `{"version": ..., "files_written": [...], "labels_added": [[name, line, column], ...], "diagnostics": [<Diagnostic.to_dict()>, ...], "other": [...]}`, JSON types only, nothing left out when empty or `None`; `from_dict` turns the label lists back into tuples.
 
 Consumes: `Diagnostic`, `Location` ([09](09-parse-package-and-model.md)).
 
-Used by: package 42 (`tlaup pcal` feeds the merged output and prints the diagnostics, the unrecognised lines and the notes for `files_written`), package 15 (the expected files).
+Used by: package 42 (`tlaup pcal` feeds the merged output and prints the diagnostics, each of `labels_added` on stdout as `<spec>:<line>:<col>: label <name> added` (D67), the unrecognised lines and the notes for `files_written`), package 15 (the expected files).
 
 ## Tests that must pass
 
@@ -119,11 +121,11 @@ Properties, over every file of both folders (parametrised by globbing, so a new 
 - Every diagnostic returned by a `feed` or `close` call is in `result.diagnostics`, in the same order, and nothing else is there.
 - Driving the parser while reading `result` after every line changes nothing.
 - The files a case says it wrote were there afterwards: for every case whose `cases.toml` entry has `files_after`, each name in `files_written` is in `files_after`. This checks the parser against a record made apart from the output, by the research script.
-- `json.dumps(result.to_dict())` succeeds and the dictionary holds only JSON types.
+- `json.dumps(result.to_dict())` succeeds, the dictionary holds only JSON types, and `PcalResult.from_dict(r.to_dict()) == r`.
 
-No unit test of hand-typed translator output: tool output is captured, never typed (T12 rule 3).
+Unit (S2, Tests): the lines of `pcal-label`, read from the golden file, give one label; the same lines with the heading replaced by `The following labels were added:` and the label line repeated under a second name give both labels, in order. The test edits the captured lines in code (the heading text and one name), never types a translator output of its own; the edit is the smallest that gives the plural shape no capture has, as T3 does for its synthetic cases. Otherwise no unit test of hand-typed translator output: tool output is captured, never typed (T12 rule 3).
 
-Old tests: none. `pending` markers: none apply (08 wrote no PlusCal facts).
+Old tests: none. `pending` markers: none apply (`facts.py` holds no PlusCal facts). Preserved-behaviour rows: none is this package's; 0.8.x had no PlusCal command.
 
 ## Changelog
 
@@ -132,7 +134,7 @@ None. What `tlaup pcal` prints is the changelog of package 42.
 ## Context for the worker
 
 - **State of `main`.** `tlaup_parse` has the model and may have framing, values and the SANY parser; this package uses none of them except `Diagnostic` and `Location`. `src/tlaup/` has nothing for PlusCal.
-- **Facts about the translator's output** (research 12, restated so that no research file is needed): all its text is on stdout; stderr was empty in every run (research 22 recorded the streams apart and found the same). Success exits 0, failure 255; `-writeAST` exits 255 after succeeding. Errors carry a line and column, or nothing, never a file. Every one-line error ends in two full stops, because the translator appends one to a message that already has one. The banner differs by build; everything else in the captures is the same text on both builds except the missing-file message. `-label -reportLabels` was captured with one label only: the header for several labels was never seen, and the parser recognises only the captured header. A different header is then `other`, which the command prints as written (D9: a new shape degrades to plain text).
+- **Facts about the translator's output** (research 12, restated so that no research file is needed): all its text is on stdout; stderr was empty in every run (research 22 recorded the streams apart and found the same). Success exits 0, failure 255; `-writeAST` exits 255 after succeeding. Errors carry a line and column, or nothing, never a file. Every one-line error ends in two full stops, because the translator appends one to a message that already has one. The banner differs by build; everything else in the captures is the same text on both builds except the missing-file message. `-label -reportLabels` was captured with one label only: the plural header was never seen in a run and is recognised from the translator's classes (S2). If its label lines turn out to differ from the singular's, they are `other`, which the command prints as written (D9: a new shape degrades to plain text).
 - **The rules of the package** ([10 P2](../design/10-parser.md#p2-the-tlaup_parse-package)): standard library only; no import of `tlaup`, `rich`, `typer`, `pydantic`; no file, network, clock or environment access. The parser does not know the spec's name and does not look for the files it reads about.
 - **Decisions.** D9: a line the parser does not recognise is kept and shown, so `other` must hold every such line in order. D19: two builds, both folders must pass. D29: the command passes the translator's exit code through; the parser does not see it.
 - **If a capture contradicts the table above**, the capture wins: do not bend a test; say so in the pull request, and the table needs a line.
@@ -143,13 +145,13 @@ None. What `tlaup pcal` prints is the changelog of package 42.
 - `tests/parse/test_pcal.py` passes on both golden folders; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - The pull request shows the per-case assertions failing before the parser was added.
 - The import-isolation test of 09 still passes (it walks the package, so it covers `pcal.py` without an edit).
-- `PcalResult.to_dict()` exists, so that package 15's PlusCal half does not wait.
+- `PcalResult.to_dict()` and `from_dict()` exist, so that 15e, package 15's SANY and PlusCal part, does not wait.
 - No changelog entry; no document to update.
 
 ## Out of scope
 
 - The `tlaup pcal` command: running the translator in the spec's folder, the editor form with the spec's path, trimming the doubled full stop, the notes on stderr, the exit code, `pcal.feature`: [42](42-pcal-command.md).
-- The expected `<case>.json` files for the PlusCal cases: [15](15-golden-expected-results.md).
+- The expected `<case>.json` files for the PlusCal cases: [15](15-golden-expected-results.md) (15e).
 - Moving the captures and writing `cases.toml`: [07](07-golden-files.md).
 - The integration test that runs the real translator on a copy of a PlusCal spec, on both builds: [52](52-integration-tests.md).
 
@@ -157,4 +159,4 @@ None. What `tlaup pcal` prints is the changelog of package 42.
 
 - From S2: the `chksum` and the order of `VARIABLES` in the translation differ between builds; tlaup does not read the translated file, so only the golden outputs differ per build.
 - From the captures: 18 cases per build, several with the same few lines. A shape the research did not run (several labels, a message on three lines of another kind, a warning) reaches the user as unrecognised lines printed as written, not as a diagnostic.
-- From the cut: the empty-line rule and the reading of continuation lines are stage 4's; if the maintainer answers the report's question otherwise, the change is a few lines here and the regenerated expected files of 15.
+- From the cut: the empty-line rule, the reading of continuation lines and the empty `Location.module` are stage 4's readings; a later change is a few lines here and the regenerated expected files of 15.

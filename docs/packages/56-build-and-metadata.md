@@ -109,11 +109,9 @@ Consumes: `scripts/check_wheel.py` and its `--list` (53).
 - B1 has no test (the YAML hook checks the file; the first monthly run shows whether the groups work).
 - Every classifier is one PyPI knows: compare the list with the current `trove-classifiers` package once (for example `uv run --with trove-classifiers python -c ...`), and say so in the pull request. PyPI refuses an upload with an unknown classifier, and `twine check` does not look; `Programming Language :: Python :: 3.15` is the one to check (stage 4).
 
-No old test file changes.
-
 ## Changelog
 
-None in the design. B1 to B3 have no Changelog paragraph, and nothing a user runs changes. If the index wants an entry for the wider dependency ranges (for example "tlaup now accepts Rich 14 and later"), it goes under Changed; stage 4 does not add one.
+None. B1 to B3 have no Changelog paragraph, and nothing a user runs changes.
 
 ## Context for the worker
 
@@ -121,7 +119,7 @@ None in the design. B1 to B3 have no Changelog paragraph, and nothing a user run
 
 **`setuptools>=77.0.3`**: the SPDX licence string `license = "MIT"` in `[project]` needs it. With it, setuptools adds the `LICENSE` file to the distributions by its default license-file patterns, which is one of the things `MANIFEST.in` did; the wheel and sdist lists before and after show whether that holds.
 
-**`MANIFEST.in`** holds today `include LICENSE`, `include README.md`, `recursive-include src/tlaup/resources *.yaml`, `include src/tlaup/py.typed`, and after 09 the `tlaup_parse` line. Each is covered by the `readme` field, the licence default and the package data in `pyproject.toml`; the list comparison is the proof, not this reasoning. [06](06-lifeline-agent.md) notes that after the deletion only package data reaches the sdist, so the lifeline agent's Java source ships only if 06 made it package data.
+**`MANIFEST.in`** holds today `include LICENSE`, `include README.md`, `recursive-include src/tlaup/resources *.yaml`, `include src/tlaup/py.typed`, and after 09 the `tlaup_parse` line. Each is covered by the `readme` field, the licence default and the package data in `pyproject.toml`; the list comparison is the proof, not this reasoning. [06](06-lifeline-agent.md) notes that after the deletion only package data reaches the sdist, so the lifeline agent's Java source ships only if 06 made it package data. The jar itself is checked in and is package data (review finding A9), so it is in both lists before and after.
 
 **The README links.** Today `README.md` has one relative link (`docs/examples/`); the switch packages may have added more by the time this runs. PyPI renders the same file and relative links are dead there. Use `https://github.com/<owner>/<repo>/tree/main/...` for a folder and `.../blob/main/...` for a file, with the owner and repository of the `Repository` address in `pyproject.toml`. The documentation track's README rewrite ([roadmap, line 494](../roadmap.md#documentation-track-parallel-start-with-milestone-1)) keeps both changes (B3); it is not designed and is not built here.
 
@@ -141,7 +139,7 @@ None in the design. B1 to B3 have no Changelog paragraph, and nothing a user run
 
 ## Out of scope
 
-- The `typer` floor (17), the `rich` floor (16), `filelock` (23), the development dependencies and `pytest-mock` (03, and whichever package empties 03's list; 59 checks).
+- The `typer` floor (17), the `rich` floor (16), `filelock` (23), the development dependencies, and `pytest-mock`, which 03b removed with the old tests (decision D62).
 - `.python-version` and the test that keeps the Python versions in step: [57](57-repo-hygiene.md).
 - `project.urls.Changelog`: [55](55-release-tooling.md).
 - The root help reading `description`: [50](50-help-and-messages.md).

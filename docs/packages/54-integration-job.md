@@ -4,7 +4,7 @@ Size: M. Suggested model: mid-tier. Status: ready.
 
 ## Goal
 
-`test.yml` has a job `integration` that runs the integration tests of [52](52-integration-tests.md) on Linux and macOS, with Java 11 and 25 and both supported TLC builds, gets each jar with tlaup itself through a cache, records which rolling build it used, ends with the clean-home check, and is part of the one required `Test` check. The workflow also runs every week.
+`test.yml` has a job `integration` that runs the integration tests of [52](52-integration-tests.md) on Linux and macOS, with Java 11 and 25 and both supported TLC builds, gets each jar with tlaup itself through a cache, records which rolling build it used, ends with the clean-home check, and is part of the one required `Test` check. It runs only commands of the new tree (`tool install`, `doctor`, `tool current`, `tool dir`), so no old command is kept working for it (decision D62). The lifeline job gets a rolling jar the same way, for the REPL case of [52](52-integration-tests.md). The workflow also runs every week.
 
 ## Covers
 
@@ -14,10 +14,11 @@ Size: M. Suggested model: mid-tier. Status: ready.
   - [30 I1](../design/30-ci-and-release.md#i1-integration-job): all of it.
   - [01 T2](../design/01-testing.md#t2-isolation), "Proof that it holds", and [01 T9](../design/01-testing.md#t9-integration-tests): the integration job "ends with the same 'nothing appeared in the home folder' check as the unit job, extended to `~/.tlaplus`".
   - [30 I5](../design/30-ci-and-release.md#i5-workflow-hygiene): for this job, `timeout-minutes: 30`, `--locked`, pinned actions, and the entry `integration` in the `needs` of the `Test` job.
+  - [30 I2](../design/30-ci-and-release.md#i2-unit-job), in part: the jar the lifeline job needs for its REPL case ("`tlaup repl`'s JVM under a pseudo-terminal still reads a line from stdin"), which I2 lists among the lifeline tests and does not say where it comes from (stage 4's answer, below).
 
 ## Depends on
 
-- [52](52-integration-tests.md): `tests/integration/`, `TLAUP_TEST_JARS` and its accepted shape (a store's tool folder is one), `uv run poe test-integration`.
+- [52](52-integration-tests.md): `tests/integration/`, `TLAUP_TEST_JARS` and its accepted shape (a store's tool folder is one), `uv run poe test-integration`, and `tests/lifeline/test_repl_terminal.py`, which reads the same variable.
 - [53](53-ci-workflows.md): `test.yml` as it rewrites it: the workflow-level permissions, concurrency and weekly schedule, the pinned action hashes and their comments, the `Test` job that this one joins, and the clean-home step's command.
 - [46](46-doctor.md): `tlaup doctor`, which compares each installed jar with its recorded SHA-256 (step 5 of I1).
 - Through 52: [29](29-tool-commands.md) (`tlaup tool install`, `tool install --force`, `tool current`, `tool dir`) and [24](24-github-client.md) (the token sent to `api.github.com` only, D41).
@@ -28,7 +29,7 @@ Changed from the draft (52, 53): 46 is added, for `doctor`, which no package 52 
 
 Changes:
 
-- `.github/workflows/test.yml`: the job `integration` (below) and `integration` in the `needs` list of `Test`. Nothing else in the file.
+- `.github/workflows/test.yml`: the job `integration` (below), `integration` in the `needs` list of `Test`, and in the `lifeline` job the steps that give it a rolling jar (below). Nothing else in the file.
 - `docs/contributing/development.md`: the CI section (which 53 rewrites) gains the integration job in a line or two, including how to abandon the jar cache (raise the number in the keys).
 
 Creates, Deletes: nothing.
@@ -58,6 +59,8 @@ Eight jobs, `fail-fast: false`, `timeout-minutes: 30`. A comment beside `java: 1
 6. `TLAUP_TEST_JARS=<the store's tool folder> uv run poe test-integration`. The folder is `${{ runner.temp }}/tlaup/cache/tool`, or what `uv run tlaup tool dir` prints; 52's discovery takes the build folders in it and skips `pin`, `.lock` and `.tmp/`.
 7. **The clean-home check** (stage 4 places it last, as T9 says the job "ends with" it): the same command as the unit job's last step ([53](53-ci-workflows.md), using [03](03-test-foundation.md)'s `scripts/test_clean.py` in its check-only form), whose list already includes `~/.tlaplus`. It runs with `if: always()` after step 6 has started, so a failing test run still shows whether something leaked. `TLAUP_HOME` points outside the home folder here, so a tlaup folder under the home would itself be a leak.
 
+**The lifeline job's jar** (stage 4; I2 names the REPL case for the lifeline job, which [53](53-ci-workflows.md) built with Temurin 11 and no jar). In the `lifeline` job, after `actions/setup-java` and before `uv run poe test-lifeline`, the same steps 3 to 5 as above for `rolling` alone (the digest step, the cache restore with the `rolling` key, `uv run tlaup tool install rolling` with `GITHUB_TOKEN`, `uv run tlaup doctor`), with `TLAUP_HOME: ${{ runner.temp }}/tlaup` on the job; then `uv run poe test-lifeline` with `TLAUP_TEST_JARS` set to the store's tool folder. Rolling, because v1.7.4 has no REPL. The cache key is the integration job's, so the two jobs share one entry. The job's other tests ignore the variable.
+
 Consumes: the `Test` job of 53 (`needs` gains `integration`); its weekly `schedule` trigger (53 adds it for the newest-dependencies job; this job runs on it too, which is I1's "weekly schedule"); the pinned hashes 53 recorded for `actions/checkout`, `astral-sh/setup-uv`, `actions/setup-java` and `actions/cache`, looked up again if more than a few days old.
 
 ## Tests that must pass
@@ -65,6 +68,7 @@ Consumes: the `Test` job of 53 (`needs` gains `integration`); its weekly `schedu
 The job is the test. In the pull request:
 
 - All eight cells green, with the summary of each showing `tool current` (the rolling cells name the build).
+- Both `lifeline` cells green, with the REPL case run and not skipped (its line in the log).
 - A second run of the same commit (re-run from the Actions page) restores the cache and makes no download: the step 4 log says the build is already installed.
 - The `Test` job shows `integration` among its needs, and a red integration cell makes `Test` red (seen on the first run of a deliberately failing commit on the branch, or argued from 53's job if that was already shown there; say which).
 
@@ -92,7 +96,7 @@ None. CI only.
 
 ## Done when
 
-- The job exists as above and all eight cells pass on the pull request; the summary of a rolling cell names the build.
+- The job exists as above and all eight cells pass on the pull request; the summary of a rolling cell names the build; the `lifeline` job runs the REPL case.
 - A re-run shows the cache hit and no download.
 - `Test` needs `integration`.
 - `uv run poe lint` and `uv run poe test` pass; the YAML hook passes on `test.yml`.
@@ -101,7 +105,7 @@ None. CI only.
 ## Out of scope
 
 - The integration tests themselves: [52](52-integration-tests.md).
-- The other jobs, the triggers, permissions, concurrency, the `Test` job and the action pins: [53](53-ci-workflows.md).
+- The other jobs (apart from the lifeline job's jar steps), the triggers, permissions, concurrency, the `Test` job and the action pins: [53](53-ci-workflows.md).
 - A wider Java matrix (17, 21) or a Windows cell: rejected (I1; D15).
 - Pinning a rolling build so that it can be downloaded again: milestone 3.
 - The ruleset on `main`: maintainer action ([30 I7](../design/30-ci-and-release.md#i7-ruleset-on-main)).

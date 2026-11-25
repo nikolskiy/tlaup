@@ -9,7 +9,7 @@ Size: M. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)):
-  - "Report clearly when an override module fails to load (raised list)." In part: the collection, the check before a run and the texts of the two hints. Parsing message 2168 and the warnings 2400, 2402, 2403 is [13](13-tlc-parser.md); showing the loaded overrides and placing the hint is [38](38-terminal-reporter.md); the scenarios through `tlaup tlc` and the changelog entries are [39](39-tlc-command.md); the integration test on `docs/examples/QueueModule` is [52](52-integration-tests.md).
+  - "Report clearly when an override module fails to load (raised list)." In part: the collection, the check before a run and the texts of the two hints. Parsing message 2168 and the warnings 2400, 2402, 2403 is [13](13-tlc-parser.md); placing the hint is [38](38-terminal-reporter.md); listing the loaded overrides belongs to the verbose header of milestone 4 (R7 part 3, `--verbose`), which nothing in the first wave prints; the scenarios through `tlaup tlc` and the changelog entries are [39](39-tlc-command.md); the integration test on `docs/examples/QueueModule` is [52](52-integration-tests.md).
 - Design sections:
   - [11 R7](../design/11-runner.md#r7-override-modules-that-do-not-load), part 1 (`OverrideClass`, `collect_override_classes`) and part 2 (`check_overrides`), with their unit tests; and from part 4 the wording of the two hints, as functions of text, with the test on research 28's two captures. Part 3 is the parser's and the reporter's. The condition under which a hint is shown is the reporter's ([22 O3](../design/22-reporters.md#o3-terminal-reporter), "Override hint").
   - [13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder), one field: `BuiltModule.warnings` gets R7's warnings. The rest of M2 is [30](30-module-build.md).
@@ -19,7 +19,7 @@ Size: M. Suggested model: mid-tier. Status: ready.
 
 - [02](02-errors-and-paths.md): nothing is raised here; the package only needs `tlaup` importable with its errors for the modules it edits.
 - [03](03-test-foundation.md): the isolation fixture and the fake class files (`tests/fakes/classes/`, compiled once from `tests/fakes/java-src/`, [01 T4](../design/01-testing.md#t4-fakes-at-the-edges)).
-- [07](07-golden-files.md): research 28's two captures as files the hint test can read (see the note under Tests: the design's move table does not list them).
+- [07](07-golden-files.md): research 28's two captures, moved into the golden folder as `override-class-too-new-index` and `override-class-too-new-listed` ([01 T3](../design/01-testing.md#t3-golden-files), question Q3 as settled).
 - [23](23-tool-store.md): `Build.capabilities`, for `overrides_property` ([00](../design/00-overview.md#what-a-build-can-do)).
 - [30](30-module-build.md): `read_class` and `ClassInfo` from `tlaup/modules/classfile.py` ([13 M3](../design/13-modules-and-java.md#m3-module-build-details)); `build_module` and `BuiltModule`, which this package edits; the `module.json` that marks a registered module's folder.
 - [33](33-tlc-invocation.md): `resolve_tlc_invocation`, which this package edits at one place.
@@ -39,6 +39,7 @@ Changes:
 - `tests/unit/tlc/test_invocation.py`: two cases, below.
 - `src/tlaup/modules/build.py` ([30](30-module-build.md)): `build_module` puts R7's warnings for the module it has just built into `BuiltModule.warnings`, checked against the build `get_build()` returned. A module with no Java sources never calls `get_build` and gets no check, as M2 says ("skipped without one").
 - The unit test file of `build_module` that 30 wrote: one case.
+- `tests/features/modules.feature`, only if [31](31-module-commands.md) is merged when this package starts: 31's R7 scenario (below), which 31 leaves to this package when 34 comes second.
 - `CHANGELOG.md`, only in the case named under Changelog.
 
 Deletes: nothing. Today's `get_override_classes` in `src/tlaup/tlc/runner.py` stays until [39](39-tlc-command.md) deletes the old runner.
@@ -94,25 +95,26 @@ Plain pytest, real folders and real class files; jars are made in the test with 
 
 - `collect_override_classes` (R7): a folder with a service file; a bare `TLCOverrides.class` in a folder, and in a jar; both a service file and a bare `TLCOverrides.class` in one entry (the default name is added once, after the service file's names, unless the service file names it); a registered module's service file together with a project's own `TLCOverrides.class`, where the list holds both names; a service file with a comment and a blank line; two entries naming one class (the first wins); `module` is set for an entry that belongs to a registered module and `None` for a project's own folder.
 - `check_overrides` (R7): each of the four warnings and the clean case. For the second, a `Build` without `overrides_property` and a class named otherwise warns, the same build with a class named `tlc2.overrides.TLCOverrides` does not, and a build with the capability does not. For the fourth: a class that implements the interface only through a superclass in the same folder is not warned about, and neither is one whose superclass cannot be found; a file of random bytes named `X.class` gives no warning and no exception.
-- The hints: `class_version_hint` on the text of research 28's two captures gives the specific hint with the right two Java versions (25 and 11 for class files 69 and 55); on a text without the sentence it gives `None`. The message text is read from the capture files, never typed into the test ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 3). The two captures are the `-tool` output of a too-new index class (message 2173) and of a too-new listed class (message 1000 with `UnsupportedClassVersionError`). On the day this package was cut they were `ovr-javac25-default-<build>-java11-tool.txt` and `ovr-mixed-index-release11-listed-javac25-default-<build>-java11-tool.txt` under `tests/fixtures/research/28-java-11-and-macos-java/out/`; R7 calls them golden, and [01 T3](../design/01-testing.md#t3-golden-files)'s table of what moves to `tests/parse/golden/` does not list them. Read them from where [07](07-golden-files.md) put them; if they did not move, read them where they are and say so in the pull request.
+- The hints: `class_version_hint` on the text of research 28's two captures gives the specific hint with the right two Java versions (25 and 11 for class files 69 and 55); on a text without the sentence it gives `None`. The message text is read from the capture files, never typed into the test ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 3). The two captures are the `-tool` output of a too-new index class (message 2173) and of a too-new listed class (message 1000 with `UnsupportedClassVersionError`), on each build: `tests/parse/golden/tlc/<build>/override-class-too-new-index.out` and `override-class-too-new-listed.out`, where [07](07-golden-files.md) put them ([01 T3](../design/01-testing.md#t3-golden-files)).
 
 `tests/unit/tlc/test_invocation.py`, two added cases: with a registered module whose class is `QueueOverrides` and a project folder that holds `tlc2/overrides/TLCOverrides.class`, a build with the capability gives `override_classes` holding both names and no override warning; a build without it gives the second warning in `TlcInvocation.warnings`, and the preflight still returns.
 
 The unit tests of `build_module` (30's file), one added case: with the fake `javac`, a module whose class is `QueueOverrides` and a `get_build` returning a build without `overrides_property`, `BuiltModule.warnings` holds the same warning text as the preflight's.
 
+`tests/features/modules.feature`, only if 31 is merged when this starts (finding C3 of the stage 4 review): with `v1.7.4` pinned, `module add Queue` (class `QueueOverrides`) exits 0 and stderr has one `warning:` line naming `QueueOverrides`. When 31 comes after this package, 31 writes the scenario itself.
+
 T12 rule 6: R7's Fixed entry is a defect of today's code (a `TLCOverrides.class` inside a jar is not found once any service file exists). The pull request shows the jar case of `collect_override_classes` failing first, for example by running it against the old rule before the function is complete.
 
-Old tests: none deleted. T11 lists "finding override classes" among behaviour with no test today; these are its first. No stateful test applies.
+Old tests: none; the old suite went in [03](03-test-foundation.md) (decision D62). "Finding override classes" had no test in 0.8.x; these are its first (inventory row M7, kept, whose unit tests R7 names). No stateful test applies.
 
 ## Changelog
 
-The three entries of R7:
+The two entries of R7 (a third, about listing the loaded overrides, was dropped from the design on 2026-11-22, since nothing in the first wave prints that list):
 
 - Added: "tlaup warns before a run when a registered Java override class will not be loaded by the pinned TLC build. On v1.7.4 only a class named `tlc2.overrides.TLCOverrides` is loaded."
-- Changed: "The run output lists the operator overrides TLC reports loading."
 - Fixed: "On rolling builds an override class named `tlc2.overrides.TLCOverrides` inside a jar on the classpath stopped loading when another override module was registered."
 
-Which package writes them: the Changed and Fixed entries describe a run and are written by [39](39-tlc-command.md). The Added entry is written here if `tlaup module add` of [31](31-module-commands.md) is already on `main`, because from this package on it prints the warning when a module is added; otherwise this package writes none and 39 writes all three. 39 writes the Added entry only when it is not already there.
+Which package writes them: the Fixed entry describes a run and is written by [39](39-tlc-command.md). The Added entry is written here if `tlaup module add` of [31](31-module-commands.md) is already on `main`, because from this package on it prints the warning when a module is added; otherwise this package writes none and 39 writes both. 39 writes the Added entry only when it is not already there.
 
 ## Context for the worker
 
@@ -131,10 +133,10 @@ Which package writes them: the Changed and Fixed entries describe a run and are 
 - The capability `overrides_property` is decided from the jar at install (the manifest has `Build-TimeStamp`) and stored with the build. No version string is compared. The rule is exact only for the two builds decision D19 supports; for builds between them it is a guess, and a user who hits a wrong guess sees TLC's own behaviour.
 - The check is domain code: it returns texts and prints nothing. The command prints the preflight's warnings before TLC starts ([39](39-tlc-command.md)); `module add` prints `BuiltModule.warnings` ([31](31-module-commands.md)).
 
-**Points where stage 4 had to read between the lines.** Say in the pull request what was built.
+**Points the design leaves open, and what is built** (stage 4's choices; all internal, so none is a user-visible decision).
 
-- *How an entry is known to be a registered module's.* `collect_override_classes` takes only the classpath, and `OverrideClass.module` wants the module's name. Stage 4's reading: an entry is a registered module's when it lies in a folder that holds a `module.json` ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder): `<cache>/module/<name>/classes`, or a jar under its `lib/`), and the name is that folder's name. The other way is one more parameter (the registry, or a mapping from entry to name) handed in by the preflight; either is fine if the listed tests stay.
-- *What `build_module` checks.* The design says `module add` "runs the same check against the pinned build". Stage 4's reading: the classes are the module's own override classes, declared in its new `classes/` folder, and the classpath is that folder with the module's `lib/` jars and the build's jar. The check runs on the temporary folder before the swap or on the final folder after it, whichever keeps `declared_in` true; the warning text does not show the path.
+- *How an entry is known to be a registered module's.* `collect_override_classes` takes only the classpath, and `OverrideClass.module` wants the module's name. Built so: an entry is a registered module's when it lies in a folder that holds a `module.json` ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder): `<cache>/module/<name>/classes`, or a jar under its `lib/`), and the name is that folder's name. One more parameter handed in by the preflight (the registry, or a mapping from entry to name) was the other way; it is not taken, because the classpath already says it.
+- *What `build_module` checks.* The design says `module add` "runs the same check against the pinned build". The classes are the module's own override classes, declared in its new `classes/` folder, and the classpath is that folder with the module's `lib/` jars and the build's jar. The check runs on the temporary folder before the swap or on the final folder after it, whichever keeps `declared_in` true; the warning text does not show the path.
 - *Importing `tlaup.tlc.overrides` from `tlaup.modules.build`.* It is a sideways import between two domain packages; nothing in [00](../design/00-overview.md#packages-after-the-first-wave) forbids it, and the function imported is pure apart from reading class files.
 
 **Traps.**
@@ -150,15 +152,15 @@ Which package writes them: the Changed and Fixed entries describe a run and are 
 
 ## Done when
 
-- `tests/unit/tlc/test_overrides.py` and the added cases pass; the old unit tests still pass.
+- `tests/unit/tlc/test_overrides.py` and the added cases pass.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 - The changelog is as the Changelog section says for the state of `main` on the day.
-- The pull request shows the red run named under Tests, says where the two captures were read from, and names each reading under Context that it did not follow.
+- The pull request shows the red run named under Tests and names any choice under Context that it did not follow.
 
 ## Out of scope
 
 - Message 2168 into `RunResult.overrides_loaded`, and the warnings 2400, 2402, 2403: [13](13-tlc-parser.md). The golden cases `override-*`: [07](07-golden-files.md), [15](15-golden-expected-results.md).
-- When a hint is shown, and the verbose header that lists loaded overrides: [38](38-terminal-reporter.md).
+- When a hint is shown: [38](38-terminal-reporter.md). The verbose header that lists the loaded overrides: milestone 4.
 - The feature scenarios (a registered module on v1.7.4 warns on stderr and Java still starts; on rolling the logged property names both classes), printing the warnings, the changelog: [39](39-tlc-command.md).
 - `tlaup module add` printing `BuiltModule.warnings`: [31](31-module-commands.md).
 - `docs/examples/QueueModule` on both builds: [52](52-integration-tests.md).
@@ -166,6 +168,5 @@ Which package writes them: the Changed and Fixed entries describe a run and are 
 ## Risks
 
 - From R7: the capability rule is exact only for the two supported builds. The general hint is shown for any early message 1000 when override classes were passed, so it can stand beside an exception with another cause; its wording is conditional for that reason. Research 13 ran Java 25 only.
-- From the cut: the two hint functions are here and their caller is in [38](38-terminal-reporter.md), which the draft cut does not make depend on this package. If 38 is built first it needs the two texts from somewhere; the index has to order the two or move the functions.
+- From the cut: the two hint functions are here and their caller is in [38](38-terminal-reporter.md); the index makes 38a wait for this package, so the functions exist when 38 calls them.
 - From the cut: this package edits a file of package 30 and a file of package 33. Both edits are a few lines at one place.
-- From the cut: research 28's two captures have no place in T3's move table, so where the hint test reads them is settled by whoever moves them first.

@@ -1,6 +1,6 @@
 # 27. Install, upgrade, uninstall and pin as steps
 
-Size: L. Suggested model: most capable. Status: ready, except one rule that waits on question "uninstall race" of the index (what waits is under Interfaces, `uninstall`).
+Size: L as a whole, delivered as two pull requests of size M each (27a and 27b, see the end of this file). Suggested model: most capable. Status: ready. The uninstall race (question Q8) is answered by the design: re-check under the lock and remove nothing ([12 V3](../design/12-tools-and-downloads.md#v3-uninstall), finding B7).
 
 ## Goal
 
@@ -24,7 +24,7 @@ Size: L. Suggested model: most capable. Status: ready, except one rule that wait
   - [12 V11](../design/12-tools-and-downloads.md#v11-concurrent-installs): what is left after package 23: two installs of one build at once, and nothing of a command left under `.tmp/` after an install and after a failed download.
   - [12 V1](../design/12-tools-and-downloads.md#v1-version-store): the step classes `Install`, `Upgrade`, `Uninstall`, `Pin` and the types `Lookup` and `Fetch`; "What a mutation decides on is read under the lock" as far as these steps read; the stateful test.
   - [01 T6](../design/01-testing.md#t6-download-and-github-failure-tests): the rows "`--force` reinstall fails" and "Two installs of one build at once".
-  - [03, "Specs and their tests"](../design/03-run-stages-and-specs.md#specs-and-their-tests) and [the specs' README](../../specs/README.md#toolstore): the ToolStore machine as this package's test first.
+  - [03 K2](../design/03-run-stages-and-specs.md#k2-tools-store), [03, "Specs and their tests"](../design/03-run-stages-and-specs.md#specs-and-their-tests) and [the specs' README](../../specs/README.md#toolstore): the ToolStore machine as this package's test first (with [23](23-tool-store.md) for the store's own steps).
 
 ## Depends on
 
@@ -55,7 +55,7 @@ Changes:
 
 Deletes: `tests/stateful/reference_store.py`.
 
-Must not touch: the old modules under `src/tlaup/versioning/` (`api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `__init__.py`), `cmd/tools/`, and their tests under `tests/unit/tools/` and `tests/unit/version_manager/`. Package 29 deletes them. The new module name `install.py` collides with no old module; the old command module `cmd/tools/install.py` is in another package.
+Must not touch: the old modules under `src/tlaup/versioning/` (`api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `__init__.py`) and `cmd/tools/`. Package 29 deletes them; their old tests went in 03b (decision D62). The new module name `install.py` collides with no old module; the old command module `cmd/tools/install.py` is in another package.
 
 Shared with other packages: `tests/unit/versioning/conftest.py` with 22, 23 and 26, which are finished before this starts. `specs/README.md` with packages 21 and 35, which each add one sentence to the same part for their own machine; three separate sentences, so a conflict is a rebase of one line.
 
@@ -93,10 +93,11 @@ class Upgrade:                                             # as Install, with th
     def delete_old(self) -> None
 
 class Uninstall:                                           # take_store_lock, clean_tmp and release_store_lock as above
-    def __init__(self, store: ToolStore, builds: Sequence[Build]): ...
+    def __init__(self, store: ToolStore, builds: Sequence[Build], *,
+                 groups: Sequence[Sequence[Build]] | None = None): ...   # groups: written by stage 4, see below
     removed: list[Build]
     failed: list[tuple[Build, TlaupError]]                 # written by stage 4: could not be moved out (V3, step 1)
-    gone: list[Build]                                      # written by stage 4: no longer installed when the lock was held
+    missing: list[Build]                                   # written by stage 4: a group with none left under the lock
     def move_out(self) -> None
     def delete_out(self) -> None
     def clear_pin(self) -> None
@@ -146,10 +147,10 @@ def upgrade(store, remote, client, spec: VersionSpec | None, *, keep_old: bool =
 class UninstallReport:
     removed: tuple[Build, ...]
     failed: tuple[tuple[Build, TlaupError], ...]   # each failure, in the order of the builds given
-    gone: tuple[Build, ...]                        # no longer installed when the lock was held
+    missing: tuple[Build, ...]                     # non-empty: nothing was removed (V3, under the lock)
     unpinned: Build | None                         # the pinned build, when it was removed and the pin cleared
 
-def uninstall(store, builds: Sequence[Build]) -> UninstallReport
+def uninstall(store, builds: Sequence[Build], *, groups: Sequence[Sequence[Build]] | None = None) -> UninstallReport
 
 def pin(store, spec: VersionSpec, ui: Ui) -> Build    # V4 names it so; returns the build now pinned
 
@@ -173,8 +174,8 @@ What each function does, in the order the steps run. The sections have the full 
 6. `look()` with `force` false: the newest installed build of the name that is `same_as_published` is "already there"; `build` is set and nothing is downloaded. With `force`, always download.
 7. `add()` with a download: `store.add(jar, info, name=..., prerelease=release.prerelease, source=..., repair=force)`. Without one: under the lock, read again whether `build` is still installed; if not, return false (K2-5); if it is and upstream's `prerelease` flag or source record differ from the build's, `store.update` (V12, row 2). The row "no digest, same bytes, a new upload time" falls out of this: `same_as_published` is false, the jar is downloaded, `store.add` finds the same name and bytes and returns that build, and `add()` then updates its source so that the next install makes no download.
 8. `pin_if_none()`: under the lock, nothing is pinned when there is no pin file or the pin names a build that is not installed (the state D50 accepts; review finding FC5). Read it there, not before (finding K2-1).
-9. GitHub cannot be asked: when step 3 raises `NetworkError`, `RateLimited` or `RemoteDataError`, `force` is false and a build of that name is installed, the report returns the newest such build with `could_not_check` holding the error's message, after the same `take_store_lock`, `pin_if_none`, `release_store_lock` as any other path that returns a build. With no build of the name, or with `force`, the error is the result. Which errors count as "GitHub cannot be asked" is stage 4's reading of V12's words; `VersionNotFound` (a 404 on the tag) is not one of them.
-10. The pin rule applies to every path that returns one build: it is pinned when nothing is pinned. When a build spec matched several builds, nothing is pinned, since no one build was asked for; stage 4's reading of "the build it returns".
+9. GitHub cannot be asked: when step 3 raises `NetworkError`, `RateLimited` or `RemoteDataError`, `force` is false and a build of that name is installed, the report returns the newest such build with `could_not_check` holding the error's message, after the same `take_store_lock`, `pin_if_none`, `release_store_lock` as any other path that returns a build. With no build of the name, or with `force`, the error is the result. Which errors count as "GitHub cannot be asked" is read so from V12's words (settled with the index's readings, 2026-11-24); `VersionNotFound` (a 404 on the tag) is not one of them.
+10. The pin rule applies to every path that returns one build: it is pinned when nothing is pinned. When a build spec matched several builds, nothing is pinned, since no one build was asked for ("the build it returns", read so and settled with the index's readings).
 
 `Source`, written by `install` for a download: `kind="github-release"`, `url=release.asset.download_url` (never a redirect's address, package 24), `asset_id`, `asset_updated_at`, and `digest_checked` true exactly when `usable_digest(release.asset)` is not `None` (package 26). Known and accepted: `fetch_build` cannot hand back the release it fetched again after its one retry (the stateful test fixes the `Fetch` type), so after an upstream replacement during the download `asset_id` and `asset_updated_at` are one upload old. The jar and its SHA-256 are right. For a release with a digest nothing follows from it; for one without, the next install sees a different upload time, downloads once more and discards the copy (row 4 of V12's table), after which the record is current. Do not change `Fetch` to return the release.
 
@@ -188,9 +189,9 @@ What each function does, in the order the steps run. The sections have the full 
 4. Otherwise the `Upgrade` steps: `look` (fresh release, never the lookup cache; compare with the newest installed build of the name through `same_as_published`); up to date: no download, and the `prerelease` flag is refreshed with `store.update` under the lock if upstream changed it. Else `lock_tmp`, `make_tmp`, `download`, `take_store_lock`, `clean_tmp`, `add`, `move_pin`, `move_old_out`, `delete_old`, `release_store_lock`, `release_tmp`.
 5. Read under the lock (V1): `move_pin` moves the pin only if it names `old`; `move_old_out` removes `old` only if it is still installed and is not the build just added. So when another tlaup upgraded the name meanwhile, this call moves nothing and removes nothing. Older builds of the name are never touched; `remaining` lists them for the note.
 
-**`uninstall`.** Under the lock, in D50's order: `take_store_lock`, `clean_tmp`, `move_out` (every build in turn, no short circuit; a build whose rename fails goes into `failed` with its `FileOperationError` and the loop goes on; a build no longer installed goes into `gone`), `delete_out` (a deletion that fails leaves the moved-out folder under `.tmp/` with its lock file released, for the next `clean_tmp`; the build counts as removed, since nothing of it is left in the store), `clear_pin` (the pin is read now, after the removals, and cleared only if it names a build in `removed`; it never moves to another build), `release_store_lock`. A build that failed keeps the pin if it was pinned.
+**`uninstall`.** Under the lock, in D50's order: `take_store_lock`, `clean_tmp`, `move_out` (first the check below; then every build in turn, no short circuit; a build whose rename fails goes into `failed` with its `FileOperationError` and the loop goes on), `delete_out` (a deletion that fails leaves the moved-out folder under `.tmp/` with its lock file released, for the next `clean_tmp`; the build counts as removed, since nothing of it is left in the store), `clear_pin` (the pin is read now, after the removals, and cleared only if it names a build in `removed`; it never moves to another build), `release_store_lock`. A build that failed keeps the pin if it was pinned.
 
-What waits on question "uninstall race". V1 says that for `uninstall` "a build that has gone meanwhile is `VersionNotFound` (code 4)", and V3 that when one argument matches nothing, "nothing is removed". Together they do not say what happens when, of two builds named, one is removed by another tlaup between the command's look and its lock: remove the other and report 4, or remove nothing. Until the question is answered this package does the first, which is what the step class and the checked spec do (the spec's uninstall takes one build): the others are removed and the gone ones are listed in `gone`, and the command (29) turns a non-empty `gone` into `VersionNotFound` for named versions and ignores it for `--all`. The stateful machine names one build per uninstall, so it passes under either answer.
+**The check under the lock** (question Q8, settled by the design, finding B7; [12 V3](../design/12-tools-and-downloads.md#v3-uninstall), "Several arguments, one of which matches nothing"). Once the lock is held, `Uninstall.move_out` first reads `store.builds()` and checks that what it is to remove is still installed, before it moves any build out. The outcome is the one the command would have had if it had started at that moment: an argument that matches nothing removes nothing. So the builds come in **groups**, one per argument the user gave, each holding the builds that argument matched (`groups`, written by stage 4; V3 says it in words and gives no shape). With `groups=None`, the form the stateful machine uses, each build is a group of its own. A group none of whose builds is still installed puts its builds into `missing`; then nothing at all is moved out, and `removed` stays empty. Otherwise the builds of a group that have gone meanwhile are dropped and the rest are moved out: an argument that is a name matching several builds, of which one has gone, still matches the others. The command ([29](29-tool-commands.md)) turns a non-empty `missing` into `VersionNotFound` (code 4) naming those arguments; for `--all` it passes one group of every build, and an empty one means nothing is installed any more (V3's note `no builds are installed`, exit 0). The machine names one build per uninstall, so it passes with this rule as it did before: a build gone meanwhile removes nothing.
 
 **`pin`.** `store.find(spec)`; none: `VersionNotFound` (4). Several: on `ui.is_interactive()`, `choose_build(..., allow_all=False)`; otherwise `AmbiguousVersion` (2) with the candidates in their printed form. Then `Pin` under the lock; `write_pin` false is `VersionNotFound` (the build was removed meanwhile; finding K2-1).
 
@@ -217,12 +218,13 @@ The same file has V11's unit tests that package 23 left: after a successful `ins
 
 - `same_as_published` (V12): a digest that matches, one that does not, no digest with equal size and date and with a different size and a different date, a digest written in upper case, a digest with another prefix (treated as none).
 - `install`, one test per row of V12's table: not installed (a download, added, pinned when nothing is pinned); installed and published (no download, one request, `already_installed`; a changed `prerelease` flag is written by `update`); a moving tag (a second build of the name, the first kept, the pin left where it was); no digest, same bytes, a new upload time (one download, one build, the source updated, and a second `install` makes no download); `force` with the same bytes repairs a truncated jar in place and keeps the id, and with other bytes adds a second build; `NAME@COMMIT` installed (no request); `NAME@COMMIT` matching two builds (no request, `matches` holds both, nothing pinned) and with `force` (`UsageError`); `force` with `NAME@COMMIT` installed and published (repaired) and with another build published (`VersionNotFound`, nothing changed); `NAME@COMMIT` not installed and the jar's commit another (`VersionNotFound`, nothing installed, `.tmp/` empty); `NAME@sha256:` not installed (`VersionNotFound`, no request); a bare CalVer installed under two names (`matches` holds both), not installed (`VersionNotFound`), and with `force` (`UsageError`); `stable` (resolved through a fresh list); `1.7.4` installs `v1.7.4` and records the name `v1.7.4`. GitHub failing with a build installed: `could_not_check` set, exit path with no error; with none installed and with `force`: the network error.
-- `install` and the pin: the first install pins, the second does not; a pin that names a missing build counts as nothing pinned.
+- `install` and the pin: the first install pins, the second does not; a pin that names a missing build counts as nothing pinned; an empty `pin` file, and one holding only a newline, count as nothing pinned and `install` pins its build over it (inventory row T4, its `install` half; the store half is [23](23-tool-store.md)'s; [12 V1](../design/12-tools-and-downloads.md#v1-version-store)).
 - `upgrade`, V4's cases: up to date (no download, one request, although a one-minute-old lookup cache file exists); another digest (new build installed, pin moved, old removed); two installed builds of `rolling` (compared with the newer; the older still installed, in `remaining`); the same with the older one pinned (pin unchanged); a name not installed (installed); no spec with nothing pinned (`NoPinnedBuild` with builds installed, `NoToolsInstalled` without); a bare CalVer and `rolling@<commit>` (`UsageError`, no request); `stable` with `v1.7.4` installed and pinned and `v1.8.0` published as stable (installed beside it, pin moved, `v1.7.4` kept); `keep_old=True` keeps the old build.
-- `uninstall`, V3's unit test of the failure order: of two builds the first cannot be moved out (its own folder made read-only; skipped with the reason when the suite runs as root), the second can; both are reported, the second is gone, the first is intact, and the pin, which names the first, is unchanged. Also: removing the pinned build clears the pin and does not move it; three builds with the middle one pinned all go and no pin is left (the short circuit of today); a build removed by a second store object before the lock is taken is in `gone`.
+- `uninstall`, V3's unit test of the failure order: of two builds the first cannot be moved out (its own folder made read-only; skipped with the reason when the suite runs as root), the second can; both are reported, the second is gone, the first is intact, and the pin, which names the first, is unchanged. Also: removing the pinned build clears the pin and does not move it; three builds with the middle one pinned all go and no pin is left (the short circuit of today).
+- The race, V3's plain pytest on the `Uninstall` steps (V1) with two store objects: two builds named (two groups), the second removed through the other store object before `take_store_lock`: nothing is removed, the first build is still installed, `missing` names the second, and `removed` is empty; two builds of `rolling` in one group (named by `rolling`), one removed meanwhile: the other is removed and `missing` is empty; one group of every build (`--all`) with every build removed meanwhile: nothing is moved and `missing` holds them.
 - `pin`: by spec; several matches with `interactive=True` and the answer `2` in stdin pins the second; `-1`, then `7`, then `2` asks three times; several matches with `interactive=False` is `AmbiguousVersion` and nothing is written; a build removed between `find` and the lock is `VersionNotFound` and the pin is unchanged. The `Ui` is built on `io.StringIO` streams ([01 T5](../design/01-testing.md#t5-feature-files-and-steps), "Prompts have one mechanism").
 
-Old tests: none is deleted or rewritten here. `tests/unit/tools/test_install.py`, `test_uninstall.py`, `test_upgrade.py` and `test_pin.py` test the old commands and go with them in package 29.
+Old tests: none is left (03b, decision D62). The pull request names the inventory row it covers: T4, the `install` half.
 
 ## Changelog
 
@@ -256,7 +258,7 @@ Upstream facts the code relies on, from research the design restates: upstream m
 
 Known gaps the design postpones, not to be closed here: one stored jar with two names (milestone 3); D26; pruning old builds (a milestone 3 item added at the sign-off).
 
-State of `main` when this starts: the 0.8.x commands on the old `versioning/` modules, with packages 22 to 26 beside them and package 16's `Ui`. `tests/stateful/test_tool_store.py` has run its reference-model tests since package 03; its `pending` tests have never run.
+State of `main` when this starts: the 0.8.x commands on the old `versioning/` modules, with packages 22 to 26 beside them and package 16's `Ui`. `tests/stateful/test_tool_store.py` has run its reference-model tests since package 03 (with 03b's `ResourceWarning` fixes, question Q17); its `pending` tests have never run.
 
 ## Done when
 
@@ -264,7 +266,7 @@ State of `main` when this starts: the 0.8.x commands on the old `versioning/` mo
 - `reference_store.py` and the three `*_reference_model` tests are gone; the module imports nothing that is gone and its docstring says what it runs against; `specs/README.md` has its sentence.
 - The tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - No file listed under "Must not touch" is in the diff.
-- The pull request says which answer the code follows for question "uninstall race", and what it found about `Ui.ask` and a question with no default.
+- The pull request (27b) says what it found about `Ui.ask` and a question with no default, and how the groups reach `Uninstall`.
 
 ## Out of scope
 
@@ -279,5 +281,14 @@ State of `main` when this starts: the 0.8.x commands on the old `versioning/` mo
 - From V12: for a release without a digest, "already installed" rests on the asset's size and upload time, which shows that upstream did not replace the file, not that the file on disk is undamaged; `tlaup doctor` (46) checks the jar against its SHA-256 and `--force` repairs it. Older builds of a moving tag pile up at 4.5 MB each.
 - From V3: a script that ran `tool uninstall rolling` expecting one build to go now removes every rolling build (the command's rule, 29).
 - From 03: the stateful test interleaves at step boundaries only; a race inside one step is outside the spec and the test. A race that needs one command to wait while another takes four steps is found by chance; the replay tests are the guard for the five known ones.
-- From the cut: the package is large (four functions, four step classes, one stateful machine, about fifty unit tests). If it must be split, `install`, `same_as_published` and the stateful test go first, since the machine needs all four step classes but not the four functions; `upgrade()`, `uninstall()`, `pin()` and `choose_build` with their unit tests can follow in a second pull request.
+- From the cut: the package is large as a whole (four functions, four step classes, one stateful machine, about fifty unit tests), so it is delivered as 27a and 27b below. The machine needs all four step classes at once, not the four functions, so the seam falls between them.
 - From the cut: the user-visible behaviour of these functions is first checked through the command line two packages later, in 29.
+
+## Pull requests (decided in the review of the packages, finding B18)
+
+This package is delivered as two pull requests; the index lists them as 27a and 27b. The index's earlier reason for not splitting ("the store machine needs install, upgrade, uninstall and pin together") holds for the four step classes, not for the four functions, so the seam keeps every step class in the first part.
+
+- **27a**: `install.py` with `Lookup`, `Fetch`, the four step classes (`Install`, `Upgrade`, `Uninstall` with its groups and its check under the lock, `Pin`), `install()`, `InstallReport` and `same_as_published`; the stateful test with its markers removed, `reference_store.py` and the `*_reference_model` tests deleted, the `specs/README.md` sentence; the two T6 rows and V11's `.tmp/` tests (`test_install_concurrent.py`); the unit tests of `same_as_published`, `install` and the pin, and V3's race tests on the `Uninstall` steps. Depends on 02, 03, 05, 16, 22 to 26.
+- **27b**: `upgrade()` and `UpgradeReport`, `uninstall()` and `UninstallReport`, `pin()` and `choose_build`, with their unit tests. Depends on 27a.
+
+A package that names 27 as a dependency waits for 27b.

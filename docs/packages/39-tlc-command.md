@@ -1,10 +1,10 @@
 # 39. The `tlc` command: switch to the new runner
 
-Size: L. Suggested model: most capable. Status: ready, except the two checkpoint-deferral scenarios marked under Tests, which wait on question (checkpoint signal steps) of the index.
+Size: L. Suggested model: most capable. Status: ready.
 
 ## Goal
 
-`tlaup tlc` runs through the new chain: request, preflight, pure command builder, run folder, launcher, parser, reporter. The old runner, the old parser stack and their tests are gone, the `tlc` feature files exist, and the changelog says what a user now sees. On this `main` output is plain on every stream; the live layout, `--plain` and `--refresh-interval` come with [40](40-live-display.md).
+`tlaup tlc` runs through the new chain: request, preflight, pure command builder, run folder, launcher, parser, reporter. The old runner and the old parser stack are gone (their tests went with the old suite in [03](03-test-foundation.md), decision D62), the `tlc` feature files exist, and the changelog says what a user now sees. On this `main` output is plain on every stream; the live layout, `--plain` and `--refresh-interval` come with [40](40-live-display.md).
 
 ## Covers
 
@@ -16,13 +16,13 @@ Size: L. Suggested model: most capable. Status: ready, except the two checkpoint
     - "Pass a `--cfg` file outside the project root to TLC so that TLC reads the file that was validated ..." In part: the scenario and the changelog; functions in [32](32-spec-resolution.md), preflight in 33.
     - "Spec names: a dot in the name is mangled by `with_suffix` ..." In part: the command and the changelog; function in 32.
     - "Stop run-cache cleanup from deleting other specs' directories ..." In part: `--keep`, the run-folder scenarios of `tlc_run.feature`, the removal of `--cleanup` and of the old run cache; run folders in [35](35-run-folders.md); `cache list` and `cache clean` in [45](45-cache-commands.md).
-    - "The run-cache fingerprint covers the default `.cfg` only ..." In part: `compute_spec_hash`, `_cleanup_stale_spec_dirs` and `get_spec_run_dir` are deleted here with their three tests (R12); settled by 35.
+    - "The run-cache fingerprint covers the default `.cfg` only ..." In part: `compute_spec_hash`, `_cleanup_stale_spec_dirs` and `get_spec_run_dir` are deleted here (R12; their three tests went in 03); settled by 35.
     - "Report clearly when an override module fails to load (raised list)." In part: the two scenarios and the changelog; check in [34](34-override-check.md).
     - "Pass everything after `--` to TLC. Add `--workers`, defaulting to `auto` ..." In part: the declarations and the scenarios; rules in 33.
     - "Make `--show-command` print the exact command that would run, including `-tool`, shell-quoted, without creating or deleting anything in the run cache." In full, apart from the `rundirs` unit test R9 names, which is 35's.
     - "One preflight used by every `tlaup tlc` path ..." In part: `tlc_errors.feature`; function in 33.
     - "First-run prompt (decision D4) ..." In part: the wrappers round `ensure_tools`, `--auto-install` on `tlc`, `first_run.feature`; functions in [28](28-first-run.md).
-    - "Java options: a `TLAUP_`-prefixed variable and a repeatable flag ..." In part: `--java-opt` on `tlc`, the scenario, removing what reads `JAVA_OPTS`; rule in 33.
+    - "Java options: a `TLAUP_`-prefixed variable and a repeatable flag ..." In part: `--java-opt` on `tlc`, the scenario, J1's entries; rule in 33. Nothing reads `JAVA_OPTS` since [19](19-layered-config.md) dropped the old validator.
     - "Use `JAVA_HOME` when set, falling back to `PATH`, for both `java` and `javac`." and "One Java start per run ..." In part: the scenarios through `tlaup tlc`, the removal of `get_tlc_version` and `tlc --version`; functions in [20](20-java-location.md).
   - [Milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout):
     - "A single TLC invocation value ... shared by the show-command, raw and formatted paths ... One process loop instead of two copies." In part: the short command function and `print_run_notes`; value in 33, loop in 37.
@@ -35,15 +35,15 @@ Size: L. Suggested model: most capable. Status: ready, except the two checkpoint
   - [20 G1](../design/20-groundwork.md#g1-tlc-invocation): the command function, `print_run_notes`, and the plain pytest test of the two commands.
   - [11 R9](../design/11-runner.md#r9-show-command): all of it but the `rundirs` unit test.
   - [23 C1](../design/23-command-layout.md#c1-command-tree): the `tlc` row; `SPEC` required; `--version` and `--cleanup` gone.
+  - [14 F4](../design/14-config-and-cli.md#f4-config-commands-with-a-broken-file): its scenario for the new `tlc` ("with a broken file, `tlaup tlc Spec` exits 3, names the key and prints no traceback"); the rest is [44](44-config-commands.md)'s.
   - [22 O1](../design/22-reporters.md#o1-reporter-interface): `make_reporter` and the command sketch. [22 O2](../design/22-reporters.md#o2-delete-dead-display-code): the rows of its table marked O3, as deletions (see Files).
-  - The command-level tests of [11 R1 to R8, R11](../design/11-runner.md), [20 G3](../design/20-groundwork.md#g3-java-launcher), [02 X1 and X2](../design/02-cross-cutting.md#x1-exit-codes), [12 V9](../design/12-tools-and-downloads.md#v9-first-run-prompt), [13 J1 to J3](../design/13-modules-and-java.md#j1-java-options), and [01 T5](../design/01-testing.md#t5-feature-files-and-steps) "What the `tlc` features cover".
-  - [01 T11](../design/01-testing.md#t11-the-existing-tests): the old tests listed under Tests.
+  - The command-level tests of [11 R1 to R8, R11](../design/11-runner.md), [20 G3](../design/20-groundwork.md#g3-java-launcher), [02 X1 and X2](../design/02-cross-cutting.md#x1-exit-codes), [12 V9](../design/12-tools-and-downloads.md#v9-first-run-prompt), [13 J1 to J3](../design/13-modules-and-java.md#j1-java-options), and [01 T5](../design/01-testing.md#t5-feature-files-and-steps) "What the `tlc` features cover", the checkpoint steps that question Q10 added included.
   - The changelog entries listed under Changelog.
 
 ## Depends on
 
 - [02](02-errors-and-paths.md), [16](16-ui-messages.md), [17](17-error-handler.md): `AppContext`, `Ui`, the root group that maps errors and prints an exception's notes, `python -m tlaup`.
-- [18](18-feature-harness.md): `tests/test_features.py`, the steps, the real-process and terminal helpers, the placeholders.
+- [18](18-feature-harness.md): `tests/test_features.py`, the steps (the checkpoint forms `once java has begun its checkpoint` and `java answers its version check with ...` included), the real-process and terminal helpers, the placeholders.
 - [19](19-layered-config.md): `ctx.settings` (`tlc.workers`, `tlc.keep`, `java.*`).
 - [28](28-first-run.md): `ensure_tools`. [29](29-tool-commands.md): the store, the remote listing and the client as the `tool` commands build them, and the store steps of the features.
 - [31](31-module-commands.md): the old `cmd/modules` is gone. It imports `tlc/run_cache.py` and `tlc/compiler.py`, which this package deletes; the scenarios with a registered module need `tlaup module add` or its Given step.
@@ -71,29 +71,27 @@ Changes:
 - `src/tlaup/reporters/__init__.py`: `make_reporter` (see Interfaces). If [36](36-reporter-interface.md) or [38](38-terminal-reporter.md) already created it, this package only calls it.
 - `src/tlaup/cli.py`: the line that registers `tlc`. Every switch package edits one such line.
 - `src/tlaup/java/classpath.py`: the string-returning methods the old runner used (`os.pathsep.join(resolver.resolve(...))` and `get_tla_library_property()`), which [33](33-tlc-invocation.md) left beside its path-returning ones, are deleted with the old runner (reconciled by stage 4).
-- `src/tlaup/config/schema.py`: the `JAVA_OPTS` validator (`JavaConfig.check_env_opts`) is removed, if [19](19-layered-config.md) left it for the old command.
-- `src/tlaup/tlc/formatter.py` and `src/tlaup/tlc/components.py`: cut down to what [40](40-live-display.md) owns (see "What stays for 40").
+- `src/tlaup/tlc/formatter.py` and `src/tlaup/tlc/components.py`: cut down to what [40](40-live-display.md) owns (see "What stays for 40"), and their imports of names this package deletes go (`formatter.py` imports `SanyMessage` from `tlaup.tlc.sany` at the top; finding C11).
+- `src/tlaup/tlc/run.py` becomes `src/tlaup/tlc/runner.py`, the name of 00's tree, once the old `runner.py` is deleted; `tests/unit/tlc/test_run.py` becomes `tests/unit/tlc/test_runner.py`; the two `TYPE_CHECKING` imports of `tlaup.tlc.run` that [37](37-run-tlc.md) put into `src/tlaup/reporters/base.py` and `collecting.py` follow (finding C12).
 - `CHANGELOG.md`; `docs/contributing/development.md`, where its code map names files this package creates or deletes.
 
 Deletes:
 
-- `src/tlaup/tlc/runner.py` as release 0.8.x has it (`resolve_spec_file`, `resolve_cfg_file`, `get_override_classes`, the old `build_tlc_command` and `run_tlc`, `get_tlc_version`). If [37](37-run-tlc.md) had to build the new runner under another file name because this one was in the way, this package moves it to `tlc/runner.py`, the name of 00's tree.
+- `src/tlaup/tlc/runner.py` as release 0.8.x has it (`resolve_spec_file`, `resolve_cfg_file`, `get_override_classes`, the old `build_tlc_command` and `run_tlc`, `get_tlc_version`); the new one takes its name (above).
 - `src/tlaup/tlc/run_cache.py`, `parser.py`, `codes.py`, `values.py`, `sany.py`, `compiler.py`.
 - From `tlc/formatter.py`: `ValueDiff`, `render_sany_error`, `diff_values`, `render_value_diff`, `render_error_trace`, `render_coverage_table`, `render_inline_coverage`. From `tlc/components.py`: `StatsTableFormatter`, `StatusFooterRenderable`. These are the rows of O2's table that O3 replaces; they are what users saw until this switch.
 - `get_tlc_run_dir` in `src/tlaup/versioning/paths.py`, if the function is still there; `run_cache.py` was its only caller.
-- Old tests ([01 T11](../design/01-testing.md#t11-the-existing-tests)): `tests/unit/cmd/test_tlc_cmd.py`, `tests/unit/test_tlc_show_command.py`, `tests/unit/tlc/test_raw.py`, `tests/unit/tlc/test_runner.py` (the old one), `tests/unit/tlc/test_tlc_version.py`, `tests/unit/spec/test_resolution_scenarios.py`, `tests/unit/spec/conftest.py` (`mock_tlc_env`, once nothing asks for it), `tests/unit/tlc/test_run_cache.py`, `tests/unit/tlc/test_parser.py`, `test_sany.py`, `test_values.py`, `tests/unit/test_settings.py` (with the validator, if still there), and in `tests/unit/tlc/test_formatter.py` the five tests of what is deleted above (`test_tla_value_diffing`, `test_render_sany_error`, `test_render_coverage`, `test_stats_table_formatter`, `test_status_footer_renderable`).
-- The three old files of `tests/integration/` and its `conftest.py`, if still there: they import `tlaup.cmd.tlc.TlcFormatter`, `tlaup.tlc.models.CheckState` and `tlaup.tlc.compiler`, drive the old command, and are outside the default run; [52](52-integration-tests.md) writes the new ones.
+- No old test: every old test file, the integration ones included, went with the old suite in [03](03-test-foundation.md) (D62).
 
-**What stays for 40.** O2 says the layout is unfinished code, not dead code, and T11 and O6 say the nine tests on its structure go in the pull request that adds the layout frames. So this package leaves, unused by any command:
+**What stays for 40.** O2 says the layout is unfinished code, not dead code, and puts the removal of `TlcDisplay` and its pieces in the pull request that lands O4 (40). So this package leaves, unused by any command and with no test:
 
 - `src/tlaup/tlc/formatter.py`: `_Section`, `TlcDisplay`, and of `TlcFormatter` the constructor, `create_layout`, `update`, `_has_child`, `_ensure_layout_structure`, `update_header`, `update_stats`, `update_logs`, `update_clock`; `StatusInfoRenderable`.
 - `src/tlaup/tlc/components.py`: `LogDeduplicator`, `HeaderComponent`, `StatusInfoComponent`, `LogsComponent`, `StatsTableComponent`.
 - `src/tlaup/tlc/models.py`, whole: the two files above import `CheckState`, `InitialStateStatItem` and `ModelCheckResult` from it.
-- `tests/unit/tlc/test_formatter.py` with eleven tests: the nine on the layout (`test_update_stats`, `test_update_header`, `test_update_logs`, `test_update_clock`, `test_initial_layout_state`, `test_header_component`, `test_status_info_component`, `test_logs_component`, `test_stats_table_component`) and the two of `LogDeduplicator`.
 
-40 deletes all four when `render_layout` and its frame files arrive. Not left: `java/inspector.py` and `cmd/check_java.py` are not this package's either way; `check-java` uses them until [46](46-doctor.md).
+40 deletes all three when `render_layout` and its frame files arrive. Not left: `java/inspector.py` and `cmd/check_java.py` are not this package's either way; `check-java` uses them until [46](46-doctor.md).
 
-Files another package of the same period touches: `src/tlaup/cli.py` (one line per switch package); `CHANGELOG.md`; `tests/steps/*.py` with every package that adds steps after this one (40 to 47), each adding functions, none editing these.
+Files another package of the same period touches: `src/tlaup/cli.py` (one line per switch package); `CHANGELOG.md`; `tests/steps/*.py` with every package that adds steps after this one (40 to 47), each adding functions, none editing these; `src/tlaup/reporters/base.py` and `collecting.py` (one import line each).
 
 ## Interfaces
 
@@ -125,7 +123,8 @@ The command function is G1's sketch; nothing else belongs in it:
 inv = resolve_tlc_invocation(request, paths=..., settings=..., env=..., cwd=..., home=..., get_build=..., now=..., rng=...)
 java_inv = build_tlc_command(inv)
 if show_command:
-    ui.out.print(join(replace(java_inv, lifeline=False).argv())); return      # 11 R9: no lifeline; exit 0
+    ui.out.print(join(replace(java_inv, lifeline=False).argv()),           # 11 R9: no lifeline; one line,
+                 markup=False, highlight=False, soft_wrap=True); return      # never wrapped or read as markup; exit 0
 for text in inv.warnings: ui.warning(text)
 if request.raw:
     outcome = run_tlc_raw(inv, java_inv, paths=paths, now=now, notice=ui.note)
@@ -138,7 +137,7 @@ raise typer.Exit(outcome.exit_code)
 - `request`: `TlcRequest(spec, cfg, workers, coverage, raw, keep=True if --keep else None, java_opts, extra_args)`. `--workers` and `--keep` travel in the request and are not merged into the settings ([33](33-tlc-invocation.md), Traps).
 - `get_build`, the two wrappers (G1, R9, V9). For a run: `ensure_tools(store, remote, client, ui, auto_install=..., may_install=True)`. For `--show-command`: the same call with `may_install=False`, which returns the pinned build or raises `NoToolsInstalled`, `NoPinnedBuild` or `PinnedBuildMissing`, never asks, never installs and sends no request, whatever `--auto-install` and `TLAUP_AUTO_INSTALL` say.
 - `--auto-install`: `stable` or `rolling`; any other value, from the option or the variable, is a usage error (2), and it is found before the preflight is called, so it does not wait behind the spec check or a prompt ([02 X1](../design/02-cross-cutting.md#x1-exit-codes), rule 5).
-- `join`: `shlex.join` on Linux and macOS, `subprocess.list2cmdline` on Windows (R9). One line on stdout.
+- `join`: `shlex.join` on Linux and macOS, `subprocess.list2cmdline` on Windows (R9). One line on stdout, printed as text and never wrapped (G1's sketch, [10 P11](../design/10-parser.md#p11-tlc-text-and-rich-markup)): a path with `[` in it is not markup.
 - `--show-command` prints no warnings, does not sweep and makes no folder or lock: it stops before either run function.
 - `print_run_notes` prints, in this order and only what applies: for a kept run folder, the two note lines of [R6](../design/11-runner.md#r6-run-folders) ("Checkpoint kept (...): <folder>" and "Resume with: ..."), built by 35's one function and carried by the outcome; for a raw run whose checkpoint was not kept, the words of `outcome.dropped_checkpoint` as one line (in a parsed run the reporter's result line already has them, [22 O3](../design/22-reporters.md#o3-terminal-reporter)); for a parsed run whose exit code and verdict disagree, the warning of [10 P3](../design/10-parser.md#p3-result-model): `warning: TLC exited with 0, but its output reports 2 errors` (code 0 and the verdict `errors`, `not-checked` or `incomplete`), or `warning: TLC exited with 255, but its output reports no error` (code not 0 and the verdict `no-error` or `no-error-bounded`). A raw run has no verdict and gets no such warning.
 - `make_reporter`: the one function in which a command chooses a reporter; milestone 4's `--json` attaches there. In this package it returns the plain `TerminalReporter` of 38 on `ctx.ui`, with the real clock. `ReporterOptions` is a small frozen value of what the command line says about output; it has no field this package reads, and 40 adds `plain` and the rule about streams, `TERM` and size. A worker may start with `make_reporter(ctx)` and let 40 add the parameter.
@@ -181,7 +180,8 @@ Scenarios run in-process unless one of T5's five situations applies ([01 T12](..
 - R8: `tlaup tlc Spec -- -workers 4 -deadlock` logs a Java command ending `-workers 4 -deadlock <spec>` with one `-workers` (the roadmap's exit criterion); `--workers auto` logs `-workers auto`; with nothing given the command has `-workers auto` from the setting.
 - J1: `TLAUP_JAVA_OPTS='-Xmx2g -Dx="a b"'` with `--java-opt=-Xss8m` logs the default options first, then `-Xmx2g`, `-Dx=a b` as one argument, then `-Xss8m`; `--java-opt -Xss8m` without `=` gives the same command; with `JAVA_OPTS=-Xmx1g` set, the command does not contain it.
 - J2 (handed over by [20](20-java-location.md)): `JAVA_HOME is a JDK of version ...` is used although another `java` is on `PATH` (`java ran from JAVA_HOME`); `JAVA_HOME is an empty folder` gives one `warning:` line and `java ran from PATH`.
-- J3 (handed over by 20): on `tlaup tlc Spec` the fake is started twice, once with `-version` and once as `tlc2.TLC`, and never with `tlc2.TLC -version`; a fake that prints something that is not a version gives a warning and the run goes on.
+- J3 (handed over by 20): on `tlaup tlc Spec` the fake is started twice, once with `-version` and once as `tlc2.TLC`, and never with `tlc2.TLC -version`; `java answers its version check with "<text that is not a version>" on stderr and exit code 0` gives a warning and the run goes on.
+- F4 (handed over by [44](44-config-commands.md)): with `the config file contains:` a wrong type (`tlc:` / `refresh_interval: fast`), `tlaup tlc Spec` exits 3, stderr names the key `tlc.refresh_interval` and holds no `Traceback`, and `java was not started`.
 
 `tests/features/tlc_errors.feature`. Each error scenario asserts the code, `stdout is empty` and `stderr contains "error:" 1 times`.
 
@@ -190,7 +190,7 @@ Scenarios run in-process unless one of T5's five situations applies ([01 T12](..
   - spec: a missing spec exits 4 and stderr holds a path that was tried; `tlaup tlc .` exits 2; `tlaup tlc Spec.cfg` exits 4; a folder alone exits 2;
   - cfg: `--cfg` not found exits 4 with the paths tried; with no `--cfg` and no `Spec.cfg`, TLC is started (the code is the replayed case's);
   - build: nothing installed exits 3 (`CannotAsk`, since in-process nothing can be asked); builds installed and none pinned exits 3 and the hint names `tlaup tool pin`; a pin that names a build that is gone (`a file "{tools}/pin" containing:` an id with no folder) exits 3 and the hint names a command;
-  - Java: `java is not installed`, `java is not executable` (code 3, the same error), `java is version "1.8.0_202"`, and a fake that prints `Unable to locate a Java Runtime.` on stderr and exits 1, each exit 3.
+  - Java: `java is not installed`, `java is not executable` (code 3, the same error), `java is version "1.8.0_202"`, and `java answers its version check with "Unable to locate a Java Runtime." on stderr and exit code 1` (the macOS stub), each exit 3. The check that timed out has no scenario: R11 now says so, since its timeout is ten seconds of real clock, which [01 T12](../design/01-testing.md#t12-rules-for-writing-tests) rule 5 allows for one test only; the unit test of `ask_version` with a timeout of half a second ([20](20-java-location.md), [13 J3](../design/13-modules-and-java.md#j3-one-java-start)) stands in for the row (finding C4, settled).
   - For the spec, cfg and build rows: `java was not started`. For the Java rows: `java did not run "tlc2.TLC"`.
 - R11, the order: nothing installed and a missing spec exits 4 and `0 requests were sent to GitHub`; nothing installed and conflicting `-workers` exits 2 and nothing was asked.
 - R11, an outline that runs the spec, cfg, pinned-build and Java rows for the parsed path and for `--show-command`.
@@ -225,7 +225,8 @@ Scenarios run in-process unless one of T5's five situations applies ([01 T12](..
 - Six scenarios: SIGTERM (143), one SIGINT (130), two SIGINTs (`send SIGINT twice` with `java ignores SIGINT`; 130, no `Traceback`), each in parsed mode and with `--raw`. In each, `the java process has exited`. In parsed mode stdout holds what was printed before the signal and the result line says the run was interrupted.
 - R6: the checkpoint-writing fake under `--keep`, interrupted with SIGINT, in parsed and in raw mode: one run folder is kept and the note is on stderr.
 - D60, on a pseudo-terminal, Linux and macOS (`in a terminal`; skipped with the reason where there is no pty): a Ctrl-C typed at the terminal during a parsed run reaches tlaup and not the fake, whose process group differs from tlaup's, and the run ends with 130; Ctrl-\ is logged as SIGQUIT by the fake and changes nothing else; with `--raw` the fake logs the SIGINT itself, in tlaup's group.
-- *Waiting on question (checkpoint signal steps):* R6's and G3's two deferral scenarios as real processes (a SIGINT between 2195 and 2196 makes tlaup print the waiting line and the fake gets SIGTERM only after 2196; a second SIGINT before 2196 kills at once), and the part of the D60 scenario in which the Ctrl-C lands while the fake is between the two. See Context, "Scenarios the fixed vocabulary cannot place".
+- R6 and G3, the checkpoint deferral as real processes (question Q10, settled), with a fake that replays 2195, begins its checkpoint after it and commits it before it writes 2196 (`java begins a checkpoint after line <n> and commits it before line <m>`, with `java hangs after line <n>` between them as T4 has it): `I start "tlaup tlc Spec --keep" and send SIGINT once java has begun its checkpoint`: stderr holds the waiting line (`waiting for TLC to finish writing its checkpoint; press Ctrl-C again to stop now`), the fake gets its SIGTERM only after 2196 (`java received SIGTERM`, and no SIGINT), the exit code is 130 and one run folder is kept with a complete checkpoint. The same ending `, and again once stderr contains "waiting for TLC"`: the second SIGINT kills at once, before 2196, and nothing is kept.
+- D60's part during a checkpoint, on a pseudo-terminal: `I start "tlaup tlc Spec --keep" in a terminal 100 by 30 and press Ctrl-C once java has begun its checkpoint`: the fake logs no SIGINT, its process group differs from tlaup's, the terminal shows the waiting line, and when the fake commits and prints 2196 it gets SIGTERM; the run ends with 130 and a complete checkpoint.
 
 `tests/features/tlc_raw.feature` (X2, G3, T5):
 
@@ -246,11 +247,11 @@ Real-process scenarios in `tlc_errors.feature` and `tlc_run.feature`:
 
 ### Steps
 
-The scenarios use T5's table as it stands, with `{kept}`, `{runs}`, `{tools}`, `{work}`. Three assertions above have no step in the table: that the fake `java` received a given signal, or none; which process group the fake ran in; and pressing Ctrl-\. The fake's log already records all three ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges): the `signal` lines and the process group id of the `start` line). T5 allows a new step with a reason in the pull request; add `java received <signal>`, `java received no signal`, `java ran in its own process group` and `in tlaup's process group`, and a `press Ctrl-\` form of the terminal step, and give that reason.
+The scenarios use T5's table as it stands, with `{kept}`, `{runs}`, `{tools}`, `{work}`, and the checkpoint and version-answer steps [18](18-feature-harness.md) built. Three assertions above have no step in the table: that the fake `java` received a given signal, or none; which process group the fake ran in; and pressing Ctrl-\. The fake's log already records all three ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges): the `signal` lines and the process group id of the `start` line). T5 allows a new step with a reason in the pull request; add `java received <signal>`, `java received no signal`, `java ran in its own process group` and `in tlaup's process group`, and a `press Ctrl-\` form of the terminal step, and give that reason.
 
 ### Old tests
 
-Deleted, as listed under Files. `tests/unit/spec/test_project.py` stays ([32](32-spec-resolution.md) rewrote it). No stateful test applies to this package; [21](21-java-launcher.md) and [35](35-run-folders.md) removed their `pending` markers.
+None: the old suite went in [03](03-test-foundation.md) (D62). No stateful test applies to this package; [21](21-java-launcher.md) and [35](35-run-folders.md) removed their `pending` markers.
 
 Coverage: the roadmap's target for the command module is above 80 percent; with the reporters moved out it is small, and the features should cover all of it. The real-process scenarios are counted through coverage's subprocess patch ([01 T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings)).
 
@@ -273,22 +274,19 @@ Added:
 - R8: "`--workers N|auto`."
 - J1: "`--java-opt`."
 - R6: "tlaup passes `-fp` and `-seed` to TLC when you do not, and repeats them when you resume, so a resumed run warns less and counts correctly."
-- R6: "If tlaup is killed, TLC now stops within about two seconds instead of running on unseen."
 - R7: "tlaup warns before a run when a registered Java override class will not be loaded by the pinned TLC build. On v1.7.4 only a class named `tlc2.overrides.TLCOverrides` is loaded." (Already there if [34](34-override-check.md) wrote it.)
 - R3: "A hint when a spec or cfg name has non-ASCII characters and the locale is not UTF-8, which TLC cannot open."
 - V9: "With no tools installed, `tlaup tlc` (and `sany`, `pcal`, `repl`) asks whether to install the stable release or the rolling build, installs it and carries on. `--auto-install stable|rolling` or `TLAUP_AUTO_INSTALL` answers the question for scripts. The spec is checked first, and `--show-command` never asks or installs."
 
 Changed:
 
-- O3: "The output of `tlaup tlc` is reorganised: a header naming the build and Java; the spec's own output; each error with its message and full trace, changed variables marked; SANY and parse errors as `path:line:col: error: message` (was a `file://` link); a final result line with the meaning of TLC's exit code. Results are on stdout, progress on stderr."
+- O3: "The output of `tlaup tlc` is reorganised: a header naming the build and Java; the spec's own output; each error with its message and full trace, changed variables marked; SANY and parse errors as `path:line:col: error: message` (was a `file://` link), still followed by the lines of the spec around the error, now with `^` under the columns; a final result line with the meaning of TLC's exit code. Results are on stdout, progress on stderr."
 - P2: "The TLC output parser is now the import package `tlaup_parse`, shipped with tlaup. `tlaup.tlc.parser`, `tlaup.tlc.models`, `tlaup.tlc.values`, `tlaup.tlc.codes` and `tlaup.tlc.sany` are gone."
 - R1: "When the program reading tlaup's output goes away (`tlaup tlc --raw Spec | head`), TLC is stopped instead of running on unseen; not on Windows for `--raw`."
 - R6: "Each run has its own run folder, removed when the run ends, however it ends. `tlaup tlc --keep` (or the setting `tlc.keep`) keeps it when the run is interrupted or crashes and TLC has written a complete checkpoint; the size and the command to resume are printed, every `tlaup tlc` reminds you of kept folders, and `tlaup cache clean <run-id>` or `--all` removes them. tlaup never removes a kept folder on its own."
 - R6: "A first Ctrl-C while TLC is writing a checkpoint waits for the checkpoint to finish, also one typed at the terminal (Linux and macOS, not with `--raw`); a second stops at once."
 - R6: "On rolling builds tlaup passes `-noGenerateSpecTE`, so TLC no longer writes `_TTrace_` files next to the spec. Pass `-generateSpecTE` after `--` to get them."
-- R7: "The run output lists the operator overrides TLC reports loading."
 - G3: "Ctrl-C exits with 130."
-- G3: "In a run that is not `--raw`, a first Ctrl-C while TLC writes a checkpoint waits for it to finish, on Linux and macOS."
 - J2: "`JAVA_HOME` is used to find `java` and `javac` when it is set; `PATH` is the fallback."
 - J3: "A run starts Java once instead of three times; the Java version check is remembered until the Java installation changes."
 
@@ -316,10 +314,9 @@ Fixed:
 
 Removed:
 
-- R6: "`tlaup tlc --cleanup`; use `tlaup cache clean`."
 - J3: "`tlaup tlc --version`; use `tlaup tool current`."
 
-Notes on the list. The design gives two entries for one change in two places: a killed tlaup (R6 Added, G3 Fixed) and the Ctrl-C that waits for a checkpoint (R6 Changed, G3 Changed). The index has a clerical question on it; until it is answered write both, as the design has them. R10's Breaking entry was written by [32](32-spec-resolution.md). X1's Breaking entry on exit codes belongs to [17](17-error-handler.md). The entry for the live view (O4), `--plain` and `--refresh-interval` (O5) is 40's. The P2 entry names `tlaup.tlc.models` as gone; the file itself goes one package later, with the layout code that still imports it (see Files), and nothing is released in between (D6).
+Notes on the list. The design's duplicate entries are gone (index "Clerical", settled): a killed tlaup is G3's Fixed entry only, the Ctrl-C that waits for a checkpoint is R6's Changed entry only, and the removal of `tlc --cleanup` is in C1's Breaking line, which [45](45-cache-commands.md) writes with `tlaup cache clean`. R10's Breaking entry was written by [32](32-spec-resolution.md). X1's Breaking entry on exit codes belongs to [17](17-error-handler.md). The entry for the live view (O4), `--plain` and `--refresh-interval` (O5) is 40's. The P2 entry names `tlaup.tlc.models` as gone; the file itself goes one package later, with the layout code that still imports it (see Files), as P2 now says, and nothing is released in between (D6). The R7 Changed entry about listing loaded overrides was dropped from the design (finding C1); nothing in the first wave prints that list.
 
 ## Context for the worker
 
@@ -349,13 +346,9 @@ Notes on the list. The design gives two entries for one change in two places: a 
 
 **The exit path.** `raise typer.Exit(outcome.exit_code)`; the root group lets a `typer.Exit` through unchanged ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks)). An exception from a run function already carries the kept-folder note as notes (`add_note`), and the handler prints them after the `error:` line, or alone for a closed pipe. So `print_run_notes` handles only a run that returned.
 
-**Names that differ between sections** (clerical; the index lists them). G1's sketch writes `ui.out(...)` and `notice=ui.notice`; `Ui` in [14 F6](../design/14-config-and-cli.md#f6-messages) has `out` as a console and the method `note`. Use what [16](16-ui-messages.md) built.
+**What the outcome carries for the note.** The first note line holds the folder's size, why it was kept and when the checkpoint was written. `RunOutcome.kept` carries rundirs' whole `Kept` ([37](37-run-tlc.md)), and `kept_note` ([35](35-run-folders.md)) makes the two lines; `print_run_notes` prints `kept_note(outcome.kept)`, the same text the frame puts on an exception. Do not rebuild the lines here from `run.json`.
 
-**What the outcome must carry for the note.** The first note line holds the folder's size, why it was kept and when the checkpoint was written; `RunOutcome` in the design has only `run_folder_kept` and `resume_command`. How the two finished lines reach `print_run_notes` is settled in [37](37-run-tlc.md) and [35](35-run-folders.md) (the index has the question); print what they provide, and do not rebuild the lines here from `run.json`.
-
-**Scenarios the fixed vocabulary cannot place.** Two of the design's real-process scenarios need a signal that lands after tlaup has read message 2195 and before 2196. From outside the process nothing shows that moment: in the capture 2196 follows 2195 directly, plain output prints nothing for either, `send <signal> once java is running` sends at the JVM's start, and `send <signal> twice` waits for the fake to log the first signal, which the deferral is there to hold back. T5 says a signal at an exact moment is plain pytest. The mechanism is unit-tested in [21](21-java-launcher.md) (the checkpoint row) and can be driven through `run_tlc` with a reporter that signals its own process when the checkpoint event arrives, the pattern [37](37-run-tlc.md) uses for its two exact-moment tests. Until the question is answered, write neither scenario and say so in the pull request; do not add a sleep or a product seam to make one pass.
-
-**One row costs ten real seconds.** R11's Java row includes "the check timed out", and T5 has the step `java takes <n> seconds to report its version`. The timeout is a constant of `ask_version` (10 seconds), so a scenario for it waits that long; [20](20-java-location.md) tests the timeout with half a second at the unit level. Leave the scenario out unless the harness can make it short without a seam, and say so.
+**The checkpoint deferral from outside** (question Q10, settled). A signal has to land after tlaup has read message 2195 and before 2196. T5's step `once java has begun its checkpoint` waits for the fake's `checkpoint` log line, which it writes once the 2195 line is flushed and the `.tmp` files exist, and the fake hangs there until it commits and prints 2196 ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges)). The window between the fake's marker and tlaup's read of the line is small, and T5 names it as a risk with its remedy (the fake waits for its stdout pipe to be empty before it logs the marker); if a scenario turns out flaky, that is the fix, in 03's fake, never a sleep or a product seam. The waiting line is on stderr in plain mode, at once ([38](38-terminal-reporter.md), `notice`), which is what `once stderr contains` waits for.
 
 **Traps.**
 
@@ -374,11 +367,11 @@ Notes on the list. The design gives two entries for one change in two places: a 
 ## Done when
 
 - The six feature files and `tests/unit/cmd/test_tlc_command.py` pass on Linux and macOS in CI, the pty scenarios included.
-- The old modules and tests listed under Files are gone; nothing under `src/` imports `tlaup.tlc.parser`, `codes`, `values`, `sany`, `run_cache` or `compiler`; what stays for 40 is exactly the list above.
-- `uv run poe lint` and `uv run poe test` pass, with coverage not below `fail_under`; `uv run poe test-clean` leaves the home folder empty.
+- The old modules listed under Files are gone; nothing under `src/` imports `tlaup.tlc.parser`, `codes`, `values`, `sany`, `run_cache` or `compiler`; what stays for 40 is exactly the list above; `tlc/runner.py` is the new runner.
+- `uv run poe lint` and `uv run poe test` pass; `uv run poe test-clean` leaves the home folder empty. There is no coverage threshold until [59](59-closing.md) ([01 T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings)).
 - Every changelog entry of the Changelog section is under `## [Unreleased]`, once.
 - `docs/contributing/development.md` names no deleted file.
-- The pull request shows the red runs of T12 rule 6, gives the reason for each added step, lists the scenarios it left out and why, and names what it left for 40.
+- The pull request shows the red runs of T12 rule 6, gives the reason for each added step, and names what it left for 40.
 - A reviewer can read every expected file under `tests/features/expected/` for this package as the output a user gets.
 
 ## Out of scope
@@ -394,20 +387,20 @@ Notes on the list. The design gives two entries for one change in two places: a 
 ## Risks
 
 - From the cut: this is the first time the pieces of about twenty packages run as one command. A fault found here is fixed in the module that owns it, in this pull request if small, and the pull request says so.
-- From the cut: the package is large (six feature files, about ninety scenarios, a long deletion). The index has a proposal to split it along the line between parts A and B of the Tests section; the file is written so that the split needs no rewriting.
+- From the cut: the package is large (six feature files, about ninety scenarios, a long deletion of code). It is split along the line between parts A and B of the Tests section (below); with the old tests gone in 03, 39a deletes code only.
 - From G3 and R2: the signal scenarios were not run on macOS or with a real terminal by the research; the macOS CI job runs them here for the first time. D60 was worked in after the last review.
 - From R1: the 141 path rests on how Typer and Rich handle a closed pipe; the newest-dependencies job guards later versions.
 - From R9: a user who pastes the printed command twice at once shares one `-metadir` between two runs.
 - From R11: a user with nothing installed and a mistyped spec meets the install prompt on the second try.
 - From R8: `-workers auto` by default changes the order of `Print` output and can change which counterexample is found first.
 - From T5: real-process scenarios take a few hundred milliseconds each; this package adds a few dozen.
-- From the cut: between this package and 40 the old layout code and `tlc/models.py` lie unused under `src/tlaup/tlc/`, kept only so that T11's rule about the nine layout tests holds.
+- From the cut: between this package and 40 the old layout code and `tlc/models.py` lie unused and untested under `src/tlaup/tlc/`, because O2 puts their removal with O4. Nothing is released in between (D6).
 
 ## Pull requests (decided by stage 4)
 
 This package is delivered as two pull requests, along the line between parts A and B of its Tests section; the index lists them as 39a and 39b.
 
 - **39a**: the new `cmd/tlc.py`, `make_reporter`, the deletions, the changelog, and part A of the tests (`tlc_run`, `tlc_errors` in-process, `tlc_show_command`, `first_run`, the plain pytest tests). It does the whole switch.
-- **39b**: part B (`tlc_signals`, `tlc_raw`, the real-pipe, `PYTHONIOENCODING` and pseudo-terminal scenarios) and the steps they add. It only adds tests, so `main` is releasable between the two. Depends on 39a.
+- **39b**: part B (`tlc_signals` with the checkpoint deferral scenarios, `tlc_raw`, the real-pipe, `PYTHONIOENCODING` and pseudo-terminal scenarios) and the steps they add. It only adds tests. Depends on 39a.
 
 A package that names 39 as a dependency waits for 39b.

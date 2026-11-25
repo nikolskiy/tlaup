@@ -107,12 +107,12 @@ From J3:
 
 - `require_java` with `ask_version` passed in as a counting function: a file named `java` that does not start with `#!` is asked once across two calls; after its size changes, again; a `#!` script named `java`, and a link named `java` that points at a file of another name, are asked on every call; an unreadable or corrupt `java.json` is ignored and rewritten.
 - With the platform reported as macOS: `/usr/bin/java`, `/usr/bin/javac`, and a file that is the same file as a stand-in for `/usr/libexec/java_home` are asked on every call.
-- `ask_version` with a timeout of half a second and the fake `java` set to take longer raises `Failed` whose message has the word "seconds" and not "not found".
+- `ask_version` with a timeout of half a second and the fake `java` set to take longer (`version_delay_ms`) raises `Failed` whose message has the word "seconds" and not "not found". This test also stands in for [11 R11](../design/11-runner.md#r11-preflight)'s row "the check timed out", which has no scenario because the timeout is ten real seconds (settled 2026-11-24; [39](39-tlc-command.md) writes no scenario for it).
 - `ask_version` on an executable file of random bytes raises `ToolStartError`.
 - An answer with a non-zero exit status and no version in it, such as `Unable to locate a Java Runtime.` with exit 1, is `JavaNotFound` (code 3) whose details hold what was printed.
 - An answer that is not a version with exit status 0: `version` and `major` are `None`, `warnings` has one entry that holds what was printed, nothing is written to `java.json`, and no error is raised.
 - A version below `min_version` (`1.8.0_202` against 11) is `JavaTooOld`.
-- The version patterns: `openjdk version "11.0.2" 2019-01-15` gives `11.0.2` and major 11; `1.8.0_202` gives major 8; `9.0.4`, `17`, `21.0.1` give 9, 17, 21 (the cases of today's `test_parse_java_version`, carried over).
+- The version patterns, one parametrised test (row J1 of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), owner this package; [13 J3](../design/13-modules-and-java.md#j3-one-java-start)): the two `java` patterns read `version "1.8.0_202"` as major 8, `version "11.0.2"`, `version "17"` and `version "21.0.1"` as 11, 17 and 21, and a bare `version 21` as 21, the five forms 0.8.x understands; also `openjdk version "11.0.2" 2019-01-15` gives the version `11.0.2`, and `9.0.4` gives 9.
 
 From M3:
 
@@ -121,7 +121,7 @@ From M3:
 
 From the addition above: with `refresh=True` a remembered tool is asked again and its entry rewritten.
 
-Old tests: none is deleted or rewritten here. `tests/unit/check_java/test_check_java.py` stays, as [03](03-test-foundation.md) left it (see below). No stateful test applies.
+Old tests: none is left; `tests/unit/check_java/test_check_java.py` went with the rest of the old suite in 03b ([01 T11](../design/01-testing.md#t11-the-existing-tests), decision D62), and the J1 test above holds what it protected. No stateful test applies.
 
 ## Changelog
 
@@ -135,7 +135,7 @@ None in this package: nothing a user sees changes until a command calls these fu
 
 ## Context for the worker
 
-**Why this package does not replace `inspector.py`.** It could not do so and leave `main` whole. `java/inspector.py` has two callers that live on after this package: the old runner (`tlc/runner.py` calls `validate_java_version`, and its tests patch that name in `tlaup.tlc.runner`) and the old command `check-java` (`cmd/check_java.py`, registered in `cli.py`). Switching them here would change what two old commands do (exceptions of a new type that the old `cmd/tlc.py` does not expect, `JAVA_HOME` used for `java` while `module add` still calls a bare `javac`), and would mean editing old tests that other packages own. So this is a domain package in the plain sense: `locate.py` is added, and `inspector.py`, `tlaup/java/__init__.py` (which re-exports its three functions), `cmd/check_java.py` and `tests/unit/check_java/` stay untouched and green. They go with their last caller: [39](39-tlc-command.md) removes the old runner's use, and [46](46-doctor.md), where `check-java` becomes `doctor`, deletes `inspector.py`, the re-exports, `cmd/check_java.py` and the old test file. [01 T11](../design/01-testing.md#t11-the-existing-tests) says `check_java/test_check_java.py` is kept "until J2"; with this cut that means until the code it tests is deleted, since a test file goes in the same pull request as what it tests, never earlier. Do not import anything from `inspector.py`: write the two `java` patterns again in `locate.py` (they are `version "(\d+(\.\d+)*(_\d+)?(-\w+)?)"` and, as the fall-back, `version (\d+(\.\d+)*)`), so that deleting the old module later touches nothing here.
+**Why this package does not replace `inspector.py`.** `java/inspector.py` has two callers that live on after this package: the old runner (`tlc/runner.py` calls `validate_java_version`) and the old command `check-java` (`cmd/check_java.py`, registered in `cli.py`). Switching them here would be work on code that its switch packages rewrite anyway (exceptions of a new type that the old `cmd/tlc.py` does not expect, `JAVA_HOME` used for `java` while `module add` still calls a bare `javac`), and nothing asks the old commands to change before then (decision D62). So this is a domain package in the plain sense: `locate.py` is added, and `inspector.py`, `tlaup/java/__init__.py` (which re-exports its three functions) and `cmd/check_java.py` stay as they are. They go with their last caller: [39](39-tlc-command.md) removes the old runner's use, and [46](46-doctor.md), where `check-java` becomes `doctor`, deletes `inspector.py`, the re-exports and `cmd/check_java.py`. Do not import anything from `inspector.py`: write the two `java` patterns again in `locate.py` (they are `version "(\d+(\.\d+)*(_\d+)?(-\w+)?)"` and, as the fall-back, `version (\d+(\.\d+)*)`), so that deleting the old module later touches nothing here.
 
 **Decisions this rests on.**
 
@@ -164,12 +164,13 @@ None in this package: nothing a user sees changes until a command calls these fu
 
 **Known gaps the design leaves; do not close them.** Which version managers put a script and which a link on `PATH` was not surveyed; the rule does not depend on it. A launcher that is a compiled binary named `java` and still picks a JVM from the environment is remembered, and the answer is stale until the installation or the cache changes; `doctor` is the way out (J3, Risks).
 
-**State of `main` when this starts.** After 01 to 03: release 0.8.x code with `tlaup/errors.py` and `tlaup/paths.py` beside it, the isolation fixture and the fakes in place. `src/tlaup/java/` holds `__init__.py`, `inspector.py`, `classpath.py`, perhaps `launcher.py` and the lifeline files of 06 and 21. `tlaup tlc` still runs through the old runner and `check-java` still exists.
+**State of `main` when this starts.** After 01 to 03: release 0.8.x code with `tlaup/errors.py` and `tlaup/paths.py` beside it, the isolation fixture and the fakes in place (the fake `javac` answers `-version`, [01 T4](../design/01-testing.md#t4-fakes-at-the-edges)), no old test (03b). `src/tlaup/java/` holds `__init__.py`, `inspector.py`, `classpath.py`, perhaps `launcher.py` and the lifeline files of 06 and 21. `tlaup tlc` still runs through the old runner and `check-java` still exists.
 
 ## Done when
 
 - The tests above pass; `uv run poe lint` (mypy in strict mode covers `locate.py`) and `uv run poe test` pass; CI is green.
-- No file outside `src/tlaup/java/locate.py`, `tests/unit/java/test_locate.py` and, if needed, the development guide has changed; the old tests pass untouched.
+- No file outside `src/tlaup/java/locate.py`, `tests/unit/java/test_locate.py` and, if needed, the development guide has changed.
+- The pull request names the inventory row it covers (J1) and says that the timeout test stands in for R11's timed-out row.
 - The pull request says how the exit status travels from `ask_version`, names the `refresh` parameter, and lists any other change to a signature.
 - No changelog entry (none is due).
 
@@ -180,7 +181,7 @@ None in this package: nothing a user sees changes until a command calls these fu
 - The M3 feature scenarios with a fake `javac` that answers `javac 1.8.0_202` or `javac 25.0.5`: [31](31-module-commands.md).
 - The integration test (after one real run `java.json` holds an entry for the real `java`, and a second run leaves the file untouched): [52](52-integration-tests.md).
 - Calling `require_java` in a preflight and carrying its warnings: [33](33-tlc-invocation.md) for `tlc`, [41](41-sany-command.md) for the other tools. Binding `require_javac` for the module build: [30](30-module-build.md), [31](31-module-commands.md).
-- `tlaup doctor`: [46](46-doctor.md). It also deletes `java/inspector.py`, `cmd/check_java.py` and `tests/unit/check_java/`.
+- `tlaup doctor`: [46](46-doctor.md). It also deletes `java/inspector.py` and `cmd/check_java.py`.
 - Java options (13 J1): [33](33-tlc-invocation.md). Starting Java for a tool: [21](21-java-launcher.md).
 - Everything in J3 about the TLC version (the table under "Covers").
 
@@ -189,6 +190,5 @@ None in this package: nothing a user sees changes until a command calls these fu
 - From J2: a user whose `JAVA_HOME` points at an old JDK while a newer `java` is first on `PATH` now gets the old one, and `JavaTooOld` if it is below the minimum; the message names the path and that it came from `JAVA_HOME`.
 - From J3: a compiled launcher named `java` that picks its JVM from the environment is remembered and can go stale.
 - From J3: every feature scenario that runs a tool starts the fake `java` twice, which costs test time, not correctness.
-- From the cut: for a while `main` has two ways to find Java, `inspector.py` for the old commands and `locate.py` for nothing yet. The old one goes with 39 and 46. Until then a fix to version parsing has to be made in the new code only; the old code is frozen.
+- From the cut: for a while `main` has two ways to find Java, `inspector.py` for the old commands and `locate.py` for nothing yet. The old one goes with 39 and 46. Until then a fix to version parsing has to be made in the new code only; the old code is frozen, and no test covers it (D62).
 - From the cut: the feature scenarios of J2 and J3 arrive only with 39, so a mistake in how the pieces fit a command shows there, not here. The unit tests above cover each rule one by one.
-- From the cut: [01 T4](../design/01-testing.md#t4-fakes-at-the-edges) gives the fake `javac` no stated answer to `-version`. This package does not need one (its `javac` tests use a counting `ask_version` or small files of their own), but 30 and 31 do.

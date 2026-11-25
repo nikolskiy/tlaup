@@ -1,6 +1,6 @@
 # 25. Remote listing
 
-Size: M. Suggested model: mid-tier. Status: ready. One sentence of V8, about what is never cached, is read as stated under Context until question "missing asset in the cached list" of the index is answered; nothing else waits.
+Size: M. Suggested model: mid-tier. Status: ready. What is cached was settled with the maintainer (question Q7): the release list as it came back, and never an error answer ([12 V8](../design/12-tools-and-downloads.md#v8-remote-listing-and-its-cache)).
 
 ## Goal
 
@@ -14,7 +14,7 @@ Size: M. Suggested model: mid-tier. Status: ready. One sentence of V8, about wha
   - "Adopt upstream's `rolling` release ..." ([milestone 3](../roadmap.md#milestone-3-reproducibility)), in part: `stable` never picks a prerelease, and releases sort with `rolling` first. Package [23](23-tool-store.md) did the same for builds.
   - "Download and GitHub failure modes are tested ..." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this)), in part: four rows of T6, listed below.
 - Design sections:
-  - [12 V8](../design/12-tools-and-downloads.md#v8-remote-listing-and-its-cache): `Release`, `Asset`, `Remote`, the cache, `Freshness`, and V8's unit tests. Not here: "`tool list` in the first wave" (the table, its columns, the `warning:` line), `tools_list.feature`, `tlaup cache clean` removing `<cache>/remote/`, the removal of `fetch-cache clear`, and V8's changelog entries; those are packages 29 and 45.
+  - [12 V8](../design/12-tools-and-downloads.md#v8-remote-listing-and-its-cache): `Release`, `Asset`, `Remote`, the cache, `Freshness`, and V8's unit tests. Not here: "`tool list` in the first wave" (the table, its columns, which releases are rows, `installed, not upstream`, the `warning:` line), `tool_list.feature`, `tlaup cache clean` removing `<cache>/remote/`, and V8's changelog entries; those are packages 29 and 45. The removal of `fetch-cache clear` and its changelog line are [23 C1](../design/23-command-layout.md#c1-command-tree)'s, not V8's.
   - [02 X4](../design/02-cross-cutting.md#x4-rolling): `stable_of`, and the unit test over the shuffled recording. The order of installed builds was package 23.
   - [12 V2](../design/12-tools-and-downloads.md#v2-version-order-and-lookup): `stable_of` only.
   - [01 T6](../design/01-testing.md#t6-download-and-github-failure-tests): four rows.
@@ -43,7 +43,7 @@ Changes:
 - `src/tlaup/versioning/order.py`: adds `stable_of`. It needs `Release` for its annotations only; import it under `TYPE_CHECKING`, so that `order.py` does not import `remote.py` and with it the client.
 - `tests/unit/versioning/test_order.py`: the tests of `stable_of` and of the order of releases.
 
-Must not touch: the old `versioning/api.py`, `schema.py` (it holds the old `FetchStatus` and `RemoteVersion`; the new `Freshness` and `Release` are separate types in `remote.py`), `paths.py`, `cache/github.py`, `cmd/tools/list.py`, `cmd/fetch_cache/`, and the old tests `tests/unit/version_manager/test_remote.py` and `tests/unit/tools/test_fetch_cache.py`; the old fixtures `tests/fixtures/releases.json` and `tags.json`. Package 29 deletes them with the old code. The new test file is `tests/unit/versioning/test_remote.py`; the old one of the same base name is in another folder, which is why both folders are packages (package 22).
+Must not touch: the old `versioning/api.py`, `schema.py` (it holds the old `FetchStatus` and `RemoteVersion`; the new `Freshness` and `Release` are separate types in `remote.py`), `paths.py`, `cache/github.py`, `cmd/tools/list.py`, `cmd/fetch_cache/`. Package 29 deletes them with the old code. Their old tests and the old fixtures `releases.json` and `tags.json` went in 03b (decision D62).
 
 Deletes: nothing.
 
@@ -71,6 +71,8 @@ class Remote:
     def releases(self, *, max_age: float = 3600) -> tuple[list[Release], Freshness]
     def release(self, tag: str) -> Release          # GET /releases/tags/<tag>; never cached
     def resolve(self, spec: VersionSpec) -> Release # "stable" -> stable_of(releases(max_age=0)); else release(tag)
+    def cached(self) -> list[Release] | None        # written by stage 4: the cached list whatever its age; None when
+                                                    # there is no readable cache file; never a request (for X3's `latest`)
 ```
 
 `Freshness` has today's four states: online, cached, stale (the network failed and old data is shown), unavailable.
@@ -101,7 +103,9 @@ The cache file, from V8: `<cache>/remote/<first 16 hexadecimal digits of the SHA
 
 Consumes: `GitHubClient` (24); `version_key` and the name order (23); `VersionSpec` (22); the errors and `AppPaths.remote` (02).
 
-Used later by: `fetch_build` (26); `Install`, `Upgrade`, `install`, `upgrade`, `same_as_published` (27), whose `Lookup = Callable[[str], Release]` is "what upstream publishes under a name now"; `choose_first_build` (28), which needs the dates of the stable and rolling releases; `tool list` (29); `cache clean` (45).
+Used later by: `fetch_build` (26); `Install`, `Upgrade`, `install`, `upgrade`, `same_as_published` (27), whose `Lookup = Callable[[str], Release]` is "what upstream publishes under a name now"; `choose_first_build` (28), which needs the dates of the stable and rolling releases; `tool list` (29); the refusal of `latest`, which names the stable tag of `cached()` ([02 X3](../design/02-cross-cutting.md#x3-version-syntax), 29); `cache clean` (45).
+
+`cached()` is added by stage 4 for X3's refusal of `latest`, whose bracket names "the stable release of the cached release list, whatever its age, when a cache file exists" and makes no request (finding B16). `releases(max_age=...)` cannot serve it: with no cache file or an old one it asks GitHub.
 
 ## Tests that must pass
 
@@ -122,7 +126,9 @@ V8's own unit tests:
 - A corrupt cache file is treated as absent (a request is made; no error).
 - Two different base addresses do not share a cache file.
 - The network fails with a cache present: the old data and stale. With none: an empty list and unavailable. Neither raises.
-- An error answer is never written to the cache: after a failed request the cache file is unchanged, byte for byte.
+- The list is cached as it came back (question Q7, settled): `releases()` over the `releases` recording writes a cache file whose list holds all 17 releases, the seven without a `tla2tools.jar` included (inventory row T21, this package's half; the other half, that `tool list` shows none of the seven, is [29](29-tool-commands.md)'s).
+- An error answer is never written to the cache: a 404, a 503 and a rate-limit answer write no cache file when there is none, and leave an existing one byte for byte as it was.
+- `cached()`: with no cache file, `None`; with a cache file a day old, its releases, and no request is sent (the `github` fixture's count is 0); with a corrupt one, `None`.
 - `release(tag)` neither reads nor writes the cache: with a one-minute-old cache present, one request is sent, and the cache file is unchanged afterwards.
 - `resolve` of `stable` refreshes the list even with a one-minute-old cache (one request), and when that request fails it raises the network error; it never answers from stale data.
 - A tag with a slash is percent-encoded in the requested path ([02 X3](../design/02-cross-cutting.md#x3-version-syntax) allows `/` in a tag; [V7](../design/12-tools-and-downloads.md#v7-github-client), "Addresses built from names").
@@ -132,11 +138,11 @@ V8's own unit tests:
 
 `stable_of`, in `test_order.py`, beside the two rows above: a draft is skipped; a release with a higher number that is a prerelease does not win (`v1.8.0` is one in the recording); `v1.5.0rc1` is below `v1.5.0`.
 
-Old tests: none is deleted here. Stateful tests: `tests/stateful/test_tool_store.py` builds `Release` and `Asset` values, but it also needs `install.py`; its `pending` markers are removed by package 27.
+Old tests: none is left (03b). The pull request names the inventory row it covers (T21, the cache half). Stateful tests: `tests/stateful/test_tool_store.py` builds `Release` and `Asset` values, but it also needs `install.py`; its `pending` markers are removed by package 27.
 
 ## Changelog
 
-None in this package. Package 29 writes V8's entries (Fixed: "Only the first 30 tags were read from GitHub, so `rolling` would have disappeared at the next upstream release." and the column label; Changed: the `tool list` line; Removed: "`tlaup fetch-cache clear`; use `tlaup cache clean`.") and X4's (Changed: "`rolling` is listed first in `tlaup tool list`, then versions by number."; Fixed: "`tlaup tool install` could offer a prerelease as the stable version when no stable release was in the first page of results.").
+None in this package. Package 29 writes V8's entries (Fixed: "Only the first 30 tags were read from GitHub, so `rolling` would have disappeared at the next upstream release." and the column label; Changed: the two `tool list` lines, the second D64's "`installed, not upstream` (was `local only`)") and X4's (Changed: "`rolling` is listed first in `tlaup tool list`, then versions by number."; Fixed: "`tlaup tool install` could offer a prerelease as the stable version when no stable release was in the first page of results.").
 
 ## Context for the worker
 
@@ -169,7 +175,7 @@ Points that are easy to miss:
 - **Freshness carries no reason.** V8's `tool list` prints one `warning:` line when the network is unavailable, and the four states alone do not say why. If package 29 will need the reason, keeping the caught error beside the state costs nothing now; the design does not ask for it.
 - No printing: the module returns values or raises ([00](../design/00-overview.md#packages-after-the-first-wave)).
 
-What V8's sentence on caching is read as, until the question is answered. V8 says "A missing asset or a 404 is never cached (research 7: it can be a one-second gap)". A 404 is an error answer and is never written. But the list itself always holds seven releases with no jar, so "a missing asset is never cached" cannot mean that a list containing one is not cached: nothing would ever be cached. This package caches the list as it came. The gap then shows only in `tool list`, for up to an hour, as a release with no jar; install and upgrade never read the cache. The index carries the question.
+What is cached (question Q7, settled; V8 rewritten). **The release list is cached as it came back**: every release GitHub returned, those without a `tla2tools.jar` included, with nothing removed or added. **An error answer is never cached**: a 404, a 5xx, a rate limit, or a body that is not a list of releases writes no cache file and leaves an existing one as it was. A release whose jar is missing only because upstream is between deleting and uploading it is cached that way too, and `tool list` then shows the release without its jar for up to an hour; install and upgrade never read the cache, so they are not affected. Hiding releases without a jar is `tool list`'s ([29](29-tool-commands.md), decision D64), not the cache's: the cache keeps them.
 
 About the recordings. Research 29's `releases-paged` bodies were cut to a field list that leaves out the assets' `updated_at`, which `Asset.updated_at` reads and package 27's `same_as_published` compares. Package 05 owns the recordings and the record script; if the recording on `main` still lacks the field when this package starts, the fix is a recording with the field (05's script), not a parser that accepts its absence: a real answer always has it, and a tolerant parser would hide a real `RemoteDataError` case. Say in the pull request what you found.
 
@@ -186,7 +192,7 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 
 - The client, paging, the token: package [24](24-github-client.md).
 - Downloading and verifying a jar, reading `digest`: package [26](26-download-and-verify.md).
 - `same_as_published`, `install`, `upgrade`, the commit comparison (V12, V4): package 27. The first-run prompt and its two dates (V9): package 28.
-- `tool list` and its table, `tools_list.feature`, the changelog entries, deleting `versioning/api.py`, `cache/github.py`, `cmd/fetch_cache/` and the old fixtures: package 29.
+- `tool list` and its table (hiding releases without a jar, `installed, not upstream`), `tool_list.feature`, the changelog entries, deleting `versioning/api.py`, `cache/github.py` and `cmd/fetch_cache/`: package 29.
 - `tlaup cache clean` removing `<cache>/remote/`: package 45.
 - Conditional requests with ETags (rejected in V8).
 
@@ -195,4 +201,4 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 
 - From X4: `stable` among installed builds can lag behind upstream; that is the store's side and accepted.
 - From V8: reading only releases means a release whose asset is being replaced looks, for a second, like one with no jar. Install and upgrade answer that with the retry of package 26.
 - From T6: a row can name a state the finished code cannot reach; it is then removed with a line in the pull request.
-- From the cut: `write_cache` is used by a test step that packages 18 and 29 write. If they build the file by hand instead, the scenario tests a format the code may not read.
+- From the cut: `write_cache` is used by a test step that package 29 writes. If it builds the file by hand instead, the scenario tests a format the code may not read.

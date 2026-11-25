@@ -1,12 +1,12 @@
 # 24. GitHub client
 
-Size: M. Suggested model: most capable. Status: ready, except the debug filter, which waits on question "debug filter" of the index (what waits is under Interfaces).
+Size: M. Suggested model: most capable. Status: ready. The debug filter (question Q6) is settled: a stand-alone `redact` owned by this package (Interfaces).
 
 This is the security-sensitive package of the store track: it decides where the user's GitHub token goes.
 
 ## Goal
 
-`tlaup.versioning.github.GitHubClient` exists and is the only code that talks to GitHub: it scopes the token to the hosts it may reach, sets the headers, retries, reports a rate limit, follows redirects by hand and refuses unencrypted or doubtful addresses, and never uses `.netrc`. It is tested through `responses` with real recordings. No command uses it yet; the old `versioning/api.py` and `downloader.py` still serve the old commands.
+`tlaup.versioning.github.GitHubClient` exists and is the only code that talks to GitHub: it scopes the token to the hosts it may reach, sets the headers, retries, reports a rate limit, follows redirects by hand and refuses unencrypted or doubtful addresses, and never uses `.netrc`. It is tested through `responses` with real recordings. `tlaup.versioning.redact.redact` keeps the token and query strings out of `--debug` output, and the root handler of [17](17-error-handler.md) calls it, so the filter is in place before the first command that reads the token (29). No command uses the client yet; the old `versioning/api.py` and `downloader.py` still serve the old commands.
 
 ## Covers
 
@@ -17,7 +17,8 @@ This is the security-sensitive package of the store track: it decides where the 
   - "Read all pages of tags and releases ..." in part: following `Link` headers (`get_paged`). Which lists are read, and `stable`, are package 25.
   - "Download and GitHub failure modes are tested ..." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this)), in part: the rows of T6 listed under "Tests that must pass". The other rows are packages 25, 26 and 27.
 - Design sections:
-  - [12 V7](../design/12-tools-and-downloads.md#v7-github-client): all of the client. Not here: the feature scenario on token secrecy and the plain pytest on query strings in the streams and in `build.json`, which need a command and an install (packages 27 and 29); V7's changelog entries (29).
+  - [12 V7](../design/12-tools-and-downloads.md#v7-github-client): all of the client, and the debug filter (`redact`, its unit test, its call in the handler). Not here: the feature scenario on token secrecy and the plain pytest on query strings in the streams and in `build.json`, which need a command and an install (packages 27 and 29); V7's changelog entries (29).
+  - [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), one sentence: "Every line the handler prints under debug ... passes through the debug filter `redact(text, os.environ)`"; the handler itself is 17's.
   - [01 T6](../design/01-testing.md#t6-download-and-github-failure-tests): seven rows, listed below.
   - [01 T4](../design/01-testing.md#t4-fakes-at-the-edges), "Time": the client takes `sleep` as an argument.
 
@@ -26,6 +27,7 @@ This is the security-sensitive package of the store track: it decides where the 
 - [02](02-errors-and-paths.md): `NetworkError`, `RateLimited`, `RemoteDataError`, `ConfigInvalid` and `DownloadVerificationError` from `tlaup.errors`.
 - [03](03-test-foundation.md): the isolation fixture (it removes `GITHUB_TOKEN`, `GH_TOKEN` and the proxy variables and blocks sockets), the pytest settings, `responses` and `pytest-socket` as development dependencies.
 - [05](05-github-recordings.md): the `github` fixture, which registers a recording with `responses` and lists the requests made, and the recordings `releases`, `releases-paged` and `rate-limited` under `tests/recordings/github/`.
+- [17](17-error-handler.md): the handler's one debug-printing function in `cli.py`, which this package points at `redact`, and `TlaupGroup`, for the handler test below. **Added** with the settled debug filter (question Q6): the filter's home is this package, and its call goes into the handler here rather than making 17 wait for 24.
 
 Change from the draft: package 19 is dropped. The client takes the repository address and the token hosts as constructor arguments and reads no setting; the settings `tool.repository` and `tool.token_hosts`, their schema and their validation are package 19's, and the commands (package 29) pass their values in. Nothing of 19 is imported here, so this package does not wait for it. 03 is named because it is used directly.
 
@@ -34,17 +36,20 @@ Change from the draft: package 19 is dropped. The client takes the repository ad
 Creates:
 
 - `src/tlaup/versioning/github.py`
+- `src/tlaup/versioning/redact.py`: `redact` (Interfaces). Imports neither `requests` nor `github.py`.
 - `tests/unit/versioning/test_github.py` (split into two files if it grows past what reads well: the address and token rules, and retry, rate limit and paging)
+- `tests/unit/versioning/test_redact.py`
 
 Changes:
 
 - `src/tlaup/errors.py`, only if package 02 left `RateLimited` without a field for the reset time, or `NetworkError` without a way to carry a status code (see Interfaces). One or two lines; say so in the pull request.
+- `src/tlaup/cli.py`: the debug-printing function 17 built returns `redact(text, os.environ)`. One line and an import.
 
-Must not touch: the old `versioning/api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `versioning/__init__.py`, `cache/github.py`, `cmd/tools/`, `cmd/fetch_cache/`, and their tests under `tests/unit/version_manager/` and `tests/unit/tools/`; the old fixtures `tests/fixtures/releases.json` and `tags.json`. Package 29 deletes them. `tlaup/versioning/github.py` is a new name: `tlaup/cache/github.py` is the old cache helper in another package and is not replaced by it. The settings schema and the default config file are package 19's.
+Must not touch: the old `versioning/api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `versioning/__init__.py`, `cache/github.py`, `cmd/tools/`, `cmd/fetch_cache/`. Package 29 deletes them. Their old tests and the old fixtures `tests/fixtures/releases.json` and `tags.json` went in 03b (decision D62). `tlaup/versioning/github.py` is a new name: `tlaup/cache/github.py` is the old cache helper in another package and is not replaced by it. The settings schema and the default config file are package 19's.
 
 Deletes: nothing.
 
-Shared with other packages of the track: `tests/unit/versioning/conftest.py` (22 created it; add only what the client tests need). `src/tlaup/errors.py` is shared with every package that finds a class too thin; edits are single lines.
+Shared with other packages of the track: `tests/unit/versioning/conftest.py` (22 created it; add only what the client tests need). `src/tlaup/errors.py` is shared with every package that finds a class too thin; edits are single lines. `src/tlaup/cli.py` with 17 and the switch packages, one line here.
 
 ## Interfaces
 
@@ -88,11 +93,18 @@ A status of 400 or above that is not a rate limit: V7 says only that it is "repo
 
 `RateLimited` carries `reset_at` (V7: `RateLimited(reset_at)`); the message leaves out the "Set GITHUB_TOKEN" sentence when a token was sent, so the error also needs to know that.
 
-**What waits on question "debug filter".** V7 says that `--debug` output "passes through a filter that replaces the token's value with `***` wherever it appears", and that the client "hands each query string it meets to the same filter"; [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks) says the handler's debug output passes through "the token filter (12 V7)". No section says where the filter lives or what its signature is, and a filter that collects query strings is process-wide state, which [00](../design/00-overview.md#application-context) and [01 T2](../design/01-testing.md#t2-isolation) allow in exactly one place (the application context). The handler is package 17's and must be able to use the filter without importing `requests` or this module ([14 F9](../design/14-config-and-cli.md#f9-startup-cost)). Until the question is answered this package builds everything else and does not add the filter. What does not wait, and is this package's whatever the answer: the client never puts the token or a query string into anything it returns or raises (below).
+**The debug filter** (question Q6, settled; [12 V7](../design/12-tools-and-downloads.md#v7-github-client)), one stand-alone function with no state, owned by the client and kept beside it:
 
-Consumes: the error classes (02); the `github` fixture and the recordings (05).
+```python
+# tlaup/versioning/redact.py      imports neither requests nor github.py
+def redact(text: str, env: Mapping[str, str]) -> str
+```
 
-Used later by: `Remote` (25), `fetch_build` (26), `install`, `upgrade` (27), `ensure_tools` (28), the `tool` commands (29).
+It replaces the values of `GH_TOKEN` and `GITHUB_TOKEN`, read from `env`, with `***` wherever they appear (an unset or empty variable replaces nothing), and cuts every `http://` or `https://` address in the text at its `?`, an address ending at white space or a quote character. So it needs no record of the tokens or query strings the client met, and nothing is process-wide state ([00](../design/00-overview.md#application-context)). The root handler of [17](17-error-handler.md) passes every line it prints under `--debug`, the one-line message and the traceback, through `redact(text, os.environ)` ([14 F10](../design/14-config-and-cli.md#f10-no-tracebacks)); this package makes that call. It is in place before the first command that reads the token: [29](29-tool-commands.md) depends on this package, and before 29 no command holds a token to print. Separately, and as before, the client never puts the token or a query string into anything it returns or raises (below).
+
+Consumes: the error classes (02); the `github` fixture and the recordings (05); the debug-printing function and `TlaupGroup` (17).
+
+Used later by: `Remote` (25), `fetch_build` (26), `install`, `upgrade` (27), `ensure_tools` (28), the `tool` commands (29); `redact` by the root handler (17's code) from this package on.
 
 ## Tests that must pass
 
@@ -134,7 +146,9 @@ Also: `download` writes exactly the body to `dest`, reports `size`, `content_len
 
 Not tested here and why: TLS through the operating system's trust store. `responses` answers below the adapter, so no test in the suite makes a TLS connection; the first real use is a `tlaup tool install` by hand and in the integration job's set-up ([30 I1](../design/30-ci-and-release.md#i1-integration-job)). Say in the pull request that one real request was made by hand, and against what.
 
-Old tests: none is deleted. `tests/unit/version_manager/test_remote.py` and `test_download.py` test the old code and go with it in package 29 ([01 T11](../design/01-testing.md#t11-the-existing-tests), "Replaced by T6"). Stateful tests: none applies.
+`tests/unit/versioning/test_redact.py`, V7's unit test of the filter: a text holding the values of both variables gives `***` for each; an address with `?sig=x` loses everything from the `?` and the rest of the line stays; with `GH_TOKEN` set to the empty string the text comes back unchanged; a text holding neither a token nor an address comes back unchanged. Also, through the handler: a small app built with `cls=TlaupGroup` (as 17's `test_handler.py` builds them) whose command raises `RuntimeError` with a message holding `GH_TOKEN`'s value (set with `monkeypatch`) and `https://example.org/x?sig=secret`, run under `--debug` through `CliRunner`: stderr holds `***` and neither the token's value nor `secret`, in the `error:` line and in the traceback. And `import tlaup.versioning.redact` in a fresh interpreter loads neither `requests` nor `tlaup.versioning.github` (it may load the old `tlaup.versioning` package and what it imports until 29 empties `__init__.py`; the test names only the two modules).
+
+Old tests: none is left (03b, decision D62); no row of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) names this package as its owner (T12, the headers and the timeout, is V7's unit tests above). Stateful tests: none applies.
 
 ## Changelog
 
@@ -178,14 +192,14 @@ What research found that a worker could miss: `responses` 0.23.3 to 0.26.3 and `
 
 Not tried by anyone: a private repository, a GitHub Enterprise host, and how a later `requests` decides to read netrc. The netrc unit test is what fails if that changes.
 
-State of `main` when this starts: the 0.8.x code with packages 01 to 03 and 05 on top. The old `versioning/api.py` and `downloader.py` call `requests.get` directly, with no token; they stay and keep serving `tlaup tools install` until package 29.
+State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 17 on top. The old `versioning/api.py` and `downloader.py` call `requests.get` directly, with no token; they stay and keep serving `tlaup tools install` until package 29. `tlaup/versioning/__init__.py` still imports the old modules (and `requests`) until 29 empties it, so importing `redact` loads them; today's `cli.py` loads them already, so the handler pays nothing new, and [49](49-startup-cost.md)'s test runs after 29.
 
 ## Done when
 
 - The tests above pass; `uv run poe lint` (bandit and mypy strict cover the new module) and `uv run poe test` pass; CI is green.
 - No file listed under "Must not touch" is in the diff.
 - The pull request states: the three open points above and what was chosen; that one real request through the client was made by hand, with and without a token, and what the headers were; and, per T12 rule 6, that the netrc test and the backslash test fail when the auth object or the prepared-address rule is taken out.
-- The debug filter is either built as the answer to the question says, or the pull request says that it was left out and the index still lists it.
+- `redact` exists in `tlaup/versioning/redact.py`, the handler calls it, and its tests pass.
 
 ## Out of scope
 
@@ -194,7 +208,7 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03 and 05 o
 - `install`, `upgrade`, `--force`, concurrent installs (V12, V3, V4, V11): package 27. The first-run prompt (V9): package 28.
 - The `tool` commands, reading the token from the real environment and the settings, the feature scenario "the token appears in neither stream under `--debug`", the query-string test over the streams and `build.json`, V7's changelog entries, and deleting `versioning/api.py`, `downloader.py`, `cache/github.py`: package 29.
 - The settings `tool.repository` and `tool.token_hosts`, their validation, and the rule that a project layer cannot set them: package 19.
-- The handler that prints debug output: package 17.
+- The handler that prints debug output: package 17 (this package changes one line of it).
 
 ## Risks
 

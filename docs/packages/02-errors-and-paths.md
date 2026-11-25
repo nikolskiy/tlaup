@@ -32,7 +32,7 @@ Creates:
 Changes:
 
 - `src/tlaup/config/loader.py`: the bodies of `config_dir()` and `cache_dir()` return `get_context().paths.config` and `get_context().paths.cache`. The `platformdirs` import and `_APP_NAME` leave this file; the name `tlaup` is given to `platformdirs` in `paths.py` only. Nothing else in the file changes: `config_path()`, `ensure_config()`, `load_config()`, `save_config()` and `workspace_root()` stay as they are.
-- `tests/unit/test_config.py`: `test_config_paths` is deleted. It replaces `platformdirs.user_config_dir` and asserts the three old functions; `tests/unit/test_paths.py` tests the same thing on `AppPaths` without a patch ([01 T11](../design/01-testing.md#t11-the-existing-tests): a test goes in the pull request that rewrites what it tests). The other three tests of the file stay.
+- `tests/unit/test_config.py`: `test_config_paths` is deleted. It replaces `platformdirs.user_config_dir` and asserts the three old functions, which after this package read the cached context, so whether it passes depends on what ran before it; `tests/unit/test_paths.py` tests the same thing on `AppPaths` without a patch. The rest of the old suite stays as it is until 03b deletes all of it ([01 T11](../design/01-testing.md#t11-the-existing-tests), decision D62).
 - `CHANGELOG.md`: one entry, see Changelog.
 - `docs/contributing/development.md`: the section "Where tlaup keeps its files" names `src/tlaup/paths.py` instead of `_APP_NAME` in the loader, and the section "Running tlaup without touching your own folders" gives `TLAUP_HOME=<tmp>/tlaup uv run tlaup tools list` in place of the two `XDG_*` variables (its warning about `gh`, `git` and `uv` reading those variables no longer applies to the new form; say that the variable is tlaup's own).
 
@@ -134,11 +134,11 @@ Plain pytest, new:
   - `from_env` and the properties create nothing on disk.
 - `tests/unit/test_context.py`
   - `get_context()` returns the same object twice; after `reset()` and a changed environment it returns a new one with the new folders.
-  - The old code follows the variables: with `TLAUP_HOME` set and the context reset, `tlaup.config.loader.config_dir()` is `$TLAUP_HOME/config`, `cache_dir()` is `$TLAUP_HOME/cache`, and `tlaup.versioning.paths.get_tools_dir()` is `$TLAUP_HOME/cache/tools` (the old name, on purpose; see Context).
+  - The old code follows the variables: with `TLAUP_HOME` set and the context reset, `tlaup.config.loader.config_dir()` is `$TLAUP_HOME/config`, `cache_dir()` is `$TLAUP_HOME/cache`, and `tlaup.versioning.paths.get_tools_dir()` is `$TLAUP_HOME/cache/tools` (the old name, on purpose; see Context). Each of these assertions goes in the pull request that deletes its function: 19 the loader's two, 29 `get_tools_dir`.
 
-These tests set the environment with `monkeypatch.setenv` and call `tlaup.context.reset()` before and after themselves, because the autouse isolation fixture does not exist yet (package [03](03-test-foundation.md)); 03 removes that scaffolding.
+These tests set the environment with `monkeypatch.setenv` and call `tlaup.context.reset()` before and after themselves, because the autouse isolation fixture does not exist yet (package [03](03-test-foundation.md)); 03b removes that scaffolding.
 
-Old tests: `test_config_paths` in `tests/unit/test_config.py` is deleted, as said under Files. Every other old test must pass unchanged; they replace `tlaup.config.loader.config_dir` and `cache_dir` by name, and both names still exist.
+Old tests: `test_config_paths` in `tests/unit/test_config.py` is deleted, as said under Files. Every other old test must pass unchanged until 03b deletes the old suite; they replace `tlaup.config.loader.config_dir` and `cache_dir` by name, and both names still exist.
 
 No feature file: the step vocabulary and the error handler do not exist yet. G2's `errors.feature` scenarios ("one scenario per subclass that a command can reach") are written by packages 17 and 18 for what exists then, and by each switch package for the errors its commands can reach.
 
@@ -176,7 +176,7 @@ Decisions this rests on:
 
 with `<config>` and `<cache>` now taken from `AppPaths`, so the four variables move them. With no variable set the two roots are the same folders as in 0.8.2.
 
-The old sub-folder names stay because the code that uses them is the old code: `AppPaths.tools`, `pin`, `modules`, `runs` and `remote` name the **new** layout of D47 and of [00](../design/00-overview.md#where-state-lives-first-wave), and nothing reads them until packages 20, 23, 25, 30 and 35 build the code that owns them. Do not point the old path functions at the new properties, for three reasons. The old tests replace `cache_dir` by name and expect every folder to follow it; they are ported by package 03, not here. The old install layout (`<name>-<sha7>` folders with `meta-tla2tools.json`) must never land in the folder the new store owns, where it would be a folder the store cannot read and never removes ([12 V1](../design/12-tools-and-downloads.md#v1-version-store)). And each old name disappears with its module: the switch packages delete `versioning/paths.py` piece by piece (package 04 the legacy pieces, 29 the tools and pin functions, 31 the modules function, 39 the run-cache functions), and package 19 replaces the loader. F2's sentence "`AppPaths` is the only place that knows any folder" is true for the roots after this package and for every folder after the last of those.
+The old sub-folder names stay because the code that uses them is the old code: `AppPaths.tools`, `pin`, `modules`, `runs` and `remote` name the **new** layout of D47 and of [00](../design/00-overview.md#where-state-lives-first-wave), and nothing reads them until packages 20, 23, 25, 30 and 35 build the code that owns them. Do not point the old path functions at the new properties, for two reasons. The old install layout (`<name>-<sha7>` folders with `meta-tla2tools.json`) must never land in the folder the new store owns, where it would be a folder the store cannot read and never removes ([12 V1](../design/12-tools-and-downloads.md#v1-version-store)). And each old name disappears with its module: the switch packages delete `versioning/paths.py` piece by piece (package 04 the legacy pieces, 29 the tools and pin functions, 31 the modules function, 39 the run-cache functions), and package 19 replaces the loader. F2's sentence "`AppPaths` is the only place that knows any folder" is true for the roots after this package and for every folder after the last of those.
 
 So for a while two names exist for "where builds are": `<cache>/tools` (old code) and `AppPaths.tools`, which is `<cache>/tool` (new code). A test of old code that needs the old folder writes `paths.cache / "tools"`, never `paths.tools`.
 
@@ -191,7 +191,7 @@ So for a while two names exist for "where builds are": `<cache>/tools` (old code
 **The context skeleton.**
 
 - `get_context()` builds the context on its first call from `os.environ` and keeps it; `reset()` forgets it. It is the only process-wide cache the design allows ([01 T2](../design/01-testing.md#t2-isolation)).
-- The old loader has a second one today: `load_config` is wrapped in `lru_cache`. Until package 19 replaces the loader, `reset()` also clears that cache, so that a test which resets the context gets settings read from its own folders. Do it without importing the loader when it is not loaded yet (the context module must stay cheap to import, [14 F9](../design/14-config-and-cli.md#f9-startup-cost)); package 19 removes the line.
+- The old loader has a second one today: `load_config` is wrapped in `lru_cache`. `reset()` leaves it alone: it mattered only for old tests run under the isolation fixture, and 03b deletes the old tests in the pull request that brings the fixture in (decision D62). Package 19 replaces the loader and its cache. The context module must stay cheap to import ([14 F9](../design/14-config-and-cli.md#f9-startup-cost)), so it imports nothing of the old code.
 - `debug` is true when `TLAUP_DEBUG` is `1`, the one form [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks) names. How `--debug` reaches the context is package 17's: the design says the root callback builds the context "from the environment and the root options" and gives `get_context()` no parameter for them, so 17 adds the builder. Note that F10's handler does not read the flag from the context at all.
 - Only commands reach for the context; domain functions take the paths they need as arguments ([00](../design/00-overview.md#packages-after-the-first-wave)). The two old loader functions are the one exception, and they go with the old loader.
 - Nothing stores the context on Typer's context object yet; that is the root callback of package 17.
@@ -205,7 +205,7 @@ So for a while two names exist for "where builds are": `<cache>/tools` (old code
 - The old `tlaup/ui.py` has a function called `error`. It is unrelated, and package 16 replaces the module.
 - `ModuleNotFound` is tlaup's "no such registered module"; do not confuse it with Python's `ModuleNotFoundError`.
 
-State of `main` when this starts: release 0.8.x code, formatted by package 01. `tests/conftest.py` still has `mock_cache`, `mock_load_config` and the other old fixtures, and the old tests still write to the developer's real config folder where they do not use `mock_cache`; package 03 ends that.
+State of `main` when this starts: release 0.8.x code, formatted by package 01. `tests/conftest.py` still has `mock_cache`, `mock_load_config` and the other old fixtures, and the old tests still write to the developer's real config folder where they do not use `mock_cache`; 03b ends that by deleting them.
 
 ## Done when
 
@@ -220,7 +220,7 @@ State of `main` when this starts: release 0.8.x code, formatted by package 01. `
 
 - The isolation fixture that sets `TLAUP_HOME` for every test, and the port of the old tests: package [03](03-test-foundation.md).
 - `Ui` and the `ui` field: package 16. The error handler, `--debug`, `__main__.py`: package 17. Settings and the `settings` field: package 19.
-- Removing the old path functions and their modules: packages 04, 19, 29, 31, 39.
+- Removing the old path functions and their modules: packages 04, 19, 29, 31, 39. Between packages the old commands are not promised to keep working (decision D62); they keep working after this package because the rewiring changes two function bodies and nothing else.
 - Moving the old code to the folder names of D47: never; the old code is deleted instead.
 - Commands that print the folders in effect: packages 29, 31, 44, 45, 46.
 - Raising the new errors from the old commands or changing any exit code.
@@ -228,7 +228,7 @@ State of `main` when this starts: release 0.8.x code, formatted by package 01. `
 ## Risks
 
 - From F2: none stated.
-- From G2: catching too broadly. Only `TlaupError` is ever turned into a message; a bare `except Exception` elsewhere becomes a lint error when the BLE rules come on (package 58).
+- From G2: catching too broadly. Only `TlaupError` is ever turned into a message; a bare `except Exception` elsewhere becomes a lint error when the BLE rules come on (package 58, its part 58a).
 - From the cut: the old and the new folder names live side by side until the switch packages; the table above and the test in `test_context.py` are what keeps a worker from mixing them.
-- From the cut: `get_context()` caches for the life of the process, and until package 03 nothing resets it between old tests. The old tests do not set the four variables, so they see the same folders as before; a new test that sets one must reset the context before and after itself.
+- From the cut: `get_context()` caches for the life of the process, and until 03b nothing resets it between tests. The old tests do not set the four variables, so they see the same folders as before; a new test that sets one must reset the context before and after itself.
 - A developer who has `TLAUP_HOME` set in their shell now runs the old commands against that folder. That is the intended effect, and the changelog entry says so.

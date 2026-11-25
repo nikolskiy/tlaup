@@ -47,14 +47,17 @@ Roadmap: "Unit job on Python 3.11 and the newest release, plus one macOS job; se
 
 - "The newest release" is the newest stable CPython that uv can install and for which every locked dependency has a wheel. Top-up (research 29): that is **3.15** today (3.15.2 from `setup-python` and from uv's own builds with a current uv; the runner images carry 3.14 as their newest, so either way it is a download). The matrix names 3.15, and H3 makes the classifiers say 3.11 and 3.15. `setup-uv` is left on its default, the latest uv, because an older uv does not know 3.15.2. Whether the code and the locked dependencies pass on 3.15 was not tried; the first run shows it, and the risk below covers a missing wheel.
 - Python is chosen with `uv sync --locked --python <version>`; the `actions/setup-python` step goes.
-- **The lifeline job** (decision D51; review finding TU3). A job `lifeline`, on `ubuntu-latest` and `macos-latest`, sets up Temurin 11 (the oldest supported Java, so the agent's `--release 11` classes are checked on it), compiles the agent's source with `javac --release 11`, compares the class files with those in `tlaup/java/lifeline.jar`, and runs the lifeline tests of [20 G3](20-groundwork.md#g3-java-launcher) (a JVM ends within three seconds of its parent's SIGKILL; a JVM started with the id of a process that is gone exits at once; the reused-id stand-in, Linux only). The unit job below stays without Java; the lifeline tests are marked so that it skips them and this job runs them. A required check, like the unit job.
-- No Java and no jar: the steps "Set up Java" and "Download tla2tools.jar" are removed in the pull request that lands the isolation and the fakes ([01 T2](01-testing.md#t2-isolation), [T4](01-testing.md#t4-fakes-at-the-edges)).
+- **The lifeline job** (decision D51; review finding TU3). A job `lifeline`, on `ubuntu-latest` and `macos-latest`, sets up Temurin 11 (the oldest supported Java, so the agent's `--release 11` classes are checked on it), compiles the agent's source with `javac --release 11`, compares the class files with those in `tlaup/java/lifeline.jar`, and runs the lifeline tests of [20 G3](20-groundwork.md#g3-java-launcher) (a JVM ends within three seconds of its parent's SIGKILL, also with `-Xrs` among its options; a JVM started with the id of a process that is gone exits at once; the reused-id stand-in, Linux only; `tlaup repl`'s JVM under a pseudo-terminal still reads a line from stdin, for which the job installs the current rolling build from the integration job's cache, since v1.7.4 has no REPL). The unit job below stays without Java; the lifeline tests carry the `lifeline` marker ([01 T10](01-testing.md#t10-coverage-policy-and-pytest-settings)), so that it skips them and this job runs them. A required check, like the unit job (I5).
+- No Java and no jar: the steps "Set up Java" and "Download tla2tools.jar" are removed in the pull request that lands the isolation and the fakes and deletes the old tests ([01 T2](01-testing.md#t2-isolation), [T4](01-testing.md#t4-fakes-at-the-edges), decision D62).
+- **The one old command CI runs** (D62's exception, [00](00-overview.md#what-every-package-must-respect)). Today's `test` job runs `uv run tlaup tools install`, which downloads a jar and starts Java on it to read its version, before the old tests. That is the only place a CI job runs real TLC through a command of 0.8.x, and it lasts only until the step goes, in the pull request above, which comes before any package changes `tools install`; until then that command keeps working. From then on no job runs an old command: the unit job uses the fakes, and the integration job (I1) arrives after `tool install`, `tool current` and `doctor` exist ([00, order of work](00-overview.md#order-of-work), item 11) and runs only those. `release.yml` has the same install step, but it runs only on a tag, nothing is tagged between packages (D6), and L2 rewrites the workflow before 0.9.0.
 - Steps: `uv run poe test` (with coverage and its threshold), then the clean-home check: fail if any tlaup folder, or the `.tlaplus` folder the REPL writes its history to, exists under the runner's home. The integration job (I1) runs the same check; its fixture points the JVM's `user.home` and `java.io.tmpdir` at temporary folders ([01 T9](01-testing.md#t9-integration-tests)).
 - The real-process scenarios (signals, a pty, a closed pipe, passthrough, completion; [01 T5](01-testing.md#t5-feature-files-and-steps)) run here too, on both systems.
 
 A job `lint`: `uv run poe lint` and `uv run ruff format --check .` on one Python.
 
 **Risks.** The newest CPython may lack a wheel for one dependency for some weeks after its release; then the matrix names the one before and a comment says why.
+
+(Stage 4 review, 2026-11-24: the lifeline job's list holds G3's `-Xrs` case and the REPL on a pseudo-terminal, index "Clerical"; the old command CI runs until the old tests go, D62.)
 
 ## I3 Newest dependencies job
 
@@ -82,13 +85,15 @@ Roadmap: "Enforce `ruff format --check`; `uv sync --locked`; an explicit read-on
 
 **Design.**
 
-- **Format first.** One commit, `style: apply ruff format`, formats the whole tree and nothing else, before any other work package branches off ([00, order of work](00-overview.md#order-of-work)). From then on `ruff format --check .` runs in the `lint` job and as a pre-commit hook (H1). [`docs/contributing/development.md`](../contributing/development.md) loses its section saying that formatting is not enforced. The commit's hash goes into `.git-blame-ignore-revs`.
+- **Format first.** One commit, `style: apply ruff format`, formats the whole tree and nothing else, before any other work package branches off ([00, order of work](00-overview.md#order-of-work)). The locked ruff (0.17.5) also formats the Python code blocks in Markdown files, so the commit rewrites those blocks in the design documents and the package files too, and that is allowed: the blocks are code, and one format for all code is the point. From then on `ruff format --check .` runs in the `lint` job and as a pre-commit hook (H1), and both cover Markdown. [`docs/contributing/development.md`](../contributing/development.md) loses its section saying that formatting is not enforced. The commit's hash goes into `.git-blame-ignore-revs`.
 - Every `uv sync` in a workflow has `--locked`.
 - Every workflow starts with `permissions: contents: read`; a job that needs more says so itself (L2).
 - Every job has `timeout-minutes` (10 for lint and build, 15 for unit, 30 for integration).
 - `concurrency: group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true` for pull requests and false for `main`.
 - `shellcheck scripts/*.sh` in the `lint` job (it is on the hosted Linux runners).
-- A final job `Test` that `needs` every required job (`lint`, `unit`, `integration`, `build`; not `deps-newest`, I3). It has `if: always()`, and its one step fails unless every entry of `needs.*.result` is `success`. Both parts matter: without `if: always()` the job is skipped when a job it needs fails, and a required check that was skipped counts as passed, so a failing matrix would let a pull request merge. The ruleset (I7) requires only this one check name, so the matrix can change without touching the ruleset. Stated from knowledge of the platform, not tried; I7's hand-over to the maintainer includes opening a pull request with a deliberately failing test and seeing that it cannot merge.
+- A final job `Test` that `needs` every required job (`lint`, `unit`, `lifeline`, `integration`, `build`; not `deps-newest`, I3). It has `if: always()`, and its one step fails unless every entry of `needs.*.result` is `success`. Both parts matter: without `if: always()` the job is skipped when a job it needs fails, and a required check that was skipped counts as passed, so a failing matrix would let a pull request merge. The ruleset (I7) requires only this one check name, so the matrix can change without touching the ruleset. Stated from knowledge of the platform, not tried; I7's hand-over to the maintainer includes opening a pull request with a deliberately failing test and seeing that it cannot merge.
+
+(Stage 4 review, 2026-11-24: the format commit and the checks cover the code blocks in Markdown, question Q1; the lifeline job is among the required jobs; index, "Clerical".)
 
 ## I6 Pre-commit in CI
 
@@ -112,17 +117,17 @@ Roadmap: "Lint rules: enable ruff's blind-except, naive-datetime and print rule 
 
 | Change | How |
 | --- | --- |
-| `BLE` | On. The two `except Exception: pass` are in `_show_diagnostic_info` (deleted, O2) and `modules/list.py` (becomes `except (OSError, ValueError)` reading `module.json`). The last branch of `TlaupGroup.invoke` is the one allowed blind except, with a `noqa` and a comment ([14 F10](14-config-and-cli.md#f10-no-tracebacks)). |
+| `BLE` | On. The two `except Exception: pass` are in `_show_diagnostic_info` (deleted, O2) and `modules/list.py` (becomes `except (OSError, ValueError)` reading `module.json`). Two blind excepts are allowed, each with `noqa: BLE001` and a comment: the last branch of `TlaupGroup.invoke` ([14 F10](14-config-and-cli.md#f10-no-tracebacks)), and the guard round each completer, which returns nothing whatever went wrong so that completion never prints an error into the user's prompt ([23 C3](23-command-layout.md#c3-completion)). |
 | `DTZ` | On. `datetime.now()` in `modules/add.py` becomes UTC ([13 M2](13-modules-and-java.md#m2-build-in-a-temporary-folder)); the parser's `strptime` calls go because times are kept as text ([10 P3](10-parser.md#p3-result-model)). |
-| `T20` | On for `src/`. All printing goes through `tlaup.ui` ([14 F6](14-config-and-cli.md#f6-messages)). `scripts/` and `tests/fakes/` are exempt per file. |
+| `T20` | On for the whole tree. All printing in `src/` goes through `tlaup.ui` ([14 F6](14-config-and-cli.md#f6-messages)); `scripts/` and `tests/fakes/`, which print by design, are exempt per file. |
 | `TID251` | On for `tests/`: bans `unittest.mock.patch` ([01 T12](01-testing.md#t12-rules-for-writing-tests)). |
 | `PLW1510` (subprocess without `check`) | The global ignore is removed. After the launcher there are four `subprocess.run` calls (Java version, `javac`, `git`, the editor); each states `check=` explicitly. |
-| bandit `B404`, `B603`, `B607` | `B404` (importing subprocess) and `B603` (subprocess without a shell) stay skipped globally: starting processes from argument lists is what the tool does, and the roadmap's "Keep" list requires exactly that form. `B607` (a partial executable path) is no longer skipped: after J2 every executable is an absolute path from `locate`. |
+| bandit `B404`, `B603`, `B607` | `B404` (importing subprocess) and `B603` (subprocess without a shell) stay skipped globally: starting processes from argument lists is what the tool does, and the roadmap's "Keep" list requires exactly that form. `B607` (a partial executable path) is no longer skipped: every executable is an absolute path, from `locate` for `java` and `javac` (J2) and from `shutil.which` for `git` and the editor (D15, [00](00-overview.md#what-every-package-must-respect)). |
 | `Any` in formatter and models | Gone with the rewrite: the model is typed ([10 P3](10-parser.md#p3-result-model)) and the reporter takes it. `sany_errors: list[Any]` becomes `list[Diagnostic]`. |
 | Complexity `noqa` on three functions | Each of the three (`tlc`, `run_tlc`, `add_module`) is replaced by smaller functions; the markers are removed, not carried over. |
 | mypy on tests | Stays off for `tests/` in this wave (roadmap, milestone 5 housekeeping); `tests/fakes/` and `scripts/` are checked. |
 
-Each rule group is switched on in the pull request that fixes what it flags, not in one sweep, so no pull request carries unrelated fixes.
+Each rule group is switched on in the pull request that fixes what it flags, not in one sweep, so no pull request carries unrelated fixes: one pull request for each row of the table that switches something on. (Stage 4 review, 2026-11-24: the completers' guard is the second allowed blind except; `git` and the editor are found with `shutil.which`; one pull request per rule group, review finding D15 (not decision D15); index, "Clerical" and "Readings to confirm".)
 
 ## L1 Release script
 
@@ -239,13 +244,15 @@ The rewrite, when it comes, keeps both. GitHub topics are a maintainer action (`
 
 Roadmap: "Pre-commit: move the test hook to pre-push; add a format hook; run mypy on the whole project instead of on staged files."
 
-**Design.** In `.pre-commit-config.yaml`: the `pytest` hook gets `stages: [pre-push]`; a `ruff-format` hook (`uv run ruff format --check --force-exclude`) is added after `ruff`; the `mypy` hook gets `pass_filenames: false` and runs `uv run mypy .`. `poe install-hooks` installs both hook types (`pre-commit install --install-hooks -t pre-commit -t pre-push`). A new local hook `no-typed-tool-output` fails on `@!@!@STARTMSG` in `tests/**/*.py` and `tests/**/*.feature` ([01 T12](01-testing.md#t12-rules-for-writing-tests), rule 3).
+**Design.** In `.pre-commit-config.yaml`: the `pytest` hook gets `stages: [pre-push]`; a `ruff-format` hook (`uv run ruff format --check --force-exclude`) is added after `ruff`, with `types_or: [python, pyi, markdown]`, so that a staged Markdown file is checked as I5's check checks it (Stage 4 review, 2026-11-24: question Q1); the `mypy` hook gets `pass_filenames: false` and runs `uv run mypy .`. `poe install-hooks` installs both hook types (`pre-commit install --install-hooks -t pre-commit -t pre-push`). A new local hook `no-typed-tool-output` fails on `@!@!@STARTMSG` in `tests/**/*.py` and `tests/**/*.feature` ([01 T12](01-testing.md#t12-rules-for-writing-tests), rule 3).
 
 ## H2 Clean task and gitignore
 
 Roadmap: "`poe clean` also removes `build` and the egg-info folder ...; add `htmlcov/`, `coverage.xml`, `.direnv/` and editor folders to `.gitignore`."
 
 **Design.** `clean` becomes a small Python task (not `rm -rf`, so it works on Windows): removes `dist`, `build`, `src/*.egg-info`, `.coverage`, `htmlcov`, `coverage.xml`. `.gitignore` gains `htmlcov/`, `coverage.xml`, `.direnv/` and `.hypothesis/`. The editor folders the roadmap item names, `.idea/` and `.vscode/`, are in `.gitignore` already (checked in the file), so that part needs nothing.
+
+A `.gitattributes` file holds one rule, `tests/parse/golden/** -text`, so that Git never converts the line endings of a golden file ([01 T3](01-testing.md#t3-golden-files)). Under `core.autocrlf=true`, the default of Git for Windows, a checkout would otherwise turn every `\n` into `\r\n`: the parser would still read the files, since it strips either ending, but the exact-rebuild property and the synthetic `\r\n` case rest on the bytes as captured. A rewritten file would show only as a golden test failing on that one machine; the rule keeps it from being rewritten. (Stage 4 review, 2026-11-24: index, "Clerical".)
 
 ## H3 Python versions
 

@@ -16,7 +16,8 @@ The registered commands are exactly the signed-off tree of [23 C1](../design/23-
 - Design sections:
   - [23 C1](../design/23-command-layout.md#c1-command-tree): the tree; the root options paragraph; "With no command, `tlaup` prints the root help on stdout and exits 2, and a group alone ... does the same"; the rows "Registration is explicit and in one place", "No `ls`, `rm` or other short forms", "The short options `-f` and `-y` are removed" (the check), "`SPEC` is a required argument ... `VERSION` of `pin`; `NAME` of `module remove`" (the check); the Tests' unit test, the no-command scenarios and the removed-name scenarios; the Changelog's rule "one line per row" as a check.
   - [23 C4](../design/23-command-layout.md#c4-version-flag), in full apart from the summary line's source, which is [50](50-help-and-messages.md)'s ("the same text the root help shows").
-  - [02 X1](../design/02-cross-cutting.md#x1-exit-codes), rule 1: the check that it holds everywhere.
+  - [02 X1](../design/02-cross-cutting.md#x1-exit-codes), rule 1: the check that it holds everywhere; and X1's Breaking changelog entry on exit codes, which becomes true here, where tlaup's own exit 1 ends (review finding B10).
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), rows P2 (`--version` prints two lines from the package metadata, C4) and P4 (`tlaup` or a group with nothing after it prints help, X1 rule 7 and C1): their tests are here.
 
 ## Depends on
 
@@ -43,7 +44,6 @@ Changes:
 
 Deletes:
 
-- `tests/unit/test_cli.py` ([03](03-test-foundation.md) assigned it here; it tests the old `-v` output, which `test_command_tree.py` replaces).
 - Anything old still registered or present, if a switch package left it: `src/tlaup/cmd/tools/`, `cmd/modules/`, `cmd/fetch_cache/`, `cmd/check_java.py`, `cmd/config/` (the old package), `tlc/run_cache.py`, `tlc/compiler.py`, `java/inspector.py`, and `versioning/paths.py` once nothing imports it. Each is expected gone already (29, 31, 39, 44, 46); for any that is not, the pull request says which package left it and why.
 - Any of `warn`, `error`, `info`, `success` still in `tlaup/ui.py`, with their callers converted to `Ui` calls or raised errors; expected: none ([16](16-ui-messages.md): each goes with its last caller). [50](50-help-and-messages.md) checks again.
 
@@ -89,7 +89,7 @@ No new function. The tree, from [23 C1](../design/23-command-layout.md#c1-comman
 - The set of command paths equals the tree above, so a command added or removed without updating [23 C1](../design/23-command-layout.md#c1-command-tree) fails (C1, Tests). The test's tree is written out by hand in the test, not derived from the code.
 - For each command, its arguments (name, required or not, variadic or not) and its long options equal the table's.
 - No option anywhere has a one-letter form except `-V` on the root (C1, Tests): every name in `opts` and `secondary_opts` that is a dash and one letter is `-V`. This is also what keeps `-f`, `-y` and `-v` out.
-- `-V` and `--version` through `CliRunner` exit 0 and give the same stdout, of two lines; the first is `tlaup ` followed by the version `get_app_version` returns for the installed metadata version, the second equals the metadata's `Summary` (C4: "print the same"; two results compared with each other are plain pytest, [01 T5](../design/01-testing.md#t5-feature-files-and-steps)).
+- `-V` and `--version` through `CliRunner` exit 0 and give the same stdout, of two lines; the first is `tlaup ` followed by the version `get_app_version` returns for the installed metadata version, the second equals the metadata's `Summary` (C4: "print the same"; two results compared with each other are plain pytest, [01 T5](../design/01-testing.md#t5-feature-files-and-steps); inventory row P2). `-v` exiting 2 is the `errors.feature` row below.
 - Registration is in one place: an AST walk of every module under `src/tlaup/cmd/` finds no call of `.command(`, `.add_typer(` or `.callback(` on a Typer object and no import whose only purpose is a side effect (an `import` or `from . import` marked `noqa: F401`); `src/tlaup/cli.py` holds them all.
 - No command or group is registered under a second name: the registered names are unique, and no Typer `name` differs from its path in the table (no alias, D14; no short form, D38).
 
@@ -120,11 +120,11 @@ Together with what exists already: every `TlaupError` subclass has a code in 2 t
 
 `tlc --cleanup` and `tlc --version` are already in [39](39-tlc-command.md)'s `tlc_errors.feature`; `tlc --no-keep` was never released and needs none (C1). For each row also `stdout is empty`.
 
-No-command scenarios (C1, [02 X1](../design/02-cross-cutting.md#x1-exit-codes) rule 7), an outline: `tlaup module` and `tlaup cache` alone exit 2, `stdout contains "Usage"`, `stderr is empty`. `tlaup` and `tlaup config` are [18](18-feature-harness.md)'s, `tlaup tool` is [29](29-tool-commands.md)'s, and [45](45-cache-commands.md) may have written `tlaup cache`: add only those missing, so each group has one such scenario.
+No-command scenarios (C1, [02 X1](../design/02-cross-cutting.md#x1-exit-codes) rule 7, inventory row P4), an outline: `tlaup module` and `tlaup cache` alone exit 2, `stdout contains "Usage"`, `stderr is empty`. `tlaup` and `tlaup config` are [18](18-feature-harness.md)'s, `tlaup tool` is [29](29-tool-commands.md)'s, and [45](45-cache-commands.md) may have written `tlaup cache`: add only those missing, so each group has one such scenario.
 
 `tool uninstall` with no argument, and with a version and `--all` together, exiting 2 with one `error:` line (C1, Tests) is [29](29-tool-commands.md)'s scenario; the tree test above asserts its `VERSION...` is optional, which is why the hand-written check exists.
 
-Old tests deleted: `tests/unit/test_cli.py`. No stateful test applies.
+No stateful test applies. The pull request names inventory rows P2 and P4 as covered.
 
 ## Changelog
 
@@ -132,33 +132,37 @@ Under `## [Unreleased]`, word for word from [23 C4](../design/23-command-layout.
 
 - Breaking: "The version flag is `-V` (was `-v`). `-v` is reserved for `--verbose`."
 
+From [02 X1](../design/02-cross-cutting.md#x1-exit-codes), word for word, written here because this is where tlaup's own exit 1 ends and the test above makes rule 1 true (review finding B10; [17](17-error-handler.md) built the mapping, but the old commands kept their 1 until their switches):
+
+- Breaking: "Exit codes changed. tlaup's own errors now return 2 (usage), 3 (not set up), 4 (not found) or 5 (failed) instead of 1; Ctrl-C returns 130 (was 143 or 130); a closed output pipe returns 141 (was 1); `tlaup tool uninstall` returns 5 when a build could not be removed (was 0)."
+
 [23 C1](../design/23-command-layout.md#c1-command-tree) asks for one line per row of its table, each with before and after. As far as the files of the command packages say, the rows are written there; this package checks each is under `## [Unreleased]` once, and writes any that is missing:
 
 | C1 row | Line | Written by |
 | --- | --- | --- |
 | `check-java` becomes `doctor` | "`tlaup check-java` is now `tlaup doctor`, which also checks the pinned build, the config and the folders." | [46](46-doctor.md) |
-| `fetch-cache clear` and `tlc --cleanup` become `cache clean`; `cache dir` and `cache list` are new | First half as two Removed entries: "`tlaup fetch-cache clear`; use `tlaup cache clean`." and "`tlaup tlc --cleanup`; use `tlaup cache clean`."; second half: "`tlaup cache list` shows the run folders, and `tlaup cache clean RUN_ID` removes one." | [29](29-tool-commands.md) (V8), [39](39-tlc-command.md) (R6), [45](45-cache-commands.md) |
+| `fetch-cache clear` and `tlc --cleanup` become `cache clean`; `cache dir` and `cache list` are new | "`tlaup fetch-cache clear` and `tlaup tlc --cleanup` are now `tlaup cache clean`; `tlaup cache list` shows the run folders, and `tlaup cache clean RUN_ID` removes one." (once; V8 and R6 no longer carry Removed entries of their own) | [45](45-cache-commands.md) |
 | `cache list` is new | In the row above | 45 |
 | `tlc --no-keep` replaced by `--keep` | None: `--no-keep` was never released; R6's Changed entry names `--keep` | 39 |
 | `config list` becomes `config show`; `path`, `get`, `set` new | "`tlaup config list` is now `tlaup config show` and prints the settings in effect, not the file." | [44](44-config-commands.md) |
-| `config edit` loses `EDITOR` | F5's Breaking "The editor can no longer be given as an argument; set `VISUAL` or `EDITOR`." stands for C1's line (44 writes one, not both) | 44 |
+| `config edit` loses `EDITOR` | F5's Breaking "The editor can no longer be given as an argument; set `VISUAL` or `EDITOR`."; C1 gives this row no line of its own | 44 |
 | `tools meta sync` removed | "`tlaup tools meta sync` is removed; metadata is read from the jar at install." | 29 |
 | `dir` prints a folder, `path` a file | "`tlaup tools dir` is now `tlaup tool dir` and prints only the folder; use `tlaup tool list --installed` for the builds." | 29 |
-| `modules path` removed; `module dir` new | "`tlaup modules path` is removed; `tlaup tlc SPEC --show-command` shows the classpath in use and `tlaup module dir` the folder." | [31](31-module-commands.md) (expected; its file was not on disk when this was written) |
+| `modules path` removed; `module dir` new | "`tlaup modules path` is removed; `tlaup tlc SPEC --show-command` shows the classpath in use and `tlaup module dir` the folder." | [31](31-module-commands.md) |
 | `tool current` new | "`tlaup tool current` shows the pinned build and its jar without starting Java." (stage 4) | 29 |
 | `tlc --version` removed | J3's Removed "`tlaup tlc --version`; use `tlaup tool current`." stands for C1's line | 39 |
 | `tool list --installed` new | "`tlaup tool list --installed` lists the installed builds only, with no network." (stage 4) | 29 |
 | `tools` and `modules` become `tool` and `module` | "`tlaup tools` and `tlaup modules` are now `tlaup tool` and `tlaup module`; every subcommand keeps its name." (once, covering both) | 29 |
 | `tlc`, `sany`, `pcal`, `repl` top-level | None (no change for `tlc`; the other three are new) | |
 | `sany`, `pcal`, `repl`, `--workers`, `--java-opt`, `--auto-install`, `--`, `--debug` new | Each package's Added entries: 41, 42, 43 (the three commands), 39 (`--workers`, `--java-opt`, `--auto-install` with V9, `--`), 17 (`--debug`) | those packages |
-| `SPEC`, `VERSION`, `NAME` required | Covered by X1's Breaking entry on exit codes | 17 |
-| `uninstall` keeps optional `VERSION...` | Covered by X1's entry (2 instead of 1) | 17 |
+| `SPEC`, `VERSION`, `NAME` required | Covered by X1's Breaking entry on exit codes | 48 (above) |
+| `uninstall` keeps optional `VERSION...` | Covered by X1's entry (2 instead of 1) | 48 (above) |
 | `-f` and `-y` removed | "`tlaup tools install -f` and `tlaup tools uninstall -y` are now `tlaup tool install --force` and `tlaup tool uninstall --yes`." | 29 |
 | `uninstall NAME` with several builds | V3's Breaking entry | 29 |
 | No `ls`, `rm`; `pin`, `uninstall`, `remove` keep their names | None | |
 | Registration explicit | None (internal) | |
 
-Left for this package: C4's entry above, and any row the check finds missing.
+Left for this package: C4's and X1's entries above, and any row the check finds missing.
 
 ## Context for the worker
 
@@ -172,13 +176,13 @@ Left for this package: C4's entry above, and any row the check finds missing.
 
 **The version line.** `get_app_version` is still today's (it starts `git` before deciding whether the install is a development one) until [49](49-startup-cost.md) rewrites it after this package. The test compares `-V` with `--version` and the first line's shape, not a fixed version, so it holds before and after 49. Under the isolation fixture `git` is the fake, which with no script answers 127; today's code then adds no suffix.
 
-**State of `main` when this starts.** Every command of the tree exists on the new code (29, 31, 39 to 47). The old groups are expected gone; `cli.py` has one registration block per package, in the order they were merged; `-v` is still the version flag (17 kept it). `test_cli.py` still tests `-v`.
+**State of `main` when this starts.** Every command of the tree exists on the new code (29, 31, 39 to 47). The old groups are expected gone; `cli.py` has one registration block per package, in the order they were merged; `-v` is still the version flag (17 kept it), and no test covers it (03b deleted `test_cli.py` with the old suite, decision D62).
 
 ## Done when
 
 - The tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - `tlaup --help` lists exactly the tree's top-level commands; `tlaup -V` prints the two lines; `tlaup -v` exits 2.
-- Every row of the changelog table is under `## [Unreleased]` once; C4's entry is written.
+- Every row of the changelog table is under `## [Unreleased]` once; C4's and X1's entries are written.
 - The pull request lists the `typer.Exit(<expression>)` places the exit-1 test found, and anything old it had to delete or fix, with the package that left it.
 
 ## Out of scope

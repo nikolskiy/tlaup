@@ -39,7 +39,7 @@ Changes:
 - `src/tlaup/versioning/remote.py` (package 25's), only if it has no public way to fetch the release list fresh and raise when that fails: one method, below.
 - `tests/unit/versioning/test_remote.py`, one test for that method, in the same case.
 
-Must not touch: the old modules under `src/tlaup/versioning/`, `cmd/`, `tests/unit/tools/`, `tests/unit/version_manager/`.
+Must not touch: the old modules under `src/tlaup/versioning/` and `cmd/`.
 
 ## Interfaces
 
@@ -75,7 +75,7 @@ def read_auto_install(option: str | None, env: Mapping[str, str]) -> str | None
 | Nothing installed, `ui.is_interactive()` | `choose_first_build`, then `install` of the answer. |
 | Nothing installed, neither | `CannotAsk` (3): "no TLA+ tools installed" / "run `tlaup tool install stable` or `tlaup tool install rolling`, or set TLAUP_AUTO_INSTALL". |
 
-After an install, `ensure_tools` returns `store.pinned()`: the build just installed, unless another tlaup pinned one first, in which case the pin is what runs (stage 4's reading of "the choice is installed and pinned, and the command carries on"; the pin is the default once something is pinned, V9 Rejected).
+After an install, `ensure_tools` returns `store.pinned()`: the build just installed, unless another tlaup pinned one first, in which case the pin is what runs ("the choice is installed and pinned, and the command carries on", read so with the index's readings, settled 2026-11-24; the pin is the default once something is pinned, V9 Rejected).
 
 `choose_first_build`: `auto_install` set returns it with no request and no question. Otherwise, when `ui.is_interactive()`, it fetches the release list fresh (one request), and asks on stderr, through `ui.ask` with the choices `1` and `2` and the default `1`:
 
@@ -92,7 +92,7 @@ The raising list fetch. V9: "If the network is unavailable the prompt is not sho
 
 Consumes: `install`, `InstallReport` (27); `Remote`, `stable_of` (25); `ToolStore`, `format_build` (23); `Ui` (16); `VersionSpec` (22); the errors (02).
 
-Used later by: package 33's tests through a stand-in `get_build`, and package 39, which wraps `ensure_tools` as the `get_build` of a run and the store's `pinned()` as that of `--show-command` ([20 G1](../design/20-groundwork.md#g1-tlc-invocation)); packages 41 to 43 the same for `sany`, `pcal`, `repl`; package 29, which calls `choose_first_build` and `read_auto_install` for `tool install` with no version.
+Used later by: package 33's tests through a stand-in `get_build`, and package 39, which wraps `ensure_tools` as the `get_build` of a run and `ensure_tools(..., may_install=False)` as that of `--show-command` ([20 G1](../design/20-groundwork.md#g1-tlc-invocation), [12 V9](../design/12-tools-and-downloads.md#v9-first-run-prompt); finding B23); packages 41 to 43 the same for `sany`, `pcal`, `repl`; package 29, which calls `choose_first_build` and `read_auto_install` for `tool install` with no version.
 
 ## Tests that must pass
 
@@ -115,7 +115,7 @@ The tests that wait for other packages:
 - `tool_install.feature` is package 29's: no version with `TLAUP_AUTO_INSTALL=stable` installs stable without asking; no version, no terminal and no variable exits 2. Also 29's: the plain pytest of `tool install` with no version, the question answered on in-memory streams with one build installed ([12 V12](../design/12-tools-and-downloads.md#v12-install), Tests).
 - "stdin a terminal and stderr not" is covered by V3's uninstall scenario on a pty with stderr redirected, package 29.
 
-Old tests: none. Stateful tests: none apply.
+Old tests: none (03b deleted the old suite). No row of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) names this package as its owner. Stateful tests: none apply.
 
 ## Changelog
 
@@ -137,7 +137,7 @@ Points a worker could miss:
 - **No prompt when builds are installed and none is pinned.** That user needs `tool pin`, not stable-or-rolling (V9, Rejected).
 - **A pin naming a missing build is not "nothing installed".** `ensure_tools` reports it; only `install` repairs it (V12, D50).
 - **Domain code prints only through the `ui` it was given**: the question and the one notice. Nothing else.
-- **No stable release available** (every release a prerelease, which V8 tests): the prompt cannot name one. Not designed; let the error `Remote.resolve` gives for `stable` ("no stable release is available", `VersionNotFound`) come out before the question, and say so in the pull request.
+- **No stable release available** (every release a prerelease, which V8 tests): the prompt cannot name one. The error `Remote.resolve` gives for `stable` ("no stable release is available", `VersionNotFound`) comes out before the question (settled with the index's readings, 2026-11-24); a unit test with a list of prereleases only shows it, and that no question was written.
 - **Two list requests on a first run that picks stable**: one for the prompt's dates, one when `install` resolves `stable` fresh. V9 counts one request for the prompt; nothing counts the install's. Leave it.
 - **A first run downloads 4.5 MB in the middle of a command** (V9, Risks); the notice names what and where, and the caller's progress bar shows the download.
 
@@ -146,7 +146,7 @@ State of `main` when this starts: packages 22 to 27 and 16 merged; `tlaup tlc` i
 ## Done when
 
 - The tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
-- The pull request says whether `remote.py` needed the raising list fetch, and what happens with no stable release.
+- The pull request says whether `remote.py` needed the raising list fetch.
 
 ## Out of scope
 

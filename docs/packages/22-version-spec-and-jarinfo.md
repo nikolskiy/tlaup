@@ -32,14 +32,14 @@ Creates:
 - `src/tlaup/versioning/jarinfo.py`
 - `tests/unit/versioning/test_spec.py`
 - `tests/unit/versioning/test_jarinfo.py`
-- `tests/unit/versioning/__init__.py`, if the test folders on `main` are packages, as today's are. The new folder `tests/unit/versioning/` sits beside the old `tests/unit/version_manager/`, and later packages add `test_remote.py` and `test_download.py`, names the old folder also has; without matching package files pytest refuses two test modules of one base name.
+- `tests/unit/versioning/__init__.py`, if the test folders under `tests/unit/` are packages as [03](03-test-foundation.md) leaves them; later packages add `test_remote.py`, `test_download.py` and others to this folder, and two test modules of one base name in two folders need package files.
 - A helper that packs a manifest into a small jar for tests (a zip with `META-INF/MANIFEST.MF`, `tlc2/TLC.class` and optionally `tlc2/REPL.class`), in `tests/unit/versioning/conftest.py`. Packages 23, 26 and 27 use it too. If package [05](05-github-recordings.md) is already merged and its `github` fixture has such a builder in a shared place, use that one and add nothing (T12 rule 9).
 
 The manifests are moved by [05](05-github-recordings.md), on which this package depends; this package moves nothing.
 
 Changes: nothing in `src/` outside the two new files. In particular not `src/tlaup/versioning/__init__.py`: the new modules are imported by their full names and are not re-exported.
 
-Must not touch: the old modules `versioning/api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `cache/github.py`, `cmd/tools/`, and their tests under `tests/unit/version_manager/` and `tests/unit/tools/`. They stay until package 29 switches the `tool` commands and deletes them. No new module name collides with an old one (`spec.py` and `jarinfo.py` are new names; the old `schema.py` holds the old dataclasses and is a different thing from `spec.py`).
+Must not touch: the old modules `versioning/api.py`, `downloader.py`, `metadata.py`, `paths.py`, `resolver.py`, `schema.py`, `cache/github.py`, `cmd/tools/`. They stay until package 29 switches the `tool` commands and deletes them (their old tests went in 03b). No new module name collides with an old one (`spec.py` and `jarinfo.py` are new names; the old `schema.py` holds the old dataclasses and is a different thing from `spec.py`).
 
 Deletes: nothing.
 
@@ -57,6 +57,9 @@ class VersionSpec:
     sha256: str | None    # lower-case hex prefix, from "@sha256:..."
 
 def parse_version_spec(text: str) -> VersionSpec      # raises UsageError
+def latest_refused(stable_tag: str | None = None) -> UsageError
+    # written by stage 4: X3's refusal of `latest`; with a tag, "Use `stable` (<tag>) or `rolling` (the newest build).",
+    # without one the brackets after `stable` are left out. The parser raises latest_refused(); 29 passes the tag.
 ```
 
 The grammar, copied so that the worker and the reviewer read the same text:
@@ -103,6 +106,7 @@ Plain pytest; these are pure functions on real files in a temporary folder ([01 
 - Tags the grammar lets through: with a hyphen, an underscore, a slash and a plus.
 - Refused with `UsageError`: `latest`; `https://example.org/tla2tools.jar` and `http://...`; `@abc`; `v1.7.4@`; `rolling@xyz`; a 6-digit commit prefix; an empty string; a tag starting with `-`; a tag containing `@` twice; white space inside; `@sha256:` with seven digits, with a non-hexadecimal digit, and with nothing after the colon.
 - The refusal of `latest` and of an address are told apart from the others by what the error offers: the first names `stable` and `rolling`, the second carries the hint that installing from an address is not supported. Assert the type and that fact, not the sentence (T12 rule 4).
+- `latest_refused("v1.7.4")` names `v1.7.4` after `stable`; `latest_refused()` names no tag and has no empty brackets.
 
 `tests/unit/versioning/test_jarinfo.py`, the unit tests V5 lists for `read_jar`, on the recorded manifests packed into small jars:
 
@@ -113,7 +117,7 @@ Plain pytest; these are pure functions on real files in a temporary folder ([01 
 - A zip without a manifest, a zip without `tlc2/TLC.class`, a text file, and a zip cut to half its length each raise `DownloadVerificationError`.
 - `sha256` and `size` are those of the file.
 
-Old tests: none is deleted or rewritten. Stateful tests: none applies yet; `tests/stateful/test_tool_store.py` needs the store and `install.py` as well, and its `pending` markers are removed by package 27.
+Old tests: none is left (03b, decision D62); no row of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) names this package as its owner. Stateful tests: none applies yet; `tests/stateful/test_tool_store.py` needs the store and `install.py` as well, and its `pending` markers are removed by package 27.
 
 ## Changelog
 
@@ -135,7 +139,7 @@ The parser, points that are easy to miss:
 - A bare CalVer is always a build time, never a tag: `name` is `None` and `calver` is set. The same shape before `@` is a tag.
 - After `@`, the three forms cannot be confused: hexadecimal digits never contain a dot, a CalVer always does, and the third starts with `sha256:`.
 - `stable` and `rolling` are names like any other for the parser (`stable@bc1b506` parses). `latest` is refused as a whole spec and as a name before `@`.
-- The message for `latest` in X3 has names in brackets "filled in when known" (`stable (v1.7.4)`). The parser cannot know them and does not try; it raises the message without them. Filling them in is the command's business and is not designed here.
+- The message for `latest` in X3 names the stable tag in brackets (`stable (v1.7.4)`). The parser cannot know it and does not try; it raises `latest_refused()`, without it. X3 now says where the command takes the tag from (the stable release of the cached release list, else the highest installed build that is not a prerelease, else none; never a request, finding B16); that is [29](29-tool-commands.md)'s, which calls `latest_refused(tag)`.
 - An address is recognised by its colon or by `://`; anything else outside the grammar is the plain usage error. Both are `UsageError` (exit code 2), never "not found" (4).
 - The message follows [20 G2](../design/20-groundwork.md#g2-domain-errors): one line, no trailing full stop, no "Error:" prefix; `hint` is one line.
 
@@ -161,8 +165,7 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03 on top (
 
 - The tests above pass; `uv run poe lint` (mypy strict covers the two new modules) and `uv run poe test` pass; CI is green.
 - No file listed under "Must not touch" is in the diff.
-- If the manifests were moved here, the research README has its line and the secrets scan passes.
-- The pull request says how a malformed `X-Git-Revision` is treated and whether the manifest move was done here.
+- The pull request says how a malformed `X-Git-Revision` is treated.
 
 ## Out of scope
 
