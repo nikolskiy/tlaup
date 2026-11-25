@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 PENDING: tuple[str, ...] = ("*",)  # fnmatch patterns over Fact.id; a fact whose id matches one is marked pending
 
 # 08a writes the facts of the cases from research 1, 2, 13 and 28; 08b adds research 22's and removes this.
-COVERED_SOURCES = frozenset({1, 2})
+COVERED_SOURCES = frozenset({1, 2, 13, 28})
 _SOURCE = re.compile(r"^research (\d+),")
 
 

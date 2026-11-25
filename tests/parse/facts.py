@@ -955,4 +955,221 @@ basics(
 # Headers rolling:62, 67, 72.
 states("dump-trace-live", 0, "x", _counting("Next", ("Live", 5, 9, 5, 22), [0, 1, 2]), ROLLING)
 
+# =================================================================================================================
+# Research 13: override loading (tlc/<build>/override-<case>.out). The spec prints <<"Inv sees", a, b>>: 3 and 30
+# when the override was used, 1003 and 1030 when TLC evaluated the TLA+ definition instead.
+# =================================================================================================================
+
+_USED = ['<<"Inv sees", 3, 30>>']  # v1.7.4:34, rolling:36
+_NOT_USED = ['<<"Inv sees", 1003, 1030>>']  # v1.7.4:34, rolling:36
+
+basics(
+    "override-ok_warn_true",
+    status="SUCCESS",  # 2186: v1.7.4:56, rolling:58
+    verdict="NO_ERROR",
+    progress=True,  # 2200: v1.7.4:44, rolling:46
+    overrides=["tlc2.overrides.TLCOverrides.Add2"],  # 2168 "from tlc2.overrides.TLCOverrides": v1.7.4:29, rolling:31
+    output=_USED,
+    errors=[],
+    related=[],
+    traces=[],
+    stats=(2, 1, 0, 1),  # 2199 v1.7.4:48 rolling:50; 2194 v1.7.4:51 rolling:53
+)
+
+basics(
+    "override-legacy_ok",
+    status="SUCCESS",  # 2186: v1.7.4:56, rolling:58
+    verdict="NO_ERROR",
+    progress=True,  # 2200: v1.7.4:44, rolling:46
+    overrides=[".Add2"],  # 2168 from a class file named by its path: v1.7.4:29, rolling:31
+    output=_USED,
+    errors=[],
+    related=[],
+    traces=[],
+    stats=(2, 1, 0, 1),  # 2199 v1.7.4:48 rolling:50; 2194 v1.7.4:51 rolling:53
+)
+
+basics(
+    "override-annot_op_missing",
+    status="SUCCESS",  # 2186: v1.7.4:56, rolling:58
+    verdict="NO_ERROR",
+    progress=True,  # 2200: v1.7.4:44, rolling:46
+    warnings=[2403],  # "Failed to match NoSuchOp ... (no such operator).": v1.7.4:28, rolling:30
+    output=_NOT_USED,
+    errors=[],
+    related=[],
+    traces=[],
+    stats=(2, 1, 0, 1),  # 2199 v1.7.4:48 rolling:50; 2194 v1.7.4:51 rolling:53
+)
+
+basics(
+    "override-annot_module_missing",
+    status="SUCCESS",  # 2186: v1.7.4:56, rolling:58
+    verdict="NO_ERROR",
+    progress=True,  # 2200: v1.7.4:44, rolling:46
+    warnings=[2402],  # "Failed to match Add2 ... (no such module).": v1.7.4:28, rolling:30
+    output=_NOT_USED,
+    errors=[],
+    related=[],
+    traces=[],
+    stats=(2, 1, 0, 1),  # 2199 v1.7.4:48 rolling:50; 2194 v1.7.4:51 rolling:53
+)
+
+basics(
+    "override-arity_java_fewer",
+    status="SUCCESS",  # 2186: v1.7.4:56, rolling:58
+    verdict="NO_ERROR",
+    progress=True,  # 2200: v1.7.4:44, rolling:46
+    warnings=[2400],  # "Failed to match Add2 operator override ...": v1.7.4:28, rolling:30
+    output=_NOT_USED,
+    errors=[],
+    related=[],
+    traces=[],
+    stats=(2, 1, 0, 1),  # 2199 v1.7.4:48 rolling:50; 2194 v1.7.4:51 rolling:53
+)
+
+basics(
+    "override-static_init_throws",
+    status="FAILURE",  # 1000: v1.7.4:28, rolling:30
+    verdict="NOT_CHECKED",  # before the initial states: no 2189
+    progress=False,
+    errors=[(1000, "exception", None)],  # ExceptionInInitializerError, a Java stack: v1.7.4:32-56, rolling:34-59
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("override-static_init_throws", "errors", "no-nested-message")
+def _static_init_shape(r: RunResult) -> None:
+    # v1.7.4:28-57, rolling:30-60: lines only.
+    message = _error(r, 0).message
+    _same("nested messages", list(message.nested), [])
+    _same("the exception line", message.lines[3], "The exception was a java.lang.ExceptionInInitializerError")
+
+
+basics(
+    "override-ctor_throws",
+    status="FAILURE",  # 1000: v1.7.4:28, rolling:30
+    verdict="NOT_CHECKED",  # no 2189
+    progress=False,
+    errors=[(1000, "exception", None)],
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("override-ctor_throws", "errors", "message-shape")
+def _ctor_throws_shape(r: RunResult) -> None:
+    # v1.7.4:28-34, rolling:30-36: five lines, the last ": boom in constructor"; no nested message.
+    message = _error(r, 0).message
+    _same("body", _body_shape(message), ["line"] * 5)
+    _same("last line", message.lines[-1], ": boom in constructor")
+
+
+basics(
+    "override-ctor_private",
+    status="FAILURE",  # 1000:1: v1.7.4:28, rolling:30
+    verdict="NOT_CHECKED",  # no 2189
+    progress=False,
+    errors=[(1000, "exception", None)],  # one error, not two (P4): the inner 1000 is nested
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("override-ctor_private", "errors", "message-shape")
+def _ctor_private_shape(r: RunResult) -> None:
+    # P4: 1000 nested in 1000. v1.7.4:28-36 (inner 33-35), rolling:30-38 (inner 35-37).
+    message = _error(r, 0).message
+    _same("message (code, severity)", (message.code, message.severity), (1000, 1))
+    _same("body", _body_shape(message), ["line", "line", "line", "line", 1000])
+    nested = message.nested[0]
+    _same("nested 1000 (severity, before, lines)", (nested.severity, nested.before, nested.lines), (0, ": ", ("",)))
+    _same("truncated", (message.truncated, nested.truncated), (False, False))
+
+
+basics(
+    "override-eval_throws_runtime",
+    status="FAILURE",  # 1000: v1.7.4:34, rolling:36
+    verdict="ERRORS",  # after 2189 (v1.7.4:31, rolling:33): the initial states were being computed
+    progress=True,  # 2200: v1.7.4:50, rolling:52
+    overrides=["tlc2.overrides.TLCOverrides.Add2"],  # 2168: v1.7.4:29, rolling:31
+    errors=[(1000, "exception", None)],  # its one nested 2154 has kind exception, so the kind stays (P5)
+    related=[[2103]],  # v1.7.4:42, rolling:44
+    traces=[None],
+)
+
+
+@fact("override-eval_throws_runtime", "errors", "message-shape")
+def _eval_throws_shape(r: RunResult) -> None:
+    # v1.7.4:34-41, rolling:36-43: the 1000's body is the nested 2154 alone, with nothing before it.
+    message = _error(r, 0).message
+    _same("body", _body_shape(message), [2154])
+    nested = message.nested[0]
+    _same("nested 2154 (severity, before, after)", (nested.severity, nested.before, nested.after), (0, "", ""))
+    _same("nested 2154 last line", nested.lines[-1], "boom in override body")
+
+
+basics(
+    "override-method_not_public",
+    status="FAILURE",  # 2154:1: v1.7.4:28, rolling:30
+    verdict="NOT_CHECKED",  # no 2189
+    progress=False,
+    finished=True,  # P4: the finish time from the 2186 after the nested messages, v1.7.4:39, rolling:41
+    errors=[(2154, "exception", None)],
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("override-method_not_public", "errors", "message-shape")
+def _method_not_public_shape(r: RunResult) -> None:
+    # P4: v1.7.4:28-38, rolling:30-40. One line, the nested 2154 ended by "ENDMSG 2154" with "," after it
+    # (v1.7.4:35, rolling:37), then two more lines.
+    message = _error(r, 0).message
+    _same("message (code, severity, truncated)", (message.code, message.severity, message.truncated), (2154, 1, False))
+    _same("body", _body_shape(message), ["line", 2154, "line", "line"])
+    nested = message.nested[0]
+    _same(
+        "nested 2154 (severity, before, after, truncated)",
+        (nested.severity, nested.before, nested.after, nested.truncated),
+        (0, "", ",", False),
+    )
+    _same("nested 2154 lines", len(nested.lines), 4)
+    _same("last two lines", list(message.lines[-2:]), ["but it produced the following error:", "%2%"])
+
+
+# =================================================================================================================
+# Research 28: override classes too new for Java 11 (tlc/<build>/override-class-too-new-*.out).
+# =================================================================================================================
+
+basics(
+    "override-class-too-new-index",
+    status="FAILURE",  # 2173: v1.7.4:28, rolling:30
+    verdict="NOT_CHECKED",  # no 2189
+    progress=False,
+    errors=[(2173, "exception", None)],  # "Found a Java class ... but unable to read it": v1.7.4:29, rolling:31
+    related=[[]],
+    traces=[None],
+)
+
+basics(
+    "override-class-too-new-listed",
+    status="FAILURE",  # 1000: v1.7.4:28, rolling:30
+    verdict="NOT_CHECKED",  # no 2189
+    progress=False,
+    errors=[(1000, "exception", None)],  # UnsupportedClassVersionError: v1.7.4:32, rolling:34
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("override-class-too-new-listed", "errors", "message-shape")
+def _class_too_new_listed_shape(r: RunResult) -> None:
+    # v1.7.4:28-34, rolling:30-36: five lines, no nested message.
+    message = _error(r, 0).message
+    _same("body", _body_shape(message), ["line"] * 5)
+    _same("the exception line", message.lines[3], "The exception was a java.lang.UnsupportedClassVersionError")
+
+
 FACTS: tuple[Fact, ...] = tuple(_FACTS)
