@@ -1,6 +1,6 @@
 # 05. GitHub recordings and the `github` fixture
 
-Size: M. Suggested model: mid-tier. Status: ready. The worker needs the network once, for about six unauthenticated GitHub requests (see Context); without it, the maintainer runs one command.
+Size: M. Suggested model: mid-tier. Status: built. The worker needs the network once, for about six unauthenticated GitHub requests (see Context); without it, the maintainer runs one command.
 
 ## Goal
 

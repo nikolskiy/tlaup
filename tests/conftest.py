@@ -7,14 +7,17 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import pytest
+import responses
 from hypothesis import HealthCheck, settings
 
 import tlaup.context
 from tests import expected
 from tests.fakes.control import Fakes, fake_bin_dir
+from tests.github import GitHubFake
 from tlaup.paths import AppPaths
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
     from pathlib import Path
 
 # Fixed and reproducible in CI; no example database (T7).
@@ -88,6 +91,18 @@ def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Isolated:
 def fakes(isolated: Isolated, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Fakes:
     """The four fake launchers on PATH, unscripted (T4)."""
     return Fakes(isolated.bin, tmp_path, monkeypatch)
+
+
+@pytest.fixture
+def github(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[Callable[..., GitHubFake]]:
+    """``github(recording="releases")``: a recording served as GitHub's answers, at the default host (T4)."""
+    monkeypatch.delenv("TLAUP_TOOL_REPOSITORY", raising=False)
+    with responses.RequestsMock(assert_all_requests_are_fired=False) as mock:
+
+        def start(recording: str = "releases") -> GitHubFake:
+            return GitHubFake(mock, tmp_path, recording)
+
+        yield start
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

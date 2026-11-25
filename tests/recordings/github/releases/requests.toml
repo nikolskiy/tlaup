@@ -1,0 +1,19 @@
+[[answer]]
+method = "GET"
+url = "https://api.github.com/repos/tlaplus/tlaplus/releases"
+file = "list"
+
+[[answer]]
+method = "GET"
+url = "https://api.github.com/repos/tlaplus/tlaplus/releases/tags/rolling"
+file = "tag-rolling"
+
+[[answer]]
+method = "GET"
+url = "https://api.github.com/repos/tlaplus/tlaplus/releases/tags/v1.8.0"
+file = "tag-v1.8.0"
+
+[[answer]]
+method = "GET"
+url = "https://api.github.com/repos/tlaplus/tlaplus/releases/tags/v1.7.4"
+file = "tag-v1.7.4"

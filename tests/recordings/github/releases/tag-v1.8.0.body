@@ -1,0 +1,101 @@
+{
+ "id": 25926686,
+ "tag_name": "v1.8.0",
+ "name": "The Clarke release",
+ "draft": false,
+ "prerelease": true,
+ "created_at": "2026-11-15T00:05:18Z",
+ "published_at": "2026-11-19T18:06:51Z",
+ "url": "https://api.github.com/repos/tlaplus/tlaplus/releases/25926686",
+ "html_url": "https://github.com/tlaplus/tlaplus/releases/tag/v1.8.0",
+ "assets": [
+  {
+   "id": 768715924,
+   "name": "p2repository.zip",
+   "size": 693441688,
+   "digest": "sha256:0cb3d0779ae0e4d099cc87f1e426f183a8ba44add0835d5278422cfc626ee275",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:05:55Z",
+   "updated_at": "2026-11-19T18:06:22Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/p2repository.zip"
+  },
+  {
+   "id": 768714348,
+   "name": "tla2tools.jar",
+   "size": 4510915,
+   "digest": "sha256:fdffef247f563ef6edbfd44958d2a82db79e7564e07cb673262d896353fa6713",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:05:23Z",
+   "updated_at": "2026-11-19T18:05:24Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
+  },
+  {
+   "id": 768717429,
+   "name": "TLAToolbox-1.8.0-linux.gtk.aarch64.zip",
+   "size": 248660528,
+   "digest": "sha256:7bdce9021b0498fd2372ebb174f6570bfc528901ef83d54239418e689da7be29",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:06:23Z",
+   "updated_at": "2026-11-19T18:06:31Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/TLAToolbox-1.8.0-linux.gtk.aarch64.zip"
+  },
+  {
+   "id": 768714844,
+   "name": "TLAToolbox-1.8.0-linux.gtk.x86_64.zip",
+   "size": 248997807,
+   "digest": "sha256:72b8dba280ac88ff1bd07a0a22d6505c450029c49448d38f371a6b0b6989e065",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:05:35Z",
+   "updated_at": "2026-11-19T18:05:44Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/TLAToolbox-1.8.0-linux.gtk.x86_64.zip"
+  },
+  {
+   "id": 768718409,
+   "name": "TLAToolbox-1.8.0-macosx.cocoa.aarch64.zip",
+   "size": 246151995,
+   "digest": "sha256:b0469e27b6950705357746e2d89b865f02d2196ad41ddbc5964f63b924ecdab6",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:06:42Z",
+   "updated_at": "2026-11-19T18:06:49Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/TLAToolbox-1.8.0-macosx.cocoa.aarch64.zip"
+  },
+  {
+   "id": 768717944,
+   "name": "TLAToolbox-1.8.0-macosx.cocoa.x86_64.zip",
+   "size": 247188721,
+   "digest": "sha256:17fb7cc9d31eb61e489483b8395bb8ffa7b40dee9fc16539c972d66a6011d384",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:06:32Z",
+   "updated_at": "2026-11-19T18:06:41Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/TLAToolbox-1.8.0-macosx.cocoa.x86_64.zip"
+  },
+  {
+   "id": 768714411,
+   "name": "TLAToolbox-1.8.0-win32.win32.x86_64.zip",
+   "size": 247038925,
+   "digest": "sha256:9d120bacc680da23eb8c54b95dd8e2ac66de6d37288d5f773e642b8fd5050087",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:05:25Z",
+   "updated_at": "2026-11-19T18:05:34Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/TLAToolbox-1.8.0-win32.win32.x86_64.zip"
+  },
+  {
+   "id": 768715394,
+   "name": "TLAToolbox-1.8.0.deb",
+   "size": 238068160,
+   "digest": "sha256:96f1d6d6d5a48cc4021c6d1b79515910082a22a4c3b1e6932f0757e91f9f7bdc",
+   "content_type": "application/zip",
+   "state": "uploaded",
+   "created_at": "2026-11-19T18:05:45Z",
+   "updated_at": "2026-11-19T18:05:53Z",
+   "browser_download_url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/TLAToolbox-1.8.0.deb"
+  }
+ ]
+}
