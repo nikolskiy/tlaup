@@ -10,6 +10,7 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from datetime import UTC
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tlaup.errors import FileOperationError, InvalidName, ModuleBuildError, PathNotFound, ToolStartError
@@ -19,7 +20,6 @@ from tlaup.modules.registry import RegisteredModule, validate_module_name, write
 if TYPE_CHECKING:
     from collections.abc import Callable
     from datetime import datetime
-    from pathlib import Path
 
     from tlaup.java.locate import JavaRuntime
     from tlaup.modules.registry import Registry
@@ -122,6 +122,8 @@ def _overrides(source: Path, classes: Path) -> tuple[tuple[str, ...], tuple[str,
             found = find_override_classes(classes)
         except ValueError as error:
             raise ModuleBuildError(f"cannot read a compiled class: {error}") from error  # noqa: TRY003
+        except OSError as error:
+            raise _cannot("read", Path(error.filename) if error.filename else classes, error) from error
         if not found:
             return (), (NO_OVERRIDES,)
         service.parent.mkdir(parents=True, exist_ok=True)

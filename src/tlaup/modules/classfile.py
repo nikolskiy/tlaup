@@ -66,20 +66,26 @@ class _Reader:
             self.take(self.u4())
 
 
+def _modified_utf8(data: bytes) -> str:
+    """Decode a class file's modified UTF-8: ``C0 80`` is NUL, and a character beyond the BMP is a surrogate pair."""
+    text = data.replace(b"\xc0\x80", b"\x00").decode("utf-8", errors="surrogatepass")
+    return text.encode("utf-16-le", errors="surrogatepass").decode("utf-16-le")
+
+
 def _read(data: bytes) -> ClassInfo:
     reader = _Reader(data)
     if reader.u4() != _MAGIC:
         message = "no class file magic number"
         raise ValueError(message)
     reader.take(4)  # minor and major version
-    utf8: dict[int, str] = {}
+    utf8: dict[int, bytes] = {}
     classes: dict[int, int] = {}
     count = reader.u2()
     index = 1
     while index < count:
         tag = reader.take(1)[0]
         if tag == _UTF8:
-            utf8[index] = reader.take(reader.u2()).decode("utf-8")
+            utf8[index] = reader.take(reader.u2())  # decoded only when a name is read
         elif tag == _CLASS:
             classes[index] = reader.u2()
         elif tag in _SIZES:
@@ -90,7 +96,7 @@ def _read(data: bytes) -> ClassInfo:
         index += 2 if tag in (_LONG, _DOUBLE) else 1
 
     def class_name(entry: int) -> str:
-        return utf8[classes[entry]].replace("/", ".")
+        return _modified_utf8(utf8[classes[entry]]).replace("/", ".")
 
     flags = reader.u2()
     name = class_name(reader.u2())

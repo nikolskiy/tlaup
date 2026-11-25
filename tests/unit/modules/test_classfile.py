@@ -37,6 +37,7 @@ def info(name: str) -> ClassInfo:
         ),
         ("Constants", ClassInfo("tlc2.overrides.Constants", "java.lang.Object", (), False, False)),
         ("ITLCOverrides", ClassInfo(ITLC, "java.lang.Object", (), True, True)),
+        ("Strings", ClassInfo("tlc2.overrides.Strings", "java.lang.Object", (ITLC,), False, False)),
         ("Outer$Inner", ClassInfo("tlc2.overrides.Outer$Inner", "java.lang.Object", (ITLC,), False, False)),
     ],
 )
@@ -48,6 +49,22 @@ def test_the_constants_class_holds_the_two_slot_entries() -> None:
     data = (OVERRIDES / "Constants.class").read_bytes()
     assert b"\x05\x00\x00\x01\x1f\x71\xfb\x04\xcb" in data  # tag 5, the long 1234567890123
     assert b"\x06\x40\x09\x21\xf9\xf0\x1b\x86\x6e" in data  # tag 6, the double 3.14159
+
+
+def test_the_strings_class_holds_modified_utf8() -> None:
+    data = (OVERRIDES / "Strings.class").read_bytes()
+    assert b"\xed\xa0\xbd\xed\xb8\x80" in data  # U+1F600 as a surrogate pair
+    assert b"a\xc0\x80b" in data  # NUL as C0 80
+
+
+@pytest.mark.parametrize(("old", "new"), [(b"Strings", b"Str\xc0\x80gs"), (b"Strings", b"S\xed\xa0\xbd\xed\xb8\x80gs")])
+def test_a_class_name_in_modified_utf8(old: bytes, new: bytes) -> None:
+    data = (OVERRIDES / "Strings.class").read_bytes()
+    entry = b"\x01" + len(b"tlc2/overrides/" + old).to_bytes(2, "big") + b"tlc2/overrides/" + old
+    assert data.count(entry) == 1
+    changed = data.replace(entry, b"\x01" + len(b"tlc2/overrides/" + new).to_bytes(2, "big") + b"tlc2/overrides/" + new)
+    name = read_class(changed).name
+    assert name in ("tlc2.overrides.Str\x00gs", "tlc2.overrides.S\U0001f600gs")
 
 
 @pytest.mark.parametrize("name", ["DirectOverrides", "Constants", "Outer$Inner"])
@@ -94,6 +111,7 @@ def test_find_override_classes(tmp_path: Path) -> None:
         "tlc2.overrides.DirectOverrides",
         "tlc2.overrides.InheritedOverrides",
         "tlc2.overrides.Outer$Inner",
+        "tlc2.overrides.Strings",
     ]
 
 

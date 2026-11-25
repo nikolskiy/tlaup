@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.clock import FakeClock
-from tlaup.errors import InvalidName, ModuleNotFound, StoreLocked
+from tlaup.errors import FileOperationError, InvalidName, ModuleNotFound, StoreLocked
 from tlaup.modules.registry import RegisteredModule, Registry, read_record, validate_module_name, write_record
 
 if TYPE_CHECKING:
@@ -98,6 +98,51 @@ def test_list_returns_only_registered_modules(registry: Registry) -> None:
     )
     (registry.root / "Loose.json").write_text("{}")
     assert registry.list() == [queue]
+
+
+def test_list_skips_an_invalid_name_with_a_valid_record(registry: Registry) -> None:
+    queue = register(registry, "Queue")
+    for name in ("my module", ".hidden", "-dash"):
+        folder = registry.root / name
+        folder.mkdir()
+        record = json.loads((queue.path / "module.json").read_text())
+        (folder / "module.json").write_text(json.dumps({**record, "name": name}))
+    assert registry.list() == [queue]
+
+
+def test_list_skips_a_link_out_of_the_root(registry: Registry, tmp_path: Path) -> None:
+    queue = register(registry, "Queue")
+    outside = tmp_path / "outside" / "Linked"
+    outside.mkdir(parents=True)
+    write_record(outside, RegisteredModule("Linked", outside, "2026-11-15T00:00:00Z", "/src", None, None, None, ()))
+    try:
+        (registry.root / "Linked").symlink_to(outside, target_is_directory=True)
+    except OSError as error:
+        pytest.skip(f"symbolic links cannot be made here: {error}")
+    assert registry.list() == [queue]
+
+
+def test_put_moves_the_old_module_back_when_the_second_move_fails(registry: Registry) -> None:
+    queue = register(registry, "Queue")
+    before = (queue.path / "module.json").read_bytes()
+    missing = registry.tmp / "20261115T000000Z-00"
+    registry.tmp.mkdir()
+    with pytest.raises(FileOperationError, match="move into place"):
+        registry.put(missing, "Queue")
+    assert (queue.path / "module.json").read_bytes() == before
+    assert registry.list() == [queue]
+    assert list(registry.tmp.iterdir()) == []
+
+
+def test_put_moves_an_unregistered_folder_aside(registry: Registry) -> None:
+    (registry.root / "Queue").mkdir(parents=True)
+    (registry.root / "Queue" / "stray.txt").write_text("")
+    folder = registry.tmp / "20261115T000000Z-01"
+    folder.mkdir(parents=True)
+    write_record(folder, RegisteredModule("Queue", folder, "2026-11-15T00:00:00Z", "/src", None, None, None, ()))
+    assert registry.put(folder, "Queue") is False
+    assert [module.name for module in registry.list()] == ["Queue"]
+    assert not (registry.root / "Queue" / "stray.txt").exists()
 
 
 def test_list_is_in_name_order_row_m18(registry: Registry) -> None:

@@ -20,6 +20,7 @@ The second line (package 30, also `javac 25.0.5`) compiles against the stub `ITL
 | `tlc2/overrides/AbstractOverrides.class` | `java-src/tlc2/overrides/AbstractOverrides.java` | Abstract, implements the interface. |
 | `tlc2/overrides/InheritedOverrides.class` | `java-src/tlc2/overrides/InheritedOverrides.java` | Implements it through its superclass `AbstractOverrides`. |
 | `tlc2/overrides/Constants.class` | `java-src/tlc2/overrides/Constants.java` | A `long` and a `double` constant, the two-slot entries of the constant pool. |
+| `tlc2/overrides/Strings.class` | `java-src/tlc2/overrides/Strings.java` | Implements the interface; its strings need modified UTF-8 (a surrogate pair for `😀`, `C0 80` for NUL). |
 | `tlc2/overrides/Outer.class`, `Outer$Inner.class` | `java-src/tlc2/overrides/Outer.java` | A nested class that implements the interface. |
 
 Recorded compiler errors for `fail_with` are in `tests/fakes/javac-errors/`: `syntax-error.txt` is what `javac 25.0.5` printed for a missing `;`.

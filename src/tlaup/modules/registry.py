@@ -163,12 +163,13 @@ class Registry:
         """The registered modules, sorted by name in Python's string order (M2; row M18)."""
         try:
             entries = sorted(self.root.iterdir(), key=lambda entry: entry.name)
+            root = self.root.resolve()
         except OSError:
             return []
         found: builtins.list[RegisteredModule] = []
         for entry in entries:
-            if _NAME.fullmatch(entry.name) is None or not entry.is_dir():
-                continue
+            if _NAME.fullmatch(entry.name) is None or not entry.is_dir() or entry.resolve().parent != root:
+                continue  # an invalid name, a file, or a link out of the root (the second check of path_of)
             module = read_record(entry)
             if module is not None:
                 found.append(module)
@@ -234,9 +235,9 @@ class Registry:
         """
         target = self.path_of(name)
         with self.locked():
-            replaced = target.exists()
+            replaced = read_record(target) is not None  # a registered module, as remove reads it
             aside: Path | None = None
-            if replaced:
+            if target.exists() or target.is_symlink():  # anything in the way is moved aside, registered or not
                 aside = self.tmp_path(self._now())
                 try:
                     target.rename(aside)
