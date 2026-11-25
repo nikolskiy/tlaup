@@ -11,6 +11,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -22,6 +23,7 @@ from typing import Any, Literal
 from tlaup.errors import Failed, JavacNotFound, JavaNotFound, JavaTooOld, ToolStartError
 
 TIMEOUT_SECONDS = 10.0
+KILL_GRACE_SECONDS = 2.0
 SCHEMA = 1
 WINDOWS = os.name == "nt"
 MACOS_PLATFORM = "darwin"
@@ -78,7 +80,7 @@ def locate(name: Literal["java", "javac"], env: Mapping[str, str]) -> Located:
     warning: str | None = None
     java_home = env.get("JAVA_HOME")
     if java_home:
-        candidate = Path(java_home) / "bin" / (name + ".exe" if WINDOWS else name)
+        candidate = Path(java_home).absolute() / "bin" / (name + ".exe" if WINDOWS else name)
         if _is_executable_file(candidate):
             return Located(JavaTool(candidate, "JAVA_HOME"), None)
         warning = f"JAVA_HOME is set to {java_home} but it holds no executable bin/{name}; using PATH"
@@ -89,6 +91,16 @@ def locate(name: Literal["java", "javac"], env: Mapping[str, str]) -> Located:
     return Located(JavaTool(Path(found).absolute(), "PATH"), warning)
 
 
+def _kill(process: subprocess.Popen[bytes]) -> None:
+    if WINDOWS:
+        process.kill()
+        return
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except OSError:  # already gone
+        process.kill()
+
+
 def ask_version(tool: Path, timeout: float = TIMEOUT_SECONDS) -> VersionAnswer:
     """Runs `<tool> -version` and returns what it printed on either stream, with the exit status."""
     try:
@@ -97,6 +109,7 @@ def ask_version(tool: Path, timeout: float = TIMEOUT_SECONDS) -> VersionAnswer:
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            start_new_session=not WINDOWS,  # a group of its own, so a shim's children can be killed too
         )
     except OSError as error:
         message = f"{tool} could not be started: {error.strerror or error}"
@@ -104,8 +117,14 @@ def ask_version(tool: Path, timeout: float = TIMEOUT_SECONDS) -> VersionAnswer:
     try:
         out, err = process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired as error:
-        process.kill()
-        process.communicate()  # reaps the child
+        _kill(process)
+        try:
+            process.communicate(timeout=KILL_GRACE_SECONDS)
+        except subprocess.TimeoutExpired:  # something outside the group still holds the pipes
+            for stream in (process.stdout, process.stderr):
+                if stream is not None:
+                    stream.close()
+            process.wait()
         seconds = f"{timeout:g}"
         message = f"{tool} -version did not answer within {seconds} seconds"
         raise Failed(message, hint="check that this Java starts, or run `tlaup doctor`") from error
@@ -138,7 +157,8 @@ def _is_remembered(path: Path, platform: str, usr_bin: Path, java_home_stub: Pat
     """Only a plain binary named java or javac is remembered (J3)."""
     resolved = path.resolve()
     expected = ("java.exe", "javac.exe") if WINDOWS else ("java", "javac")
-    if resolved.name.lower() not in expected:
+    name = resolved.name.lower() if WINDOWS else resolved.name
+    if name not in expected:
         return False
     try:
         with resolved.open("rb") as handle:
@@ -182,18 +202,27 @@ def _remembered(cache_file: Path, resolved: Path) -> tuple[str, int] | None:
     return version, major
 
 
+def _forget(cache_file: Path, resolved: Path) -> None:
+    """Drops a stale entry after a refresh that found no version."""
+    entries = _read_entries(cache_file)
+    if entries.pop(str(resolved), None) is not None:
+        _write_entries(cache_file, entries)
+
+
 def _remember(cache_file: Path, resolved: Path, version: str, major: int) -> None:
     """Best effort, atomic: write beside the file, then rename. A failure only costs one more Java start."""
-    temp: str | None = None
     try:
         stat = resolved.stat()
-        entries = _read_entries(cache_file)
-        entries[str(resolved)] = {
-            "size": stat.st_size,
-            "mtime_ns": stat.st_mtime_ns,
-            "version": version,
-            "major": major,
-        }
+    except OSError:
+        return
+    entries = _read_entries(cache_file)
+    entries[str(resolved)] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns, "version": version, "major": major}
+    _write_entries(cache_file, entries)
+
+
+def _write_entries(cache_file: Path, entries: dict[str, Any]) -> None:
+    temp: str | None = None
+    try:
         cache_file.parent.mkdir(parents=True, exist_ok=True)
         handle, temp = tempfile.mkstemp(dir=cache_file.parent, prefix=cache_file.name + ".", suffix=".tmp")
         with os.fdopen(handle, "w", encoding="utf-8") as stream:
@@ -251,6 +280,8 @@ def _require(  # noqa: PLR0913
         parsed = parse_version(answer.text, name)
         if parsed is None:
             printed = answer.text.strip()
+            if remember:
+                _forget(cache_file, resolved)
             if answer.exit_code != 0:
                 raise _not_found(name, min_version, printed or None)
             shown = printed or "nothing"

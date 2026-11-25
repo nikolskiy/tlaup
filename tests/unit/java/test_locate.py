@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
+import shutil
+import signal
+import time
 from typing import TYPE_CHECKING, Literal
 
 import pytest
@@ -461,3 +465,73 @@ def test_javac_answer_not_a_version_goes_on(tmp_path: Path) -> None:
     )
     assert runtime.version is None
     assert len(runtime.warnings) == 1
+
+
+# ---- review fixes ---------------------------------------------------------------------------------
+
+
+@pytest.mark.skipif(os.name == "nt", reason="shell shim")
+def test_timeout_is_prompt_when_a_grandchild_holds_the_pipes(tmp_path: Path) -> None:
+    sleep = shutil.which("sleep", path=os.defpath) or "/bin/sleep"  # the isolated PATH holds only the fakes
+    pidfile = tmp_path / "sleep.pid"
+    shim = make_tool(tmp_path, "java", f"#!/bin/sh\n{sleep} 30 &\necho $! > {pidfile}\nwait\n".encode())
+    started = time.monotonic()
+    try:
+        with pytest.raises(Failed) as caught:
+            ask_version(shim, timeout=0.5)
+        elapsed = time.monotonic() - started
+    finally:
+        if pidfile.exists():
+            with contextlib.suppress(ProcessLookupError, ValueError):
+                os.kill(int(pidfile.read_text().strip()), signal.SIGKILL)
+    assert "seconds" in caught.value.message
+    assert elapsed < 5
+
+
+def test_a_relative_java_home_gives_an_absolute_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    jdk(tmp_path / "home")
+    monkeypatch.chdir(tmp_path)
+    result = locate("java", {"JAVA_HOME": "home"})
+    assert result.tool is not None
+    assert result.tool.path.is_absolute()
+
+
+def test_a_remembered_too_old_answer_is_checked_against_min_version(tmp_path: Path) -> None:
+    make_tool(tmp_path / "bin")
+    env, cache = env_for(tmp_path / "bin"), tmp_path / "java.json"
+    asked = Counter('java version "1.8.0_202"\n')
+    for _ in range(2):
+        with pytest.raises(JavaTooOld):
+            require_java(env, min_version=11, cache_file=cache, ask_version=asked)
+    assert len(asked.calls) == 1
+    assert require_java(env, min_version=8, cache_file=cache, ask_version=asked).major == 8
+    assert len(asked.calls) == 1
+
+
+def test_an_empty_java_home_is_unset(tmp_path: Path) -> None:
+    make_tool(tmp_path / "bin")
+    result = locate("java", {"JAVA_HOME": "", "PATH": str(tmp_path / "bin")})
+    assert result.tool is not None
+    assert result.tool.source == "PATH"
+    assert result.warning is None
+
+
+def test_javac_non_zero_without_a_version_is_javac_not_found(tmp_path: Path) -> None:
+    make_tool(tmp_path / "bin", "javac")
+    with pytest.raises(JavacNotFound):
+        require_javac(
+            env_for(tmp_path / "bin"),
+            min_version=11,
+            cache_file=tmp_path / "java.json",
+            ask_version=Counter("boom\n", exit_code=1),
+        )
+
+
+@pytest.mark.parametrize("answer", [Counter("strange\n"), Counter(NOT_FOUND_TEXT, exit_code=1)])
+def test_refresh_without_a_version_drops_the_old_entry(tmp_path: Path, answer: Counter) -> None:
+    make_tool(tmp_path / "bin")
+    env, cache = env_for(tmp_path / "bin"), tmp_path / "java.json"
+    require_java(env, min_version=11, cache_file=cache, ask_version=Counter())
+    with contextlib.suppress(JavaNotFound):
+        require_java(env, min_version=11, cache_file=cache, ask_version=answer, refresh=True)
+    assert json.loads(cache.read_text(encoding="utf-8"))["entries"] == {}
