@@ -188,3 +188,14 @@ Feature: Pinning a build, and showing what is pinned
     When I run "tlaup tool path"
     Then the exit code is 3
     And the file "{config}/config.yaml" does not exist
+
+  Scenario: tool path reads no settings, so a broken config file does not stop it (14 F1)
+    Given the build "v1.7.4" is installed and pinned
+    And the config file contains:
+      """
+      tool: [this is not a section
+      """
+    When I run "tlaup tool path"
+    Then the exit code is 0
+    And stdout is exactly "{tools}/v1.7.4/tla2tools.jar"
+    And stderr is empty

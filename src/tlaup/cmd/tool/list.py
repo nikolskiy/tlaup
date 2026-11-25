@@ -24,6 +24,7 @@ STALE = "GitHub could not be reached; the release list is the one cached earlier
 UNAVAILABLE = "GitHub could not be reached and no release list is cached; only the installed builds are listed"
 NOTHING_INSTALLED = "no builds are installed"
 PINNED = "✓"
+_UNLIMITED = 10_000  # columns: more than any table of releases needs
 
 AVAILABLE = "available"
 INSTALLED = "installed"
@@ -144,12 +145,20 @@ def _date(timestamp: str | None) -> str:
 
 
 def _print(ui: Ui, rows: Sequence[Row]) -> None:
+    """The table on stdout. Not on a terminal it is laid out at its natural width, so that no row breaks over two
+    lines at the 80 columns a pipe gets (a decision of the stage 5 lead, 29b's review)."""
     from rich.table import Table
 
     table = Table()
     for header in ("Version", "Build", "Published", "Status"):
-        table.add_column(header)
-    table.add_column("Pinned", justify="center")
+        table.add_column(header, no_wrap=True)
+    table.add_column("Pinned", justify="center", no_wrap=True)
     for row in rows:
         table.add_row(row.version, row.build, row.published, row.status, PINNED if row.pinned else "")
-    ui.result(table)
+    if ui.out.is_terminal:
+        ui.result(table)
+        return
+    console = ui.out
+    width = console.measure(table, options=console.options.update(max_width=_UNLIMITED)).maximum
+    lines = console.render_lines(table, console.options.update(width=width), pad=False)
+    ui.result("\n".join("".join(segment.text for segment in line).rstrip() for line in lines))

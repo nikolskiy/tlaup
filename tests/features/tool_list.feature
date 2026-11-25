@@ -82,6 +82,7 @@ Feature: Listing the releases and the installed builds
   Scenario: A build of a release that has no jar at the moment keeps its place, as installed
     Given the build "v1.7.4" is installed and pinned
     And the build "v1.5.5" is installed
+    And the build "v1.9.9" is installed
     And GitHub answers from "releases"
     When I run "tlaup tool list"
     Then the exit code is 0
@@ -89,7 +90,7 @@ Feature: Listing the releases and the installed builds
 
   Scenario: A build whose tag upstream no longer lists comes last, with no hint against uninstalling it
     Given the build "v1.7.4" is installed and pinned
-    And the build "v0.9.9" is installed
+    And the build "v1.9.9" is installed
     And GitHub answers from "releases"
     When I run "tlaup tool list"
     Then the exit code is 0
@@ -97,6 +98,15 @@ Feature: Listing the releases and the installed builds
     And stderr is empty
     And stdout does not contain "hint:"
     And stdout does not contain "uninstall"
+
+  Scenario: Not on a terminal at 80 columns no row breaks over two lines
+    Given the build "v1.7.4" is installed and pinned
+    And the build "rolling@2026.11.01.000000" is installed
+    And GitHub answers from "releases"
+    And the environment variable "COLUMNS" is "80"
+    When I run "tlaup tool list"
+    Then the exit code is 0
+    And stdout matches the expected file "tool_list/online.txt"
 
   # --installed
 
@@ -119,3 +129,14 @@ Feature: Listing the releases and the installed builds
     And stdout is empty
     And stderr is exactly "no builds are installed"
     And 0 requests were sent to GitHub
+
+  Scenario: --installed reads no settings, so a broken config file does not stop it
+    Given the build "v1.7.4" is installed and pinned
+    And the config file contains:
+      """
+      tool: [this is not a section
+      """
+    When I run "tlaup tool list --installed"
+    Then the exit code is 0
+    And stdout contains "5a47802"
+    And stderr is empty
