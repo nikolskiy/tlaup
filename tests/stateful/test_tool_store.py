@@ -56,6 +56,9 @@ MAX_VERSION = 3
 MAX_KILLS = 1  # as in the spec's model; more would seldom let a command get anywhere
 MAX_GIVE_UPS = 1  # failed downloads and lock timeouts in one example, for the same reason
 ANY = object()  # the pin may become anything (`tool pin`)
+# The store's clock. Builds with no build time are ordered by install time, so the real clock's seconds
+# would make the order, and with it what the rules draw, differ between runs of one example.
+FIXED_NOW = datetime(2026, 11, 18, 10, 0, 0, tzinfo=UTC)
 
 
 def tlaup_impl() -> SimpleNamespace:
@@ -98,7 +101,7 @@ def tlaup_impl() -> SimpleNamespace:
     return SimpleNamespace(
         name=store.__name__,
         steps=importlib.import_module("tlaup.versioning.install"),
-        make_store=lambda root: store.ToolStore(app_paths(root), now=lambda: datetime.now(UTC)),
+        make_store=lambda root: store.ToolStore(app_paths(root), now=lambda: FIXED_NOW),
         tool_dir=lambda root: app_paths(root).tools,
         release=release,
         fetch=fetch,
