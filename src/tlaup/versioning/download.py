@@ -89,7 +89,9 @@ def _attempt(client: GitHubClient, tag: str, asset: Asset, jar: Path, progress: 
         message = f"cannot write {jar}: {error.strerror or error}"
         raise FileOperationError(message) from error
     what = f"the download of {JAR_NAME} for {tag!r}"
-    if got.content_length is not None and got.size != got.content_length:
+    # A body longer than the asset was cut at size + 1, so its Content-Length can be honest and still differ:
+    # that case is the release's size check below.
+    if got.content_length is not None and got.size != got.content_length and got.size <= asset.size:
         message = f"{what} has {got.size} bytes, but the server announced {got.content_length}"
         raise DownloadVerificationError(message, hint=_HINT)
     if got.size != asset.size:

@@ -21,7 +21,7 @@ import responses
 from tests.github import BASE
 from tests.jars import make_tools_jar
 from tests.unit.versioning.conftest import commit, manifest
-from tlaup.errors import DownloadVerificationError, NetworkError, VersionNotFound
+from tlaup.errors import DownloadVerificationError, FileOperationError, NetworkError, VersionNotFound
 from tlaup.versioning.download import fetch_build, usable_digest
 from tlaup.versioning.remote import Asset, Release, parse_release
 
@@ -93,13 +93,13 @@ class Setup:
     def release_requests(self, tag: str = "rolling") -> int:
         return sum(1 for r in self.fake.requests if r.url == f"{BASE}/releases/tags/{tag}")
 
-    def _outside(self) -> dict[str, tuple[int, int]]:
-        """Every file under the test's folder outside ``dest``, with its size and modification time."""
+    def _outside(self) -> dict[str, tuple[int, str]]:
+        """Every file under the test's folder outside ``dest``, with its size and the SHA-256 of its bytes."""
         found = {}
         for path in self.root.rglob("*"):
             if path.is_file() and self.dest not in path.parents:
-                stat = path.stat()
-                found[str(path)] = (stat.st_size, stat.st_mtime_ns)
+                data = path.read_bytes()
+                found[str(path)] = (len(data), sha256(data))
         return found
 
     def assert_unchanged(self) -> None:
@@ -228,10 +228,12 @@ def test_a_404_then_200_returns_the_jar_after_one_retry(setup: Setup, clock: Fak
 def test_a_digest_that_differs_once_then_matches_returns_the_second_body(
     setup: Setup, clock: FakeClock, tmp_path: Path
 ) -> None:
-    looked_up = other_jar(tmp_path, "looked-up")  # what the release said before upstream replaced it
+    looked_up = other_jar(tmp_path, "looked-up1")  # what the release said before upstream replaced it
     first_body = other_jar(tmp_path, "first-body")
+    assert len(first_body) == len(looked_up)  # so that the size passes and the digest is what fails
+    assert sha256(first_body) != sha256(looked_up)
     data = setup.release()
-    stale = with_jar(data, size=len(looked_up), digest="sha256:" + sha256(looked_up))
+    stale = with_jar(data, size=len(first_body), digest="sha256:" + sha256(looked_up))
     setup.serve_jar(first_body)  # then the recording's jar, which the refreshed release (the recording) describes
     _, info = fetch_build(setup.client, as_release(stale), setup.dest, None)
     second_body = setup.fake.jar("rolling").read_bytes()
@@ -306,6 +308,59 @@ def test_a_body_longer_than_the_size_is_cut_one_byte_past_it_and_fails(setup: Se
     assert (setup.dest / "tla2tools.jar").stat().st_size <= size + 1
     assert setup.fake.downloads == 2
     assert clock.sleeps == [2.0]
+    setup.assert_unchanged()
+
+
+def test_a_longer_body_under_an_honest_content_length_fails_on_the_release_size(setup: Setup, clock: FakeClock) -> None:
+    served = setup.fake.jar("rolling").read_bytes()
+    data = setup.release()
+    size = len(served) - 50
+    data = with_jar(data, size=size)
+    setup.serve_release(data)
+    for _ in range(2):
+        setup.serve_jar(served, headers={"Content-Length": str(len(served))})
+    with pytest.raises(DownloadVerificationError) as caught:
+        fetch_build(setup.client, as_release(data), setup.dest, None)
+    # The release's size check fired, not the Content-Length one: the error names the release's size.
+    assert str(size) in caught.value.message
+    assert str(len(served)) not in caught.value.message
+    assert (setup.dest / "tla2tools.jar").stat().st_size == size + 1
+    assert setup.fake.downloads == 2
+    assert clock.sleeps == [2.0]
+    setup.assert_unchanged()
+
+
+def test_a_404_on_the_release_fetched_again_is_version_not_found(setup: Setup, clock: FakeClock) -> None:
+    first = setup.release()
+    setup.serve_jar(b"Not Found", status=404)
+    setup.fake.answer(404, "/releases/tags/rolling")
+    with pytest.raises(VersionNotFound):
+        fetch_build(setup.client, as_release(first), setup.dest, None)
+    assert setup.fake.downloads == 1
+    assert setup.release_requests() == 1
+    assert clock.sleeps == [2.0]
+    setup.assert_unchanged()
+
+
+def test_a_second_404_on_the_asset_is_a_network_error(setup: Setup, clock: FakeClock) -> None:
+    first = setup.release()
+    for _ in range(2):
+        setup.serve_jar(b"Not Found", status=404)
+    with pytest.raises(NetworkError) as caught:
+        fetch_build(setup.client, as_release(first), setup.dest, None)
+    assert caught.value.status == 404
+    assert setup.fake.downloads == 2
+    assert setup.release_requests() == 1
+    assert clock.sleeps == [2.0]
+    setup.assert_unchanged()
+
+
+def test_a_jar_that_cannot_be_written_is_a_file_operation_error(setup: Setup, clock: FakeClock) -> None:
+    release = as_release(setup.release())
+    with pytest.raises(FileOperationError):
+        fetch_build(setup.client, release, setup.dest / "missing", None)
+    assert setup.fake.requests == []
+    assert clock.sleeps == []
     setup.assert_unchanged()
 
 
