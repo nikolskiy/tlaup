@@ -378,6 +378,15 @@ def test_a_loop_with_no_open_trace_is_shown_as_printed() -> None:
     assert result.unknown_messages == []
 
 
+def test_stuttering_with_no_open_trace_is_shown_as_printed() -> None:
+    lines = _without(read_lines(BUILDS["v1.7.4"] / "liveness-stuttering.out"), {2217})
+    result, events = _feed(lines)
+    assert [e.message.code for e in events if isinstance(e, UnknownMessage)] == [2218]
+    assert not any(isinstance(e, TraceClosed) for e in events)
+    assert result.errors[0].trace is None
+    assert result.unknown_messages == []
+
+
 def test_a_state_header_that_matches_no_pattern_is_shown_as_printed() -> None:
     # The header of state 2 (v1.7.4:47) loses its colon, so neither header pattern of P5 matches.
     lines = read_lines(BUILDS["v1.7.4"] / "violation.out")
@@ -389,3 +398,29 @@ def test_a_state_header_that_matches_no_pattern_is_shown_as_printed() -> None:
     assert trace is not None
     assert [state.index for state in trace.states] == [1, 3, 4]
     assert result.unknown_messages == []
+
+
+# --- The header of a state (P5): the text inside the brackets, "" for -dfid --------------------------------------
+
+
+@pytest.mark.parametrize("build", sorted(BUILDS))
+def test_a_state_header_is_the_text_inside_the_brackets(build: str) -> None:
+    # violation.out: "1: <Initial predicate>" (v1.7.4:40, rolling:41), state 2's action (v1.7.4:47, rolling:48).
+    result, _ = _drive(BUILDS[build] / "violation.out")
+    trace = result.errors[0].trace
+    assert trace is not None
+    first, second = trace.states[:2]
+    assert (first.header, first.action, first.location) == ("Initial predicate", None, None)
+    assert second.header == "Next line 10, col 59 to line 10, col 76 of module Violation"
+    assert second.action == "Next"
+    assert first.lines[0] == "1: <Initial predicate>"
+
+
+@pytest.mark.parametrize("build", sorted(BUILDS))
+def test_a_dfid_state_has_an_empty_header(build: str) -> None:
+    # dfid-violation-deep.out: "1:" (2216, v1.7.4:46) and "1: " (2217, rolling:47).
+    result, _ = _drive(BUILDS[build] / "dfid-violation-deep.out")
+    trace = result.errors[0].trace
+    assert trace is not None
+    assert [(s.header, s.action, s.location) for s in trace.states] == [("", None, None)] * len(trace.states)
+    assert trace.states

@@ -260,22 +260,23 @@ def _carried(variables: list[Variable], previous: TraceState | None) -> tuple[Va
 def _state(message: TlcMessage, previous: TraceState | None) -> TraceState | None:
     """The state a state message holds, or None when its header matches no pattern (P5)."""
     lines = message.lines
-    header = lines[0] if lines else ""
+    first = lines[0] if lines else ""
     action: str | None = None
     location: Location | None = None
-    match = _STATE_HEADER.fullmatch(header) or _DFID_HEADER.fullmatch(header)
+    match = _STATE_HEADER.fullmatch(first) or _DFID_HEADER.fullmatch(first)
     if match is None:
         return None
-    inner = match.groupdict().get("inner")
-    if inner is not None:
-        acting = _STATE_ACTION.fullmatch(inner)
-        if acting is not None:
-            action, location = acting["action"], _location(acting, 2)
+    # header is the text inside the brackets (P5), or "" for a -dfid header, which has none; reporters never
+    # parse TLC text (D8).
+    inner = match.groupdict().get("inner") or ""
+    acting = _STATE_ACTION.fullmatch(inner)
+    if acting is not None:
+        action, location = acting["action"], _location(acting, 2)
     return TraceState(
         index=int(match["n"]),
         action=action,
         location=location,
-        header=header,
+        header=inner,
         variables=_carried(_variables(lines[1:]), previous),
         lines=lines,
     )
@@ -426,7 +427,6 @@ class TlcParser:
                 return self._information(message, known=known)
 
     def _error(self, message: TlcMessage) -> Event:
-        self._result.status = Status.FAILURE
         if message.code in _CONTINUATIONS and self._current is not None:
             self._current.related.append(message)
             return ErrorExtended(message, self._current)
