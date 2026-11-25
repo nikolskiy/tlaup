@@ -26,15 +26,18 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from tests.parse.drive import build_folders, read_lines
+from tests.parse.drive import build_folders, line_of, read_lines
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
-    from tlaup_parse import CoverageItem, Location, RunResult, TlcError, TlcMessage, Trace, Variable
+    from tlaup_parse import CoverageItem, Diagnostic, Location, RunResult, TlcError, TlcMessage, Trace, Value, Variable
 
     Check = Callable[[RunResult], None]
     Loc = tuple[str, int, int, int | None, int | None]
+    # (variable name, expected plain value, printed): printed is False where -difftrace left it out (P5)
+    Var = tuple[str, object, bool]
+    Row = tuple[str | None, Loc | None, Sequence[Var]]  # (action, location, variables) of one state
 
 LINES = frozenset({"stable", "rolling"})  # the two values of `line` in build.toml (01 T3)
 STABLE = frozenset({"stable"})
@@ -153,8 +156,12 @@ def _mode(mode: str | None, workers: int | None) -> Check:
     return lambda r: _same("mode and workers", (r.mode, r.workers), (mode, workers))
 
 
-def _not_resumed(result: RunResult) -> None:
-    _same("resumed", result.resumed, False)
+def _resumed(resumed: bool) -> Check:
+    return lambda r: _same("resumed", r.resumed, resumed)
+
+
+def _no_tool(result: RunResult) -> None:
+    _same("tool (no 2262)", result.tool, None)
 
 
 def _times(started: bool, finished: bool) -> Check:
@@ -292,6 +299,8 @@ def basics(
     phase: str = "FINISHED",
     mode: str | None = "exhaustive search",
     workers: int | None = 1,  # relies on package 52 pinning one worker when a case names none
+    resumed: bool = False,
+    tool: bool = True,
     started: bool = True,
     finished: bool = True,
     progress: bool,
@@ -299,7 +308,7 @@ def basics(
     related: Sequence[Sequence[int]],
     traces: Sequence[tuple[int, int | None, bool] | None],
     diagnostics: int = 0,
-    output: Sequence[str] = (),
+    output: Sequence[str] | None = (),
     info: Sequence[int] = (),
     warnings: Sequence[int] = (),
     overrides: Sequence[str] = (),
@@ -310,30 +319,34 @@ def basics(
 
     ``suffix`` keeps the names unique when a case is registered once per line. ``coverage`` true leaves the
     coverage rows to the case's own fact; ``stats`` None asserts no final counts (not a complete search).
+    ``output`` None leaves the output to the case's own fact; ``tool`` false asserts there is no 2262.
     """
     run: list[tuple[str, Check]] = [
         ("status", _status(status)),
         ("verdict", _verdict(verdict)),
         ("phase", _phase(phase)),
         ("mode", _mode(mode, workers)),
-        ("not-resumed", _not_resumed),
+        ("resumed" if resumed else "not-resumed", _resumed(resumed)),
         ("times", _times(started, finished)),
         ("progress", _progress(progress)),
-        ("output", _output(output)),
         ("info", _info(info)),
         ("no-unknown-messages", _no_unknown),
         ("warnings", _warnings(warnings)),
         ("overrides", _overrides(overrides)),
     ]
+    if output is not None:
+        run.append(("output", _output(output)))
     if not coverage:
         run.append(("no-coverage", _no_coverage))
     if stats is not None:
         run.append(("final-counts", _stats(*stats)))
     for name, check in run:
         add(case, "run", name + suffix, check, lines)
-    if "stable" in lines:
+    if not tool:
+        add(case, "run", "no-tool" + suffix, _no_tool, lines)
+    elif "stable" in lines:
         add(case, "run", "tool-stable", _tool_stable, STABLE)
-    if "rolling" in lines:
+    if tool and "rolling" in lines:
         add(case, "run", "tool-rolling", _tool_rolling, ROLLING)
     add(case, "errors", "errors" + suffix, _errors(errors), lines)
     add(case, "errors", "related" + suffix, _related(related), lines)
@@ -347,6 +360,7 @@ def states(
     var: str,
     rows: Sequence[tuple[str | None, Loc | None, int]],
     lines: frozenset[str] = LINES,
+    suffix: str = "",
 ) -> None:
     """Register a fact on the states of error ``error`` (from 0) of a one-variable spec.
 
@@ -364,12 +378,94 @@ def states(
             _same(f"{where}: variables", [v.name for v in state.variables], [var])
             _int(f"{where}: {var}", state.variables[0], value)
 
-    add(case, "traces", f"states-{error + 1}", check, lines)
+    add(case, "traces", f"states-{error + 1}{suffix}", check, lines)
 
 
 def _counting(action: str, location: Loc, values: Iterable[int]) -> list[tuple[str | None, Loc | None, int]]:
     """Rows for a trace whose first state is the initial predicate and every later one the same action."""
     return [(None, None, value) if n == 0 else (action, location, value) for n, value in enumerate(values)]
+
+
+# --- Values, for the traces of several variables -----------------------------------------------------------------
+# A value is compared in a plain form: (kind, payload), with the items, fields or pairs in the order printed.
+# ``ANY`` in an expected value matches whatever is there (a value the fact does not assert).
+
+ANY = ...
+
+
+def _plain(value: Value) -> tuple[object, ...]:
+    """A ``Value`` (P7) as nested tuples: ``("int", 1)``, ``("seq", (...))``, ``("record", (("a", ...), ...))``."""
+    kind = value.kind
+    if kind in ("set", "seq"):
+        return (kind, tuple(_plain(item) for item in value.items))
+    if kind == "record":
+        return (kind, tuple((name, _plain(item)) for name, item in value.fields))
+    if kind == "function":
+        return (kind, tuple((_plain(key), _plain(item)) for key, item in value.pairs))
+    if kind == "interval":
+        return (kind, value.bounds)
+    return (kind, value.scalar)
+
+
+def _fits(actual: object, expected: object) -> bool:
+    if expected is ANY:
+        return True
+    if isinstance(expected, tuple):
+        return (
+            isinstance(actual, tuple)
+            and len(actual) == len(expected)
+            and all(_fits(a, e) for a, e in zip(actual, expected, strict=True))
+        )
+    return type(actual) is type(expected) and actual == expected
+
+
+def vint(n: int) -> tuple[object, ...]:
+    return ("int", n)
+
+
+def vstr(text: str) -> tuple[object, ...]:
+    return ("string", text)
+
+
+def vseq(*items: object) -> tuple[object, ...]:
+    return ("seq", items)
+
+
+def vset(*items: object) -> tuple[object, ...]:
+    return ("set", items)
+
+
+def vrec(**fields: object) -> tuple[object, ...]:
+    return ("record", tuple(fields.items()))
+
+
+def trace_states(case: str, error: int, rows: Sequence[Row], lines: frozenset[str] = LINES, suffix: str = "") -> None:
+    """Register a fact on every state of error ``error`` (from 0): index, action, location and each variable."""
+
+    def check(r: RunResult) -> None:
+        trace = _trace(r, error)
+        _same(f"error {error + 1}: number of states", len(trace.states), len(rows))
+        for n, (state, (action, location, variables)) in enumerate(zip(trace.states, rows, strict=True), 1):
+            where = f"error {error + 1}, state {n}"
+            _same(f"{where}: index", state.index, n)
+            _same(f"{where}: action", state.action, action)
+            _same(f"{where}: location", _loc(state.location), location)
+            _same(f"{where}: variables", [v.name for v in state.variables], [name for name, _, _ in variables])
+            for variable, (name, value, printed) in zip(state.variables, variables, strict=True):
+                plain = _plain(variable.value)
+                _holds(f"{where}: {name} is {value!r}", _fits(plain, value), plain)
+                _same(f"{where}: {name} printed", variable.printed, printed)
+
+    add(case, "traces", f"states-{error + 1}{suffix}", check, lines)
+
+
+def _capture(case: str, line: str) -> list[str]:
+    """The lines, without their endings, of the capture of ``case`` in the build folder of release line ``line``.
+
+    Multi-line tool text a fact expects is read from here, never typed (01 T12 rule 3).
+    """
+    folder = next(f for f in build_folders("tlc") if line_of(f) == line)
+    return [text.rstrip("\r\n") for text in read_lines(folder / f"{case}.out")]
 
 
 def facts_for(case: str, line: str) -> tuple[Fact, ...]:
@@ -1182,6 +1278,1064 @@ def _class_too_new_listed_shape(r: RunResult) -> None:
     message = _error(r, 0).message
     _same("body", _body_shape(message), ["line"] * 5)
     _same("the exception line", message.lines[3], "The exception was a java.lang.UnsupportedClassVersionError")
+
+
+# =================================================================================================================
+# Research 22: the top-up captures (tlc/<build>/<case>.out), 58 cases on each build.
+# =================================================================================================================
+
+
+def _refused(case: str, *, lines: frozenset[str] = LINES, suffix: str = "") -> None:
+    """A command line TLC refuses with 1102 right after 2262: no mode, no run (like ``version-bad-option``)."""
+    basics(
+        case,
+        lines=lines,
+        suffix=suffix,
+        status="FAILURE",
+        verdict="NOT_CHECKED",
+        phase="NOT_STARTED",
+        mode=None,
+        workers=None,
+        started=False,
+        finished=False,
+        progress=False,
+        errors=[(1102, "usage", None)],
+        related=[[]],
+        traces=[None],
+    )
+
+
+def _diagnostic(result: RunResult, index: int) -> Diagnostic:
+    _holds(f"diagnostic {index + 1} exists", len(result.sany) > index, len(result.sany))
+    return result.sany[index]
+
+
+def _file_ends(what: str, file: str | None, name: str | None) -> None:
+    if name is None:
+        _same(f"{what}: file", file, None)
+    else:
+        _holds(f"{what}: file ends in {name}", file is not None and file.endswith(name), file)
+
+
+def _output_is_capture(case: str, line: str) -> Check:
+    """The output is every line of the capture (a run with no message at all, such as ``-help``)."""
+    return lambda r: _same("output", list(r.output), _capture(case, line))
+
+
+# The states of Violation.tla's breadth-first counterexample, the same in every exhaustive capture of it
+# (research 1's violation and research 22's -difftrace, -generateSpecTE and -noGenerateSpecTE runs).
+_V_NEXT = ("Violation", 10, 59, 10, 76)
+_V_INIT = ("Violation", 4, 9, 6, 16)  # the Init header of -simulate and -generate on rolling
+_NOTE = ("string", ANY)  # the spec's long note, a string the facts do not spell
+
+
+def _vstore(alpha: Sequence[int] = (), beta: Sequence[int] = (), gamma: Sequence[int] = ()) -> tuple[object, ...]:
+    return vrec(alpha=vset(*map(vint, alpha)), beta=vset(*map(vint, beta)), gamma=vset(*map(vint, gamma)))
+
+
+def _vlog(*entries: tuple[str, int]) -> tuple[object, ...]:
+    return vseq(*(vrec(op=vstr("add"), key=vstr(k), val=vint(v), note=_NOTE) for k, v in entries))
+
+
+def _violation_rows(carried_store_in_3: bool = False) -> list[Row]:
+    """The four states; with ``-difftrace`` state 3 leaves out ``store``, which did not change."""
+    one = ("alpha", 1)
+    return [
+        (None, None, [("store", _vstore(), True), ("n", vint(0), True), ("log", vseq(), True)]),
+        ("Next", _V_NEXT, [("store", _vstore([1]), True), ("n", vint(1), True), ("log", _vlog(one), True)]),
+        (
+            "Next",
+            _V_NEXT,
+            [("store", _vstore([1]), not carried_store_in_3), ("n", vint(2), True), ("log", _vlog(one, one), True)],
+        ),
+        ("Next", _V_NEXT, [("store", _vstore([1]), True), ("n", vint(3), True), ("log", _vlog(one, one, one), True)]),
+    ]
+
+
+def _violation_unknown_rows(first: tuple[str | None, Loc | None], rest: tuple[str | None, Loc | None]) -> list[Row]:
+    """Four states of Violation.tla whose store and log depend on a random choice: only ``n`` is asserted."""
+    rows: list[Row] = []
+    for n in range(4):
+        action, location = first if n == 0 else rest
+        rows.append(
+            (action, location, [("store", ("record", ANY), True), ("n", vint(n), True), ("log", ("seq", ANY), True)])
+        )
+    return rows
+
+
+# --- alias-violation, alias-violation-difftrace: Alias.tla with an ALIAS (rolling only) --------------------------
+# v1.7.4 reads ALIAS as an invariant name: 2229 "The invariant ALIAS ... is not defined" (v1.7.4:23-26, both cases).
+_ALIAS = ("Alias", 5, 9, 5, 32)
+for _case in ("alias-violation", "alias-violation-difftrace"):
+    basics(
+        _case,
+        lines=STABLE,
+        suffix="-stable",
+        status="FAILURE",  # 2229: v1.7.4:23
+        verdict="NOT_CHECKED",  # a config error after 2185 (v1.7.4:20), no 2189
+        progress=False,
+        errors=[(2229, "config", None)],
+        related=[[]],
+        traces=[None],
+    )
+basics(
+    "alias-violation",
+    lines=ROLLING,
+    suffix="-rolling",
+    status="FAILURE",  # 2110: rolling:30
+    verdict="ERRORS",
+    progress=True,  # 2200: rolling:64
+    errors=[(2110, "invariant", "Inv")],  # rolling:31
+    related=[[2121]],  # rolling:33
+    traces=[(4, None, False)],  # rolling:36-63
+)
+# The alias record's fields are the variables (P5). Headers rolling:37, 44, 51, 58.
+trace_states(
+    "alias-violation",
+    0,
+    [
+        (None, None, [("x", vint(0), True), ("sum", vint(0), True), ("label", vstr("step"), True)]),
+        ("Next", _ALIAS, [("x", vint(1), True), ("sum", vint(3), True), ("label", vstr("step"), True)]),
+        ("Next", _ALIAS, [("x", vint(2), True), ("sum", vint(6), True), ("label", vstr("step"), True)]),
+        ("Next", _ALIAS, [("x", vint(3), True), ("sum", vint(9), True), ("label", vstr("step"), True)]),
+    ],
+    ROLLING,
+)
+basics(
+    "alias-violation-difftrace",
+    lines=ROLLING,
+    suffix="-rolling",
+    status="FAILURE",  # 2110: rolling:30
+    verdict="ERRORS",
+    progress=True,  # 2200: rolling:62
+    errors=[(2110, "invariant", "Inv")],  # rolling:31
+    related=[[2121]],  # rolling:33
+    traces=[(4, None, False)],  # rolling:36-61
+)
+# States 2 and 3 leave out label (rolling:43-48, 49-54); state 4 is printed in full (rolling:55-61).
+trace_states(
+    "alias-violation-difftrace",
+    0,
+    [
+        (None, None, [("x", vint(0), True), ("sum", vint(0), True), ("label", vstr("step"), True)]),
+        ("Next", _ALIAS, [("x", vint(1), True), ("sum", vint(3), True), ("label", vstr("step"), False)]),
+        ("Next", _ALIAS, [("x", vint(2), True), ("sum", vint(6), True), ("label", vstr("step"), False)]),
+        ("Next", _ALIAS, [("x", vint(3), True), ("sum", vint(9), True), ("label", vstr("step"), True)]),
+    ],
+    ROLLING,
+)
+
+# --- checkpoint-run: Slow.tla, -checkpoint 1, stopped by SIGTERM after 80 s --------------------------------------
+basics(
+    "checkpoint-run",
+    status="RUNNING",  # no 2186: the output ends at v1.7.4:44, rolling:45
+    verdict="INCOMPLETE",
+    phase="CHECKING",  # 2190: v1.7.4:30, rolling:31
+    finished=False,
+    progress=True,  # 2200: v1.7.4:33, rolling:34
+    errors=[],  # 2195 and 2196 (v1.7.4:36 and 39, rolling:37 and 40) are typed: not info
+    related=[],
+    traces=[],
+)
+
+# --- checkpoint-recover: Slow.tla, -recover from checkpoint-run's folder -----------------------------------------
+# A resumed run: no final counts (D54). Rolling warns that the seed and fp differ from the checkpoint's (2285).
+for _lines, _suffix, _warns in ((STABLE, "-stable", []), (ROLLING, "-rolling", [2285])):
+    basics(
+        "checkpoint-recover",
+        lines=_lines,
+        suffix=_suffix,
+        status="SUCCESS",  # 2186: v1.7.4:63, rolling:72
+        verdict="NO_ERROR",
+        resumed=True,  # 2197 and 2198: v1.7.4:27 and 30, rolling:28 and 39
+        progress=True,  # 2200: v1.7.4:33, rolling:42
+        warnings=_warns,  # 2285:3: rolling:31-38
+        errors=[],
+        related=[],
+        traces=[],
+    )
+
+# --- checkpoint-recover-missing: Slow.tla, -recover from a folder that does not exist ----------------------------
+basics(
+    "checkpoint-recover-missing",
+    status="FAILURE",  # 1000: v1.7.4:7, rolling:7
+    verdict="NOT_CHECKED",  # an exception before 2185: no initial states
+    mode=None,  # no 2187: the error comes right after 2262 and 2401
+    workers=None,
+    started=False,
+    progress=False,
+    errors=[(1000, "exception", None)],
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("checkpoint-recover-missing", "errors", "message-shape")
+def _recover_missing_shape(r: RunResult) -> None:
+    # v1.7.4:7-13, rolling:7-13: five lines, no nested message; the fifth names the missing file under <tmp>.
+    message = _error(r, 0).message
+    _same("body", _body_shape(message), ["line"] * 5)
+    _same("the exception line", message.lines[3], "The exception was a java.io.FileNotFoundException")
+
+
+# --- deadlock-flag: Deadlock.tla, -deadlock (deadlock is not checked) --------------------------------------------
+basics(
+    "deadlock-flag",
+    status="SUCCESS",  # 2186: v1.7.4:47, rolling:48
+    verdict="NO_ERROR",
+    progress=True,  # 2200: v1.7.4:35, rolling:36
+    errors=[],
+    related=[],
+    traces=[],
+    stats=(3, 3, 0, 3),  # 2199 v1.7.4:38 rolling:39; 2194 v1.7.4:41 rolling:42
+)
+
+# --- deadlock-flag-multierror: MultiError.tla, -deadlock -continue: exit 0 with two errors (D54) -----------------
+basics(
+    "deadlock-flag-multierror",
+    status="FAILURE",
+    verdict="ERRORS",  # two invariant errors although TLC exits 0 (P3)
+    progress=True,  # 2200: v1.7.4:87, rolling:88
+    errors=[
+        (2110, "invariant", "InvA"),  # v1.7.4:29-30, rolling:30-31
+        (2110, "invariant", "InvB"),  # v1.7.4:50-51, rolling:51-52
+    ],
+    related=[[2121], [2121]],  # v1.7.4:32, 53; rolling:33, 54
+    traces=[(3, None, False), (5, None, False)],
+    stats=(7, 7, 0, 7),  # the search completes: 2199 v1.7.4:90 rolling:91; 2194 v1.7.4:93 rolling:94
+)
+states("deadlock-flag-multierror", 0, "x", _counting("Next", _MULTI, range(3)))  # v1.7.4:35-49, rolling:36-50
+states("deadlock-flag-multierror", 1, "x", _counting("Next", _MULTI, range(5)))  # v1.7.4:56-80, rolling:57-81
+
+# --- dfid-*: -dfid N, a depth-first run: 2271 sets the mode (v1.7.4:7, rolling:7) -------------------------------
+# 2208, 2205 (one per level) and 2206 are information (P5), 2204 the statistics; there is no 2200 progress.
+for _case, _levels in (
+    ("dfid-deadlock", 1),  # 2208 v1.7.4:23 rolling:24; 2206 v1.7.4:29 rolling:30; 2186 v1.7.4:35 rolling:36
+    ("dfid-success", 4),  # 2208 v1.7.4:23 rolling:24; 2205 v1.7.4:26-35 rolling:27-36; 2186 v1.7.4:44 rolling:45
+    ("dfid-success-deep", 7),  # 2205 v1.7.4:26-44 rolling:27-45; 2206 v1.7.4:54 rolling:55; 2186 v1.7.4:60 rolling:61
+    # -dfid 2 stops before the violation that exists (D54): no error, exit 0.
+    ("dfid-violation", 1),  # 2208 v1.7.4:27 rolling:28; 2206 v1.7.4:33 rolling:34; 2186 v1.7.4:39 rolling:40
+):
+    basics(
+        _case,
+        status="SUCCESS",  # 2186 and no error
+        verdict="NO_ERROR_BOUNDED",  # depth-first (P3)
+        mode="depth-first",
+        progress=False,
+        info=[2208, *[2205] * _levels, 2206],
+        errors=[],
+        related=[],
+        traces=[],
+    )
+
+# --- dfid-violation-deep: Violation.tla, -dfid 10 ----------------------------------------------------------------
+basics(
+    "dfid-violation-deep",
+    status="FAILURE",  # 2110: v1.7.4:39, rolling:40
+    verdict="ERRORS",
+    mode="depth-first",
+    progress=False,
+    info=[2208, 2205, 2205, 2205, 2206],  # v1.7.4:27, 30, 33, 36, 100; rolling:28, 31, 34, 37, 101
+    errors=[(2110, "invariant", "Small")],  # v1.7.4:40, rolling:41
+    related=[[2121]],  # v1.7.4:42, rolling:43
+    traces=[(4, None, False)],  # 2216 v1.7.4:45-99; 2217 rolling:46-100
+)
+# The -dfid states have no action and no location (P5). Which keys and values the search took differs between
+# the two captures (v1.7.4:46 and 53, rolling:47 and 54), so only n is asserted.
+trace_states("dfid-violation-deep", 0, _violation_unknown_rows((None, None), (None, None)))
+
+# The header line is "1:" on v1.7.4 (2216, v1.7.4:46) and "1: " on rolling (2217, rolling:47).
+for _lines, _suffix, _end in ((STABLE, "-stable", ":"), (ROLLING, "-rolling", ": ")):
+
+    def _dfid_headers(r: RunResult, end: str = _end) -> None:
+        trace = _trace(r, 0)
+        _same("header lines", [s.lines[0] for s in trace.states], [f"{n}{end}" for n in range(1, 5)])
+
+    add("dfid-violation-deep", "traces", "header-lines" + _suffix, _dfid_headers, _lines)
+
+# --- -difftrace and its twins (P5): a state leaves out what did not change, the parser carries it forward --------
+# verify-difftrace.txt of research 22 pairs each -difftrace capture with its plain twin; the facts of a pair
+# assert the same variables and values, with printed false exactly where TLC left a variable out.
+
+# difftrace-deadlock: Deadlock.tla; x changes in every step, so every state prints it (as in deadlock).
+basics(
+    "difftrace-deadlock",
+    status="FAILURE",  # 2114: v1.7.4:29, rolling:30
+    verdict="ERRORS",
+    progress=True,  # 2200: v1.7.4:50, rolling:51
+    errors=[(2114, "deadlock", None)],
+    related=[[2121]],  # v1.7.4:32, rolling:33
+    traces=[(3, None, False)],  # v1.7.4:35-49, rolling:36-50
+)
+# Headers v1.7.4:36, 41, 46; rolling:37, 42, 47.
+states("difftrace-deadlock", 0, "x", _counting("Next", ("Deadlock", 5, 9, 5, 27), [0, 1, 2]))
+
+# difftrace-liveness-q1-back-to-state and -stuttering: research 1's two liveness specs with -difftrace.
+for _lines, _suffix, _name_ in ((STABLE, "-stable", None), (ROLLING, "-rolling", "Reach")):
+    basics(
+        "difftrace-liveness-q1-back-to-state",
+        lines=_lines,
+        suffix=_suffix,
+        status="FAILURE",  # 2116: v1.7.4:38, rolling:39 (no name on v1.7.4:39, "Reach" on rolling:40)
+        verdict="ERRORS",
+        progress=True,  # 2200: v1.7.4:32, rolling:33
+        info=[2212],  # v1.7.4:23, rolling:24
+        errors=[(2116, "property", _name_)],
+        related=[[2264]],  # v1.7.4:42, rolling:43
+        traces=[(3, 1, False)],  # 2122 "1: Back to state": v1.7.4:61, rolling:62
+    )
+    basics(
+        "difftrace-liveness-q1-stuttering",
+        lines=_lines,
+        suffix=_suffix,
+        status="FAILURE",  # 2116: v1.7.4:38, rolling:39
+        verdict="ERRORS",
+        progress=True,  # 2200: v1.7.4:32, rolling:33
+        info=[2212],  # v1.7.4:23, rolling:24
+        errors=[(2116, "property", _name_)],
+        related=[[2264]],  # v1.7.4:42, rolling:43
+        traces=[(2, None, True)],  # 2218 "3: Stuttering": v1.7.4:56, rolling:57
+    )
+# Headers v1.7.4:47, 52, 57; rolling:48, 53, 58.
+states("difftrace-liveness-q1-back-to-state", 0, "x", _counting("Next", ("LiveBack", 5, 9, 5, 24), [0, 1, 2]))
+# Headers v1.7.4:47, 52; rolling:48, 53.
+states("difftrace-liveness-q1-stuttering", 0, "x", _counting("Next", ("LiveStutter", 5, 9, 5, 24), [0, 1]))
+
+# difftrace-q1-violation: Violation.tla with -difftrace, the twin of research 1's violation.
+basics(
+    "difftrace-q1-violation",
+    status="FAILURE",  # 2110: v1.7.4:33, rolling:34
+    verdict="ERRORS",
+    progress=True,  # 2200: v1.7.4:93, rolling:94
+    errors=[(2110, "invariant", "Small")],  # v1.7.4:34, rolling:35
+    related=[[2121]],  # v1.7.4:36, rolling:37
+    traces=[(4, None, False)],  # v1.7.4:39-92, rolling:40-93
+)
+# State 3 leaves out store (v1.7.4:57-71, rolling:58-72); state 4 is printed in full (v1.7.4:72-92, rolling:73-93).
+trace_states("difftrace-q1-violation", 0, _violation_rows(carried_store_in_3=True))
+
+# difftrace-violation, difftrace-violation-nodiff, difftrace-workers-4: Diff.tla, Inv == a + b < 4.
+_DIFF_A = ("Diff", 5, 12, 5, 52)  # the disjunct that moves a
+_DIFF_B = ("Diff", 6, 12, 6, 77)  # the disjunct that moves b and c
+_C0 = vseq(vint(0), vint(0), vint(0))
+
+
+def _diff_rows(difftrace: bool) -> list[Row]:
+    """a counts from 0 to 4 while b and c stay; with -difftrace states 2 to 4 print only a, state 5 all."""
+    rows: list[Row] = [(None, None, [("a", vint(0), True), ("b", vint(0), True), ("c", _C0, True)])]
+    for a in range(1, 5):
+        printed = not difftrace or a == 4
+        rows.append(("Next", _DIFF_A, [("a", vint(a), True), ("b", vint(0), printed), ("c", _C0, printed)]))
+    return rows
+
+
+for _case, _difftrace in (
+    ("difftrace-violation", True),  # 2200: v1.7.4:64, rolling:65
+    ("difftrace-violation-nodiff", False),  # 2200: v1.7.4:70, rolling:71
+):
+    basics(
+        _case,
+        status="FAILURE",  # 2110: v1.7.4:29, rolling:30
+        verdict="ERRORS",
+        progress=True,  # 2200 at the line named above
+        errors=[(2110, "invariant", "Inv")],  # v1.7.4:30, rolling:31
+        related=[[2121]],  # v1.7.4:32, rolling:33
+        traces=[(5, None, False)],
+    )
+    trace_states(_case, 0, _diff_rows(_difftrace))
+# difftrace-violation states: v1.7.4:35-63, rolling:36-64 (state 5 in full at v1.7.4:57, rolling:58).
+# difftrace-violation-nodiff states: v1.7.4:35-69, rolling:36-70.
+
+basics(
+    "difftrace-workers-4",
+    status="FAILURE",  # 2110: v1.7.4:29, rolling:30
+    verdict="ERRORS",
+    workers=4,  # "with 4 workers": v1.7.4:8, rolling:8
+    progress=True,  # 2200: v1.7.4:64, rolling:65
+    errors=[(2110, "invariant", "Inv")],  # v1.7.4:30, rolling:31
+    related=[[2121]],  # v1.7.4:32, rolling:33
+    traces=[(5, None, False)],  # v1.7.4:35-63, rolling:36-64
+)
+
+
+@fact("difftrace-workers-4", "traces", "carried-forward")
+def _workers_4_carried(r: RunResult) -> None:
+    # With four workers which state of a + b = 4 is found first may differ between runs, so this fact asserts
+    # the carrying, not the values: state 1 and state 5 in full (v1.7.4:35 and 57, rolling:36 and 58), and every
+    # variable a state leaves out equal to the state before. Every step moves a, or b and c, so states 2 to 4
+    # each leave one out.
+    trace = _trace(r, 0)
+    _same("number of states", len(trace.states), 5)
+    first, *middle, last = trace.states
+    for state in trace.states:
+        _same(f"state {state.index}: variables", [v.name for v in state.variables], ["a", "b", "c"])
+    _same(
+        "state 1",
+        [(_plain(v.value), v.printed) for v in first.variables],
+        [(vint(0), True), (vint(0), True), (_C0, True)],
+    )
+    _same("state 5: printed", [v.printed for v in last.variables], [True, True, True])
+    a, b = (_plain(v.value) for v in last.variables[:2])
+    _holds("state 5: a + b = 4", a[0] == b[0] == "int" and int(a[1]) + int(b[1]) == 4, (a, b))
+    for before, state in zip(trace.states, trace.states[1:], strict=False):
+        for old, new in zip(before.variables, state.variables, strict=True):
+            if not new.printed:
+                _same(f"state {state.index}: {new.name} carried", _plain(new.value), _plain(old.value))
+    for state in middle:
+        _holds(f"state {state.index} leaves a variable out", not all(v.printed for v in state.variables), state)
+
+
+# difftrace-liveness, difftrace-liveness-nodiff: DiffLive.tla, a loop back to state 2.
+_DIFFLIVE = ("DiffLive", 5, 9, 6, 48)
+
+
+def _difflive_rows(difftrace: bool) -> list[Row]:
+    """p goes 0, 1, 2, 0; q stays "idle" until state 4. With -difftrace states 2 and 3 leave out q."""
+    return [
+        (None, None, [("p", vint(0), True), ("q", vstr("idle"), True)]),
+        ("Next", _DIFFLIVE, [("p", vint(1), True), ("q", vstr("idle"), not difftrace)]),
+        ("Next", _DIFFLIVE, [("p", vint(2), True), ("q", vstr("idle"), not difftrace)]),
+        ("Next", _DIFFLIVE, [("p", vint(0), True), ("q", vstr("busy"), True)]),
+    ]
+
+
+for _case, _difftrace in (("difftrace-liveness", True), ("difftrace-liveness-nodiff", False)):
+    for _lines, _suffix, _name_ in ((STABLE, "-stable", None), (ROLLING, "-rolling", "Reach")):
+        basics(
+            _case,
+            lines=_lines,
+            suffix=_suffix,
+            status="FAILURE",  # 2116: v1.7.4:38, rolling:39 (no name on v1.7.4:39, "Reach" on rolling:40)
+            verdict="ERRORS",
+            progress=True,  # 2200: v1.7.4:32, rolling:33
+            info=[2212],  # v1.7.4:23, rolling:24
+            errors=[(2116, "property", _name_)],
+            related=[[2264]],  # v1.7.4:42, rolling:43
+            traces=[(4, 2, False)],  # 2122 "2: Back to state": v1.7.4:68 and 70, rolling:69 and 71
+        )
+    trace_states(_case, 0, _difflive_rows(_difftrace))
+# difftrace-liveness headers v1.7.4:47, 53, 58, 63, rolling:48, 54, 59, 64;
+# difftrace-liveness-nodiff headers v1.7.4:47, 53, 59, 65, rolling:48, 54, 60, 66.
+
+# --- params-*: Params.tla, actions with parameters and through an INSTANCE ---------------------------------------
+_PARAMS_VIAZ = ("Params", 8, 9, 8, 39)
+_PARAMS_VIAQ = ("Params", 14, 9, 14, 57)
+_PARAMS_STEP = ("Params", 6, 12, 6, 52)
+
+
+def _xyz(x: int, y: int, z: int, printed: Sequence[bool] = (True, True, True)) -> list[Var]:
+    return [("x", vint(x), printed[0]), ("y", vint(y), printed[1]), ("z", vint(z), printed[2])]
+
+
+for _case, _inv in (
+    ("params-violation", "Inv"),  # 2200: v1.7.4:58, rolling:60
+    ("params-violation-difftrace", "Inv"),  # 2200: v1.7.4:56, rolling:58
+    ("params-instance-exists-violation", "Inv"),  # 2200: v1.7.4:58, rolling:60
+    ("params-instance-exists-violation-difftrace", "Inv"),  # 2200: v1.7.4:56, rolling:58
+    ("params-step-violation", "InvX"),  # 2200: v1.7.4:58, rolling:60
+    ("params-step-violation-difftrace", "InvX"),  # 2200: v1.7.4:56, rolling:58
+):
+    basics(
+        _case,
+        status="FAILURE",  # 2110: v1.7.4:31, rolling:33
+        verdict="ERRORS",
+        progress=True,  # 2200 at the line named above
+        errors=[(2110, "invariant", _inv)],  # v1.7.4:32, rolling:34
+        related=[[2121]],  # v1.7.4:34, rolling:36
+        traces=[(3, None, False)],  # three 2217 from v1.7.4:37, rolling:39
+    )
+
+# Viaz is I!Bump(2) through the INSTANCE: z goes 0, 2, 4 (v1.7.4:37-57, rolling:39-59). With -difftrace state 2
+# prints only z (v1.7.4:44-48, rolling:46-50) and state 3 all.
+_NO_XY = (False, False, True)
+for _case, _action, _location, _diff in (
+    ("params-violation", "Viaz", _PARAMS_VIAZ, False),
+    ("params-violation-difftrace", "Viaz", _PARAMS_VIAZ, True),
+    ("params-instance-exists-violation", "Viaq", _PARAMS_VIAQ, False),
+    ("params-instance-exists-violation-difftrace", "Viaq", _PARAMS_VIAQ, True),
+):
+    trace_states(
+        _case,
+        0,
+        [
+            (None, None, _xyz(0, 0, 0)),
+            (_action, _location, _xyz(0, 0, 2, _NO_XY if _diff else (True, True, True))),
+            (_action, _location, _xyz(0, 0, 4)),
+        ],
+    )
+
+# Step(i) under the existential of Pick: v1.7.4 names the action "Step" (v1.7.4:45, 52), rolling with its
+# argument, "Step(1)" and "Step(2)" (rolling:47, 54; P5). x goes 0, 1, 3; with -difftrace state 2 prints only x.
+_ONLY_X = (True, False, False)
+for _case, _diff in (("params-step-violation", False), ("params-step-violation-difftrace", True)):
+    for _lines, _suffix, _first, _second in (
+        (STABLE, "-stable", "Step", "Step"),
+        (ROLLING, "-rolling", "Step(1)", "Step(2)"),
+    ):
+        trace_states(
+            _case,
+            0,
+            [
+                (None, None, _xyz(0, 0, 0)),
+                (_first, _PARAMS_STEP, _xyz(1, 0, 0, _ONLY_X if _diff else (True, True, True))),
+                (_second, _PARAMS_STEP, _xyz(3, 0, 0)),
+            ],
+            _lines,
+            _suffix,
+        )
+
+# --- -generate (rolling only; v1.7.4 refuses the flag) ----------------------------------------------------------
+# v1.7.4: 1102 "Error: unrecognized option: -generate" right after 2262 (v1.7.4:4-7, all five cases).
+for _case in (
+    "generate-deadlock",
+    "generate-success",
+    "generate-success-num",
+    "generate-violation",
+    "generate-violation-num",
+):
+    _refused(_case, lines=STABLE, suffix="-stable")
+
+# On rolling -generate is a simulation (2188 "Running Random Simulation", rolling:7) with a random seed: the
+# facts assert no value that depends on it. The first state names Init with a location (P5).
+basics(
+    "generate-deadlock",
+    lines=ROLLING,
+    suffix="-rolling",
+    status="FAILURE",  # 2114: rolling:30
+    verdict="ERRORS",
+    mode="simulate",
+    progress=True,  # 2209: rolling:51
+    info=[2269],  # rolling:24
+    errors=[(2114, "deadlock", None)],  # rolling:31
+    related=[[2121]],  # rolling:33
+    traces=[(3, None, False)],  # rolling:36-50
+)
+_DEADLOCK_INIT = ("Init", ("Deadlock", 4, 9, 4, 13))
+_DEADLOCK_NEXT = ("Deadlock", 5, 9, 5, 27)
+# Headers rolling:37, 42, 47. Deadlock.tla has one behaviour, so the values do not depend on the seed.
+states(
+    "generate-deadlock",
+    0,
+    "x",
+    [(*_DEADLOCK_INIT, 0), ("Next", _DEADLOCK_NEXT, 1), ("Next", _DEADLOCK_NEXT, 2)],
+    ROLLING,
+)
+
+basics(
+    "generate-success",
+    lines=ROLLING,
+    suffix="-rolling",
+    status="RUNNING",  # killed by the driver after 120 s: no 2186, the output ends at rolling:32
+    verdict="INCOMPLETE",
+    phase="CHECKING",  # 2190: rolling:27
+    mode="simulate",
+    finished=False,
+    progress=True,  # 2209: rolling:30
+    info=[2269],  # rolling:24
+    errors=[],
+    related=[],
+    traces=[],
+)
+
+basics(
+    "generate-success-num",
+    lines=ROLLING,
+    suffix="-rolling",
+    status="SUCCESS",  # 2186: rolling:40
+    verdict="NO_ERROR_BOUNDED",  # a simulation (P3)
+    mode="simulate",
+    progress=True,  # 2209: rolling:30
+    info=[2269],  # rolling:24
+    errors=[],
+    related=[],
+    traces=[],
+)
+
+for _case in ("generate-violation", "generate-violation-num"):
+    basics(
+        _case,
+        lines=ROLLING,
+        suffix="-rolling",
+        status="FAILURE",  # 2110: rolling:34
+        verdict="ERRORS",
+        mode="simulate",
+        progress=True,  # 2209: rolling:95
+        info=[2269],  # rolling:28
+        errors=[(2110, "invariant", "Small")],  # rolling:35
+        related=[[2121]],  # rolling:37
+        traces=[(4, None, False)],  # rolling:40-94
+    )
+    # Headers rolling:41, 48, 59, 75; the store and log differ between the two captures (random seeds).
+    trace_states(_case, 0, _violation_unknown_rows(("Init", _V_INIT), ("Next", _V_NEXT)), ROLLING)
+
+# --- generateSpecTE-violation: Violation.tla, -generateSpecTE --------------------------------------------------
+# v1.7.4 prints four 1000:0 messages about the SpecTE files (v1.7.4:1, 109, 112, 115): severity 0, so
+# information (P4 rule 1); rolling prints 2501, the path of the trace spec, after 2186 (rolling:117).
+for _lines, _suffix, _info_codes in ((STABLE, "-stable", [1000, 1000, 1000, 1000]), (ROLLING, "-rolling", [2501])):
+    basics(
+        "generateSpecTE-violation",
+        lines=_lines,
+        suffix=_suffix,
+        status="FAILURE",  # 2110: v1.7.4:36, rolling:44
+        verdict="ERRORS",
+        progress=True,  # 2200: v1.7.4:97, rolling:105
+        info=_info_codes,
+        errors=[(2110, "invariant", "Small")],  # v1.7.4:37, rolling:45
+        related=[[2121]],  # v1.7.4:39, rolling:47
+        traces=[(4, None, False)],  # v1.7.4:42-96, rolling:50-104
+    )
+# Headers v1.7.4:43, 50, 61, 77; rolling:51, 58, 69, 85.
+trace_states("generateSpecTE-violation", 0, _violation_rows())
+
+# --- noGenerateSpecTE-violation: Violation.tla, -noGenerateSpecTE (rolling only) ---------------------------------
+_refused("noGenerateSpecTE-violation", lines=STABLE, suffix="-stable")  # 1102: v1.7.4:4-7
+basics(
+    "noGenerateSpecTE-violation",
+    lines=ROLLING,
+    suffix="-rolling",
+    status="FAILURE",  # 2110: rolling:34
+    verdict="ERRORS",
+    progress=True,  # 2200: rolling:95
+    errors=[(2110, "invariant", "Small")],  # rolling:35
+    related=[[2121]],  # rolling:37
+    traces=[(4, None, False)],  # rolling:40-94
+)
+# Headers rolling:41, 48, 59, 75.
+trace_states("noGenerateSpecTE-violation", 0, _violation_rows(), ROLLING)
+
+# --- simulate-*: -simulate num=N -depth 20 -seed 7 ---------------------------------------------------------------
+# 2188 with 1 worker (v1.7.4:7, rolling:7); 2269 is information. v1.7.4 prints no 2190 in a simulation; rolling
+# does, and names Init with a location in the first state (P5). The seed is fixed, and both builds took the same
+# behaviours, so the values are asserted.
+basics(
+    "simulate-deadlock",
+    status="FAILURE",  # 2114: v1.7.4:26, rolling:30
+    verdict="ERRORS",
+    mode="simulate",
+    progress=True,  # 2209: v1.7.4:47, rolling:51
+    info=[2269],  # v1.7.4:23, rolling:24
+    errors=[(2114, "deadlock", None)],  # v1.7.4:27, rolling:31
+    related=[[2121]],  # v1.7.4:29, rolling:33
+    traces=[(3, None, False)],  # v1.7.4:32-46, rolling:36-50
+)
+# Headers v1.7.4:33, 38, 43; rolling:37, 42, 47.
+states("simulate-deadlock", 0, "x", _counting("Next", _DEADLOCK_NEXT, [0, 1, 2]), STABLE, "-stable")
+states(
+    "simulate-deadlock",
+    0,
+    "x",
+    [(*_DEADLOCK_INIT, 0), ("Next", _DEADLOCK_NEXT, 1), ("Next", _DEADLOCK_NEXT, 2)],
+    ROLLING,
+    "-rolling",
+)
+
+for _lines, _suffix, _name_ in ((STABLE, "-stable", None), (ROLLING, "-rolling", "Reach")):
+    basics(
+        "simulate-liveness",
+        lines=_lines,
+        suffix=_suffix,
+        status="FAILURE",  # 2116: v1.7.4:29, rolling:33 (no name on v1.7.4:30, "Reach" on rolling:34)
+        verdict="ERRORS",
+        mode="simulate",
+        progress=True,  # 2209: v1.7.4:56, rolling:60
+        info=[2212, 2269],  # v1.7.4:23 and 26, rolling:24 and 27
+        errors=[(2116, "property", _name_)],
+        related=[[2264]],  # v1.7.4:33, rolling:37
+        traces=[(3, 1, False)],  # 2122 "1: Back to state": v1.7.4:52, rolling:56
+    )
+_LIVEBACK = ("LiveBack", 5, 9, 5, 24)
+# Headers v1.7.4:38, 43, 48; rolling:42, 47, 52.
+states("simulate-liveness", 0, "x", _counting("Next", _LIVEBACK, [0, 1, 2]), STABLE, "-stable")
+states(
+    "simulate-liveness",
+    0,
+    "x",
+    [("Init", ("LiveBack", 4, 9, 4, 13), 0), ("Next", _LIVEBACK, 1), ("Next", _LIVEBACK, 2)],
+    ROLLING,
+    "-rolling",
+)
+
+basics(
+    "simulate-violation",
+    status="FAILURE",  # 2110: v1.7.4:30, rolling:34
+    verdict="ERRORS",
+    mode="simulate",
+    progress=True,  # 2209: v1.7.4:91, rolling:95
+    info=[2269],  # v1.7.4:27, rolling:28
+    errors=[(2110, "invariant", "Small")],  # v1.7.4:31, rolling:35
+    related=[[2121]],  # v1.7.4:33, rolling:37
+    traces=[(4, None, False)],  # v1.7.4:36-90, rolling:40-94
+)
+
+
+def _simulate_violation_rows(first: tuple[str | None, Loc | None]) -> list[Row]:
+    # v1.7.4:37-90, rolling:41-94: alpha 1, then gamma 2, then beta 2.
+    a1, g2, b2 = ("alpha", 1), ("gamma", 2), ("beta", 2)
+    return [
+        (*first, [("store", _vstore(), True), ("n", vint(0), True), ("log", vseq(), True)]),
+        ("Next", _V_NEXT, [("store", _vstore([1]), True), ("n", vint(1), True), ("log", _vlog(a1), True)]),
+        ("Next", _V_NEXT, [("store", _vstore([1], [], [2]), True), ("n", vint(2), True), ("log", _vlog(a1, g2), True)]),
+        (
+            "Next",
+            _V_NEXT,
+            [("store", _vstore([1], [2], [2]), True), ("n", vint(3), True), ("log", _vlog(a1, g2, b2), True)],
+        ),
+    ]
+
+
+trace_states("simulate-violation", 0, _simulate_violation_rows((None, None)), STABLE, "-stable")
+trace_states("simulate-violation", 0, _simulate_violation_rows(("Init", _V_INIT)), ROLLING, "-rolling")
+
+basics(
+    "simulate-violation-diff",
+    status="FAILURE",  # 2110: v1.7.4:26, rolling:30
+    verdict="ERRORS",
+    mode="simulate",
+    progress=True,  # 2209: v1.7.4:62, rolling:66
+    info=[2269],  # v1.7.4:23, rolling:24
+    errors=[(2110, "invariant", "Inv")],  # v1.7.4:27, rolling:31
+    related=[[2121]],  # v1.7.4:29, rolling:33
+    traces=[(5, None, False)],  # v1.7.4:32-61, rolling:36-65
+)
+
+
+def _simulate_diff_rows(first: tuple[str | None, Loc | None]) -> list[Row]:
+    # v1.7.4:32-61, rolling:36-65: a moves once, then b and c three times; in a simulation the last state is not
+    # printed in full, so a is carried into states 3 to 5.
+    rows: list[Row] = [
+        (*first, [("a", vint(0), True), ("b", vint(0), True), ("c", _C0, True)]),
+        ("Next", _DIFF_A, [("a", vint(1), True), ("b", vint(0), False), ("c", _C0, False)]),
+    ]
+    for b in range(1, 4):
+        c = vseq(vint(0), vint(b), vint(0))
+        rows.append(("Next", _DIFF_B, [("a", vint(1), False), ("b", vint(b), True), ("c", c, True)]))
+    return rows
+
+
+trace_states("simulate-violation-diff", 0, _simulate_diff_rows((None, None)), STABLE, "-stable")
+trace_states("simulate-violation-diff", 0, _simulate_diff_rows(("Init", ("Diff", 4, 9, 4, 48))), ROLLING, "-rolling")
+
+# --- stale-*-tool: a PlusCal spec changed since its translation (research 22, P8) --------------------------------
+# One SANY warning, and the model is checked: no error, exit 0. v1.7.4 prints "!! WARNING: <text>" under the
+# Parsing line (v1.7.4:14); rolling a warning block, "In module M" and the text (rolling:15-20).
+for _case, _module in (
+    ("stale-alg-tool", "PcalStaleAlg"),
+    ("stale-both-tool", "PcalStaleBoth"),
+    ("stale-tla-tool", "PcalStaleTla"),
+):
+    basics(
+        _case,
+        status="SUCCESS",  # a SANY warning is not a failure (P3); 2186: v1.7.4:48, rolling:57
+        verdict="NO_ERROR",
+        progress=True,  # 2200: v1.7.4:36, rolling:45
+        diagnostics=1,
+        errors=[],
+        related=[],
+        traces=[],
+        stats=(4, 3, 0, 3),  # 2199 v1.7.4:39 rolling:48; 2194 v1.7.4:42 rolling:51
+    )
+    for _line in ("stable", "rolling"):
+
+        def _stale_warning(r: RunResult, case: str = _case, module: str = _module, line: str = _line) -> None:
+            # The text is kept as printed (v1.7.4's text for "both" is misspelt), so it is read from the capture.
+            d = _diagnostic(r, 0)
+            _same(
+                "(tool, severity, module, location)",
+                (d.tool, d.severity, d.module, d.location),
+                ("sany", "warning", module, None),
+            )
+            _file_ends("diagnostic", d.file, f"{module}.tla")
+            text = _capture(case, line)
+            if line == "stable":
+                expected = next(t.removeprefix("!! WARNING: ") for t in text if t.startswith("!! WARNING: "))
+            else:
+                expected = next(t for t in text[text.index(f"In module {module}") + 1 :] if t)
+            _same("message as printed", d.message, expected)
+
+        add(_case, "sany", f"warning-{_line}", _stale_warning, frozenset({_line}))
+
+# --- tool-act: Act.tla, an action property violated ---------------------------------------------------------------
+basics(
+    "tool-act",
+    status="FAILURE",  # 2112: v1.7.4:29, rolling:30
+    verdict="ERRORS",
+    progress=True,  # 2200: v1.7.4:45, rolling:46
+    errors=[(2112, "property", None)],  # "Action property Dec is violated.": P5 reads names of 2110, 2116, 2404 only
+    related=[[2121]],  # v1.7.4:32, rolling:33
+    traces=[(2, None, False)],  # no loop line: v1.7.4:35-44, rolling:36-45
+)
+# Headers v1.7.4:36, 41; rolling:37, 42.
+states("tool-act", 0, "x", _counting("Next", ("Act", 5, 9, 5, 27), [0, 1]))
+
+# --- tool-asrt: Asrt.tla, an Assert that fails -------------------------------------------------------------------
+basics(
+    "tool-asrt",
+    status="FAILURE",  # 2132: v1.7.4:35, rolling:36
+    verdict="ERRORS",
+    progress=True,  # 2200: v1.7.4:63, rolling:64
+    errors=[(2132, "assertion", None)],
+    related=[[2121, 2103]],  # 2121 before the states (v1.7.4:39, rolling:40), 2103 after (v1.7.4:52, rolling:53)
+    traces=[(2, None, False)],  # v1.7.4:42-51, rolling:43-52
+)
+# Headers v1.7.4:43, 48; rolling:44, 49.
+states("tool-asrt", 0, "x", _counting("Next", ("Asrt", 5, 9, 5, 52), [0, 1]))
+
+# --- tool-assum: Assum.tla, a false ASSUME -----------------------------------------------------------------------
+basics(
+    "tool-assum",
+    status="FAILURE",  # 2104: v1.7.4:23, rolling:24
+    verdict="ERRORS",  # an assumption is a finding about the model (P3)
+    progress=False,
+    errors=[(2104, "assumption", None)],
+    related=[[]],
+    traces=[None],
+)
+
+# --- tool-badcfg: BadCfg.tla, a cfg naming an operator the spec does not define ------------------------------------
+basics(
+    "tool-badcfg",
+    status="FAILURE",  # 2229: v1.7.4:23, rolling:24
+    verdict="NOT_CHECKED",
+    progress=False,
+    errors=[(2229, "config", None)],
+    related=[[]],
+    traces=[None],
+)
+
+# --- tool-cfg-missing, tool-nocfg, tool-nospecfile (5001) and tool-cfgsyn (5003): cfg errors -----------------------
+# v1.7.4: a 1000 holding the 5001 or 5003 at severity 0 (v1.7.4:10-19), which gives it the kind config (P5), then
+# 2186 (v1.7.4:20). Rolling: the 5001 or 5003 at the top level (rolling:10-13); after a 5001 the output ends with
+# no 2186, after the 5003 a 2186 follows (rolling:14). No 2185 in any of them.
+for _case, _code, _rolling_finished in (
+    ("tool-cfg-missing", 5001, False),
+    ("tool-nocfg", 5001, False),
+    ("tool-nospecfile", 5001, False),
+    ("tool-cfgsyn", 5003, True),
+):
+    basics(
+        _case,
+        lines=STABLE,
+        suffix="-stable",
+        status="FAILURE",
+        verdict="NOT_CHECKED",
+        started=False,
+        progress=False,
+        errors=[(1000, "config", None)],
+        related=[[]],
+        traces=[None],
+    )
+    basics(
+        _case,
+        lines=ROLLING,
+        suffix="-rolling",
+        status="FAILURE",
+        verdict="NOT_CHECKED",
+        phase="FINISHED" if _rolling_finished else "NOT_STARTED",
+        started=False,
+        finished=_rolling_finished,
+        progress=False,
+        errors=[(_code, "config", None)],
+        related=[[]],
+        traces=[None],
+    )
+
+    def _cfg_stable_shape(r: RunResult, code: int = _code) -> None:
+        # v1.7.4:10-19: four lines, then ": " and the nested message of two lines.
+        message = _error(r, 0).message
+        _same("body", _body_shape(message), ["line"] * 4 + [code])
+        nested = message.nested[0]
+        _same("nested (severity, before, lines)", (nested.severity, nested.before, len(nested.lines)), (0, ": ", 2))
+
+    def _cfg_rolling_shape(r: RunResult) -> None:
+        # rolling:10-13: severity 1, two lines, nothing nested.
+        message = _error(r, 0).message
+        _same("(severity, body)", (message.severity, _body_shape(message)), (1, ["line", "line"]))
+
+    add(_case, "errors", "config-message-shape-stable", _cfg_stable_shape, STABLE)
+    add(_case, "errors", "config-message-shape-rolling", _cfg_rolling_shape, ROLLING)
+
+# --- tool-eval: Eval.tla, an invariant that divides by zero ------------------------------------------------------
+basics(
+    "tool-eval",
+    status="FAILURE",  # 1000: v1.7.4:26, rolling:27
+    verdict="ERRORS",
+    progress=True,  # 2200: v1.7.4:40, rolling:41
+    errors=[(1000, "evaluation", None)],  # it holds one 2179 (v1.7.4:27-29, rolling:28-30), whose kind it takes (P5)
+    related=[[2103]],  # v1.7.4:31, rolling:32
+    traces=[None],
+)
+
+
+@fact("tool-eval", "errors", "message-shape")
+def _eval_shape(r: RunResult) -> None:
+    # v1.7.4:26-30, rolling:27-31: the 1000's body is the 2179 alone, with nothing before it. Both builds nest it.
+    message = _error(r, 0).message
+    _same("body", _body_shape(message), [2179])
+    nested = message.nested[0]
+    _same(
+        "nested 2179 (severity, before, after, lines)",
+        (nested.severity, nested.before, nested.after, len(nested.lines)),
+        (0, "", "", 1),
+    )
+
+
+# --- tool-help: -help, TLC's manual page and no message at all ----------------------------------------------------
+basics(
+    "tool-help",
+    status="RUNNING",  # no message, so no 2186 (v1.7.4:1-134, rolling:1-210)
+    verdict="INCOMPLETE",
+    phase="NOT_STARTED",
+    mode=None,
+    workers=None,
+    tool=False,
+    started=False,
+    finished=False,
+    progress=False,
+    output=None,
+    errors=[],
+    related=[],
+    traces=[],
+)
+# Every line is output, as printed (D9), ANSI codes included; the text is read from the capture.
+add("tool-help", "run", "output-stable", _output_is_capture("tool-help", "stable"), STABLE)
+add("tool-help", "run", "output-rolling", _output_is_capture("tool-help", "rolling"), ROLLING)
+
+# --- tool-missing-module, tool-name-mismatch: SANY abort blocks inside TLC (P8) ----------------------------------
+basics(
+    "tool-missing-module",
+    status="FAILURE",  # 3002: v1.7.4:32, rolling:35
+    verdict="NOT_CHECKED",
+    progress=False,
+    diagnostics=1,  # the abort block: v1.7.4:16-23, rolling:16-25 (its second copy dropped, P8)
+    errors=[(3002, "parse", None)],
+    related=[[]],
+    traces=[None],
+)
+basics(
+    "tool-name-mismatch",
+    status="FAILURE",  # 3002: v1.7.4:31, rolling:34
+    verdict="NOT_CHECKED",
+    progress=False,
+    diagnostics=1,  # v1.7.4:15-22, rolling:15-24
+    errors=[(3002, "parse", None)],
+    related=[[]],
+    traces=[None],
+)
+
+# v1.7.4 says "Unknown location" (v1.7.4:21), rolling "In module MissMod" (rolling:18): a module, and so a file.
+for _lines, _suffix, _module, _file in (
+    (STABLE, "-stable", None, None),
+    (ROLLING, "-rolling", "MissMod", "MissMod.tla"),
+):
+
+    def _missing_module(r: RunResult, module: str | None = _module, file: str | None = _file) -> None:
+        d = _diagnostic(r, 0)
+        _same(
+            "(tool, severity, module, location)",
+            (d.tool, d.severity, d.module, d.location),
+            ("sany", "error", module, None),
+        )
+        _file_ends("diagnostic", d.file, file)
+        _holds("message names the missing module", "NoSuchModule" in d.message, d.message)  # v1.7.4:23, rolling:20
+
+    add("tool-missing-module", "sany", "diagnostic" + _suffix, _missing_module, _lines)
+
+
+@fact("tool-name-mismatch", "sany", "diagnostic")
+def _name_mismatch(r: RunResult) -> None:
+    # "Unknown location" on both (v1.7.4:20, rolling:17): no module, no file; the message names both names
+    # (v1.7.4:22, rolling:19).
+    d = _diagnostic(r, 0)
+    _same(
+        "(tool, severity, module, location, file)",
+        (d.tool, d.severity, d.module, d.location, d.file),
+        ("sany", "error", None, None, None),
+    )
+    _holds("message names the file and the module", "Mismatch" in d.message and "Other" in d.message, d.message)
+
+
+# --- tool-nexteval: NextEval.tla, Next divides by zero -----------------------------------------------------------
+basics(
+    "tool-nexteval",
+    status="FAILURE",  # 2179: v1.7.4:29, rolling:30
+    verdict="ERRORS",
+    progress=True,  # 2200: v1.7.4:48, rolling:49
+    errors=[(2179, "evaluation", None)],  # at the top level, with a trace (P5)
+    related=[[2121, 2103]],  # v1.7.4:32 and 40, rolling:33 and 41
+    traces=[(1, None, False)],  # v1.7.4:35-39, rolling:36-40
+)
+states("tool-nexteval", 0, "x", [(None, None, 0)])  # v1.7.4:36-37, rolling:37-38
+
+# --- tool-noargs, tool-workers-bad: command lines TLC refuses (1102 at v1.7.4:4, rolling:4) -----------------------
+_refused("tool-noargs")
+_refused("tool-workers-bad")
+
+# --- tool-oom: Oom.tla with -Xmx64m ------------------------------------------------------------------------------
+basics(
+    "tool-oom",
+    status="FAILURE",  # 1000: v1.7.4:26, rolling:27
+    verdict="ERRORS",  # exceptions after 2189 (v1.7.4:23, rolling:24)
+    progress=True,  # 2200: v1.7.4:38, rolling:41
+    errors=[
+        (1000, "exception", None),  # "Java heap space": v1.7.4:26-28, rolling:27-29
+        (2147, "exception", None),  # not a continuation code, so an error of its own: v1.7.4:29, rolling:30
+    ],
+    related=[[], []],
+    traces=[None, None],
+)
+
+
+@fact("tool-oom", "errors", "heap-message")
+def _oom_shape(r: RunResult) -> None:
+    # v1.7.4:27, rolling:28: the 1000 is the one line the JVM gave.
+    _same("1000 lines", _error(r, 0).message.lines, ("Java heap space",))
+
+
+# --- warn4802-tool, warnstutter-tool: SANY errors that TLC refuses with 3002 (D55) --------------------------------
+basics(
+    "warn4802-tool",
+    status="FAILURE",  # 3002: v1.7.4:33, rolling:32
+    verdict="NOT_CHECKED",
+    progress=False,
+    diagnostics=1,  # "Semantic errors:" v1.7.4:17-23, rolling:17-23
+    errors=[(3002, "parse", None)],
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("warn4802-tool", "sany", "diagnostic")
+def _warn4802(r: RunResult) -> None:
+    # v1.7.4:21 and 23, rolling:21 and 23: an error, not a warning (D55).
+    d = _diagnostic(r, 0)
+    _same("(tool, severity, module)", (d.tool, d.severity, d.module), ("sany", "error", "Warn4802"))
+    _same("location", _loc(d.location), ("Warn4802", 4, 16, 4, 16))
+    _same("message", d.message, "Non-unique fields in constructor.")
+    _file_ends("diagnostic", d.file, "Warn4802.tla")
+
+
+basics(
+    "warnstutter-tool",
+    status="FAILURE",  # 3002: v1.7.4:38, rolling:37
+    verdict="NOT_CHECKED",
+    progress=False,
+    diagnostics=2,  # "*** Errors: 2": v1.7.4:19, rolling:19
+    errors=[(3002, "parse", None)],
+    related=[[]],
+    traces=[None],
+)
+
+
+@fact("warnstutter-tool", "sany", "two-lints")
+def _warnstutter(r: RunResult) -> None:
+    # The two stuttering lints, v1.7.4:21 and 26, rolling:21 and 26: errors (D55).
+    _same("number of diagnostics", len(r.sany), 2)
+    _same("(severity, module) of each", [(d.severity, d.module) for d in r.sany], [("error", "WarnStutter")] * 2)
+    _same(
+        "locations", [_loc(d.location) for d in r.sany], [("WarnStutter", 7, 9, 7, 22), ("WarnStutter", 8, 10, 8, 19)]
+    )
+    for n, d in enumerate(r.sany, 1):
+        _file_ends(f"diagnostic {n}", d.file, "WarnStutter.tla")
 
 
 FACTS: tuple[Fact, ...] = tuple(_FACTS)
