@@ -35,6 +35,9 @@ jobs:
       - name: Run linting
         run: uv run poe lint
 
+      - name: Check formatting
+        run: uv run ruff format --check .
+
       # Running tests requires a TLC
       - name: Download tla2tools.jar
         run: uv run tlaup tools install

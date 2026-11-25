@@ -10,6 +10,7 @@ Use `uv` for everything; do not call `pip` or a global Python.
 uv sync --all-extras --dev     # set up the environment
 uv run poe test                # unit tests with coverage
 uv run poe lint                # ruff check, bandit, mypy (strict)
+uv run poe format              # ruff format, Python files and Python blocks in Markdown
 uv run poe check               # all pre-commit hooks on all files
 uv run pytest tests/integration  # needs Java 11+ and `uv run tlaup tools install`
 uv run poe check-release       # hooks, build, twine check
@@ -19,11 +20,7 @@ Run `uv run poe lint` and `uv run poe test` before committing.
 
 ## CI
 
-`.github/workflows/test.yml` runs lint and unit tests on every push to `main` and on every pull request.
-
-## Formatting
-
-`ruff format` is not enforced yet and several files are unformatted. Do not reformat files you are not otherwise changing; format enforcement is its own roadmap item.
+`.github/workflows/test.yml` runs lint, the format check (`uv run ruff format --check .`) and unit tests on every push to `main` and on every pull request.
 
 ## Code map
 

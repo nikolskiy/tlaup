@@ -146,6 +146,13 @@ repos:
         types: [python]
         require_serial: true
 
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --check --force-exclude
+        language: system
+        types_or: [python, pyi, markdown]
+        require_serial: true
+
       - id: bandit
         name: bandit
         entry: uv run bandit -c pyproject.toml -r src/tlaup
