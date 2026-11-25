@@ -29,7 +29,9 @@ from tests.steps._process import (
     exit_code_of,
     find_log,
     is_tool_start,
+    kill_group,
     prepare,
+    reap_fakes,
     release_when_waiting,
     wait_for_log,
 )
@@ -55,7 +57,11 @@ TERMINAL_TYPE = "xterm-256color"
 FEED_SECONDS = 10.0
 HISTORY_LINES = 100_000
 # Escape sequences, for "the whole output with escape sequences removed": CSI, OSC, and the two-byte forms.
-_ESCAPES = re.compile(rb"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][0-9A-Za-z]|\x1b[@-Z\\-_]")
+# DCS strings first, since ESC P is also a two-byte form; the two-byte forms include ESC 7, ESC 8, ESC = and ESC >.
+_ESCAPES = re.compile(
+    rb"\x1bP.*?\x1b\\|\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][0-9A-Za-z]|\x1b[0-Z\\-~]",
+    re.DOTALL,
+)
 
 
 def _new_screen(size: tuple[int, int]) -> tuple[pyte.HistoryScreen, pyte.ByteStream]:
@@ -95,9 +101,10 @@ def without_escapes(data: bytes) -> str:
 
 
 def _shows(screen: pyte.HistoryScreen, text: str) -> bool:
-    lines = _lines(screen)
-    # Joined both ways, so a text that wrapped at the right edge is still found.
-    return text in "\n".join(lines) or text in "".join(lines)
+    # A full-width line ran on into the next (it wrapped); any other line ends with a newline, so a text
+    # is never found across two separate lines.
+    joined = "".join(line if len(line) == screen.columns else line + "\n" for line in _lines(screen))
+    return text in joined
 
 
 @dataclass
@@ -109,6 +116,8 @@ class TerminalRun:
     size: tuple[int, int]  # columns, lines
     redirect: dict[str, Path] = field(default_factory=dict)
     output: bytearray = field(default_factory=bytearray)
+    fakes: Any = None  # whose java starts since line ``after`` a kill also ends (set by watch)
+    after: int = 0
     ended: bool = False  # end of output was read
     screen: Any = None
     stream: Any = None
@@ -138,13 +147,18 @@ class TerminalRun:
     def last_screen(self) -> str:
         return _join(_lines(self.screen))
 
+    def watch(self, fakes: Any, after: int) -> TerminalRun:
+        """A kill also ends every fake java started since line ``after`` of its log."""
+        self.fakes, self.after = fakes, after
+        return self
+
     def kill(self) -> None:
+        """The session's group (tlaup and a fake in its group), then every fake java of this run."""
+        kill_group(self.process.pid)
         if self.process.poll() is None:
-            try:
-                os.killpg(self.process.pid, signal.SIGKILL)  # the session's group: tlaup and the fake
-            except ProcessLookupError:
-                self.process.kill()
+            self.process.kill()
         self.process.wait()
+        reap_fakes(self.fakes, self.after)
 
     def fail_with_screen(self, message: str) -> None:
         self.kill()
@@ -258,8 +272,8 @@ def run_in_terminal(
     answers: str | None = None,
 ) -> Outcome:
     """``I run ... in a terminal <w> by <h>``, redirected or answered: the answers typed at once (T5's note)."""
-    prepare(scenario)
-    run = run_on_terminal(argv, size=size, redirect=redirect)
+    after = prepare(scenario)
+    run = run_on_terminal(argv, size=size, redirect=redirect).watch(scenario.fakes, after)
     try:
         if answers is not None:
             run.type("".join(f"{answer.strip()}\n" for answer in answers.split(",")))
@@ -275,8 +289,8 @@ def ctrl_c_once_shown(
     scenario: Scenario, argv: Sequence[str], size: tuple[int, int], first: str, second: str
 ) -> Outcome:
     """``... and press Ctrl-C once the terminal has shown "<a>" and then "<b>"``."""
-    prepare(scenario)
-    run = run_on_terminal(argv, size=size)
+    after = prepare(scenario)
+    run = run_on_terminal(argv, size=size).watch(scenario.fakes, after)
     try:
         run.feed_until(first)
         run.feed_until(second)
@@ -292,7 +306,7 @@ def ctrl_c_once_shown(
 def ctrl_c_at_checkpoint(scenario: Scenario, argv: Sequence[str], size: tuple[int, int]) -> Outcome:
     """``... and press Ctrl-C once java has begun its checkpoint``: the pty is read all the while."""
     after = prepare(scenario)
-    run = run_on_terminal(argv, size=size)
+    run = run_on_terminal(argv, size=size).watch(scenario.fakes, after)
     fakes = scenario.fakes
     try:
         marks: list[dict[str, Any]] = []

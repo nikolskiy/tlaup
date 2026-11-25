@@ -25,11 +25,14 @@ from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, TLAUP_J
 from tests.steps._terminal import (
     ENTER_ALT,
     LEAVE_ALT,
+    TerminalRun,
+    _shows,
     ctrl_c_at_checkpoint,
     ctrl_c_once_shown,
     run_in_terminal,
     run_on_terminal,
     screen_text,
+    without_escapes,
 )
 
 if TYPE_CHECKING:
@@ -1218,3 +1221,51 @@ def test_a_terminal_step_after_a_plain_run_fails(scenario: Scenario) -> None:
     outcome(scenario)
     with pytest.raises(FAILED, match="not on a terminal"):
         then(scenario, 'the terminal contains "x"')
+
+
+# A run killed on its timeout ends the fake java too, even in a group of its own (D60)
+
+HANGING_PARENT = """
+import subprocess, sys, time
+fake = subprocess.Popen([sys.argv[1], "tlc2.TLC"], stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                        process_group=0)
+fake.stdout.readline()  # the fake has started and logged its start line
+print("ready", flush=True)
+time.sleep(60)
+"""
+
+
+def fake_pid(fakes: Fakes) -> int:
+    return int(java_lines(fakes, "start")[-1]["pid"])
+
+
+@POSIX_ONLY
+def test_a_killed_process_run_ends_its_fake_java(scenario: Scenario, fakes: Fakes, reap: Any) -> None:
+    given(scenario, "java prints 1 lines")
+    given(scenario, "java hangs after line 1")
+    with pytest.raises(FAILED, match=r"(?s)still running.*ready"):
+        run_as_process(scenario, py(HANGING_PARENT, fakes.bin / "java"), timeout=3)
+    assert not _process_alive(fake_pid(fakes))
+
+
+@PTY_ONLY
+def test_a_killed_terminal_run_ends_its_fake_java(scenario: Scenario, fakes: Fakes, reap: Any) -> None:
+    given(scenario, "java prints 1 lines")
+    given(scenario, "java hangs after line 1")
+    run = run_on_terminal(py(HANGING_PARENT, fakes.bin / "java"), size=(80, 24)).watch(fakes, 0)
+    run.feed_until("ready")
+    with pytest.raises(FAILED, match="did not end"):
+        run.finish(timeout=1)
+    assert not _process_alive(fake_pid(fakes))
+
+
+def test_escapes_removed_include_the_two_byte_forms_and_dcs() -> None:
+    data = b"\x1b7a\x1b8b\x1b=c\x1b>d\x1bPq#0;1;1\x1b\\e\x1b[1mf\x1b]0;title\x07g"
+    assert without_escapes(data) == "abcdefg"
+
+
+def test_a_text_is_found_across_a_wrap_but_not_across_two_lines(scenario: Scenario) -> None:
+    run = TerminalRun(process=None, master=-1, size=(4, 3))  # type: ignore[arg-type]
+    run.stream.feed(b"abcdef\r\ngh\r\nij")
+    assert _shows(run.screen, "cdef")  # "abcd" filled the line and wrapped
+    assert not _shows(run.screen, "ghij")

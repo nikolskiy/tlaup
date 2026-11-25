@@ -20,7 +20,7 @@ from typing import IO, TYPE_CHECKING, Any, Literal
 
 import pytest
 
-from tests.steps._scenario import POLL_SECONDS, VERSION_START, Outcome, fail
+from tests.steps._scenario import POLL_SECONDS, VERSION_START, Outcome, _process_alive, fail
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -146,6 +146,30 @@ def wait_for_log(
         time.sleep(POLL_SECONDS)
 
 
+def reap_fakes(fakes: Fakes | None, after: int) -> None:
+    """SIGKILL, by process id, every fake java started since line ``after`` that is still alive.
+
+    For a run that was killed: a JVM in a group of its own (D60) is not reached by killing tlaup's group.
+    """
+    if fakes is None or not POSIX:
+        return
+    killed = []
+    for line in read_log(fakes, "java")[after:]:
+        if line.get("event") == "start" and _process_alive(int(line["pid"])):
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(int(line["pid"]), signal.SIGKILL)
+                killed.append(int(line["pid"]))
+    deadline = time.monotonic() + LOG_WAIT_SECONDS  # a SIGKILL lands soon, not at once
+    while any(_process_alive(pid) for pid in killed) and time.monotonic() < deadline:
+        time.sleep(POLL_SECONDS)
+
+
+def kill_group(pgid: int) -> None:
+    """SIGKILL a whole group, whether or not its leader is still there."""
+    with contextlib.suppress(ProcessLookupError, PermissionError):
+        os.killpg(pgid, signal.SIGKILL)
+
+
 def is_tool_start(line: dict[str, Any]) -> bool:
     """A ``start`` line of a tool's main class, not the version check that comes first (T5)."""
     return line.get("event") == "start" and line.get("main") not in (None, VERSION_START)
@@ -166,6 +190,8 @@ class ProcessRun:
     group: bool
     pgid: int | None
     stdout_text: str | None = None  # what the step itself read from stdout (the reader form)
+    fakes: Fakes | None = None  # whose java starts since line ``after`` a kill also ends
+    after: int = 0
 
     def stderr_so_far(self) -> str:
         return _text(self.stderr_file.read_bytes()) if self.stderr_file is not None else ""
@@ -188,12 +214,13 @@ class ProcessRun:
             time.sleep(POLL_SECONDS)
 
     def kill(self) -> None:
-        if self.process.poll() is None:
-            if self.group and self.pgid is not None:
-                os.killpg(self.pgid, signal.SIGKILL)
-            else:
-                self.process.kill()
+        """tlaup (its whole group, when it has one of its own), then every fake java of this run."""
+        if self.group and self.pgid is not None:
+            kill_group(self.pgid)
+        elif self.process.poll() is None:
+            self.process.kill()
         self.process.wait()
+        reap_fakes(self.fakes, self.after)
 
     def close(self) -> None:
         if self.stdin is not None:
@@ -269,8 +296,9 @@ def launch(
     stdout: Literal["file", "pipe", "closed", "null"],
     stderr: Literal["file", "closed"],
     new_group: bool = False,
+    after: int = 0,
 ) -> ProcessRun:
-    """Start ``argv`` with its three streams arranged as a step says."""
+    """Start ``argv`` with its three streams arranged as a step says; ``after`` is the java log's length."""
     folder = _streams_folder(scenario)
     to_close: list[Any] = []
     out_file = folder / "stdout" if stdout == "file" else None
@@ -312,6 +340,8 @@ def launch(
         stdin=process.stdin,
         group=new_group,
         pgid=group_of(process, new_group=new_group),
+        fakes=scenario.fakes,
+        after=after,
     )
 
 
@@ -350,7 +380,7 @@ def run_as_process(
     timeout: float = WAIT_SECONDS,
 ) -> Outcome:
     """The ``I run ... as a process`` forms (T5's table); stdin is the null device unless ``input``."""
-    prepare(scenario)
+    after = prepare(scenario)
     stdout: Literal["file", "pipe", "closed", "null"] = "file"
     stderr: Literal["file", "closed"] = "file"
     if arrangement == "reader":
@@ -361,7 +391,8 @@ def run_as_process(
         stdout, stderr = "closed", "closed"
     elif arrangement == "null-and-closed":
         stdout, stderr = "null", "closed"
-    run = launch(scenario, argv, stdin="pipe" if arrangement == "input" else "null", stdout=stdout, stderr=stderr)
+    stdin: Literal["null", "pipe"] = "pipe" if arrangement == "input" else "null"
+    run = launch(scenario, argv, stdin=stdin, stdout=stdout, stderr=stderr, after=after)
     if arrangement == "input":
         assert run.stdin is not None
         with contextlib.suppress(BrokenPipeError):  # it ended without reading; its outcome says so
@@ -406,8 +437,10 @@ def release_when_waiting(
             return True
         if find_log(fakes, "java", lambda line: line.get("event") == "exit" and line.get("pid") == pid, after=after):
             return False
-        if ended() or time.monotonic() >= deadline:
-            return shown() and _touch(release)  # else the wait for the end fails with what it printed
+        if ended():
+            return shown() and _touch(release)  # else the outcome shows what it printed
+        if time.monotonic() >= deadline:
+            fail(f"tlaup did not show the waiting line {WAITING_LINE!r} within {LOG_WAIT_SECONDS} seconds")
         pump()
 
 
@@ -429,7 +462,7 @@ def start_and_signal(
     """The ``I start ... and send <signal> ...`` forms (T5's table); stdin a pipe held open to the end."""
     number = signal_number(signal_name)
     after = prepare(scenario)
-    run = launch(scenario, argv, stdin="pipe", stdout="file", stderr="file", new_group=group)
+    run = launch(scenario, argv, stdin="pipe", stdout="file", stderr="file", new_group=group, after=after)
     fakes = scenario.fakes
     try:
         if moment == "checkpoint":
