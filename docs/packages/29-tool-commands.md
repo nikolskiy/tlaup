@@ -375,6 +375,9 @@ State of `main` when this starts: packages 01 to 28 merged (the store track comp
 
 ## Risks
 
+- *An upgrade can finish and still fail* (settled while building 27b, 2026-11-25, a low-impact choice by the stage 5 lead). When the old build cannot be removed after the new one is added and the pin moved, `upgrade()` returns its `UpgradeReport` with `failed` set and `removed` None, rather than raising. `tool upgrade` prints what was done (the pin moved) and the failure as notes, and exits 5, as V3 does for a failed removal.
+- *`choose_build` takes `every=`, required*: pass `store.builds()`, so the printed forms are worked out among every installed build.
+
 - *The download's progress can go back once* (noted while building 26, 2026-11-25). When the size or digest does not match, `fetch_build` downloads once more and its `progress` callback starts again from 0, so the progress display must accept a count that drops once.
 
 - From V3: a script that ran `tool uninstall rolling` expecting one build to go now removes every rolling build; the changelog says so, and an older rolling build cannot be downloaded again (research 5).

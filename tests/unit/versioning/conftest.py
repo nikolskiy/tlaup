@@ -189,6 +189,18 @@ class Upstream:
         assert isinstance(data, dict)
         return data
 
+    def releases(self) -> list[dict[str, Any]]:
+        """The release list the recording serves, fetched without counting the request."""
+        data, _ = self.client.get_json("/releases")
+        self.fake.clear()
+        assert isinstance(data, list)
+        return data
+
+    def publish_list(self, data: list[dict[str, Any]]) -> None:
+        """``data`` as the release list, ahead of the recording, for one request."""
+        response = responses.Response("GET", f"{BASE}/releases", json=data, status=200)
+        self.fake.mock.registered().insert(0, response)
+
     def publish(self, data: dict[str, Any], *, times: int = 1) -> None:
         for _ in range(times):
             response = responses.Response("GET", TAGS + data["tag_name"], json=data, status=200)
