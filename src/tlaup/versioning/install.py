@@ -868,18 +868,28 @@ def pin(store: ToolStore, spec: VersionSpec, ui: Ui) -> Build:
     return build
 
 
-def choose_build(
-    ui: Ui, question: str, builds: Sequence[Build], *, allow_all: bool, every: Sequence[Build]
+def choose_build(  # noqa: PLR0913 (the question's parts, and the default uninstall gives it)
+    ui: Ui,
+    question: str,
+    builds: Sequence[Build],
+    *,
+    allow_all: bool,
+    every: Sequence[Build],
+    default: str | None = None,
 ) -> list[Build]:
     """List ``builds`` numbered from 1 in their printed form, on stderr, and ask which (V3's table).
 
     The answer is a whole number in range, or ``all`` when ``allow_all``; anything else asks again, and an
-    empty line too, since there is no default. ``every`` is every installed build, for the printed form.
+    empty line too when there is no ``default`` (``tool uninstall`` gives ``all``, inventory row T33; ``pin``
+    gives none). ``every`` is every installed build, for the printed form.
     """
     for number, build in enumerate(builds, start=1):
         ui.note(f"  {number}. {format_build(build, every)}")
     choices = [str(number) for number in range(1, len(builds) + 1)]
     if allow_all:
         choices.append("all")
-    answer = ui.ask(question, choices=choices, default=None)
+    if default is not None and default not in choices:
+        message = f"the default answer {default!r} is not one of the choices"
+        raise InternalError(message)
+    answer = ui.ask(question, choices=choices, default=default)
     return list(builds) if answer == "all" else [builds[int(answer) - 1]]
