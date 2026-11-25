@@ -1,6 +1,6 @@
 # 11. TLA+ values
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 
@@ -54,7 +54,7 @@ Grammar, copied from P7 (white space, newlines included, is allowed between any 
 value    = int | bool | string | interval | set | seq | record | function | model
 int      = ["-"] digits
 bool     = "TRUE" | "FALSE"
-string   = '"' ( any character except '"' and '\' | '\' any character )* '"'
+string   = '"' ( any character except '"' and '\' | '\"' | '\\' )* '"'   (any other escape: the whole value is raw; settled while building 11)
 interval = int ".." int
 set      = "{" [ value { "," value } ] "}"
 seq      = "<<" [ value { "," value } ] ">>"
@@ -125,7 +125,7 @@ None in this package. P7's entry ("Fixed: Function values such as `(a :> 1 @@ b 
 - **Why `text` is not compared and `raw` repeats it in `scalar`.** Tree equality must ignore spacing, so `text` is out of the comparison on every node; without the copy in `scalar` any two raw values would be equal and the changed-variable mark of [22 O3](../design/22-reporters.md#o3-terminal-reporter) would never show for them. A raw value's equality therefore does depend on spacing, which is right: nothing is known about its structure.
 - **Decisions.** D9: nothing is lost, so `text` is kept on every node and failure returns the input. D7: standard library only, no I/O.
 - **Tokens to watch.** `-` starts an integer only; `..` binds two integers into an interval before `.` could mean anything else; `|->`, `:>`, `@@`, `<<`, `>>` are multi-character tokens and `<<` must be tried before a lone `<` would fail; a `name` that is `TRUE` or `FALSE` is a boolean, any other name a model value; a string may contain every token (`":>"`).
-- **Not captured** (P7, Risks): how TLC prints a string that contains a newline or a non-ASCII character. An odd form falls back to `raw`; do not guess an escape syntax beyond `\` followed by any character.
+- **Not captured** (P7, Risks): how TLC prints a string that contains a newline or a non-ASCII character. An odd form falls back to `raw`; do not guess an escape syntax: only `\"` and `\\` are escapes, and any other backslash escape makes the whole value `raw` (settled while building 11, 2026-11-24, a low-impact choice by the stage 5 lead).
 - **The printer in the property test is a second reading of TLC's notation by the same hands** (T7, Risks). The golden value is the check from outside; keep it reading the capture.
 - **Hypothesis** runs with the fixed `ci` profile in CI (`derandomize=True`, 200 examples, no example database committed). The first run prints Hypothesis's statistics and the pull request quotes them, so a strategy that rarely produces a deep or odd value is seen.
 - **Windows (D15):** nothing here depends on the platform; a value's lines are joined with `\n` by the caller.

@@ -537,7 +537,7 @@ Grammar (whitespace, including newlines, is allowed between any two tokens):
 value    = int | bool | string | interval | set | seq | record | function | model
 int      = ["-"] digits
 bool     = "TRUE" | "FALSE"
-string   = '"' ( any character except '"' and '\' | '\' any character )* '"'
+string   = '"' ( any character except '"' and '\' | '\"' | '\\' )* '"'   (any other escape: the whole value is raw; settled while building 11)
 interval = int ".." int
 set      = "{" [ value { "," value } ] "}"
 seq      = "<<" [ value { "," value } ] ">>"
