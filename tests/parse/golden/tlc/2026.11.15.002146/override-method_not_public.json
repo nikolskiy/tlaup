@@ -1,0 +1,74 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "exception",
+      "name": null,
+      "message": {
+        "code": 2154,
+        "severity": 1,
+        "name": "TLC_MODULE_VALUE_JAVA_METHOD_OVERRIDE",
+        "body": [
+          "Attempted to apply the operator overridden by the Java method",
+          {
+            "code": 2154,
+            "severity": 0,
+            "name": "TLC_MODULE_VALUE_JAVA_METHOD_OVERRIDE",
+            "body": [
+              "Attempted to apply the operator overridden by the Java method",
+              "static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue),",
+              "but it produced the following error:",
+              "member is private to package: tlc2.overrides.TLCOverrides.Add2[Ljava.lang.Object;@2781e022/invokeStatic, from public Lookup"
+            ],
+            "before": "",
+            "after": ",",
+            "truncated": false
+          },
+          "but it produced the following error:",
+          "%2%"
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [],
+  "sany": [],
+  "module_files": {
+    "spec": "<repo>/tests/fixtures/research/13-override-loading/v1.8.0/cases/method_not_public/spec.tla",
+    "Naturals": "/tmp/tlc-14456880556881636380/Naturals.tla",
+    "TLC": "/tmp/tlc-14456880556881636380/TLC.tla",
+    "Ovr": "<repo>/tests/fixtures/research/13-override-loading/v1.8.0/cases/method_not_public/modules/Ovr.tla",
+    "Sequences": "/tmp/tlc-14456880556881636380/Sequences.tla",
+    "FiniteSets": "/tmp/tlc-14456880556881636380/FiniteSets.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 14,
+  "sany_lines_used": 14,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-14 22:26:43",
+  "finished": "2026-11-14 22:26:43",
+  "duration_ms": 566
+}
