@@ -6,8 +6,9 @@ message is interpreted, severity first (P4, rules 1 to 4). Every top-level messa
 carries it, and every unframed line no parser used gives one ``OutputLine`` (decision D9). The result is one
 object for the parser's life, filled as lines arrive; the verdict is decided in ``close()`` (P3, D54).
 
-Trace states are not built here yet: a state message (severity 4) arrives as an ``UnknownMessage`` (package 13,
-pull request 13a).
+A state message (2217, and 2216 for ``-dfid`` on v1.7.4) whose header parses is a ``TraceState`` of the current
+error's trace; 2122 and 2218 end that trace with a loop or stuttering (P5). A state that leaves a variable out
+(``-difftrace``) has it carried forward from the state before, marked as not printed.
 """
 
 from __future__ import annotations
@@ -46,12 +47,18 @@ from tlaup_parse.model import (
     Status,
     TlcError,
     ToolInfo,
+    Trace,
+    TraceClosed,
+    TraceState,
+    TraceStateAdded,
     UnknownMessage,
+    Variable,
     Verdict,
     VersionSeen,
     WarningFound,
 )
 from tlaup_parse.sany import SanyLineClass, SanyParser
+from tlaup_parse.values import parse_value
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -91,6 +98,17 @@ _COVERAGE_ROW = re.compile(
     r"(?:: (?P<first>[0-9]+)(?::(?P<second>[0-9]+))?)?"
 )
 _COVERAGE_EXPRESSION = re.compile(rf" *(?P<bars>\|*){_SPAN}: (?P<count>[0-9]+)")
+# Trace states (P5): the header of a state, its action and location, the -dfid header, a loop and stuttering.
+_STATE_HEADER = re.compile(r"(?P<n>[0-9]+): <(?P<inner>.*)>")
+_STATE_ACTION = re.compile(
+    r"(?P<action>.+?) line ([0-9]+), col ([0-9]+) to line ([0-9]+), col ([0-9]+) of module (?P<module>\S+)"
+    r"(?: \(.*\))?"
+)
+_DFID_HEADER = re.compile(r"(?P<n>[0-9]+): ?")
+_BACK_TO_STATE = re.compile(r"(?P<n>[0-9]+): Back to state: <(?P<inner>.*)>")
+_STUTTERING = re.compile(r"(?P<n>[0-9]+): Stuttering")
+_VARIABLE = re.compile(r"/\\ (?P<name>\S+) = (?P<rest>.*)")
+_ONLY_VARIABLE = re.compile(r"(?P<name>\S+) = (?P<rest>.*)")
 _ERROR_NAMES = {
     2110: re.compile(r"Invariant (?P<name>\S+) is violated\."),
     2116: re.compile(r"Temporal property (?P<name>\S+) was violated\."),
@@ -100,6 +118,8 @@ _ERROR_NAMES = {
 # --- Tables ----------------------------------------------------------------------------------------------------------
 
 _CONTINUATIONS = frozenset({2103, 2121, 2264})  # related messages of the current error (P5)
+_STATE_CODES = frozenset({2216, 2217})  # a state; 2216 is -dfid's on v1.7.4 (P5)
+_LOOP, _STUTTER = 2122, 2218
 _MODES = {2187: "exhaustive search", 2188: "simulate", 2271: "depth-first"}
 _PHASES = {
     2220: Phase.PARSING,
@@ -198,6 +218,69 @@ def _kind_of(message: TlcMessage) -> ErrorKind:
     return kind
 
 
+def _variables(body: tuple[str, ...]) -> list[Variable]:
+    """The variables of a state's body, the header left out (P5).
+
+    A line ``/\\ <name> = `` begins a variable; when no line starts with ``/\\ ``, the first line ``<name> = ``
+    begins the only one. A variable runs to the next start or the end, trailing blank lines dropped.
+    """
+    prefixed = any(line.startswith("/\\ ") for line in body)
+    starts: list[tuple[int, re.Match[str]]] = []
+    for index, line in enumerate(body):
+        match = (_VARIABLE if prefixed else _ONLY_VARIABLE).fullmatch(line)
+        if match is not None:
+            starts.append((index, match))
+            if not prefixed:
+                break
+    variables: list[Variable] = []
+    for number, (index, match) in enumerate(starts):
+        end = starts[number + 1][0] if number + 1 < len(starts) else len(body)
+        text = [match["rest"], *body[index + 1 : end]]
+        while len(text) > 1 and not text[-1].strip():
+            text.pop()
+        raw = "\n".join(text)
+        variables.append(Variable(name=match["name"], value=parse_value(raw), raw=raw))
+    return variables
+
+
+def _carried(variables: list[Variable], previous: TraceState | None) -> tuple[Variable, ...]:
+    """The previous state's variables in its order, each replaced by this state's where printed (-difftrace, P5).
+
+    A variable the previous state did not have is taken as printed, after the others.
+    """
+    if previous is None:
+        return tuple(variables)
+    printed = {variable.name: variable for variable in variables}
+    known = {variable.name for variable in previous.variables}
+    merged = [printed.get(old.name, replace(old, printed=False)) for old in previous.variables]
+    merged.extend(variable for variable in variables if variable.name not in known)
+    return tuple(merged)
+
+
+def _state(message: TlcMessage, previous: TraceState | None) -> TraceState | None:
+    """The state a state message holds, or None when its header matches no pattern (P5)."""
+    lines = message.lines
+    header = lines[0] if lines else ""
+    action: str | None = None
+    location: Location | None = None
+    match = _STATE_HEADER.fullmatch(header) or _DFID_HEADER.fullmatch(header)
+    if match is None:
+        return None
+    inner = match.groupdict().get("inner")
+    if inner is not None:
+        acting = _STATE_ACTION.fullmatch(inner)
+        if acting is not None:
+            action, location = acting["action"], _location(acting, 2)
+    return TraceState(
+        index=int(match["n"]),
+        action=action,
+        location=location,
+        header=header,
+        variables=_carried(_variables(lines[1:]), previous),
+        lines=lines,
+    )
+
+
 def _name_of(message: TlcMessage) -> str | None:
     pattern = _ERROR_NAMES.get(message.code)
     match = None if pattern is None else pattern.match(_first_line(message))
@@ -214,6 +297,8 @@ class TlcParser:
         self._sany = SanyParser()
         self._sany_window = "before"  # "before", "open", then "shut" for good (P8)
         self._current: TlcError | None = None
+        self._tracing: TlcError | None = None  # the error whose trace is open: it has a state and is not closed
+        self._closed: set[int] = set()  # id() of every error whose trace was closed
         self._errors_late: list[bool] = []  # per error: the phase had reached INITIAL_STATES when it opened
         self._reached = Phase.NOT_STARTED  # the furthest phase reached so far
         self._finished = False  # a 2186 arrived
@@ -257,6 +342,7 @@ class TlcParser:
             events.extend(self._item(item))
         if self._sany_window == "open":
             events.extend(self._close_sany())
+        events.extend(self._close_trace(None))
         self._result.verdict = self._verdict()
         return events
 
@@ -314,8 +400,14 @@ class TlcParser:
     # --- Interpreting a top-level message (P4, rules 1 to 4) ---------------------------------------------------
 
     def _message(self, message: TlcMessage) -> list[Event]:
+        cls = _class_of(message)
+        if cls is _Class.STATE and message.code in _STATE_CODES | {_LOOP, _STUTTER}:
+            return self._trace_message(message)
+        return [*self._close_trace(None), *self._classified(message, cls)]
+
+    def _classified(self, message: TlcMessage, cls: _Class) -> list[Event]:
         known = message.code in CODES
-        match _class_of(message):
+        match cls:
             case _Class.ERROR:
                 if not known:
                     self._result.unknown_messages.append(message)
@@ -326,7 +418,7 @@ class TlcParser:
                 self._result.warnings.append(message)
                 return [WarningFound(message)]
             case _Class.STATE:
-                # Trace states are 13b's: until then a state message is shown as printed (package 13).
+                # A severity-4 message that is no state, loop or stuttering message, shown as printed.
                 if not known:
                     self._result.unknown_messages.append(message)
                 return [UnknownMessage(message)]
@@ -339,11 +431,65 @@ class TlcParser:
             self._current.related.append(message)
             return ErrorExtended(message, self._current)
         kind = ErrorKind.OTHER if message.code in _CONTINUATIONS else _kind_of(message)
-        error = TlcError(kind=kind, name=_name_of(message), message=message, related=[], trace=None)
+        return self._open(TlcError(kind=kind, name=_name_of(message), message=message, related=[], trace=None))
+
+    def _open(self, error: TlcError) -> ErrorOpened:
+        self._result.status = Status.FAILURE
         self._result.errors.append(error)
         self._errors_late.append(_PHASE_ORDER.index(self._reached) >= _PHASE_ORDER.index(Phase.INITIAL_STATES))
         self._current = error
-        return ErrorOpened(message, error)
+        return ErrorOpened(error.message, error)
+
+    # --- Trace states (P5) -------------------------------------------------------------------------------------
+
+    def _trace_message(self, message: TlcMessage) -> list[Event]:
+        """A state (2216, 2217), a loop (2122) or stuttering (2218); one that cannot be placed is shown as printed."""
+        events = self._trace_state(message) if message.code in _STATE_CODES else self._trace_end(message)
+        return [UnknownMessage(message)] if events is None else events
+
+    def _trace_state(self, message: TlcMessage) -> list[Event] | None:
+        events: list[Event] = []
+        error = self._current
+        if error is None:  # a state before any error (not seen) opens an error of kind other (P5)
+            if _state(message, None) is None:
+                return None
+            error = TlcError(kind=ErrorKind.OTHER, name=None, message=message, related=[], trace=None)
+            events.append(self._open(error))
+        elif id(error) in self._closed:  # its trace was closed, by 2122, 2218 or another message (not seen)
+            return None
+        trace = error.trace
+        state = _state(message, None if trace is None else trace.states[-1])
+        if state is None:
+            return None
+        if trace is None:
+            trace = error.trace = Trace(states=[], loop_to=None, stuttering=False)
+        trace.states.append(state)
+        self._tracing = error
+        events.append(TraceStateAdded(message, error, state))
+        return events
+
+    def _trace_end(self, message: TlcMessage) -> list[Event] | None:
+        error = self._tracing
+        if error is None or error.trace is None:  # a loop or stuttering with no open trace (not seen)
+            return None
+        pattern = _BACK_TO_STATE if message.code == _LOOP else _STUTTERING
+        match = pattern.fullmatch(message.lines[0] if message.lines else "")
+        if match is None:
+            return None
+        if message.code == _LOOP:
+            error.trace.loop_to = int(match["n"])
+        else:
+            error.trace.stuttering = True
+        return self._close_trace(message)
+
+    def _close_trace(self, message: TlcMessage | None) -> list[Event]:
+        """``TraceClosed`` for the open trace, if any (P5)."""
+        error = self._tracing
+        if error is None or error.trace is None:
+            return []
+        self._tracing = None
+        self._closed.add(id(error))
+        return [TraceClosed(message, error, error.trace)]
 
     def _information(self, message: TlcMessage, *, known: bool) -> list[Event]:
         if not known:

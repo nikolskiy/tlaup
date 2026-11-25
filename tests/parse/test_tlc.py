@@ -28,7 +28,6 @@ from tlaup_parse import (
     RunResult,
     Status,
     TlcParser,
-    UnknownMessage,
     Verdict,
 )
 from tlaup_parse.codes import CODES
@@ -142,14 +141,6 @@ def test_unknown_codes_are_kept_and_their_severity_decides_the_class() -> None:
     opened = next(e for e in events if isinstance(e, ErrorOpened) and e.message.code == 9901)
     assert opened.error.kind is ErrorKind.OTHER
     assert result.status is Status.FAILURE
-
-
-def test_a_state_message_is_an_unknown_message_not_kept_as_unknown() -> None:
-    # Package 13a: trace states are 13b's; a state message is shown as printed, and its code is in CODES.
-    result, events = _drive(BUILDS["v1.7.4"] / "violation.out")
-    states = [e for e in events if isinstance(e, UnknownMessage)]
-    assert [e.message.code for e in states] == [2217] * 4
-    assert result.unknown_messages == []
 
 
 # --- The output bound ---------------------------------------------------------------------------------------------
