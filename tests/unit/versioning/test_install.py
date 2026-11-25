@@ -835,6 +835,41 @@ def test_upgrade_of_stable_with_its_tag_installed_compares_like_a_name(store: To
     assert (upstream.list_requests, upstream.tag_requests, upstream.downloads) == (1, 0, 0)
 
 
+def test_upgrade_of_stable_to_an_older_tag_installs_it_beside_and_leaves_the_pin(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    upstream.publish({**upstream.release("v1.8.0"), "prerelease": False})
+    v180 = run(store, upstream, "v1.8.0").build  # installed when it was stable
+    assert not v180.prerelease
+    upstream.fake.clear()
+    report = run_upgrade(store, upstream, "stable")  # upstream marks v1.8.0 a prerelease again: stable is v1.7.4
+    assert report.installed is not None
+    assert (report.name, report.old, report.pin_moved, report.removed) == ("v1.7.4", None, False, None)
+    assert {build.name for build in store.builds()} == {"v1.8.0", "v1.7.4"}
+    assert pin_text(isolated) == v180.id
+
+
+def test_upgrade_whose_old_build_cannot_be_removed_reports_it_and_finishes(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    if getattr(os, "geteuid", lambda: -1)() == 0:
+        pytest.skip("root can rename a read-only folder, so the failure cannot be made")
+    old = run(store, upstream, "rolling").build
+    publish_rolling(upstream, "newer", "1a2b3c4", "2026-11-16T00:00:00Z")
+    old.path.chmod(0o555)  # its own folder read-only: it cannot be moved out
+    try:
+        report = run_upgrade(store, upstream, "rolling")
+    finally:
+        old.path.chmod(0o755)
+    assert isinstance(report.failed, FileOperationError)
+    assert report.removed is None
+    assert report.pin_moved
+    assert store.builds() == [report.build, old]
+    assert sha256(old.jar.read_bytes()) == old.sha256
+    assert pin_text(isolated) == report.build.id
+    assert tmp_entries(store) == []
+
+
 def test_upgrade_of_stable_with_no_stable_build_installed_is_install(store: ToolStore, upstream: Upstream) -> None:
     run(store, upstream, "rolling")
     report = run_upgrade(store, upstream, "stable")
@@ -1034,7 +1069,7 @@ def test_pin_of_a_build_removed_before_the_lock_is_version_not_found(
 def test_choose_build_takes_all_when_allowed_and_asks_again_on_an_empty_line(downloads: Downloads) -> None:
     builds = list(two_rolling(downloads))
     ui, stdin = make_ui("\nall\n")
-    assert choose_build(ui, "Which build should be removed?", builds, allow_all=True) == builds
+    assert choose_build(ui, "Which build should be removed?", builds, allow_all=True, every=builds) == builds
     assert stdin.asked == 2
 
 
@@ -1042,5 +1077,5 @@ def test_choose_build_refuses_all_when_not_allowed(downloads: Downloads) -> None
     builds = list(two_rolling(downloads))
     ui, stdin = make_ui("all\n0\n")
     with pytest.raises(CannotAsk):  # the input ended with no answer in range
-        choose_build(ui, "Which build should be pinned?", builds, allow_all=False)
+        choose_build(ui, "Which build should be pinned?", builds, allow_all=False, every=builds)
     assert stdin.asked == 3

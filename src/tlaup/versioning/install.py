@@ -636,6 +636,7 @@ class UpgradeReport:
     pin_moved: bool  # the pin named `old` under the lock and now names `build`
     removed: Build | None  # `old`, when this call removed it
     remaining: tuple[Build, ...]  # the other builds of the name still installed, for the note (V4, step 4)
+    failed: TlaupError | None = None  # `old` could not be removed; the upgrade itself is done (V4 step 4, V3)
 
 
 def upgrade(  # noqa: PLR0913 (install()'s arguments and V4's option)
@@ -719,7 +720,7 @@ def _stable_beside(store: ToolStore, release: Release, lookup: Lookup, fetch: Fe
     if stable and tag_key is not None and old_key is not None and tag_key > old_key:
         step = Upgrade(store, release.tag, lookup, fetch, keep_old=True, old=stable[0])
         step.look()  # always true with ``old`` given
-        return _run_upgrade(step)
+        return _run_upgrade(step, beside_stable=True)
     return _installed_by_upgrade(_run(Install(store, release.tag, lookup, fetch)))
 
 
@@ -749,7 +750,7 @@ def _up_to_date(step: Upgrade) -> UpgradeReport:
     )  # fmt: skip
 
 
-def _run_upgrade(step: Upgrade) -> UpgradeReport:
+def _run_upgrade(step: Upgrade, *, beside_stable: bool = False) -> UpgradeReport:
     """The steps after a ``look()`` that was true (V4, step 4); on any error after lock_tmp, give_up first."""
     step.lock_tmp()
     try:
@@ -763,9 +764,13 @@ def _run_upgrade(step: Upgrade) -> UpgradeReport:
         step.clean_tmp()
         step.add()  # always true: there is a download
         step.move_pin()
-        step.move_old_out()
+        failed: TlaupError | None = None
+        try:
+            step.move_old_out()
+        except FileOperationError as error:
+            failed = error  # a failed removal does not hide a finished upgrade; `old` stays as it was
         step.delete_old()
-        remaining = _remaining(step)
+        remaining = _stable_remaining(step) if beside_stable else _remaining(step)
     except BaseException:
         step.give_up()
         step.release_store_lock()
@@ -774,7 +779,7 @@ def _run_upgrade(step: Upgrade) -> UpgradeReport:
     step.release_tmp()
     return UpgradeReport(
         name=step.name, build=_upgraded(step), old=step.old, up_to_date=False, installed=None,
-        pin_moved=step.pin_moved, removed=step.removed, remaining=remaining,
+        pin_moved=step.pin_moved, removed=step.removed, remaining=remaining, failed=failed,
     )  # fmt: skip
 
 
@@ -786,10 +791,19 @@ def _upgraded(step: Upgrade) -> Build:
 
 
 def _remaining(step: Upgrade) -> tuple[Build, ...]:
-    """The other builds still installed of the name, or, beside ``stable``, of the old build's name."""
-    name = step.old.name if step.keep_old and step.old is not None and step.old.name != step.name else step.name
+    """The other builds of the name still installed, read under the lock."""
     kept = step.build.id if step.build is not None else None
-    return tuple(build for build in step.store.builds() if build.name == name and build.id != kept)
+    return tuple(build for build in step.store.builds() if build.name == step.name and build.id != kept)
+
+
+def _stable_remaining(step: Upgrade) -> tuple[Build, ...]:
+    """Beside ``stable``: every installed stable build but the new one, read under the lock (V4, "them")."""
+    kept = step.build.id if step.build is not None else None
+    return tuple(
+        build
+        for build in step.store.builds()
+        if build.id != kept and not build.prerelease and version_key(build.name) is not None
+    )
 
 
 # ---------------------------------------------------------------------- uninstall()
@@ -855,16 +869,15 @@ def pin(store: ToolStore, spec: VersionSpec, ui: Ui) -> Build:
 
 
 def choose_build(
-    ui: Ui, question: str, builds: Sequence[Build], *, allow_all: bool, every: Sequence[Build] | None = None
+    ui: Ui, question: str, builds: Sequence[Build], *, allow_all: bool, every: Sequence[Build]
 ) -> list[Build]:
     """List ``builds`` numbered from 1 in their printed form, on stderr, and ask which (V3's table).
 
     The answer is a whole number in range, or ``all`` when ``allow_all``; anything else asks again, and an
     empty line too, since there is no default. ``every`` is every installed build, for the printed form.
     """
-    others = builds if every is None else every
     for number, build in enumerate(builds, start=1):
-        ui.note(f"  {number}. {format_build(build, others)}")
+        ui.note(f"  {number}. {format_build(build, every)}")
     choices = [str(number) for number in range(1, len(builds) + 1)]
     if allow_all:
         choices.append("all")
