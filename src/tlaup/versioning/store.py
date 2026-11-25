@@ -24,6 +24,7 @@ import filelock
 
 from tlaup.errors import FileOperationError, InternalError, PinnedBuildMissing, StoreLocked
 from tlaup.versioning.order import ROLLING, name_key, sort_key, version_key
+from tlaup.versioning.spec import format_build
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
@@ -161,15 +162,14 @@ def _valid_record(data: Any) -> bool:
     )
 
 
-def _read_build(folder: Path) -> Build | None:
-    """The one reader of ``build.json``. None unless the folder holds a jar and a record of a known schema."""
+def _read_record(folder: Path) -> Build | None:
+    """The one reader of ``build.json``: None unless it is readable and of a known schema. The jar is not looked at."""
     try:
         data: Any = json.loads((folder / RECORD).read_text(encoding="utf-8"))
-        has_jar = (folder / JAR).is_file()
     except (OSError, ValueError):
         return None
     source = _read_source(data.get("source")) if isinstance(data, dict) else None
-    if not has_jar or source is None or not _valid_record(data):
+    if source is None or not _valid_record(data):
         return None
     return Build(
         id=folder.name,
@@ -185,6 +185,16 @@ def _read_build(folder: Path) -> Build | None:
         capabilities=frozenset(data["capabilities"]),
         path=folder,
     )
+
+
+def _read_build(folder: Path) -> Build | None:
+    """A build: a readable ``build.json`` of a known schema and a jar beside it."""
+    build = _read_record(folder)
+    try:
+        has_jar = build is not None and build.jar.is_file()
+    except OSError:
+        return None
+    return build if has_jar else None
 
 
 def _try_lock(lock: filelock.FileLock, timeout: float) -> bool:
@@ -226,6 +236,8 @@ class TmpFolder:
 
     def release(self) -> None:
         """Remove the lock file as the last thing while holding it, then release the lock."""
+        if not self._lock.is_locked:
+            return  # never taken: the file, if any, is another tlaup's
         with suppress(OSError):
             self.lock_file.unlink(missing_ok=True)
         self._lock.release()
@@ -288,12 +300,25 @@ class ToolStore:
         pin = text.strip()
         if not pin:
             return None
-        for build in self.builds():
+        builds = self.builds()
+        for build in builds:
             if build.id == pin:
                 return build
-        raise PinnedBuildMissing(  # noqa: TRY003
-            "the pinned build is missing",
-            hint="install it again with `tlaup tool install`, or pin another with `tlaup tool pin`",
+        raise self._missing(pin, builds)
+
+    def _missing(self, pin: str, builds: list[Build]) -> PinnedBuildMissing:
+        """11 R11 step 3: the printed form and the name when the record is still there; the bare words if not."""
+        folder = self._root / pin
+        record = _read_record(folder) if folder.parent == self._root and pin not in {".", "..", TMP} else None
+        if record is None:
+            return PinnedBuildMissing(
+                "the pinned build is missing",
+                hint="run `tlaup tool install ...` or `tlaup tool pin ...`",
+            )
+        printed = format_build(record, [*builds, record])
+        return PinnedBuildMissing(
+            f"the pinned build {printed} is missing",
+            hint=f"run `tlaup tool install {record.name}` or `tlaup tool pin ...`",
         )
 
     # ------------------------------------------------------------------ the store lock

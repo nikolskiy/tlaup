@@ -155,8 +155,8 @@ def test_pinned_raises_when_the_pinned_folder_is_removed(store: ToolStore, downl
     with pytest.raises(PinnedBuildMissing) as caught:
         store.pinned()
     assert caught.value.exit_code == 3
-    assert caught.value.hint is not None
-    assert "tlaup tool install" in caught.value.hint
+    assert caught.value.message == "the pinned build is missing"
+    assert caught.value.hint == "run `tlaup tool install ...` or `tlaup tool pin ...`"
 
 
 def test_a_pinned_folder_without_a_jar_is_pinned_build_missing_row_t30(store: ToolStore, downloads: Downloads) -> None:
@@ -164,8 +164,34 @@ def test_a_pinned_folder_without_a_jar_is_pinned_build_missing_row_t30(store: To
     with store.locked(timeout=0):
         store.pin(build)
     build.jar.unlink()
-    with pytest.raises(PinnedBuildMissing):
+    with pytest.raises(PinnedBuildMissing) as caught:
         store.pinned()
+    assert caught.value.message == "the pinned build rolling@bc1b506 is missing"
+    assert caught.value.hint == "run `tlaup tool install rolling` or `tlaup tool pin ...`"
+
+
+def test_a_missing_pinned_build_is_printed_against_the_other_builds_of_its_name(
+    store: ToolStore, downloads: Downloads
+) -> None:
+    pinned = downloads.add(manifest(ROLLING, STAMP))
+    downloads.add(manifest(ROLLING, LATER))
+    with store.locked(timeout=0):
+        store.pin(pinned)
+    pinned.jar.unlink()
+    with pytest.raises(PinnedBuildMissing) as caught:
+        store.pinned()
+    assert caught.value.message == "the pinned build rolling@2026.11.15.002146 is missing"
+
+
+@pytest.mark.parametrize("pin", ["..", ".", ".tmp", "../tool"])
+def test_a_pin_naming_no_folder_of_the_store_is_the_bare_message(
+    store: ToolStore, downloads: Downloads, isolated: Isolated, pin: str
+) -> None:
+    downloads.add(manifest(ROLLING))
+    isolated.paths.pin.write_text(pin, encoding="utf-8")
+    with pytest.raises(PinnedBuildMissing) as caught:
+        store.pinned()
+    assert caught.value.message == "the pinned build is missing"
 
 
 @pytest.mark.parametrize("text", ["", "\n", "  \n\n"])
@@ -550,6 +576,16 @@ def test_locked_releases_on_an_error(isolated: Isolated, store: ToolStore, clock
 
 
 # ---------------------------------------------------------------------- temporary folders (V11)
+
+
+def test_releasing_a_tmp_folder_never_locked_leaves_its_lock_file(store: ToolStore) -> None:
+    owner = store.new_tmp()
+    owner.lock()
+    stranger = type(owner)(owner.path)
+    stranger.release()
+    assert owner.lock_file.is_file(), "another tlaup's lock file stays"
+    owner.release()
+    assert not owner.lock_file.exists()
 
 
 def test_a_tmp_folder_is_locked_before_it_exists_and_released_without_a_trace(
