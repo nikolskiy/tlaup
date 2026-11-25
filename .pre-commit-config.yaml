@@ -90,6 +90,26 @@ repos:
             | \.claude/settings\.local\.json             # personal Claude Code settings
           )$
 
+      # The mechanical checks of the test rules (docs/design/01-testing.md, T12).
+      - id: no-patching-own-code
+        name: No patching of our own code in tests (T12 rule 2)
+        # monkeypatch stays for the environment and the working folder; setattr,
+        # setitem and delattr patch code. The conftests are covered by review.
+        language: pygrep
+        entry: 'monkeypatch\.(setattr|setitem|delattr)\b'
+        files: ^tests/.*\.py$
+        exclude: (^|/)conftest\.py$|^tests/fixtures/research/
+
+      - id: no-typed-tool-output
+        name: No typed tool output in tests (T12 rule 3)
+        # Tool output comes from captured files under tests/parse/golden/. An
+        # exception is named here by exact path, with its reason.
+        language: pygrep
+        entry: '@!@!@STARTMSG'
+        files: ^tests/.*\.(py|feature)$
+        # tests/fixtures/research/: evidence; two capture scripts there hold the marker.
+        exclude: ^tests/fixtures/research/
+
       - id: check-added-large-files
         name: Check for added large files
         entry: uv run check-added-large-files
