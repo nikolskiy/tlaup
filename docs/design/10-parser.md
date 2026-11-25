@@ -38,56 +38,65 @@ The whole public surface:
 ```python
 class TlcParser:
     def __init__(self, *, max_output_lines: int = 10_000): ...
-    def feed(self, line: str) -> list[Event]: ...     # one line, with or without its newline
-    def close(self) -> list[Event]: ...               # end of input: flush anything still open
+    def feed(self, line: str) -> list[Event]: ...  # one line, with or without its newline
+    def close(self) -> list[Event]: ...  # end of input: flush anything still open
     @property
     def result(self) -> RunResult: ...
 
-class SanyParser:                                     # P8
-    def feed(self, line: str) -> SanyStep: ...        # what the line was, and the diagnostics it completed
-    def close(self) -> SanyStep: ...                  # line_class is None; the diagnostic still open, if any
+
+class SanyParser:  # P8
+    def feed(self, line: str) -> SanyStep: ...  # what the line was, and the diagnostics it completed
+    def close(self) -> SanyStep: ...  # line_class is None; the diagnostic still open, if any
     @property
     def result(self) -> SanyResult: ...
 
-class PcalParser:                                     # 21 S2
+
+class PcalParser:  # 21 S2
     def feed(self, line: str) -> list[Diagnostic]: ...
     def close(self) -> list[Diagnostic]: ...
     @property
     def result(self) -> PcalResult: ...
 
-class Framer:                                         # P4; public so the "nothing is lost" property can be tested
-    def feed(self, line: str) -> list[Unframed | TlcMessage]: ...   # only items at the top level; a nested
-    def close(self) -> list[Unframed | TlcMessage]: ...             # message arrives inside its parent
 
-def render_framed(item: Unframed | TlcMessage) -> list[str]: ...    # the input lines the item was built from (P4)
+class Framer:  # P4; public so the "nothing is lost" property can be tested
+    def feed(self, line: str) -> list[Unframed | TlcMessage]: ...  # only items at the top level; a nested
+    def close(self) -> list[Unframed | TlcMessage]: ...  # message arrives inside its parent
+
+
+def render_framed(item: Unframed | TlcMessage) -> list[str]: ...  # the input lines the item was built from (P4)
+
 
 def parse_value(text: str) -> Value: ...
 def describe_exit_status(code: int) -> ExitStatus: ...
 
+
 @dataclass(frozen=True)
-class ExitStatus:                                     # 02 X1 holds the table of codes, words and meanings
+class ExitStatus:  # 02 X1 holds the table of codes, words and meanings
     code: int
-    word: str            # X1's word for the code: "success", "safety failure", "parse error", ... A "failure"
-                         # means TLC checked the model and found it wrong, an "error" that it could not check (D63).
-                         # The JSON of milestone 4 carries it (40)
-    meaning: str         # one sentence, "an invariant was violated"; the result line of 22 O3 shows it beside the verdict
-    known: bool          # False for a code X1's table does not hold; word is then "error" (X1, settled 2026-11-24),
-                         # and meaning "TLC returned a code it does not document"
+    word: str  # X1's word for the code: "success", "safety failure", "parse error", ... A "failure"
+    # means TLC checked the model and found it wrong, an "error" that it could not check (D63).
+    # The JSON of milestone 4 carries it (40)
+    meaning: str  # one sentence, "an invariant was violated"; the result line of 22 O3 shows it beside the verdict
+    known: bool  # False for a code X1's table does not hold; word is then "error" (X1, settled 2026-11-24),
+    # and meaning "TLC returned a code it does not document"
+
 
 @dataclass(frozen=True)
 class SanyStep:
-    line_class: SanyLineClass | None        # None only from close()
-    diagnostics: tuple[Diagnostic, ...]     # usually empty: a diagnostic is returned when it is complete
+    line_class: SanyLineClass | None  # None only from close()
+    diagnostics: tuple[Diagnostic, ...]  # usually empty: a diagnostic is returned when it is complete
 
-class SanyLineClass(Enum):                  # what the parser used the line as; the table is in P8
+
+class SanyLineClass(Enum):  # what the parser used the line as; the table is in P8
     BANNER, PROGRESS, HEADER, STRUCTURE, POSITION, MESSAGE, BLANK, OTHER
+
 
 @dataclass(frozen=True)
 class SanyResult:
     diagnostics: tuple[Diagnostic, ...]
     module_files: dict[str, str]
-    other: tuple[str, ...]          # the lines of class OTHER, in order (P8)
-    lines_used: int                 # how many input lines had another class; `RunResult.sany_lines_used` repeats it (P4)
+    other: tuple[str, ...]  # the lines of class OTHER, in order (P8)
+    lines_used: int  # how many input lines had another class; `RunResult.sany_lines_used` repeats it (P4)
 ```
 
 `Unframed` is the framer's name for a line outside every message. It is not called `Text`, because the reporters use Rich's `Text` for something else ([22 O3](22-reporters.md#o3-terminal-reporter)).
@@ -113,148 +122,194 @@ Not a roadmap item of its own; it is the "parsed result" that decision D8 says c
 ```python
 @dataclass
 class RunResult:
-    tool: ToolInfo | None            # from message 2262 (P9)
-    mode: str | None                 # "exhaustive search" (2187), "simulate" (2188, also -generate): the Examples
-                                     # manifest's words (research 10); "depth-first" (2271, -dfid), tlaup's word,
-                                     # since the manifest has none (top-up, research 22). None for another shape.
-    workers: int | None              # from 2187 "with N worker(s)"
-    phase: Phase                     # where the run is: see below
-    status: Status                   # "running", "success", "failure"; the runner may set "interrupted"
-    verdict: Verdict                 # top-up, D54: what the run found, from TLC's messages; see below
-    resumed: bool                    # top-up, D54: TLC recovered from a checkpoint (2197, 2198)
-    counts_approximate: bool         # top-up, D54: resumed, and not with the original -fp and -seed (set by the runner)
+    tool: ToolInfo | None  # from message 2262 (P9)
+    mode: str | None  # "exhaustive search" (2187), "simulate" (2188, also -generate): the Examples
+    # manifest's words (research 10); "depth-first" (2271, -dfid), tlaup's word,
+    # since the manifest has none (top-up, research 22). None for another shape.
+    workers: int | None  # from 2187 "with N worker(s)"
+    phase: Phase  # where the run is: see below
+    status: Status  # "running", "success", "failure"; the runner may set "interrupted"
+    verdict: Verdict  # top-up, D54: what the run found, from TLC's messages; see below
+    resumed: bool  # top-up, D54: TLC recovered from a checkpoint (2197, 2198)
+    counts_approximate: bool  # top-up, D54: resumed, and not with the original -fp and -seed (set by the runner)
     errors: list[TlcError]
     warnings: list[TlcMessage]
-    sany: list[Diagnostic]           # P8
-    module_files: dict[str, str]     # module name -> path, from SANY's "Parsing file" lines
-    overrides_loaded: list[str]      # from 2168 (11 R7)
-    progress: list[Progress]         # one per 2200 / 2209 message
-    stats: FinalStats | None         # 2199, 2194, 2268, 2193
+    sany: list[Diagnostic]  # P8
+    module_files: dict[str, str]  # module name -> path, from SANY's "Parsing file" lines
+    overrides_loaded: list[str]  # from 2168 (11 R7)
+    progress: list[Progress]  # one per 2200 / 2209 message
+    stats: FinalStats | None  # 2199, 2194, 2268, 2193
     coverage: list[CoverageItem]
-    output: list[str]                # the spec's own output and unrecognised text, newest max_output_lines
-    output_dropped: int              # how many older lines are no longer in `output`
-    unframed_lines: int              # text found outside messages: `Unframed` items plus non-empty top-level `before`/`after` (P4)
-    sany_lines_used: int             # `SanyResult.lines_used`, or 0 when there was no SANY window (P4)
-    unknown_messages: list[TlcMessage]   # codes that are not in codes.py
-    info: list[TlcMessage]           # severity 0, in codes.py, with no typed meaning (2212, 2269, ...); see P4
-    started: str | None              # as TLC printed it, "2026-11-14 22:26:52"; local time, no zone
+    output: list[str]  # the spec's own output and unrecognised text, newest max_output_lines
+    output_dropped: int  # how many older lines are no longer in `output`
+    unframed_lines: int  # text found outside messages: `Unframed` items plus non-empty top-level `before`/`after` (P4)
+    sany_lines_used: int  # `SanyResult.lines_used`, or 0 when there was no SANY window (P4)
+    unknown_messages: list[TlcMessage]  # codes that are not in codes.py
+    info: list[TlcMessage]  # severity 0, in codes.py, with no typed meaning (2212, 2269, ...); see P4
+    started: str | None  # as TLC printed it, "2026-11-14 22:26:52"; local time, no zone
     finished: str | None
     duration_ms: int | None
 
-class Phase(Enum):  NOT_STARTED, PARSING, STARTING, INITIAL_STATES, CHECKING, LIVENESS, FINISHED
-class Status(Enum): RUNNING, SUCCESS, FAILURE, INTERRUPTED
-class Verdict(Enum): ERRORS, NO_ERROR, NO_ERROR_BOUNDED, INCOMPLETE, NOT_CHECKED
-                     # dictionary values: "errors", "no-error", "no-error-bounded", "incomplete", "not-checked"
+
+class Phase(Enum):
+    NOT_STARTED, PARSING, STARTING, INITIAL_STATES, CHECKING, LIVENESS, FINISHED
+
+
+class Status(Enum):
+    RUNNING, SUCCESS, FAILURE, INTERRUPTED
+
+
+class Verdict(Enum):
+    ERRORS, NO_ERROR, NO_ERROR_BOUNDED, INCOMPLETE, NOT_CHECKED
+    # dictionary values: "errors", "no-error", "no-error-bounded", "incomplete", "not-checked"
+
 
 @dataclass(frozen=True)
 class ToolInfo:
-    version: str                     # "2.19" or "2026.11.15.002146"
-    revision: str | None             # "5a47802"
-    date: str | None                 # "08 August 2024" on 2.x builds, as printed; None on rolling builds
-    line: str                        # "stable" (a numbered version) or "rolling" (a CalVer): the two words
-                                     # `build.toml` uses for a golden folder (01 T3)
-    raw: str                         # the whole line
+    version: str  # "2.19" or "2026.11.15.002146"
+    revision: str | None  # "5a47802"
+    date: str | None  # "08 August 2024" on 2.x builds, as printed; None on rolling builds
+    line: str  # "stable" (a numbered version) or "rolling" (a CalVer): the two words
+    # `build.toml` uses for a golden folder (01 T3)
+    raw: str  # the whole line
+
 
 @dataclass(frozen=True)
 class TlcMessage:
     code: int
-    severity: int                    # the number in the marker: 0 info, 1 error, 2 TLC bug, 3 warning, 4 state
-    name: str | None                 # from codes.py, None if the code is not in the table
-    body: tuple["str | TlcMessage", ...]   # in input order: a line exactly as printed, without its newline,
-                                     # or a message that started inside this one (research 1)
-    before: str = ""                 # text on the start marker's line in front of the marker (": " in the captures)
-    after: str = ""                  # text on the end marker's line behind the marker ("," in one capture)
-    truncated: bool = False          # closed without an end marker of its own: by an outer end marker,
-                                     # or by the end of the input (P4)
+    severity: int  # the number in the marker: 0 info, 1 error, 2 TLC bug, 3 warning, 4 state
+    name: str | None  # from codes.py, None if the code is not in the table
+    body: tuple["str | TlcMessage", ...]  # in input order: a line exactly as printed, without its newline,
+    # or a message that started inside this one (research 1)
+    before: str = ""  # text on the start marker's line in front of the marker (": " in the captures)
+    after: str = ""  # text on the end marker's line behind the marker ("," in one capture)
+    truncated: bool = False  # closed without an end marker of its own: by an outer end marker,
+    # or by the end of the input (P4)
 
     @property
-    def lines(self) -> tuple[str, ...]: ...           # the message's own lines: the str items of body
+    def lines(self) -> tuple[str, ...]: ...  # the message's own lines: the str items of body
     @property
-    def nested(self) -> tuple["TlcMessage", ...]: ... # the message items of body
-    def text_lines(self) -> tuple[str, ...]: ...      # the whole text as it reads with the markers taken out (P4)
+    def nested(self) -> tuple["TlcMessage", ...]: ...  # the message items of body
+    def text_lines(self) -> tuple[str, ...]: ...  # the whole text as it reads with the markers taken out (P4)
+
 
 @dataclass
 class TlcError:
-    kind: ErrorKind                  # "invariant", "deadlock", "property", "assertion", "assumption",
-                                     # "postcondition", "evaluation", "config", "parse", "exception", "usage",
-                                     # "other"; the table from code to kind is in P5
-    name: str | None                 # the invariant or property name, where the message has one
-    message: TlcMessage              # the message that opened the error
-    related: list[TlcMessage]        # later error-severity messages that belong to it (2103, 2121, 2264),
-                                     # in the order they arrived
+    kind: ErrorKind  # "invariant", "deadlock", "property", "assertion", "assumption",
+    # "postcondition", "evaluation", "config", "parse", "exception", "usage",
+    # "other"; the table from code to kind is in P5
+    name: str | None  # the invariant or property name, where the message has one
+    message: TlcMessage  # the message that opened the error
+    related: list[TlcMessage]  # later error-severity messages that belong to it (2103, 2121, 2264),
+    # in the order they arrived
     trace: Trace | None
+
 
 @dataclass
 class Trace:
     states: list[TraceState]
-    loop_to: int | None              # state index the behaviour returns to (2122)
-    stuttering: bool                 # the behaviour ends by stuttering (2218)
+    loop_to: int | None  # state index the behaviour returns to (2122)
+    stuttering: bool  # the behaviour ends by stuttering (2218)
+
 
 @dataclass(frozen=True)
 class TraceState:
     index: int
-    action: str | None               # "Next"; None for the initial state
-    location: Location | None        # where the action is defined; None for the initial state
-    header: str                      # the header line as printed
+    action: str | None  # "Next"; None for the initial state
+    location: Location | None  # where the action is defined; None for the initial state
+    header: str  # the header line as printed
     variables: tuple[Variable, ...]
-    lines: tuple[str, ...]           # the whole message body as printed, blank lines included
+    lines: tuple[str, ...]  # the whole message body as printed, blank lines included
+
 
 @dataclass(frozen=True)
 class Variable:
     name: str
-    value: Value                     # P7
-    raw: str                         # the text TLC printed, lines joined with "\n"; for a variable carried
-                                     # forward (P5, -difftrace), the text of the state it came from
-    printed: bool = True             # top-up: False when TLC left it out of this state and the parser carried it
+    value: Value  # P7
+    raw: str  # the text TLC printed, lines joined with "\n"; for a variable carried
+    # forward (P5, -difftrace), the text of the state it came from
+    printed: bool = True  # top-up: False when TLC left it out of this state and the parser carried it
+
 
 @dataclass(frozen=True)
 class Location:
     module: str
-    line: int; column: int; end_line: int | None; end_column: int | None
+    line: int
+    column: int
+    end_line: int | None
+    end_column: int | None
+
 
 @dataclass(frozen=True)
 class Progress:
-    diameter: int; generated: int; distinct: int; queue: int    # -1 kept as -1 (simulation, research 1)
+    diameter: int
+    generated: int
+    distinct: int
+    queue: int  # -1 kept as -1 (simulation, research 1)
     at: str
+
 
 @dataclass(frozen=True)
 class FinalStats:
-    total_states: int | None; distinct_states: int | None; queue: int | None
-    state_depth: int | None; collision_probability: str | None
-    outdegree: str | None            # the 2268 line as printed ("The average outdegree ... is 1 (minimum is 0, ...)")
+    total_states: int | None
+    distinct_states: int | None
+    queue: int | None
+    state_depth: int | None
+    collision_probability: str | None
+    outdegree: str | None  # the 2268 line as printed ("The average outdegree ... is 1 (minimum is 0, ...)")
     # dictionary keys: totalStates, distinctStates, stateDepth, as in the Examples manifest
+
 
 @dataclass(frozen=True)
 class CoverageItem:
-    kind: str                        # by code: 2773 "init", 2772 "action", 2774 "property", 2779 "variable"
-                                     # (rolling only), 2221 "expression"
-    name: str | None                 # the name inside the angle brackets; None for an expression
+    kind: str  # by code: 2773 "init", 2772 "action", 2774 "property", 2779 "variable"
+    # (rolling only), 2221 "expression"
+    name: str | None  # the name inside the angle brackets; None for an expression
     location: Location
-    sub_location: Location | None    # 2772 only: the second span, printed as "(6 12 6 40)"; it is what tells
-                                     # several rows of one action apart
-    count: int | None                # after the colon; for "D:G" forms this is G; None for 2774, which has none
-    distinct: int | None             # D of "D:G" (2772, 2773); None otherwise
-    depth: int                       # 2221 only: the number of "|" before "line"; 0 otherwise
+    sub_location: Location | None  # 2772 only: the second span, printed as "(6 12 6 40)"; it is what tells
+    # several rows of one action apart
+    count: int | None  # after the colon; for "D:G" forms this is G; None for 2774, which has none
+    distinct: int | None  # D of "D:G" (2772, 2773); None otherwise
+    depth: int  # 2221 only: the number of "|" before "line"; 0 otherwise
+
 
 @dataclass(frozen=True)
 class Diagnostic:
-    tool: str                        # "sany" or "pcal"
-    severity: str                    # "error" or "warning"
+    tool: str  # "sany" or "pcal"
+    severity: str  # "error" or "warning"
     message: str
     module: str | None
-    file: str | None                 # from the "Parsing file" lines; None if not seen
+    file: str | None  # from the "Parsing file" lines; None if not seen
     location: Location | None
-    details: tuple[str, ...] = ()    # lines that belong to the diagnostic but are not its message
-                                     # (the residual stack of a parse error, P8)
+    details: tuple[str, ...] = ()  # lines that belong to the diagnostic but are not its message
+    # (the residual stack of a parse error, P8)
 ```
 
 Events are what the reporter receives as the run goes:
 
 ```python
-Event = (VersionSeen | ModeSeen | PhaseChanged | ProgressMade | OutputLine | DiagnosticFound | ErrorOpened
-         | ErrorExtended | TraceStateAdded | TraceClosed | WarningFound | OverrideLoaded | CoverageAdded
-         | StatsUpdated | CheckpointStarted | CheckpointWritten | Recovered | Information | UnknownMessage
-         | Finished)
+Event = (
+    VersionSeen
+    | ModeSeen
+    | PhaseChanged
+    | ProgressMade
+    | OutputLine
+    | DiagnosticFound
+    | ErrorOpened
+    | ErrorExtended
+    | TraceStateAdded
+    | TraceClosed
+    | WarningFound
+    | OverrideLoaded
+    | CoverageAdded
+    | StatsUpdated
+    | CheckpointStarted
+    | CheckpointWritten
+    | Recovered
+    | Information
+    | UnknownMessage
+    | Finished
+)
 ```
 
 Each is a small frozen dataclass. Every event that comes from a framed message carries that message (`message: TlcMessage`, the top-level one, with its nested messages inside it), so a reporter can always fall back to TLC's own text. The fields besides `message`, and what makes the parser emit each:

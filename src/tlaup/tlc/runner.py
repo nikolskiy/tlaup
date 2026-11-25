@@ -176,7 +176,6 @@ def run_tlc(  # noqa: PLR0912, PLR0915
     spec_file, _ = resolve_spec_file(spec)
     cmd = build_tlc_command(spec, cfg=cfg)
 
-
     # Ensure tool mode is enabled for structured output (unless in raw mode)
     if not raw and "-tool" not in cmd:
         cmd.insert(-1, "-tool")

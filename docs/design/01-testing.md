@@ -64,22 +64,40 @@ def isolated(tmp_path, monkeypatch) -> Isolated:
     for name in list(os.environ):
         if name.startswith("TLAUP_"):
             monkeypatch.delenv(name)
-    for name in ("JAVA_HOME", "JAVA_OPTS", "GITHUB_TOKEN", "GH_TOKEN", "EDITOR", "VISUAL",
-                 "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "FORCE_COLOR", "CLICOLOR_FORCE",
-                 "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"):
+    for name in (
+        "JAVA_HOME",
+        "JAVA_OPTS",
+        "GITHUB_TOKEN",
+        "GH_TOKEN",
+        "EDITOR",
+        "VISUAL",
+        "XDG_CONFIG_HOME",
+        "XDG_CACHE_HOME",
+        "XDG_DATA_HOME",
+        "FORCE_COLOR",
+        "CLICOLOR_FORCE",
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "ALL_PROXY",
+        "http_proxy",
+        "https_proxy",
+        "all_proxy",
+    ):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("TLAUP_HOME", str(home / "tlaup"))   # moves config, cache and data (D25)
-    monkeypatch.setenv("HOME", str(home))                   # anything that still asks for the home folder
+    monkeypatch.setenv("TLAUP_HOME", str(home / "tlaup"))  # moves config, cache and data (D25)
+    monkeypatch.setenv("HOME", str(home))  # anything that still asks for the home folder
     monkeypatch.setenv("USERPROFILE", str(home))
     monkeypatch.setenv("NO_COLOR", "1")
     monkeypatch.setenv("TERM", "dumb")
     monkeypatch.setenv("COLUMNS", "100")
     monkeypatch.setenv("LINES", "40")
     monkeypatch.setenv("PATH", str(fake_bin_dir(tmp_path)))  # only the fakes (T4)
-    monkeypatch.setenv("TLAUP_TOOL_REPOSITORY",             # a closed local port: a request that is not
-                       "https://127.0.0.1:9/repos/tlaplus/tlaplus")  # recorded fails at once (T4, Network)
+    monkeypatch.setenv(
+        "TLAUP_TOOL_REPOSITORY",  # a closed local port: a request that is not
+        "https://127.0.0.1:9/repos/tlaplus/tlaplus",
+    )  # recorded fails at once (T4, Network)
     monkeypatch.chdir(tmp_path / "work")
-    tlaup.context.reset()                                    # the one process-wide cache
+    tlaup.context.reset()  # the one process-wide cache
     return Isolated(home=home, work=tmp_path / "work", paths=AppPaths.from_env(os.environ))
 ```
 

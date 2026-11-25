@@ -17,8 +17,8 @@ Roadmap: "A reporter interface fed by the parsed result and run events. Move the
 ```python
 # tlaup/reporters/base.py
 @dataclass(frozen=True)
-class RunInfo:                       # known before the tool starts
-    tool: str                        # "tlc"
+class RunInfo:  # known before the tool starts
+    tool: str  # "tlc"
     spec: Path
     cfg: Path | None
     build: Build
@@ -28,14 +28,16 @@ class RunInfo:                       # known before the tool starts
     override_classes: tuple[str, ...]
     command: tuple[str, ...]
 
+
 class Reporter(Protocol):
     def start(self, run: RunInfo) -> None: ...
-    def handle(self, event: Event, result: RunResult) -> None: ...   # events of 10 P3
-    def stderr_line(self, line: str) -> None: ...                    # a line the tool wrote to stderr
-    def notice(self, line: str) -> None: ...                         # a line of tlaup's own during the run (below)
-    def finish(self, outcome: RunOutcome) -> None: ...               # 11; the run ended and has an outcome
-    def close(self) -> None: ...                                     # always called last; never raises
-    write_error: OSError | None                                      # set by close when a write failed in it
+    def handle(self, event: Event, result: RunResult) -> None: ...  # events of 10 P3
+    def stderr_line(self, line: str) -> None: ...  # a line the tool wrote to stderr
+    def notice(self, line: str) -> None: ...  # a line of tlaup's own during the run (below)
+    def finish(self, outcome: RunOutcome) -> None: ...  # 11; the run ended and has an outcome
+    def close(self) -> None: ...  # always called last; never raises
+
+    write_error: OSError | None  # set by close when a write failed in it
 ```
 
 The order of calls is fixed by `run_tlc` ([11](11-runner.md)), which is the only caller in tlaup:

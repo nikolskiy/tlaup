@@ -358,83 +358,96 @@ def mapped(*, ctx: typer.Context | None = None, args: Sequence[str] = ()) -> Ite
     try:
         yield
     except typer.Exit:
-        own_exit.seen = True                    # an exit a command asked for, the wrapped tool's code among them
+        own_exit.seen = True  # an exit a command asked for, the wrapped tool's code among them
         raise
     except (typer.TyperException, KeyboardInterrupt):
-        raise                                   # Typer's own: usage errors (2), Ctrl-C (130)
+        raise  # Typer's own: usage errors (2), Ctrl-C (130)
     except typer.Abort:
-        raise typer.Exit(130) from None         # Ctrl-C at a prompt that is not Ui.ask; tlaup has none
-    except TlaupError as e:                     # error:, hint:, details, then the exception's notes; see below
+        raise typer.Exit(130) from None  # Ctrl-C at a prompt that is not Ui.ask; tlaup has none
+    except TlaupError as e:  # error:, hint:, details, then the exception's notes; see below
         raise typer.Exit(reported(e.exit_code, report, e, ctx, args)) from None
     except BrokenPipeError as e:
         silence(sys.stdout)
-        print_notes(e, ctx)                     # to stderr; nothing else is printed for a closed pipe
+        print_notes(e, ctx)  # to stderr; nothing else is printed for a closed pipe
         raise typer.Exit(141) from None
     except EOFError:
         error = CannotAsk("the input ended while tlaup was waiting for an answer")
         raise typer.Exit(reported(3, report, error, ctx, args)) from None
     except OSError as e:
-        if closed_pipe_on_windows(e):           # top-up, D57: Windows reports a closed pipe as EINVAL
+        if closed_pipe_on_windows(e):  # top-up, D57: Windows reports a closed pipe as EINVAL
             silence(sys.stdout)
             print_notes(e, ctx)
             raise typer.Exit(141) from None
-        if e.filename is None and e.errno in WRITE_ERRNOS:      # a write to a stream that is already open failed
+        if e.filename is None and e.errno in WRITE_ERRNOS:  # a write to a stream that is already open failed
             silence(sys.stdout)
             error = Failed(f"cannot write output: {e.strerror}")
             raise typer.Exit(reported(5, report, error, ctx, args)) from None
         raise typer.Exit(reported(5, report_internal_error, e, ctx, args)) from None
-    except Exception as e:                      # the one allowed blind except (30 I8)
+    except Exception as e:  # the one allowed blind except (30 I8)
         raise typer.Exit(reported(5, report_internal_error, e, ctx, args)) from None
+
 
 def reported(code: int, report_it, *args) -> int:
     """Print the error; if stderr itself cannot be written, say nothing more and keep a sensible code."""
     try:
         report_it(*args)
-    except BrokenPipeError:                     # stderr is the pipe that closed
+    except BrokenPipeError:  # stderr is the pipe that closed
         silence(sys.stderr)
         return 141
-    except OSError:                             # stderr is on a full disk; the error's own code stands
+    except OSError:  # stderr is on a full disk; the error's own code stands
         silence(sys.stderr)
     return code
 
+
 WRITE_ERRNOS = {errno.ENOSPC, errno.EDQUOT, errno.EFBIG, errno.EIO}
+
 
 def closed_pipe_on_windows(e: OSError) -> bool:
     """An OSError(EINVAL) with no file name from a write, while stdout or stderr is a pipe: on Windows
     that is how a closed pipe shows (research 30); nowhere else is it treated so."""
-    return (os.name == "nt" and e.errno == errno.EINVAL and e.filename is None
-            and (is_pipe(1) or is_pipe(2)))         # stat.S_ISFIFO(os.fstat(fd).st_mode), guarded
+    return (
+        os.name == "nt" and e.errno == errno.EINVAL and e.filename is None and (is_pipe(1) or is_pipe(2))
+    )  # stat.S_ISFIFO(os.fstat(fd).st_mode), guarded
 
-class TlaupGroup(TyperGroup):                      # typer.core.TyperGroup
+
+class TlaupGroup(TyperGroup):  # typer.core.TyperGroup
     def make_context(self, info_name, args, parent=None, **extra):
-        with mapped(args=args):                     # no context yet
+        with mapped(args=args):  # no context yet
             return super().make_context(info_name, args, parent=parent, **extra)
 
     def invoke(self, ctx: typer.Context) -> Any:
         with mapped(ctx=ctx):
             return super().invoke(ctx)
 
-app = typer.Typer(cls=TlaupGroup, name="tlaup", add_completion=False, no_args_is_help=True,
-                  pretty_exceptions_enable=False)
 
-def main() -> None:                                 # the console script, and tlaup/__main__.py
-    own_exit.seen = False                           # main() may be called twice in one process
+app = typer.Typer(
+    cls=TlaupGroup, name="tlaup", add_completion=False, no_args_is_help=True, pretty_exceptions_enable=False
+)
+
+
+def main() -> None:  # the console script, and tlaup/__main__.py
+    own_exit.seen = False  # main() may be called twice in one process
     stdout_was_null = is_null_device(1)
     code = 0
     try:
-        app(prog_name="tlaup")                      # always leaves by SystemExit
+        app(prog_name="tlaup")  # always leaves by SystemExit
     except SystemExit as leaving:
-        code = exit_code_of(leaving)                # None is 0, an int is itself
-        if code == 1 and not own_exit.seen and (            # never a 1 that a command asked for
-            (is_null_device(1) and not stdout_was_null)     # Rich's own closed-pipe handling ran
-            or reader_gone(1) or reader_gone(2)             # a stream is a pipe nobody reads
+        code = exit_code_of(leaving)  # None is 0, an int is itself
+        if (
+            code == 1
+            and not own_exit.seen
+            and (  # never a 1 that a command asked for
+                (is_null_device(1) and not stdout_was_null)  # Rich's own closed-pipe handling ran
+                or reader_gone(1)
+                or reader_gone(2)  # a stream is a pipe nobody reads
+            )
         ):
             code = 141
-    except BrokenPipeError:                         # Typer's own printing, outside the group
+    except BrokenPipeError:  # Typer's own printing, outside the group
         code = 141
-    except OSError as e:                            # the same, on a full disk: its message could not be written
+    except OSError as e:  # the same, on a full disk: its message could not be written
         code = 141 if closed_pipe_on_windows(e) else 5
-    if code in (129, 130, 143):                     # stopped by a signal: do not wait for a reader
+    if code in (129, 130, 143):  # stopped by a signal: do not wait for a reader
         silence(sys.stdout)
     for stream in (sys.stdout, sys.stderr):
         try:
@@ -442,7 +455,7 @@ def main() -> None:                                 # the console script, and tl
         except BrokenPipeError:
             silence(stream)
             code = code or 141
-        except OSError as e:                        # a full disk under a redirect, or Windows' closed pipe
+        except OSError as e:  # a full disk under a redirect, or Windows' closed pipe
             silence(stream)
             code = code or (141 if closed_pipe_on_windows(e) else 5)
     sys.exit(code)

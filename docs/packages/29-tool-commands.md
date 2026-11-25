@@ -337,7 +337,7 @@ Help text: write each command's help in the words of [14 F7](../design/14-config
 ```python
 def get_tlc_jar_path() -> Path | None:
     build = ToolStore(AppPaths.from_env(os.environ), now=lambda: datetime.now(UTC)).pinned()
-    return build.jar if build is not None else None     # PinnedBuildMissing passes up to the handler (3)
+    return build.jar if build is not None else None  # PinnedBuildMissing passes up to the handler (3)
 ```
 
 That is the whole edit; no other line of the old runner or commands changes, and no test is written for it (Tests). It is also why the old `tlc` runs on the new store from here until 39, which the design accepts as a gap of D62 ([01 T11](../design/01-testing.md#t11-the-existing-tests), Risks). Between 29a and 29b the old `tlc` reads the old pin, which nothing writes any more; that is allowed, since nothing is released in between (D6). The messages of the old code that name `tlaup tools install` are left as they are; their packages (31, 39) replace them.

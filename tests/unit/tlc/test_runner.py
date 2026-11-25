@@ -106,5 +106,3 @@ def test_build_tlc_command_with_cfg(tmp_path, mocker):
     config_idx = cmd.index("-config")
     assert config_idx + 1 < len(cmd)
     assert cmd[config_idx + 1] == "MySpec-v1.cfg"
-
-

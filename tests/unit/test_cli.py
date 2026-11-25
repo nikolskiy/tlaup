@@ -55,4 +55,3 @@ def test_cli_version_flag_dev_commit(mocker, runner):
     assert result.exit_code == 0
     assert "tlaup v1.2.3+754bd16" in result.stdout
     assert "Test summary" in result.stdout
-
