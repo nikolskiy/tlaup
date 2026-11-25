@@ -192,6 +192,14 @@ def test_the_when_form_finds_one_step() -> None:
     assert find_step("when", 'I run "tlaup tlc Spec"').step_func.__name__ == "i_run"
 
 
+def test_the_terminal_forms_do_not_match_the_in_process_step() -> None:
+    for text in [
+        'I run "tlaup x" in a terminal 100 by 30 and answer "y"',
+        'I run "tlaup x" in a terminal 100 by 30 with stdout redirected to "out.txt"',
+    ]:
+        assert not [c for c in contexts("when") if c.parser.is_matching(text)], text
+
+
 def test_the_overlapping_pairs_choose_their_own_step() -> None:
     assert find_step("then", 'stdout contains "x"').step_func.__name__ == "stream_contains"
     assert find_step("then", 'stdout contains "x" 3 times').step_func.__name__ == "stream_contains_times"

@@ -2,7 +2,7 @@
 
 ``given.py``, ``when.py`` and ``then.py`` are thin wrappers over the methods of ``Scenario``, so that
 ``tests/unit/test_harness.py`` can call the helpers without a feature file. The real-process and terminal
-runners live in ``_process.py`` and ``_terminal.py``.
+runners will live in ``_process.py`` and ``_terminal.py`` (18b).
 """
 
 from __future__ import annotations
@@ -125,6 +125,7 @@ def _process_alive(pid: int) -> bool:
         return False
     except PermissionError:
         return True
+    # The zombie check reads /proc (Linux); on macOS an unreaped zombie counts as alive.
     status = Path(f"/proc/{pid}/stat")
     try:
         state = status.read_text(encoding="ascii").rsplit(")", 1)[1].split()[0]

@@ -14,6 +14,6 @@ if TYPE_CHECKING:
     from tests.steps._scenario import Scenario
 
 
-@when(parsers.re(r'I run "(?P<command>.+)"'))
+@when(parsers.re(r'I run "(?P<command>[^"]+)"'))
 def i_run(scenario: Scenario, command: str) -> None:
     scenario.run_in_process(command)
