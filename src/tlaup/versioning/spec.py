@@ -1,11 +1,20 @@
-"""What a user types as a version (design 02 X3). Parsing only: no store, no network, no release list."""
+"""What a user types as a version, and how a build is printed so that it can be typed back (design 02 X3).
+
+No store, no network, no release list: `format_build` is given the installed builds.
+"""
 
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from tlaup.errors import UsageError
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from tlaup.versioning.store import Build
 
 _TAG = re.compile(r"[A-Za-z0-9._/+][A-Za-z0-9._/+-]*")
 _COMMIT = re.compile(r"[0-9a-fA-F]{7,40}")
@@ -65,3 +74,34 @@ def parse_version_spec(text: str) -> VersionSpec:
     elif _COMMIT.fullmatch(build):
         return VersionSpec(name, build.lower(), None, None)
     raise _refused(text, name, build)
+
+
+_SHORTEST_COMMIT = 7
+_SHORTEST_DIGEST = 12
+
+
+def _shortest(value: str, start: int, taken: list[str]) -> str:
+    """The shortest prefix of ``value``, ``start`` digits or more, that none of ``taken`` starts with."""
+    for length in range(start, len(value)):
+        prefix = value[:length]
+        if not any(other.startswith(prefix) for other in taken):
+            return prefix
+    return value
+
+
+def format_build(build: Build, others: Sequence[Build] = ()) -> str:
+    """X3's printing table: a form that finds exactly this build among ``others``, every installed build.
+
+    Only the other builds with the build's name are looked at, and the rows are tried in order.
+    """
+    same = [other for other in others if other.name == build.name and other.id != build.id]
+    commit = build.commit
+    if commit is not None and all(other.commit != commit for other in same):
+        commits = [other.commit for other in same if other.commit is not None]
+        return f"{build.name}@{_shortest(commit, _SHORTEST_COMMIT, commits)}"
+    if build.calver is not None and all(other.calver != build.calver for other in same):
+        return f"{build.name}@{build.calver}"
+    if not same:
+        return build.name
+    digest = _shortest(build.sha256, _SHORTEST_DIGEST, [other.sha256 for other in same])
+    return f"{build.name}@{_SHA256}{digest}"

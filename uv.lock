@@ -1697,6 +1697,7 @@ name = "tlaup"
 version = "0.8.2"
 source = { editable = "." }
 dependencies = [
+    { name = "filelock" },
     { name = "platformdirs" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -1731,6 +1732,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "filelock", specifier = ">=4.2.1" },
     { name = "platformdirs", specifier = ">=4.0,<5.0" },
     { name = "pydantic", specifier = ">=2.12.5,<3.0.0" },
     { name = "pyyaml", specifier = ">=6.0,<7.0" },

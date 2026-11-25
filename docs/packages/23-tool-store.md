@@ -1,6 +1,6 @@
 # 23. Tool store
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 The size is at the upper end of M: one class with its lock and temporary folders, the order and lookup rules, the printed form, and about forty unit tests and one property test.
 
