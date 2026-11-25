@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+from tests import expected
 from tests.fakes.control import TOOLS, Fakes, fake_bin_dir, script_variable
 from tlaup.config.schema import Settings
 
@@ -92,6 +93,14 @@ def java_available(mocker):
 def javac_available(mocker):
     """Mock shutil.which to find 'javac'."""
     return mocker.patch("shutil.which", side_effect=lambda x: "/usr/bin/javac" if x == "javac" else None)
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    expected.add_option(parser)
+
+
+def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter, config: pytest.Config) -> None:
+    expected.report_written(terminalreporter, config)
 
 
 @pytest.fixture
