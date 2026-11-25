@@ -140,8 +140,9 @@ class ChildRun:
             threading.Thread(target=self._read, args=(self.proc.stdout,), daemon=True).start()
 
     def _read(self, pipe: IO[bytes]) -> None:
-        for line in pipe:
-            self._lines.put(line)
+        with pipe:  # closed once the child has closed its end
+            for line in pipe:
+                self._lines.put(line)
         self._lines.put(None)
 
     def attach(self) -> None:
