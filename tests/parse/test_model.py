@@ -6,6 +6,7 @@ framing and parser packages (01 T12 rule 3).
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import typing
 
@@ -407,3 +408,37 @@ def test_event_union_has_the_twenty_members() -> None:
     members = typing.get_args(Event)
     assert [member.__name__ for member in members] == names
     assert all(getattr(tlaup_parse, name) is member for name, member in zip(names, members, strict=True))
+
+
+# Each event's fields, in order, as package 09's code block gives them.
+EVENT_FIELDS = {
+    "VersionSeen": ["message", "tool"],
+    "ModeSeen": ["message", "mode", "workers"],
+    "PhaseChanged": ["message", "phase"],
+    "ProgressMade": ["message", "progress"],
+    "OutputLine": ["line"],
+    "DiagnosticFound": ["diagnostic"],
+    "ErrorOpened": ["message", "error"],
+    "ErrorExtended": ["message", "error"],
+    "TraceStateAdded": ["message", "error", "state"],
+    "TraceClosed": ["message", "error", "trace"],
+    "WarningFound": ["message"],
+    "OverrideLoaded": ["message", "operator", "java_class"],
+    "CoverageAdded": ["message", "item"],
+    "StatsUpdated": ["message", "stats"],
+    "CheckpointStarted": ["message", "folder"],
+    "CheckpointWritten": ["message"],
+    "Recovered": ["message", "examined", "queued"],
+    "Information": ["message"],
+    "UnknownMessage": ["message"],
+    "Finished": ["message", "duration_ms", "finished"],
+}
+
+
+def test_event_fields_follow_the_package() -> None:
+    members = typing.get_args(Event)
+    assert [member.__name__ for member in members] == list(EVENT_FIELDS)
+    for member in members:
+        assert dataclasses.is_dataclass(member)
+        assert member.__dataclass_params__.frozen, member.__name__  # type: ignore[attr-defined]
+        assert [f.name for f in dataclasses.fields(member)] == EVENT_FIELDS[member.__name__], member.__name__

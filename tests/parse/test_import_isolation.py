@@ -8,10 +8,14 @@ import sys
 REFUSED = ("tlaup", "rich", "typer", "pydantic", "requests", "yaml")
 
 # The child puts a finder first on sys.meta_path that refuses the top-level names given as arguments, forgets
-# any of them already imported, then imports tlaup_parse and every module found under it.
+# any of them already imported, then imports tlaup_parse and every module found under it. Last it checks that
+# every top-level module loaded since it started is in the standard library or is tlaup_parse; what the
+# interpreter loaded before the child's first line (site, the virtualenv hook, coverage under `poe test`) is not
+# the package's doing and is left out.
 _CHILD = """
 import sys
 
+at_start = {name.partition(".")[0] for name in sys.modules}
 refused = frozenset(sys.argv[1:])
 
 
@@ -35,6 +39,13 @@ import tlaup_parse
 names = [info.name for info in pkgutil.walk_packages(tlaup_parse.__path__, "tlaup_parse.")]
 for name in names:
     importlib.import_module(name)
+loaded = {name.partition(".")[0] for name in sys.modules} - at_start
+# _sysconfigdata_* is the standard library's, under a platform-dependent name the list does not hold.
+foreign = sorted(
+    name for name in loaded - set(sys.stdlib_module_names) - {"tlaup_parse"} if not name.startswith("_sysconfigdata")
+)
+if foreign:
+    raise SystemExit(f"not in the standard library: {foreign}")
 print(len(names))
 """
 
