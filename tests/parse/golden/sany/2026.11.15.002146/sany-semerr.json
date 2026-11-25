@@ -1,0 +1,128 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Unknown operator: `y'.",
+        "module": "SemErr",
+        "file": "<tmp>/q12/work-v1.8.0/SemErr.tla",
+        "location": {
+          "module": "SemErr",
+          "line": 4,
+          "column": 13,
+          "end_line": 4,
+          "end_column": 13
+        },
+        "details": []
+      },
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Unknown operator: `Foo'.",
+        "module": "SemErr",
+        "file": "<tmp>/q12/work-v1.8.0/SemErr.tla",
+        "location": {
+          "module": "SemErr",
+          "line": 5,
+          "column": 22,
+          "end_line": 5,
+          "end_column": 24
+        },
+        "details": []
+      }
+    ],
+    "module_files": {
+      "SemErr": "<tmp>/q12/work-v1.8.0/SemErr.tla",
+      "Naturals": "/tmp/tlc-14645010757599648378/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 21
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/SemErr.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-14645010757599648378/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module SemErr"
+    },
+    {
+      "class": "header",
+      "text": "Semantic errors:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 2"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 4, col 13 to line 4, col 13 of module SemErr"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Unknown operator: `y'."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 5, col 22 to line 5, col 24 of module SemErr"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Unknown operator: `Foo'."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

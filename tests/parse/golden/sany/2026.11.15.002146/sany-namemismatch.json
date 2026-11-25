@@ -1,0 +1,94 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "File name 'NameMismatch' does not match the name 'Other' of the top level module it contains.",
+        "module": null,
+        "file": null,
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {
+      "NameMismatch": "<tmp>/q12/work-v1.8.0/NameMismatch.tla"
+    },
+    "other": [],
+    "lines_used": 18
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/NameMismatch.tla"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "header",
+      "text": "Fatal errors while parsing TLA+ spec in file NameMismatch.tla"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "Unknown location"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "File name 'NameMismatch' does not match the name 'Other' of the top level module it contains."
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 1"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "Unknown location"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "File name 'NameMismatch' does not match the name 'Other' of the top level module it contains."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

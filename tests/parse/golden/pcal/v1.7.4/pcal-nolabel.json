@@ -1,0 +1,23 @@
+{
+  "version": "1.11 of 31 December 2020",
+  "files_written": [],
+  "labels_added": [],
+  "diagnostics": [
+    {
+      "tool": "pcal",
+      "severity": "error",
+      "message": "Missing label at the following location:",
+      "module": null,
+      "file": null,
+      "location": {
+        "module": "",
+        "line": 7,
+        "column": 3,
+        "end_line": null,
+        "end_column": null
+      },
+      "details": []
+    }
+  ],
+  "other": []
+}

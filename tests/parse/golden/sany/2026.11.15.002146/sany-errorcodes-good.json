@@ -1,0 +1,45 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {
+      "Good": "<tmp>/q12/work-v1.8.0/Good.tla",
+      "Naturals": "/tmp/tlc-18044360563025816412/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 8
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/Good.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-18044360563025816412/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Good"
+    },
+    {
+      "class": "progress",
+      "text": "Linting of module Good"
+    }
+  ]
+}

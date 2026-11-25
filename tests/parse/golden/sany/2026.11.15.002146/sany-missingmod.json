@@ -1,0 +1,99 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Cannot find source file for module NoSuchModule imported in module MissingMod.",
+        "module": "MissingMod",
+        "file": "<tmp>/q12/work-v1.8.0/MissingMod.tla",
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {
+      "MissingMod": "<tmp>/q12/work-v1.8.0/MissingMod.tla",
+      "Naturals": "/tmp/tlc-14473172204585413874/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 19
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/MissingMod.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-14473172204585413874/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "header",
+      "text": "Fatal errors while parsing TLA+ spec in file MissingMod.tla"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "In module MissingMod"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Cannot find source file for module NoSuchModule imported in module MissingMod."
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 1"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "In module MissingMod"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Cannot find source file for module NoSuchModule imported in module MissingMod."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

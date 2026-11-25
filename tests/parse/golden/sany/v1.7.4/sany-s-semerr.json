@@ -1,0 +1,33 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {
+      "SemErr": "<tmp>/q22/work/v1.7.4/sany-s-semerr/SemErr.tla",
+      "Naturals": "/tmp/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 5
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.7.4/sany-s-semerr/SemErr.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/Naturals.tla"
+    }
+  ]
+}

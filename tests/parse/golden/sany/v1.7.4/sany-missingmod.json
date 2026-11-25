@@ -1,0 +1,94 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Cannot find source file for module NoSuchModule imported in module MissingMod.",
+        "module": null,
+        "file": null,
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {
+      "MissingMod": "<tmp>/q12/work-v1.7.4/MissingMod.tla",
+      "Naturals": "/tmp/Naturals.tla"
+    },
+    "other": [
+      "File does not exist: <tmp>/q12/work-v1.7.4/NoSuchModule.tla while looking in these directories: jar:file:<tmp>/q12/jar-v1.7.4/tla2tools.jar!/tla2sany/StandardModules/",
+      ""
+    ],
+    "lines_used": 15
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.7.4/MissingMod.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/Naturals.tla"
+    },
+    {
+      "class": "other",
+      "text": "File does not exist: <tmp>/q12/work-v1.7.4/NoSuchModule.tla while looking in these directories: jar:file:<tmp>/q12/jar-v1.7.4/tla2tools.jar!/tla2sany/StandardModules/"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "header",
+      "text": "Fatal errors while parsing TLA+ spec in file MissingMod.tla"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "tla2sany.semantic.AbortException"
+    },
+    {
+      "class": "structure",
+      "text": "*** Abort messages: 1"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "Unknown location"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Cannot find source file for module NoSuchModule imported in module MissingMod."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}
