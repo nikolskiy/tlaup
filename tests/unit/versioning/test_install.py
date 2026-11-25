@@ -298,6 +298,23 @@ def test_name_at_build_not_installed_and_upstream_publishes_another_installs_not
     assert tmp_entries(store) == []
 
 
+@pytest.mark.parametrize("force", [False, True])
+@pytest.mark.parametrize("build", ["abcdef0", "2026.11.14.000000"])
+def test_name_at_build_not_installed_with_another_build_of_the_name_installed_is_version_not_found(
+    store: ToolStore, upstream: Upstream, isolated: Isolated, build: str, force: bool
+) -> None:
+    """V12, "NAME@COMMIT or NAME@CALVER, not installed": the installed build upstream publishes is not it."""
+    installed = run(store, upstream, "rolling").build
+    before = store.builds()
+    upstream.fake.clear()
+    with pytest.raises(VersionNotFound):
+        run(store, upstream, f"rolling@{build}", force=force)
+    assert store.builds() == before
+    assert pin_text(isolated) == installed.id
+    assert upstream.downloads == 0
+    assert tmp_entries(store) == []
+
+
 def test_name_at_sha256_not_installed_is_version_not_found_with_no_request(
     store: ToolStore, upstream: Upstream
 ) -> None:

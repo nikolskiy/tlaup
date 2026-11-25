@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 from tlaup.errors import (
     FileOperationError,
@@ -41,6 +41,18 @@ if TYPE_CHECKING:
 
 Lookup = Callable[[str], Release]  # what upstream publishes under a name now (V8)
 Fetch = Callable[[Release, Path], tuple[Path, JarInfo]]  # fetch_build with the client bound (V5)
+
+
+class _Identity(Protocol):
+    """What a build spec is checked against: a verified jar (``JarInfo``) or an installed ``Build``."""
+
+    @property
+    def commit(self) -> str | None: ...
+    @property
+    def calver(self) -> str | None: ...
+    @property
+    def sha256(self) -> str: ...
+
 
 LOCK_TIMEOUT = 60.0  # seconds (V11)
 _CANNOT_ASK = (NetworkError, RateLimited, RemoteDataError)  # "GitHub cannot be asked" (V12)
@@ -535,7 +547,7 @@ def _repair(store: ToolStore, remote: Remote, build: Build, fetch: Fetch, every:
     """``--force`` on one named build: repaired only if upstream still publishes its bytes (V12)."""
     release = remote.resolve(_name_only(build.name))
 
-    def check(info: JarInfo) -> None:
+    def check(info: _Identity) -> None:
         if info.sha256 != build.sha256:
             printed = format_build(build, every)
             message = (
@@ -553,7 +565,7 @@ def _install_build_of_name(store: ToolStore, remote: Remote, spec: VersionSpec, 
     """``NAME@COMMIT`` or ``NAME@CALVER`` not installed: only if upstream publishes that build now."""
     release = remote.resolve(_name_only(spec.name or ""))
 
-    def check(info: JarInfo) -> None:
+    def check(info: _Identity) -> None:
         if spec.commit is not None:
             ok = info.commit is not None and info.commit.startswith(spec.commit)
         else:
@@ -567,8 +579,11 @@ def _install_build_of_name(store: ToolStore, remote: Remote, spec: VersionSpec, 
     return _run(Install(store, release.tag, _first_then_fresh(remote, release), fetch), check)
 
 
-def _run(step: Install, check: Callable[[JarInfo], None] | None = None) -> InstallReport:
-    """The steps in order (V12, step 5); on any error after lock_tmp, give_up before the error leaves."""
+def _run(step: Install, check: Callable[[_Identity], None] | None = None) -> InstallReport:
+    """The steps in order (V12, step 5); on any error after lock_tmp, give_up before the error leaves.
+
+    ``check`` is applied to the verified jar, or, when nothing is downloaded, to the build found installed.
+    """
     while True:
         if step.look():
             step.lock_tmp()
@@ -582,6 +597,8 @@ def _run(step: Install, check: Callable[[JarInfo], None] | None = None) -> Insta
                 step.give_up()
                 raise
         else:
+            if check is not None and step.build is not None:
+                check(step.build)  # upstream publishes an installed build, but not the one asked for
             step.take_store_lock()
         try:
             step.clean_tmp()

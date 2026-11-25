@@ -196,6 +196,8 @@ class Remote:
         try:
             found = self.release(name)
         except VersionNotFound as first:
+            if name.startswith("v"):
+                raise
             try:
                 found = self.release(f"v{name}")
             except VersionNotFound:

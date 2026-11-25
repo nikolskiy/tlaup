@@ -366,12 +366,13 @@ def test_resolve_tries_foo_then_vfoo_and_the_error_names_foo(github: GitHub, rem
     assert [r.url.split("/")[-1] for r in fake.requests] == ["foo", "vfoo"]
 
 
-def test_resolve_a_tag_nobody_published_is_version_not_found(github: GitHub, remote: Remote) -> None:
+def test_resolve_a_tag_nobody_published_is_version_not_found_with_one_request(github: GitHub, remote: Remote) -> None:
+    """A name that starts with ``v`` is not tried again with another ``v`` in front (package 27, install step 3)."""
     fake = github()
     fake.answer(404, "/releases/tags/v9.9.9")
-    fake.answer(404, "/releases/tags/vv9.9.9")
     with pytest.raises(VersionNotFound):
         remote.resolve(parse_version_spec("v9.9.9"))
+    assert [r.url.split("/")[-1] for r in fake.requests] == ["v9.9.9"]
 
 
 def test_a_release_without_the_jar_is_listed_but_never_resolved_row_t6(github: GitHub, remote: Remote) -> None:
