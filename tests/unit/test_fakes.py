@@ -162,13 +162,20 @@ def test_java_version_banner(fakes: Fakes) -> None:
     assert logged(fakes, "java", "exit") == [{"event": "exit", "pid": start["pid"], "code": 0}]
 
 
+@POSIX_ONLY
 def test_java_version_delay(fakes: Fakes) -> None:
-    # The one clock reading in these tests: a lower bound on the fake's own delay.
-    fakes.script("java", {"version_delay_ms": 300})
-    began = time.monotonic()
-    result = run_tool(fakes, "java", "-version")
-    assert time.monotonic() - began >= 0.3
-    assert b'"25.0.5"' in result.stderr
+    # No clock (T12 rule 5): with a long delay, nothing is on stderr once the fake has started.
+    fakes.script("java", {"version_delay_ms": 60000})
+    proc = start_tool(fakes, "java", "-version")
+    try:
+        wait_logged(fakes, "java", "start", main="-version")
+        assert proc.stderr is not None
+        ready, _, _ = select.select([proc.stderr.fileno()], [], [], 0)
+        assert ready == []
+        proc.send_signal(signal.SIGTERM)
+    finally:
+        code = finish(proc)
+    assert code == 143
 
 
 def test_java_version_object(fakes: Fakes) -> None:
@@ -290,6 +297,39 @@ def test_java_metadir_fields_need_metadir(fakes: Fakes) -> None:
     result = run_tool(fakes, "java", "tlc2.TLC", "Spec.tla")
     assert result.returncode == 127
     assert b"-metadir" in result.stderr
+
+
+def test_java_without_a_main_class_or_version_exits_127(fakes: Fakes) -> None:
+    fakes.script("java", {"runs": [java_run()]})
+    result = run_tool(fakes, "java", "-cp", "a", "-Dx=y")
+    assert result.returncode == 127
+    assert result.stderr == b"fake java: no main class among the arguments\n"
+
+
+@POSIX_ONLY
+def test_java_runs_on_when_its_stdout_is_closed(fakes: Fakes, tmp_path: Path) -> None:
+    # The checkpoint line marks that the fake has written its lines into the closed pipe.
+    checkpoint = {"begin_after_line": 2, "commit_before_line": 3, "release_file": None}
+    run = java_run(generate_lines=2, hang_after_line=2, checkpoint=checkpoint, on_sigterm=143)
+    fakes.script("java", {"runs": [run]})
+    errors = tmp_path / "stderr.txt"
+    with errors.open("wb") as stderr:
+        proc = subprocess.Popen(
+            [str(fakes.bin / "java"), "tlc2.TLC", "-metadir", str(tmp_path / "m")],
+            stdout=subprocess.PIPE,
+            stderr=stderr,
+        )
+    assert proc.stdout is not None
+    proc.stdout.close()
+    try:
+        wait_logged(fakes, "java", "checkpoint", pid=proc.pid)
+        assert proc.poll() is None
+        proc.send_signal(signal.SIGTERM)
+    finally:
+        code = finish(proc)
+    assert code == 143
+    assert errors.read_bytes() == b""
+    assert [line["name"] for line in logged(fakes, "java", "signal")] == ["SIGTERM"]
 
 
 def test_java_start_line_fields(fakes: Fakes, tmp_path: Path) -> None:
@@ -499,6 +539,13 @@ def test_javac_missing_class(fakes: Fakes, tmp_path: Path) -> None:
     assert result.returncode == 2
     assert result.stderr == b"fake javac: no prepared class for Other.java\n"
     assert not (tmp_path / "out").exists()
+
+
+def test_javac_without_d_exits_127(fakes: Fakes) -> None:
+    fakes.script("javac", {})
+    result = run_tool(fakes, "javac", "Plain.java")
+    assert result.returncode == 127
+    assert result.stderr == b"fake javac: no -d folder among the arguments\n"
 
 
 def test_javac_fail_with(fakes: Fakes, tmp_path: Path) -> None:

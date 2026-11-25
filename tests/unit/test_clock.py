@@ -35,6 +35,6 @@ def test_now_is_aware_utc_and_moves_with_advance() -> None:
 
 def test_refuses_a_naive_start_and_going_back() -> None:
     with pytest.raises(ValueError, match="aware"):
-        FakeClock(datetime(2026, 1, 1))
+        FakeClock(datetime(2026, 1, 1))  # noqa: DTZ001, RUF100 - a naive start is the input under test
     with pytest.raises(ValueError, match="back"):
         FakeClock().advance(-1)

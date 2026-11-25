@@ -76,6 +76,7 @@ def act(script: Mapping[str, Any], log: Log) -> int:
         return 1
     dest, sources = read_args(args)
     if dest is None:
+        # Written by stage 4: tlaup always passes -d, so a compile without it fails loudly (127).
         message = "no -d folder among the arguments"
         raise ScriptError(message)
     classes = Path(script.get("classes") or CLASSES_DIR)

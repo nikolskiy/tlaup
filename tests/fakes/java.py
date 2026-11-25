@@ -70,6 +70,7 @@ def banner(version: str) -> str:
 
 def choose_run(script: Mapping[str, Any], main: str, log: Log) -> int | None:
     """The first entry of ``runs`` for ``main`` that no earlier ``start`` line took."""
+    # Two concurrent starts can take the same run (the log is read, then the start line written); no lock needed now.
     taken = {line.get("run") for line in log.read() if line.get("event") == "start"}
     for index, run in enumerate(script.get("runs") or []):
         if run.get("main") == main and index not in taken:
@@ -244,6 +245,7 @@ def act(script: Mapping[str, Any], log: Log) -> int:
         log.write("start", **_fakelib.start_fields(main=VERSION_REQUEST, run=None, ignored_signals=ignored))
         return answer_version(script)
     if args.main is None:
+        # Written by stage 4: a start tlaup did not plan fails loudly, like every unscripted start (127).
         log.write("start", **_fakelib.start_fields(main=None, run=None, ignored_signals=[]))
         message = "no main class among the arguments"
         raise ScriptError(message)
