@@ -1,0 +1,435 @@
+{
+  "tool": {
+    "version": "2.19",
+    "revision": "5a47802",
+    "date": "08 August 2024",
+    "line": "stable",
+    "raw": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "success",
+  "verdict": "no-error",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [],
+  "module_files": {
+    "Success": "<tmp>/q01/run/Success.tla",
+    "Naturals": "/tmp/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [
+    {
+      "diameter": 7,
+      "generated": 26,
+      "distinct": 16,
+      "queue": 0,
+      "at": "2026-11-14 22:26:13"
+    }
+  ],
+  "stats": {
+    "totalStates": 26,
+    "distinctStates": 16,
+    "queue": 0,
+    "stateDepth": 7,
+    "collision_probability": "8.7E-18",
+    "outdegree": "The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2)."
+  },
+  "coverage": [
+    {
+      "kind": "init",
+      "name": "Init",
+      "location": {
+        "module": "Success",
+        "line": 5,
+        "column": 1,
+        "end_line": 5,
+        "end_column": 4
+      },
+      "sub_location": null,
+      "count": 1,
+      "distinct": 1,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 5,
+        "column": 9,
+        "end_line": 5,
+        "end_column": 22
+      },
+      "sub_location": null,
+      "count": 1,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "action",
+      "name": "Next",
+      "location": {
+        "module": "Success",
+        "line": 6,
+        "column": 1,
+        "end_line": 6,
+        "end_column": 4
+      },
+      "sub_location": {
+        "module": "Success",
+        "line": 6,
+        "column": 12,
+        "end_line": 6,
+        "end_column": 40
+      },
+      "count": 12,
+      "distinct": 3,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 6,
+        "column": 12,
+        "end_line": 6,
+        "end_column": 16
+      },
+      "sub_location": null,
+      "count": 12,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 6,
+        "column": 12,
+        "end_line": 6,
+        "end_column": 12
+      },
+      "sub_location": null,
+      "count": 16,
+      "distinct": null,
+      "depth": 1
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 6,
+        "column": 21,
+        "end_line": 6,
+        "end_column": 30
+      },
+      "sub_location": null,
+      "count": 12,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 6,
+        "column": 35,
+        "end_line": 6,
+        "end_column": 40
+      },
+      "sub_location": null,
+      "count": 12,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "action",
+      "name": "Next",
+      "location": {
+        "module": "Success",
+        "line": 6,
+        "column": 1,
+        "end_line": 6,
+        "end_column": 4
+      },
+      "sub_location": {
+        "module": "Success",
+        "line": 7,
+        "column": 12,
+        "end_line": 7,
+        "end_column": 40
+      },
+      "count": 12,
+      "distinct": 12,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 7,
+        "column": 12,
+        "end_line": 7,
+        "end_column": 16
+      },
+      "sub_location": null,
+      "count": 12,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 7,
+        "column": 12,
+        "end_line": 7,
+        "end_column": 12
+      },
+      "sub_location": null,
+      "count": 16,
+      "distinct": null,
+      "depth": 1
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 7,
+        "column": 21,
+        "end_line": 7,
+        "end_column": 30
+      },
+      "sub_location": null,
+      "count": 12,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 7,
+        "column": 35,
+        "end_line": 7,
+        "end_column": 40
+      },
+      "sub_location": null,
+      "count": 12,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "action",
+      "name": "Next",
+      "location": {
+        "module": "Success",
+        "line": 6,
+        "column": 1,
+        "end_line": 6,
+        "end_column": 4
+      },
+      "sub_location": {
+        "module": "Success",
+        "line": 8,
+        "column": 12,
+        "end_line": 8,
+        "end_column": 47
+      },
+      "count": 1,
+      "distinct": 0,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 8,
+        "column": 12,
+        "end_line": 8,
+        "end_column": 16
+      },
+      "sub_location": null,
+      "count": 17,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 8,
+        "column": 12,
+        "end_line": 8,
+        "end_column": 12
+      },
+      "sub_location": null,
+      "count": 16,
+      "distinct": null,
+      "depth": 1
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 8,
+        "column": 21,
+        "end_line": 8,
+        "end_column": 25
+      },
+      "sub_location": null,
+      "count": 5,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 8,
+        "column": 21,
+        "end_line": 8,
+        "end_column": 21
+      },
+      "sub_location": null,
+      "count": 4,
+      "distinct": null,
+      "depth": 1
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 8,
+        "column": 30,
+        "end_line": 8,
+        "end_column": 47
+      },
+      "sub_location": null,
+      "count": 1,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "property",
+      "name": "TypeOK",
+      "location": {
+        "module": "Success",
+        "line": 4,
+        "column": 1,
+        "end_line": 4,
+        "end_column": 6
+      },
+      "sub_location": null,
+      "count": null,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 4,
+        "column": 11,
+        "end_line": 4,
+        "end_column": 34
+      },
+      "sub_location": null,
+      "count": 16,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "property",
+      "name": "Inv",
+      "location": {
+        "module": "Success",
+        "line": 10,
+        "column": 1,
+        "end_line": 10,
+        "end_column": 3
+      },
+      "sub_location": null,
+      "count": null,
+      "distinct": null,
+      "depth": 0
+    },
+    {
+      "kind": "expression",
+      "name": null,
+      "location": {
+        "module": "Success",
+        "line": 10,
+        "column": 8,
+        "end_line": 10,
+        "end_column": 17
+      },
+      "sub_location": null,
+      "count": 16,
+      "distinct": null,
+      "depth": 0
+    }
+  ],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 4,
+  "sany_lines_used": 4,
+  "unknown_messages": [],
+  "info": [
+    {
+      "code": 2201,
+      "severity": 0,
+      "name": "TLC_COVERAGE_START",
+      "body": [
+        "The coverage statistics at 2026-11-14 22:26:13"
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    },
+    {
+      "code": 2202,
+      "severity": 0,
+      "name": "TLC_COVERAGE_END",
+      "body": [
+        "End of statistics."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "started": "2026-11-14 22:26:13",
+  "finished": "2026-11-14 22:26:13",
+  "duration_ms": 806
+}
