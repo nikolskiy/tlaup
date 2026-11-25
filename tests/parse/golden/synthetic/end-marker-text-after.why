@@ -1,0 +1,6 @@
+Why: design 10 P4, text after an end marker is kept as the closed message's after, and at the top level it becomes
+one OutputLine of its own; design 01 T3, the event-level count is one higher than the number of Unframed items for
+this file. No capture has text after a top-level end marker (the 9 that exist are on nested messages, such as
+override-method_not_public's comma).
+
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). Line 6, the 2185 end marker, has ", and text after the end marker" added.

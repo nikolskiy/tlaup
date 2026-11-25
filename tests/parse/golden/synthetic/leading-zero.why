@@ -1,0 +1,6 @@
+Why: design 10 P4, "A marker whose number has a leading zero (STARTMSG 02185:0) is plain text", so that a code kept
+as an integer can always be written back as it was read. Lines 4 to 6 are three plain lines (a start and an end
+marker with 02185). Lines 7 to 10 are one 2185 message whose body is two lines: the end marker with 02185 on line 9
+does not close the open 2185, which line 10 closes.
+
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). Lines 4 to 6 and line 9 are new.
