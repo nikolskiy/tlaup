@@ -1,6 +1,6 @@
 # 17. The error handler, `main()` and `--debug`
 
-Size: M. Suggested model: most capable. Status: ready. The debug filter that `--debug` output passes through is [24](24-github-client.md)'s (`redact`, question Q6, settled); this package builds the one function it goes into (see Interfaces).
+Size: M. Suggested model: most capable. Status: built, not yet proven on CI. The debug filter that `--debug` output passes through is [24](24-github-client.md)'s (`redact`, question Q6, settled); this package builds the one function it goes into (see Interfaces).
 
 ## Goal
 

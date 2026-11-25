@@ -9,7 +9,7 @@ description = "TLA+ tools: download TLC, compile custom modules, run model check
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "typer>=0.22.0,<1.0.0",
+    "typer>=0.27.2,<1.0.0",
     "requests>=2.31.0,<3.0.0",
     "pyyaml>=6.0,<7.0",
     "platformdirs>=4.0,<5.0",
@@ -140,6 +140,9 @@ ignore = [
     "PLR0913", # Many arguments are common in tests (fixtures)
     "PLR0917", # Many positional arguments are common in tests (fixtures)
 ]
+# Design 14 F9 (startup cost): command modules and the root import their heavy modules inside functions.
+"src/tlaup/cmd/**" = ["PLC0415"]
+"src/tlaup/cli.py" = ["PLC0415"]
 
 [tool.bandit]
 skips = ["B404", "B603", "B607"]

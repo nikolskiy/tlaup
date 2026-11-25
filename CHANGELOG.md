@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 - `TLAUP_HOME` moves all of tlaup's folders; `TLAUP_CONFIG_DIR`, `TLAUP_CACHE_DIR` and `TLAUP_DATA_DIR` move one each.
+- `--debug`, and `python -m tlaup`.
 
 ### Breaking
 - Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tools install` and `tlaup modules add` again. The old `tla` folders are not touched and can be deleted.
@@ -16,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.
 - Support for old storage layouts (a jar directly in the cache folder, the symlink pin, the `tlc` folder, modules without a `modules/` subfolder). The `tlaup` folders never contained them.
+
+### Fixed
+- Several failures printed a Python traceback. tlaup now prints one `error:` line; `tlaup --debug ...` or `TLAUP_DEBUG=1` shows the traceback.
 
 ## [0.8.2] - 2026-11-14
 

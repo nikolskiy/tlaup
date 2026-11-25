@@ -30,6 +30,24 @@ def get_context() -> AppContext:
     return _cache[0]
 
 
+def build_context(env: Mapping[str, str], *, debug: bool) -> AppContext:
+    """Build the context of this run of the app and make it the cached one (the root callback's, design 14 F10).
+
+    `debug` is the `--debug` flag; `TLAUP_DEBUG=1` in `env` switches it on as well. Raises `ConfigInvalid` from
+    `AppPaths.from_env`; the cache is then empty, not left holding an earlier run's context.
+    """
+    _cache.clear()
+    env = dict(env)
+    built = AppContext(
+        paths=AppPaths.from_env(env),
+        env=env,
+        debug=debug or env.get("TLAUP_DEBUG") == "1",
+        ui=Ui.for_process(),
+    )
+    _cache.append(built)
+    return built
+
+
 def reset() -> None:
     """Forget the cached context; for tests."""
     _cache.clear()
