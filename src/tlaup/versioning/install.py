@@ -1,4 +1,4 @@
-"""Install, upgrade, uninstall and pin as steps (design 12 V1, V3, V4, V11, V12).
+"""Install, upgrade, uninstall and pin as steps, and the functions that run them (design 12 V1, V3, V4, V11, V12).
 
 Each command is a class whose methods are the actions of ``specs/ToolStore.tla``, one call each, and a
 function that calls them in order. The stateful test calls the steps one at a time from several objects,
@@ -16,9 +16,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
 from tlaup.errors import (
+    AmbiguousVersion,
     FileOperationError,
     InternalError,
     NetworkError,
+    NoPinnedBuild,
+    NoToolsInstalled,
     PinnedBuildMissing,
     RateLimited,
     RemoteDataError,
@@ -27,14 +30,16 @@ from tlaup.errors import (
 )
 from tlaup.versioning.download import fetch_build, usable_digest
 from tlaup.versioning.jarinfo import JarInfo
+from tlaup.versioning.order import version_key
 from tlaup.versioning.remote import Release
 from tlaup.versioning.spec import VersionSpec, format_build
-from tlaup.versioning.store import Source
+from tlaup.versioning.store import STABLE, Source
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from tlaup.errors import TlaupError
+    from tlaup.ui import Ui
     from tlaup.versioning.github import GitHubClient, Progress
     from tlaup.versioning.remote import Remote
     from tlaup.versioning.store import Build, TmpFolder, ToolStore
@@ -616,3 +621,252 @@ def _run(step: Install, check: Callable[[_Identity], None] | None = None) -> Ins
             _added(step), downloaded=step.downloaded, already_installed=step.already_installed, pinned=step.pinned,
             could_not_check=None,
         )  # fmt: skip
+
+
+# ---------------------------------------------------------------------- upgrade()
+
+
+@dataclass(frozen=True)
+class UpgradeReport:
+    name: str  # the name that was upgraded (for `stable`, the tag it resolved to)
+    build: Build  # the newest build of the name after the call
+    old: Build | None  # the build that was compared; None when the name was not installed
+    up_to_date: bool  # nothing was downloaded: `old` is what upstream publishes
+    installed: InstallReport | None  # set when no build of the name was installed and upgrade was install
+    pin_moved: bool  # the pin named `old` under the lock and now names `build`
+    removed: Build | None  # `old`, when this call removed it
+    remaining: tuple[Build, ...]  # the other builds of the name still installed, for the note (V4, step 4)
+
+
+def upgrade(  # noqa: PLR0913 (install()'s arguments and V4's option)
+    store: ToolStore,
+    remote: Remote,
+    client: GitHubClient,
+    spec: VersionSpec | None,
+    *,
+    keep_old: bool = False,
+    progress: Progress | None = None,
+) -> UpgradeReport:
+    """Move a name forward to what upstream publishes now (V4): the pin follows only the build compared.
+
+    ``None`` is the pinned build's name. A build spec is a usage error: a build does not move.
+    """
+    while True:
+        try:
+            return _upgrade_once(store, remote, client, spec, keep_old=keep_old, progress=progress)
+        except _Restart:
+            continue
+
+
+def _upgrade_name(store: ToolStore, spec: VersionSpec | None) -> str:
+    """The name to upgrade (V4, step 1), before any request."""
+    if spec is None:
+        pinned = store.pinned()  # PinnedBuildMissing for a pin naming a missing build
+        if pinned is not None:
+            return pinned.name
+        if store.builds():
+            message = "no version pinned"
+            raise NoPinnedBuild(message, hint="name the one to upgrade, for example `tlaup tool upgrade rolling`")
+        message = "no TLA+ tools installed"
+        raise NoToolsInstalled(message, hint="run `tlaup tool install stable` or `tlaup tool install rolling`")
+    if spec.name is None or spec.commit is not None or spec.calver is not None or spec.sha256 is not None:
+        message = f"{_spec_text(spec)} names one build, and upgrade moves a name forward"
+        names = sorted({build.name for build in store.find(spec)})
+        if names:
+            hint = " or ".join(f"`tlaup tool upgrade {name}`" for name in names)
+        else:
+            hint = "name a release such as `rolling` or `stable`"
+        raise UsageError(message, hint=hint)
+    return spec.name
+
+
+def _upgrade_once(  # noqa: PLR0913 (upgrade()'s arguments)
+    store: ToolStore,
+    remote: Remote,
+    client: GitHubClient,
+    spec: VersionSpec | None,
+    *,
+    keep_old: bool,
+    progress: Progress | None,
+) -> UpgradeReport:
+    name = _upgrade_name(store, spec)
+
+    def fetch(release: Release, dest: Path) -> tuple[Path, JarInfo]:
+        return fetch_build(client, release, dest, progress)
+
+    if name == STABLE:
+        release = remote.resolve(_name_only(STABLE))  # a fresh list (V8)
+        lookup = _first_then_fresh(remote, release)
+        if not any(build.name == release.tag for build in store.builds()):
+            return _stable_beside(store, release, lookup, fetch)
+        name = release.tag
+    else:
+        installed = store.find(_name_only(name))  # a tag as typed, then with `v` (V2)
+        if not installed:
+            return _installed_by_upgrade(install(store, remote, client, _name_only(name), progress=progress))
+        name = installed[0].name
+        lookup = remote.release  # fresh, never the lookup cache (V4, step 2)
+    step = Upgrade(store, name, lookup, fetch, keep_old=keep_old)
+    if step.look():
+        return _run_upgrade(step)
+    return _up_to_date(step)
+
+
+def _stable_beside(store: ToolStore, release: Release, lookup: Lookup, fetch: Fetch) -> UpgradeReport:
+    """``stable`` resolved to a tag with no build installed: beside the installed stable builds (V4, step 1)."""
+    stable = store.find(_name_only(STABLE))
+    tag_key, old_key = version_key(release.tag), version_key(stable[0].name) if stable else None
+    if stable and tag_key is not None and old_key is not None and tag_key > old_key:
+        step = Upgrade(store, release.tag, lookup, fetch, keep_old=True, old=stable[0])
+        step.look()  # always true with ``old`` given
+        return _run_upgrade(step)
+    return _installed_by_upgrade(_run(Install(store, release.tag, lookup, fetch)))
+
+
+def _installed_by_upgrade(report: InstallReport) -> UpgradeReport:
+    """No build of the name was installed, so upgrade was install (V4, step 1); the name is upstream's tag."""
+    return UpgradeReport(
+        name=report.build.name, build=report.build, old=None, up_to_date=False,
+        installed=report, pin_moved=False, removed=None, remaining=(),
+    )  # fmt: skip
+
+
+def _up_to_date(step: Upgrade) -> UpgradeReport:
+    """Nothing to download: under the lock, refresh the ``prerelease`` flag and the source record (V4, step 3)."""
+    step.build = step.old
+    step.take_store_lock()
+    try:
+        step.clean_tmp()
+        if not step.add():
+            raise _Restart  # the build compared has gone meanwhile: start again
+        remaining = _remaining(step)
+    finally:
+        step.release_store_lock()
+    build = _upgraded(step)
+    return UpgradeReport(
+        name=step.name, build=build, old=step.old, up_to_date=True, installed=None, pin_moved=False, removed=None,
+        remaining=remaining,
+    )  # fmt: skip
+
+
+def _run_upgrade(step: Upgrade) -> UpgradeReport:
+    """The steps after a ``look()`` that was true (V4, step 4); on any error after lock_tmp, give_up first."""
+    step.lock_tmp()
+    try:
+        step.make_tmp()
+        step.download()
+        step.take_store_lock()
+    except BaseException:
+        step.give_up()
+        raise
+    try:
+        step.clean_tmp()
+        step.add()  # always true: there is a download
+        step.move_pin()
+        step.move_old_out()
+        step.delete_old()
+        remaining = _remaining(step)
+    except BaseException:
+        step.give_up()
+        step.release_store_lock()
+        raise
+    step.release_store_lock()
+    step.release_tmp()
+    return UpgradeReport(
+        name=step.name, build=_upgraded(step), old=step.old, up_to_date=False, installed=None,
+        pin_moved=step.pin_moved, removed=step.removed, remaining=remaining,
+    )  # fmt: skip
+
+
+def _upgraded(step: Upgrade) -> Build:
+    if step.build is None:
+        what = "a report before add()"
+        raise _out_of_order(what)
+    return step.build
+
+
+def _remaining(step: Upgrade) -> tuple[Build, ...]:
+    """The other builds still installed of the name, or, beside ``stable``, of the old build's name."""
+    name = step.old.name if step.keep_old and step.old is not None and step.old.name != step.name else step.name
+    kept = step.build.id if step.build is not None else None
+    return tuple(build for build in step.store.builds() if build.name == name and build.id != kept)
+
+
+# ---------------------------------------------------------------------- uninstall()
+
+
+@dataclass(frozen=True)
+class UninstallReport:
+    removed: tuple[Build, ...]
+    failed: tuple[tuple[Build, TlaupError], ...]  # each failure, in the order of the builds given
+    missing: tuple[Build, ...]  # non-empty: nothing was removed (V3, under the lock)
+    unpinned: Build | None  # the pinned build, when it was removed and the pin cleared
+
+
+def uninstall(
+    store: ToolStore, builds: Sequence[Build], *, groups: Sequence[Sequence[Build]] | None = None
+) -> UninstallReport:
+    """Remove every build given, with no short circuit, under the lock (V3, D50's order).
+
+    ``groups`` is one group per argument the user gave; with None each build is its own. A group none of
+    whose builds is still installed removes nothing at all. The pin is cleared, never moved, when it named
+    a build that was removed.
+    """
+    step = Uninstall(store, builds, groups=groups)
+    step.take_store_lock()
+    try:
+        step.clean_tmp()
+        step.move_out()
+        step.delete_out()
+        step.clear_pin()
+    finally:
+        step.release_store_lock()
+    return UninstallReport(
+        removed=tuple(step.removed), failed=tuple(step.failed), missing=tuple(step.missing), unpinned=step.unpinned
+    )
+
+
+# ---------------------------------------------------------------------- pin() and the which-build question
+
+
+def pin(store: ToolStore, spec: VersionSpec, ui: Ui) -> Build:
+    """Pin the build ``spec`` names (V4); several: ask on a terminal, else ``AmbiguousVersion``."""
+    found = store.find(spec)
+    if not found:
+        message = f"{_spec_text(spec)} is not installed"
+        raise VersionNotFound(message, hint="run `tlaup tool list --installed` to see the installed builds")
+    every = store.builds()
+    build = found[0]
+    if len(found) > 1:
+        if not ui.is_interactive():
+            message = f"{_spec_text(spec)} matches {len(found)} installed builds"
+            raise AmbiguousVersion(message, hint=f"name one: {_candidates(found, every)}")
+        build = choose_build(ui, "Which build should be pinned?", found, allow_all=False, every=every)[0]
+    step = Pin(store, build)
+    step.take_store_lock()
+    try:
+        written = step.write_pin()
+    finally:
+        step.release_store_lock()
+    if not written:
+        message = f"{format_build(build, every)} is no longer installed"
+        raise VersionNotFound(message, hint="another tlaup removed it; run `tlaup tool list --installed`")
+    return build
+
+
+def choose_build(
+    ui: Ui, question: str, builds: Sequence[Build], *, allow_all: bool, every: Sequence[Build] | None = None
+) -> list[Build]:
+    """List ``builds`` numbered from 1 in their printed form, on stderr, and ask which (V3's table).
+
+    The answer is a whole number in range, or ``all`` when ``allow_all``; anything else asks again, and an
+    empty line too, since there is no default. ``every`` is every installed build, for the printed form.
+    """
+    others = builds if every is None else every
+    for number, build in enumerate(builds, start=1):
+        ui.note(f"  {number}. {format_build(build, others)}")
+    choices = [str(number) for number in range(1, len(builds) + 1)]
+    if allow_all:
+        choices.append("all")
+    answer = ui.ask(question, choices=choices, default=None)
+    return list(builds) if answer == "all" else [builds[int(answer) - 1]]
