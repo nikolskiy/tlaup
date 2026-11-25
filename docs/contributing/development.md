@@ -8,26 +8,38 @@ Use `uv` for everything; do not call `pip` or a global Python.
 
 ```bash
 uv sync --all-extras --dev     # set up the environment
-uv run poe test                # unit tests with coverage
+uv run poe test                # the test suite with branch coverage, in random order
+uv run poe test-clean          # the suite under an empty temporary home, then fail if tlaup wrote there
+uv run poe test-integration    # tests/integration; fails until package 52 writes the folder
 uv run poe lint                # ruff check, bandit, mypy (strict)
 uv run poe format              # ruff format, Python files and Python blocks in Markdown
 uv run poe check               # all pre-commit hooks on all files
-uv run pytest tests/integration  # needs Java 11+ and `uv run tlaup tools install`
 uv run poe check-release       # hooks, build, twine check
 ```
+
+`tests/integration/` does not exist until work package 52 writes it, so until then `poe test-integration` fails with pytest's exit 4 and "file or directory not found"; 52 also adds the `TLAUP_TEST_JARS` variable that names the real jars it needs. A single test runs without coverage: `uv run pytest tests/unit/test_fakes.py::test_java_exit_code`. `pytest-randomly` prints the seed of each run; `--randomly-seed=<n>` repeats an order, and `-p no:randomly` switches it off.
 
 Run `uv run poe lint` and `uv run poe test` before committing.
 
 ## CI
 
-`.github/workflows/test.yml` runs lint, the format check (`uv run ruff format --check .`) and unit tests on every push to `main` and on every pull request.
+`.github/workflows/test.yml` runs lint, the format check (`uv run ruff format --check .`) and the test suite on every push to `main` and on every pull request, without Java and without a jar, and then checks that no tlaup folder or `.tlaplus` was left in the runner's home (`scripts/test_clean.py --home`).
 
 ## Code map
 
 - `src/tlaup/`: the package. `cli.py` builds the Typer app; `cmd/` holds one module per command or command group; `tlc/` runs TLC and parses its output; `versioning/` downloads and tracks jar builds; `java/` finds Java and builds classpaths; `config/` loads settings.
 - `src/tlaup/resources/default_config.yaml`: packaged defaults. Its top-level `tla:` key holds upstream TLA+ download URLs; it is not the application name.
-- `tests/unit/`: the default test suite. `tests/integration/`: needs Java and an installed jar, not run in CI yet. `tests/fixtures/research/`: captured evidence from the investigations, each folder with its own README.
+- `tests/`: `conftest.py` (the isolation fixture, the `fakes` fixture, the Hypothesis profiles), `test_isolation.py`, `expected.py` (`assert_matches`) and `clock.py` (`FakeClock`). `tests/unit/`: plain pytest tests. `tests/stateful/`: the stateful tests of the formal check, with their throwaway `reference_*.py` models. `tests/fakes/`: the fake `java`, `javac`, `git` and editor, their launchers and the prepared classes. `tests/fixtures/`: `naming_fixed/` (until package 52 moves it) and `research/`, captured evidence from the investigations, each folder with its own README.
+- Test folders that arrive later: `tests/parse/` with the parser, `tests/features/` with the feature harness, `tests/recordings/` with the GitHub recordings (package 05), `tests/integration/` with package 52, `tests/lifeline/` with package 06.
 - `docs/examples/`: example specs, some with custom Java modules.
+
+## Writing tests
+
+- **Isolation is automatic.** The autouse fixture `isolated` in `tests/conftest.py` gives every test a temporary home, working folder and `TLAUP_HOME`, a fixed terminal (`NO_COLOR`, `TERM=dumb`, 100 by 40), a `PATH` holding only the four fake launchers, and a closed port as the tool repository; sockets are blocked. A test asks for `isolated` by name when it needs those paths ([design 01 T2](../design/01-testing.md#t2-isolation)).
+- **Processes are fakes.** The `fakes` fixture scripts the fake `java`, `javac`, `git` and editor and reads what they logged; an unscripted start fails with exit 127. Their script fields are in [design 01 T4](../design/01-testing.md#t4-fakes-at-the-edges) and in work package 03's contract ([`../packages/03-test-foundation.md`](../packages/03-test-foundation.md#interfaces)). Time is a `FakeClock` passed in.
+- **Expected files.** `assert_matches(actual, path, request)` compares with a file under `expected/` beside the test. `uv run pytest --update-expected` writes the files instead and lists every file it wrote at the end of the run; read each one before committing it ([design 01 T8](../design/01-testing.md#t8-expected-output-files)).
+- **Rules.** The rules for writing tests are [design 01 T12](../design/01-testing.md#t12-rules-for-writing-tests). Ruff bans `unittest.mock.patch`, and the pre-commit hooks `no-patching-own-code` and `no-typed-tool-output` check rules 2 and 3. Warnings are errors.
+- **What 0.8.x did.** The old suite was deleted (decision D62). The behaviour of 0.8.x that is kept is specified by the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md); a package that writes the test for a row names the row.
 
 ## Where tlaup keeps its files
 

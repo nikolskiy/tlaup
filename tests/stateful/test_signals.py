@@ -181,9 +181,13 @@ class SignalsMachine(RuleBasedStateMachine):
 
     def teardown(self) -> None:
         try:
-            if self.run is not None and self.run.pid is not None and not gone(self.run.pid):
-                os.kill(self.run.pid, signal.SIGKILL)
-                wait_until(lambda: gone(self.run.pid), "the child has gone")
+            if self.run is not None and self.run.pid is not None:
+                if not gone(self.run.pid):
+                    os.kill(self.run.pid, signal.SIGKILL)
+                    wait_until(lambda: gone(self.run.pid), "the child has gone")
+                for _ in range(200):  # the launcher's own loop reaps the child and closes its pipe
+                    if self.run.turn(timeout=0.05):
+                        break
             if self.manager is not None and self.phase in HELD:
                 self.manager.__exit__(None, None, None)
         finally:
@@ -529,9 +533,12 @@ def tlaup_dies(impl_name: str, base: Path, step: str, *, lifeline: bool) -> None
     argv.append("on" if lifeline else "off")
     stand_in = subprocess.Popen(argv, cwd=PROJECT_ROOT, stdout=subprocess.PIPE, text=True)
     assert stand_in.stdout is not None
-    child = int(stand_in.stdout.readline())
-    stand_in.kill()  # SIGKILL: no handler of tlaup runs
-    stand_in.wait(timeout=30)
+    try:
+        child = int(stand_in.stdout.readline())
+    finally:
+        stand_in.kill()  # SIGKILL: no handler of tlaup runs
+        stand_in.wait(timeout=30)
+        stand_in.stdout.close()
 
     def alive() -> bool:
         try:

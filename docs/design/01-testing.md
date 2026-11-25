@@ -565,7 +565,7 @@ Roadmap: "Coverage policy: branch coverage on; a `fail_under` near the current 8
 [tool.pytest.ini_options]
 addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider -m 'not pending'"
 testpaths = ["tests"]
-norecursedirs = ["tests/integration", "tests/lifeline", "tests/fakes", "tests/fixtures"]
+norecursedirs = ["tests/integration", "tests/lifeline", "tests/fakes", "tests/fixtures", ".*"]
 filterwarnings = ["error"]
 markers = [
     "integration: needs Java and real jars (TLAUP_TEST_JARS)",
@@ -583,6 +583,8 @@ source = ["tlaup", "tlaup_parse"]
 show_missing = true
 # fail_under: set by the last milestone 2 package, see below
 ```
+
+`".*"` in `norecursedirs` keeps pytest's default for hidden folders, which a `norecursedirs` list replaces: Hypothesis writes `.hypothesis/` in the repository root even with its database off, and warns when collection meets it, which `filterwarnings = ["error"]` turns into a failed run (found while building 03b, 2026-11-24; low impact, decided by the stage 5 lead).
 
 - `poe test` runs `pytest --cov --cov-report=term-missing`; plain `pytest path::test` runs without coverage.
 - **Real processes are counted.** The signal, raw-mode, pipe and terminal scenarios run tlaup as a child process (T5), and those are the paths the roadmap wants covered. `patch = ["subprocess"]` makes coverage measure Python child processes and `parallel = true` gives each its own data file, which `pytest-cov` combines; this needs coverage 7.10.6 or later (pytest-cov 7.1.0 requires it), set as the lower bound of the development dependency. Research 30 tried it (top-up) with pytest-cov 7.1.0 and coverage 7.10.6 and 7.17.3: lines run only in child processes are counted, including a child that ends with 130 after `KeyboardInterrupt`, one that exits 143 from its own SIGTERM handler, and one on a pty; the fake `java`, a Python file outside `source`, is not measured and its stderr stays empty. A child killed by a signal it does not handle, or ending with `os._exit`, loses its data; that is expected and needs no workaround, since tlaup's own signal paths exit through Python. `sigterm = true` under `[tool.coverage.run]` is added only if a test ever lets a child die of an unhandled SIGTERM.

@@ -53,7 +53,6 @@ tlaup = ["py.typed"]
 dev = [
     "pytest>=9.0.2,<10.0.0",
     "pytest-cov>=7.0.0,<8.0.0",
-    "pytest-mock>=3.15.1,<4.0.0",
     "ruff>=0.9.0,<1.0.0",
     "mypy>=1.0.0,<2.0.0",
     "types-PyYAML>=6.0.12.12,<7.0.0.0",
@@ -64,14 +63,37 @@ dev = [
     "pre-commit-hooks>=6.0.0,<7.0.0",
     "twine>=6.0.0,<7.0.0",
     "bandit>=1.9.4",
+    "pytest-bdd>=9.0.1,<10",
+    "coverage>=7.10.6",
+    "responses>=0.23.3,<1",
+    "pytest-socket>=0.8.1,<1",
+    "pyte>=0.8.2,<1",
+    "hypothesis>=6.170.17,<7",
+    "pytest-randomly>=5.1.0,<6",
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov=tlaup --cov-report=term-missing -m 'not pending'"
-testpaths = ["tests/unit", "tests/stateful"]
+addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider -m 'not pending'"
+testpaths = ["tests"]
+# ".*" keeps pytest's default for hidden folders, which a norecursedirs list replaces: Hypothesis
+# writes .hypothesis/ in the repository root and warns, an error here, when it is not excluded.
+norecursedirs = ["tests/integration", "tests/lifeline", "tests/fakes", "tests/fixtures", ".*"]
+filterwarnings = ["error"]
 markers = [
-    "pending: written before the code it tests (design 03); the work package that builds the code removes the marker",
+    "integration: needs Java and real jars (TLAUP_TEST_JARS)",
+    "lifeline: needs a real JDK; run by the lifeline job (30 I2), not the unit job",
+    "pending: written before the code it tests (03); the work package that builds the code removes the marker",
 ]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+patch = ["subprocess"]
+source = ["tlaup"]  # package 09 adds "tlaup_parse"
+
+[tool.coverage.report]
+show_missing = true
+# fail_under: set by the last milestone 2 package, see below
 
 [tool.ruff]
 line-length = 120
@@ -100,11 +122,15 @@ select = [
     "ARG",    # flake8-unused-arguments: find unused function arguments
     "RET",    # flake8-return: cleaner return logic
     "TRY",    # tryceratops: prevent exception handling anti-patterns
+    "TID251", # flake8-tidy-imports: banned APIs (below)
 ]
 ignore = [
     "PLR2004", # Magic value used in comparison
     "PLW1510", # subprocess.run without explicit check
 ]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"unittest.mock.patch".msg = "no patching of our own code (design 01 T12 rule 2): use the fakes at the edges"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
@@ -125,7 +151,9 @@ type-check = "mypy ."
 fix = ["format", "lint-fix"]
 format = "ruff format ."
 lint-fix = "ruff check --fix ."
-test = "pytest"
+test = "pytest --cov --cov-report=term-missing"
+test-clean = "python scripts/test_clean.py"
+test-integration = "pytest tests/integration --no-cov"
 install-hooks = "pre-commit install --install-hooks"
 audit = "detect-secrets audit .secrets.baseline"
 build = "uv build"

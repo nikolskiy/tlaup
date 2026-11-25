@@ -7,6 +7,8 @@ wheels/
 *.egg-info/
 .pytest_cache/
 .coverage
+# one data file per process with parallel = true, named with the host name
+.coverage.*
 .ruff_cache/
 .mypy_cache/
 
