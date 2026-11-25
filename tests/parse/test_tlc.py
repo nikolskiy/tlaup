@@ -2,12 +2,13 @@
 package 13).
 
 Every file is driven as the runner drives it (``tests/parse/drive.py``). The tests of trace states, and the event
-orders that hold them, are package 13b's. ``test_unknown_codes_*`` is inventory row R29's test: the severity, not
-the code, decides whether a message is an error or a warning.
+orders that hold them, are package 13b's; the rest are 13a's. ``test_unknown_codes_*`` is inventory row R29's test:
+the severity, not the code, decides whether a message is an error or a warning.
 """
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 import pytest
@@ -28,6 +29,9 @@ from tlaup_parse import (
     RunResult,
     Status,
     TlcParser,
+    TraceClosed,
+    TraceStateAdded,
+    UnknownMessage,
     Verdict,
 )
 from tlaup_parse.codes import CODES
@@ -128,6 +132,23 @@ def test_invalid_utf8_parses_with_the_replacement_character_kept() -> None:
     assert [e.message.code for e in result.errors] == [2110]
 
 
+def test_invalid_utf8_keeps_the_replacement_character_in_the_value() -> None:
+    # Line 54 (the E9 byte) is in the note of log in trace state 2 (invalid-utf8.why); package 13b.
+    path = SYNTHETIC / "invalid-utf8.out"
+    bad = read_lines(path)[53].rstrip("\n")
+    assert "\ufffd" in bad
+    result, _ = _drive(path)
+    trace = result.errors[0].trace
+    assert trace is not None
+    log = trace.states[1].variables[2]
+    assert log.name == "log"
+    assert log.raw.splitlines()[-1] == bad
+    note = dict(log.value.items[0].fields)["note"]
+    assert note.kind == "string"
+    assert isinstance(note.scalar, str)
+    assert "\ufffd" in note.scalar
+
+
 def test_unknown_codes_are_kept_and_their_severity_decides_the_class() -> None:
     # Inventory row R29. 9901 is severity 1, 9902 severity 3, 9903 severity 0 (unknown-code.why).
     result, events = _drive(SYNTHETIC / "unknown-code.out")
@@ -164,6 +185,61 @@ def test_related_messages_extend_the_error_in_arrival_order(build: str) -> None:
     _, events = _drive(BUILDS[build] / "assertion-failure.out")
     errors = [(type(e).__name__, e.message.code) for e in events if isinstance(e, ErrorOpened | ErrorExtended)]
     assert errors == [("ErrorOpened", 2132), ("ErrorExtended", 2121), ("ErrorExtended", 2103)]
+
+
+def _code(event: Event) -> int | None:
+    message = _message(event)
+    return None if message is None else message.code
+
+
+def _trace_events(events: list[Event]) -> list[tuple[str, int | None]]:
+    """The error and trace events as (type name, code of the message carried, None for none)."""
+    kinds = ErrorOpened | ErrorExtended | TraceStateAdded | TraceClosed
+    return [(type(e).__name__, _code(e)) for e in events if isinstance(e, kinds)]
+
+
+@pytest.mark.parametrize("build", sorted(BUILDS))
+def test_the_assertion_trace_is_closed_before_the_related_message_after_it(build: str) -> None:
+    # Package 13b: 2132, 2121, three states, then 2103, which closes the trace (P5).
+    _, events = _drive(BUILDS[build] / "assertion-failure.out")
+    assert _trace_events(events) == [
+        ("ErrorOpened", 2132),
+        ("ErrorExtended", 2121),
+        *[("TraceStateAdded", 2217)] * 3,
+        ("TraceClosed", None),
+        ("ErrorExtended", 2103),
+    ]
+
+
+@pytest.mark.parametrize("build", sorted(BUILDS))
+def test_the_back_to_state_message_closes_the_liveness_trace(build: str) -> None:
+    # Package 13b: 2116, 2264, three states, 2122 (P5).
+    result, events = _drive(BUILDS[build] / "liveness-back-to-state.out")
+    assert _trace_events(events) == [
+        ("ErrorOpened", 2116),
+        ("ErrorExtended", 2264),
+        *[("TraceStateAdded", 2217)] * 3,
+        ("TraceClosed", 2122),
+    ]
+    closed = next(e for e in events if isinstance(e, TraceClosed))
+    assert closed.trace is result.errors[0].trace
+    assert closed.error is result.errors[0]
+
+
+@pytest.mark.parametrize("build", sorted(BUILDS))
+def test_each_trace_of_a_continued_run_is_closed_before_the_next_error(build: str) -> None:
+    # Package 13b: with -continue every error has its own 2121 and states (P5).
+    result, events = _drive(BUILDS[build] / "multi-error-continue.out")
+    order = _trace_events(events)
+    opened = [i for i, (name, _) in enumerate(order) if name == "ErrorOpened"]
+    assert len(opened) == 3
+    for start, end in zip(opened, [*opened[1:], len(order)], strict=True):
+        part = order[start:end]
+        assert part[-1] == ("TraceClosed", None)
+        assert [name for name, _ in part].count("TraceClosed") == 1
+    closed = [e for e in events if isinstance(e, TraceClosed)]
+    assert [e.error for e in closed] == result.errors
+    assert all(e.trace is e.error.trace for e in closed)
 
 
 @pytest.mark.parametrize("build", sorted(BUILDS))
@@ -230,3 +306,86 @@ def test_feeding_after_close_and_a_second_sany_window_lose_nothing() -> None:
     assert all(isinstance(e, OutputLine) or _message(e) is not None for e in second)
     assert parser.result.phase is Phase.FINISHED
     assert not any(isinstance(e, Information) and e.message.code in (2220, 2219) for e in second)
+
+
+# Not-seen trace cases (package 13b). Their input is a capture with whole messages taken out, repeated or, for
+# one header, changed; nothing is typed (01 T12 rule 3).
+
+_START = re.compile(r"STARTMSG (?P<code>[0-9]+):")
+_END = re.compile(r"ENDMSG (?P<code>[0-9]+) ")
+
+
+def _spans(lines: list[str]) -> list[tuple[int, int, int]]:
+    """Each message of a file whose messages are not nested, as (code, first line index, index after its end)."""
+    spans: list[tuple[int, int, int]] = []
+    start = 0
+    for index, line in enumerate(lines):
+        if _START.search(line):
+            start = index
+        elif (end := _END.search(line)) is not None:
+            spans.append((int(end["code"]), start, index + 1))
+    return spans
+
+
+def _feed(lines: list[str]) -> tuple[RunResult, list[Event]]:
+    parser = TlcParser()
+    events = [event for line in lines for event in parser.feed(line)]
+    events.extend(parser.close())
+    return parser.result, events
+
+
+def _without(lines: list[str], codes: set[int]) -> list[str]:
+    drop = {i for code, start, end in _spans(lines) if code in codes for i in range(start, end)}
+    return [line for i, line in enumerate(lines) if i not in drop]
+
+
+def test_a_state_before_any_error_opens_an_error_of_kind_other() -> None:
+    lines = _without(read_lines(BUILDS["v1.7.4"] / "violation.out"), {2110, 2121})
+    result, events = _feed(lines)
+    assert _trace_events(events) == [
+        ("ErrorOpened", 2217),
+        *[("TraceStateAdded", 2217)] * 4,
+        ("TraceClosed", None),
+    ]
+    [error] = result.errors
+    assert error.kind is ErrorKind.OTHER
+    assert error.trace is not None
+    assert [state.index for state in error.trace.states] == [1, 2, 3, 4]
+    assert result.status is Status.FAILURE
+
+
+def test_a_state_after_its_trace_was_closed_is_shown_as_printed() -> None:
+    lines = read_lines(BUILDS["v1.7.4"] / "liveness-back-to-state.out")
+    spans = _spans(lines)
+    first = next((start, end) for code, start, end in spans if code == 2217)
+    loop = next(end for code, _, end in spans if code == 2122)
+    result, events = _feed([*lines[:loop], *lines[slice(*first)], *lines[loop:]])
+    late = [e for e in events if isinstance(e, UnknownMessage)]
+    assert [e.message.code for e in late] == [2217]
+    assert events.index(late[0]) > next(i for i, e in enumerate(events) if isinstance(e, TraceClosed))
+    trace = result.errors[0].trace
+    assert trace is not None
+    assert (len(trace.states), trace.loop_to) == (3, 1)
+    assert result.unknown_messages == []
+
+
+def test_a_loop_with_no_open_trace_is_shown_as_printed() -> None:
+    lines = _without(read_lines(BUILDS["v1.7.4"] / "liveness-back-to-state.out"), {2217})
+    result, events = _feed(lines)
+    assert [e.message.code for e in events if isinstance(e, UnknownMessage)] == [2122]
+    assert not any(isinstance(e, TraceClosed) for e in events)
+    assert result.errors[0].trace is None
+    assert result.unknown_messages == []
+
+
+def test_a_state_header_that_matches_no_pattern_is_shown_as_printed() -> None:
+    # The header of state 2 (v1.7.4:47) loses its colon, so neither header pattern of P5 matches.
+    lines = read_lines(BUILDS["v1.7.4"] / "violation.out")
+    lines[46] = lines[46].replace(": <", " <", 1)
+    result, events = _feed(lines)
+    [shown] = [e for e in events if isinstance(e, UnknownMessage)]
+    assert shown.message.lines[0] == lines[46].rstrip("\n")
+    trace = result.errors[0].trace
+    assert trace is not None
+    assert [state.index for state in trace.states] == [1, 3, 4]
+    assert result.unknown_messages == []
