@@ -1,6 +1,6 @@
 # 03. Test foundation
 
-Size: L, as two pull requests of size M (03a, 03b). Suggested model: most capable. Status: ready.
+Size: L, as two pull requests of size M (03a, 03b). Suggested model: most capable. Status: 03a built, 03b ready.
 
 ## Goal
 

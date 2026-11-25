@@ -16,8 +16,9 @@ wheels/
 # Project specific
 lib/*.jar
 
-# Compiled classes
+# Compiled classes (the fake javac's prepared classes are committed)
 classes/
+!tests/fakes/classes/
 states/
 
 # TLC output beside a spec: state folders, trace specs and their dumps, checkpoints

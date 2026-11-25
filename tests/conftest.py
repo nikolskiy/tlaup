@@ -4,6 +4,8 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+from tests import expected
+from tests.fakes.control import TOOLS, Fakes, fake_bin_dir, script_variable
 from tlaup.config.schema import Settings
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -91,3 +93,25 @@ def java_available(mocker):
 def javac_available(mocker):
     """Mock shutil.which to find 'javac'."""
     return mocker.patch("shutil.which", side_effect=lambda x: "/usr/bin/javac" if x == "javac" else None)
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    expected.add_option(parser)
+
+
+def pytest_terminal_summary(terminalreporter: pytest.TerminalReporter, config: pytest.Config) -> None:
+    expected.report_written(terminalreporter, config)
+
+
+@pytest.fixture
+def fakes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Fakes:
+    """The four fake launchers alone on PATH, unscripted (design 01 T4).
+
+    Until the isolation fixture exists (package 03b), the launchers go to this test's own
+    ``tmp_path / "bin"``.
+    """
+    bin_dir = fake_bin_dir(tmp_path)
+    monkeypatch.setenv("PATH", str(bin_dir))
+    for tool in TOOLS:
+        monkeypatch.delenv(script_variable(tool), raising=False)
+    return Fakes(bin_dir, tmp_path, monkeypatch)
