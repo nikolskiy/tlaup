@@ -1,0 +1,342 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "errors",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "invariant",
+      "name": "Inv",
+      "message": {
+        "code": 2110,
+        "severity": 1,
+        "name": "TLC_INVARIANT_VIOLATED_BEHAVIOR",
+        "body": [
+          "Invariant Inv is violated."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [
+        {
+          "code": 2121,
+          "severity": 1,
+          "name": "TLC_BEHAVIOR_UP_TO_THIS_POINT",
+          "body": [
+            "The behavior up to this point is:"
+          ],
+          "before": "",
+          "after": "",
+          "truncated": false
+        }
+      ],
+      "trace": {
+        "states": [
+          {
+            "index": 1,
+            "action": null,
+            "location": null,
+            "header": "Initial predicate",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "0",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 0,
+                  "bounds": null
+                },
+                "raw": "0",
+                "printed": true
+              },
+              {
+                "name": "sum",
+                "value": {
+                  "kind": "int",
+                  "text": "0",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 0,
+                  "bounds": null
+                },
+                "raw": "0",
+                "printed": true
+              },
+              {
+                "name": "label",
+                "value": {
+                  "kind": "string",
+                  "text": "\"step\"",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": "step",
+                  "bounds": null
+                },
+                "raw": "\"step\"",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "1: <Initial predicate>",
+              "/\\ x = 0",
+              "/\\ sum = 0",
+              "/\\ label = \"step\"",
+              ""
+            ]
+          },
+          {
+            "index": 2,
+            "action": "Next",
+            "location": {
+              "module": "Alias",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 32
+            },
+            "header": "Next line 5, col 9 to line 5, col 32 of module Alias",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "1",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 1,
+                  "bounds": null
+                },
+                "raw": "1",
+                "printed": true
+              },
+              {
+                "name": "sum",
+                "value": {
+                  "kind": "int",
+                  "text": "3",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 3,
+                  "bounds": null
+                },
+                "raw": "3",
+                "printed": true
+              },
+              {
+                "name": "label",
+                "value": {
+                  "kind": "string",
+                  "text": "\"step\"",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": "step",
+                  "bounds": null
+                },
+                "raw": "\"step\"",
+                "printed": false
+              }
+            ],
+            "lines": [
+              "2: <Next line 5, col 9 to line 5, col 32 of module Alias>",
+              "/\\ x = 1",
+              "/\\ sum = 3",
+              ""
+            ]
+          },
+          {
+            "index": 3,
+            "action": "Next",
+            "location": {
+              "module": "Alias",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 32
+            },
+            "header": "Next line 5, col 9 to line 5, col 32 of module Alias",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "2",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 2,
+                  "bounds": null
+                },
+                "raw": "2",
+                "printed": true
+              },
+              {
+                "name": "sum",
+                "value": {
+                  "kind": "int",
+                  "text": "6",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 6,
+                  "bounds": null
+                },
+                "raw": "6",
+                "printed": true
+              },
+              {
+                "name": "label",
+                "value": {
+                  "kind": "string",
+                  "text": "\"step\"",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": "step",
+                  "bounds": null
+                },
+                "raw": "\"step\"",
+                "printed": false
+              }
+            ],
+            "lines": [
+              "3: <Next line 5, col 9 to line 5, col 32 of module Alias>",
+              "/\\ x = 2",
+              "/\\ sum = 6",
+              ""
+            ]
+          },
+          {
+            "index": 4,
+            "action": "Next",
+            "location": {
+              "module": "Alias",
+              "line": 5,
+              "column": 9,
+              "end_line": 5,
+              "end_column": 32
+            },
+            "header": "Next line 5, col 9 to line 5, col 32 of module Alias",
+            "variables": [
+              {
+                "name": "x",
+                "value": {
+                  "kind": "int",
+                  "text": "3",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 3,
+                  "bounds": null
+                },
+                "raw": "3",
+                "printed": true
+              },
+              {
+                "name": "sum",
+                "value": {
+                  "kind": "int",
+                  "text": "9",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": 9,
+                  "bounds": null
+                },
+                "raw": "9",
+                "printed": true
+              },
+              {
+                "name": "label",
+                "value": {
+                  "kind": "string",
+                  "text": "\"step\"",
+                  "items": [],
+                  "fields": [],
+                  "pairs": [],
+                  "scalar": "step",
+                  "bounds": null
+                },
+                "raw": "\"step\"",
+                "printed": true
+              }
+            ],
+            "lines": [
+              "4: <Next line 5, col 9 to line 5, col 32 of module Alias>",
+              "/\\ x = 3",
+              "/\\ sum = 9",
+              "/\\ label = \"step\"",
+              ""
+            ]
+          }
+        ],
+        "loop_to": null,
+        "stuttering": false
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [],
+  "module_files": {
+    "Alias": "<tmp>/q22/work/v1.8.0/alias-violation-difftrace/Alias.tla",
+    "Naturals": "/tmp/tlc-5828597689679619690/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [
+    {
+      "diameter": 4,
+      "generated": 4,
+      "distinct": 4,
+      "queue": 0,
+      "at": "2026-11-18 22:21:45"
+    }
+  ],
+  "stats": {
+    "totalStates": 4,
+    "distinctStates": 4,
+    "queue": 0,
+    "stateDepth": 4,
+    "collision_probability": null,
+    "outdegree": null
+  },
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 5,
+  "sany_lines_used": 5,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-18 22:21:44",
+  "finished": "2026-11-18 22:21:45",
+  "duration_ms": 1479
+}
