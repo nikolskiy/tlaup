@@ -1,6 +1,6 @@
 # 13. The TLC parser
 
-Size: L, as two pull requests (13a L, 13b M). Suggested model: most capable. Status: 13a built, 13b ready.
+Size: L, as two pull requests (13a L, 13b M). Suggested model: most capable. Status: built.
 
 ## Goal
 

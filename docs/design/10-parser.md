@@ -217,7 +217,7 @@ class TraceState:
     index: int
     action: str | None  # "Next"; None for the initial state
     location: Location | None  # where the action is defined; None for the initial state
-    header: str  # the header line as printed
+    header: str  # the text inside the header's angle brackets, as printed (P5's `inner`); "" for a -dfid header (settled while building 13b)
     variables: tuple[Variable, ...]
     lines: tuple[str, ...]  # the whole message body as printed, blank lines included
 
