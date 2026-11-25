@@ -1,0 +1,91 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "warning",
+        "message": "The TLA+ translation in module PcalStaleTla has changed since its last translation.",
+        "module": "PcalStaleTla",
+        "file": "<tmp>/q22/work/v1.8.0/sany-stale-tla/PcalStaleTla.tla",
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {
+      "PcalStaleTla": "<tmp>/q22/work/v1.8.0/sany-stale-tla/PcalStaleTla.tla",
+      "Naturals": "/tmp/tlc-4475747561107614566/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 17
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.8.0/sany-stale-tla/PcalStaleTla.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-4475747561107614566/Naturals.tla (jar:file:<tmp>/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "header",
+      "text": "Warnings (1) during syntax parsing of PcalStaleTla.tla:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "In module PcalStaleTla"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "The TLA+ translation in module PcalStaleTla has changed since its last translation."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module PcalStaleTla"
+    },
+    {
+      "class": "progress",
+      "text": "Linting of module PcalStaleTla"
+    }
+  ]
+}

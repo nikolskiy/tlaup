@@ -1,0 +1,45 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {
+      "Stutter": "<tmp>/q12/work-v1.8.0/Stutter.tla",
+      "Naturals": "/tmp/tlc-8474905390933654832/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 8
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/Stutter.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-8474905390933654832/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Stutter"
+    },
+    {
+      "class": "progress",
+      "text": "Linting of module Stutter"
+    }
+  ]
+}

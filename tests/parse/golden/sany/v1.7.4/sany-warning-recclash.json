@@ -1,0 +1,88 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Non-unique fields in constructor.",
+        "module": "RecClash",
+        "file": "<tmp>/q12/work-v1.7.4/RecClash.tla",
+        "location": {
+          "module": "RecClash",
+          "line": 3,
+          "column": 16,
+          "end_line": 3,
+          "end_column": 16
+        },
+        "details": []
+      }
+    ],
+    "module_files": {
+      "RecClash": "<tmp>/q12/work-v1.7.4/RecClash.tla"
+    },
+    "other": [],
+    "lines_used": 15
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.7.4/RecClash.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module RecClash"
+    },
+    {
+      "class": "header",
+      "text": "Semantic errors:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 1"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 3, col 16 to line 3, col 16 of module RecClash"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Non-unique fields in constructor."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

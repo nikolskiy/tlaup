@@ -1,0 +1,1550 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {
+      "Good": "<tmp>/q12/work-v1.8.0/Good.tla",
+      "Naturals": "/tmp/tlc-16183565007750342185/Naturals.tla"
+    },
+    "other": [
+      "*** Concrete Syntax Tree for Module 379",
+      "N_Module\t  #heirs: 4\t  kind:   382",
+      "| N_BeginModule\t  #heirs: 3\t  kind:   333",
+      "| | ---- MODULE\t  #heirs: 0\t  kind:   3",
+      "| | Good\t  #heirs: 0\t  kind:   289",
+      "| | ----\t  #heirs: 0\t  kind:   36",
+      "| N_Extends\t  #heirs: 2\t  kind:   350",
+      "| | EXTENDS\t  #heirs: 0\t  kind:   48",
+      "| | Naturals\t  #heirs: 0\t  kind:   289",
+      "| N_Body\t  #heirs: 4\t  kind:   334",
+      "| | N_VariableDeclaration\t  #heirs: 2\t  kind:   426",
+      "| | | VARIABLE\t  #heirs: 0\t  kind:   85",
+      "| | | x\t  #heirs: 0\t  kind:   289",
+      "| | N_OperatorDefinition\t*Init\t  #heirs: 3\t  kind:   389",
+      "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366",
+      "| | | | Init\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | x\t  #heirs: 0\t  kind:   289",
+      "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | =\t  #heirs: 0\t  kind:   373",
+      "| | | | N_Number\t  #heirs: 1\t  kind:   385",
+      "| | | | | 0\t  #heirs: 0\t  kind:   109",
+      "| | N_OperatorDefinition\t*Next\t  #heirs: 3\t  kind:   389",
+      "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366",
+      "| | | | Next\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | N_PostfixExpr\t  #heirs: 2\t  kind:   395",
+      "| | | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | x\t  #heirs: 0\t  kind:   289",
+      "| | | | | N_GenPostfixOp\t  #heirs: 2\t  kind:   361",
+      "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | '\t  #heirs: 0\t  kind:   397",
+      "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | =\t  #heirs: 0\t  kind:   373",
+      "| | | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | x\t  #heirs: 0\t  kind:   289",
+      "| | | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | +\t  #heirs: 0\t  kind:   373",
+      "| | | | | N_Number\t  #heirs: 1\t  kind:   385",
+      "| | | | | | 1\t  #heirs: 0\t  kind:   109",
+      "| | N_OperatorDefinition\t*Spec\t  #heirs: 3\t  kind:   389",
+      "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366",
+      "| | | | Spec\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | Init\t  #heirs: 0\t  kind:   289",
+      "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | /\\\t  #heirs: 0\t  kind:   373",
+      "| | | | N_PrefixExpr\t  #heirs: 2\t  kind:   399",
+      "| | | | | N_GenPrefixOp\t  #heirs: 2\t  kind:   362",
+      "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | []\t  #heirs: 0\t  kind:   401",
+      "| | | | | N_ActionExpr\t  #heirs: 4\t  kind:   329",
+      "| | | | | | [\t  #heirs: 0\t  kind:   97",
+      "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | | Next\t  #heirs: 0\t  kind:   289",
+      "| | | | | | ]_\t  #heirs: 0\t  kind:   98",
+      "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | | x\t  #heirs: 0\t  kind:   289",
+      "| N_EndModule\t  #heirs: 1\t  kind:   345",
+      "| | ====\t  #heirs: 0\t  kind:   37",
+      "",
+      "*** End of concrete syntax tree for Module 379",
+      "",
+      "*** Concrete Syntax Tree for Module 304",
+      "N_Module\t  #heirs: 4\t  kind:   382",
+      "| N_BeginModule\t  #heirs: 3\t  kind:   333",
+      "| | -------------------------------- MODULE\t  #heirs: 0\t  kind:   3",
+      "| | Naturals\t  #heirs: 0\t  kind:   289",
+      "| | ----------------------------\t  #heirs: 0\t  kind:   36",
+      "| N_Extends\t  #heirs: 0\t  kind:   350",
+      "| N_Body\t  #heirs: 12\t  kind:   334",
+      "| | N_OperatorDefinition\t*Nat\t  #heirs: 3\t  kind:   389",
+      "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366",
+      "| | | | Nat\t  #heirs: 0\t  kind:   289",
+      " preComment: 0 (***************************************************************************)",
+      "             1 (* This module provides dummy definitions of the operators that are        *)",
+      "             2 (* defined by the real Naturals module.  It is expected that any tool will *)",
+      "             3 (* provide its own implementations of these operators.  See the book       *)",
+      "             4 (* \"Specifying Systems\" for the real Naturals module.                      *)",
+      "             5 (***************************************************************************)",
+      "             6 (***************************************************************************)",
+      "             7 (* These definitions are all overridden by TLC in the Java class           *)",
+      "             8 (* tlc2.module.Naturals. Each operator is overridden by the Java method    *)",
+      "             9 (* with the same name, except that the mapping for TLA+ infix operators    *)",
+      "             10 (* is defined in the static block at the beginning of the Java class.      *)",
+      "             11 (***************************************************************************)",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_SetEnumerate\t  #heirs: 2\t  kind:   411",
+      "| | | | {\t  #heirs: 0\t  kind:   100",
+      "| | | | }\t  #heirs: 0\t  kind:   101",
+      "| | N_OperatorDefinition\t+\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | +\t  #heirs: 0\t  kind:   197",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411",
+      "| | | | {\t  #heirs: 0\t  kind:   100",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | ,\t  #heirs: 0\t  kind:   88",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | | }\t  #heirs: 0\t  kind:   101",
+      "| | N_OperatorDefinition\t-\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | -\t  #heirs: 0\t  kind:   193",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_UnBoundedOrBoundedChoose\t  #heirs: 5\t  kind:   424",
+      "| | | | CHOOSE\t  #heirs: 0\t  kind:   43",
+      "| | | | n\t  #heirs: 0\t  kind:   289",
+      "| | | | N_MaybeBound\t  #heirs: 0\t  kind:   381",
+      "| | | | :\t  #heirs: 0\t  kind:   89",
+      "| | | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | | +\t  #heirs: 0\t  kind:   373",
+      "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | | n\t  #heirs: 0\t  kind:   289",
+      "| | | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | =\t  #heirs: 0\t  kind:   373",
+      "| | | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | N_OperatorDefinition\t*\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | *\t  #heirs: 0\t  kind:   195",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | TRUE\t  #heirs: 0\t  kind:   289",
+      "| | N_OperatorDefinition\t^\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | ^\t  #heirs: 0\t  kind:   189",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411",
+      "| | | | {\t  #heirs: 0\t  kind:   100",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | ,\t  #heirs: 0\t  kind:   88",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | | }\t  #heirs: 0\t  kind:   101",
+      "| | N_OperatorDefinition\t<\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | <\t  #heirs: 0\t  kind:   201",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | =\t  #heirs: 0\t  kind:   373",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | N_OperatorDefinition\t>\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | >\t  #heirs: 0\t  kind:   203",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | =\t  #heirs: 0\t  kind:   373",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | N_OperatorDefinition\t\\leq\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | \\leq\t  #heirs: 0\t  kind:   151",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | =\t  #heirs: 0\t  kind:   373",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | N_OperatorDefinition\t\\geq\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | \\geq\t  #heirs: 0\t  kind:   145",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | =\t  #heirs: 0\t  kind:   373",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | N_OperatorDefinition\t%\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      " preComment: 0 (***************************************************************************)",
+      "             1 (* a .. b  is defined to equal  {i \\in Int : (a \\leq i) /\\ (i \\leq b)}     *)",
+      "             2 (* where  Int  is the set of all integers.                                 *)",
+      "             3 (*                                                                         *)",
+      "             4 (* a % b  and  a \\div b  are defined so that for any integers  a  and  b   *)",
+      "             5 (* with  b > 0 , the following formula is true:                            *)",
+      "             6 (*                                                                         *)",
+      "             7 (*    a  =  b * (a \\div b) + (a % b)                                       *)",
+      "             8 (***************************************************************************)",
+      "| | | | %\t  #heirs: 0\t  kind:   216",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411",
+      "| | | | {\t  #heirs: 0\t  kind:   100",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | ,\t  #heirs: 0\t  kind:   88",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | | }\t  #heirs: 0\t  kind:   101",
+      "| | N_OperatorDefinition\t\\div\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | \\div\t  #heirs: 0\t  kind:   142",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411",
+      "| | | | {\t  #heirs: 0\t  kind:   100",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | ,\t  #heirs: 0\t  kind:   88",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | | }\t  #heirs: 0\t  kind:   101",
+      "| | N_OperatorDefinition\t..\t  #heirs: 3\t  kind:   389",
+      "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372",
+      "| | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | ..\t  #heirs: 0\t  kind:   205",
+      "| | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | ==\t  #heirs: 0\t  kind:   93",
+      "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411",
+      "| | | | {\t  #heirs: 0\t  kind:   100",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | a\t  #heirs: 0\t  kind:   289",
+      "| | | | ,\t  #heirs: 0\t  kind:   88",
+      "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358",
+      "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367",
+      "| | | | | b\t  #heirs: 0\t  kind:   289",
+      "| | | | }\t  #heirs: 0\t  kind:   101",
+      "| N_EndModule\t  #heirs: 1\t  kind:   345",
+      "| | =============================================================================\t  #heirs: 0\t  kind:   37",
+      "",
+      "*** End of concrete syntax tree for Module 304"
+    ],
+    "lines_used": 9
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/Good.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-16183565007750342185/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Good"
+    },
+    {
+      "class": "progress",
+      "text": "Linting of module Good"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "*** Concrete Syntax Tree for Module 379"
+    },
+    {
+      "class": "other",
+      "text": "N_Module\t  #heirs: 4\t  kind:   382"
+    },
+    {
+      "class": "other",
+      "text": "| N_BeginModule\t  #heirs: 3\t  kind:   333"
+    },
+    {
+      "class": "other",
+      "text": "| | ---- MODULE\t  #heirs: 0\t  kind:   3"
+    },
+    {
+      "class": "other",
+      "text": "| | Good\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | ----\t  #heirs: 0\t  kind:   36"
+    },
+    {
+      "class": "other",
+      "text": "| N_Extends\t  #heirs: 2\t  kind:   350"
+    },
+    {
+      "class": "other",
+      "text": "| | EXTENDS\t  #heirs: 0\t  kind:   48"
+    },
+    {
+      "class": "other",
+      "text": "| | Naturals\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| N_Body\t  #heirs: 4\t  kind:   334"
+    },
+    {
+      "class": "other",
+      "text": "| | N_VariableDeclaration\t  #heirs: 2\t  kind:   426"
+    },
+    {
+      "class": "other",
+      "text": "| | | VARIABLE\t  #heirs: 0\t  kind:   85"
+    },
+    {
+      "class": "other",
+      "text": "| | | x\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t*Init\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366"
+    },
+    {
+      "class": "other",
+      "text": "| | | | Init\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | x\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | =\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_Number\t  #heirs: 1\t  kind:   385"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | 0\t  #heirs: 0\t  kind:   109"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t*Next\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366"
+    },
+    {
+      "class": "other",
+      "text": "| | | | Next\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_PostfixExpr\t  #heirs: 2\t  kind:   395"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | x\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_GenPostfixOp\t  #heirs: 2\t  kind:   361"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | '\t  #heirs: 0\t  kind:   397"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | =\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | x\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | +\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_Number\t  #heirs: 1\t  kind:   385"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | 1\t  #heirs: 0\t  kind:   109"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t*Spec\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366"
+    },
+    {
+      "class": "other",
+      "text": "| | | | Spec\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | Init\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | /\\\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_PrefixExpr\t  #heirs: 2\t  kind:   399"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_GenPrefixOp\t  #heirs: 2\t  kind:   362"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | []\t  #heirs: 0\t  kind:   401"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_ActionExpr\t  #heirs: 4\t  kind:   329"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | [\t  #heirs: 0\t  kind:   97"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | Next\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | ]_\t  #heirs: 0\t  kind:   98"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | x\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| N_EndModule\t  #heirs: 1\t  kind:   345"
+    },
+    {
+      "class": "other",
+      "text": "| | ====\t  #heirs: 0\t  kind:   37"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "*** End of concrete syntax tree for Module 379"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "*** Concrete Syntax Tree for Module 304"
+    },
+    {
+      "class": "other",
+      "text": "N_Module\t  #heirs: 4\t  kind:   382"
+    },
+    {
+      "class": "other",
+      "text": "| N_BeginModule\t  #heirs: 3\t  kind:   333"
+    },
+    {
+      "class": "other",
+      "text": "| | -------------------------------- MODULE\t  #heirs: 0\t  kind:   3"
+    },
+    {
+      "class": "other",
+      "text": "| | Naturals\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | ----------------------------\t  #heirs: 0\t  kind:   36"
+    },
+    {
+      "class": "other",
+      "text": "| N_Extends\t  #heirs: 0\t  kind:   350"
+    },
+    {
+      "class": "other",
+      "text": "| N_Body\t  #heirs: 12\t  kind:   334"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t*Nat\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_IdentLHS\t  #heirs: 1\t  kind:   366"
+    },
+    {
+      "class": "other",
+      "text": "| | | | Nat\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": " preComment: 0 (***************************************************************************)"
+    },
+    {
+      "class": "other",
+      "text": "             1 (* This module provides dummy definitions of the operators that are        *)"
+    },
+    {
+      "class": "other",
+      "text": "             2 (* defined by the real Naturals module.  It is expected that any tool will *)"
+    },
+    {
+      "class": "other",
+      "text": "             3 (* provide its own implementations of these operators.  See the book       *)"
+    },
+    {
+      "class": "other",
+      "text": "             4 (* \"Specifying Systems\" for the real Naturals module.                      *)"
+    },
+    {
+      "class": "other",
+      "text": "             5 (***************************************************************************)"
+    },
+    {
+      "class": "other",
+      "text": "             6 (***************************************************************************)"
+    },
+    {
+      "class": "other",
+      "text": "             7 (* These definitions are all overridden by TLC in the Java class           *)"
+    },
+    {
+      "class": "other",
+      "text": "             8 (* tlc2.module.Naturals. Each operator is overridden by the Java method    *)"
+    },
+    {
+      "class": "other",
+      "text": "             9 (* with the same name, except that the mapping for TLA+ infix operators    *)"
+    },
+    {
+      "class": "other",
+      "text": "             10 (* is defined in the static block at the beginning of the Java class.      *)"
+    },
+    {
+      "class": "other",
+      "text": "             11 (***************************************************************************)"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_SetEnumerate\t  #heirs: 2\t  kind:   411"
+    },
+    {
+      "class": "other",
+      "text": "| | | | {\t  #heirs: 0\t  kind:   100"
+    },
+    {
+      "class": "other",
+      "text": "| | | | }\t  #heirs: 0\t  kind:   101"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t+\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | +\t  #heirs: 0\t  kind:   197"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411"
+    },
+    {
+      "class": "other",
+      "text": "| | | | {\t  #heirs: 0\t  kind:   100"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | ,\t  #heirs: 0\t  kind:   88"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | }\t  #heirs: 0\t  kind:   101"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t-\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | -\t  #heirs: 0\t  kind:   193"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_UnBoundedOrBoundedChoose\t  #heirs: 5\t  kind:   424"
+    },
+    {
+      "class": "other",
+      "text": "| | | | CHOOSE\t  #heirs: 0\t  kind:   43"
+    },
+    {
+      "class": "other",
+      "text": "| | | | n\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_MaybeBound\t  #heirs: 0\t  kind:   381"
+    },
+    {
+      "class": "other",
+      "text": "| | | | :\t  #heirs: 0\t  kind:   89"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | +\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | | n\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | =\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t*\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | *\t  #heirs: 0\t  kind:   195"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | TRUE\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t^\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | ^\t  #heirs: 0\t  kind:   189"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411"
+    },
+    {
+      "class": "other",
+      "text": "| | | | {\t  #heirs: 0\t  kind:   100"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | ,\t  #heirs: 0\t  kind:   88"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | }\t  #heirs: 0\t  kind:   101"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t<\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | <\t  #heirs: 0\t  kind:   201"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | =\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t>\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | >\t  #heirs: 0\t  kind:   203"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | =\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t\\leq\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | \\leq\t  #heirs: 0\t  kind:   151"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | =\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t\\geq\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | \\geq\t  #heirs: 0\t  kind:   145"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixExpr\t  #heirs: 3\t  kind:   371"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GenInfixOp\t  #heirs: 2\t  kind:   359"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | =\t  #heirs: 0\t  kind:   373"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t%\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": " preComment: 0 (***************************************************************************)"
+    },
+    {
+      "class": "other",
+      "text": "             1 (* a .. b  is defined to equal  {i \\in Int : (a \\leq i) /\\ (i \\leq b)}     *)"
+    },
+    {
+      "class": "other",
+      "text": "             2 (* where  Int  is the set of all integers.                                 *)"
+    },
+    {
+      "class": "other",
+      "text": "             3 (*                                                                         *)"
+    },
+    {
+      "class": "other",
+      "text": "             4 (* a % b  and  a \\div b  are defined so that for any integers  a  and  b   *)"
+    },
+    {
+      "class": "other",
+      "text": "             5 (* with  b > 0 , the following formula is true:                            *)"
+    },
+    {
+      "class": "other",
+      "text": "             6 (*                                                                         *)"
+    },
+    {
+      "class": "other",
+      "text": "             7 (*    a  =  b * (a \\div b) + (a % b)                                       *)"
+    },
+    {
+      "class": "other",
+      "text": "             8 (***************************************************************************)"
+    },
+    {
+      "class": "other",
+      "text": "| | | | %\t  #heirs: 0\t  kind:   216"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411"
+    },
+    {
+      "class": "other",
+      "text": "| | | | {\t  #heirs: 0\t  kind:   100"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | ,\t  #heirs: 0\t  kind:   88"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | }\t  #heirs: 0\t  kind:   101"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t\\div\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | \\div\t  #heirs: 0\t  kind:   142"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411"
+    },
+    {
+      "class": "other",
+      "text": "| | | | {\t  #heirs: 0\t  kind:   100"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | ,\t  #heirs: 0\t  kind:   88"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | }\t  #heirs: 0\t  kind:   101"
+    },
+    {
+      "class": "other",
+      "text": "| | N_OperatorDefinition\t..\t  #heirs: 3\t  kind:   389"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_InfixLHS\t  #heirs: 3\t  kind:   372"
+    },
+    {
+      "class": "other",
+      "text": "| | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | ..\t  #heirs: 0\t  kind:   205"
+    },
+    {
+      "class": "other",
+      "text": "| | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | ==\t  #heirs: 0\t  kind:   93"
+    },
+    {
+      "class": "other",
+      "text": "| | | N_SetEnumerate\t  #heirs: 5\t  kind:   411"
+    },
+    {
+      "class": "other",
+      "text": "| | | | {\t  #heirs: 0\t  kind:   100"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | a\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | ,\t  #heirs: 0\t  kind:   88"
+    },
+    {
+      "class": "other",
+      "text": "| | | | N_GeneralId\t  #heirs: 2\t  kind:   358"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | N_IdPrefix\t  #heirs: 0\t  kind:   367"
+    },
+    {
+      "class": "other",
+      "text": "| | | | | b\t  #heirs: 0\t  kind:   289"
+    },
+    {
+      "class": "other",
+      "text": "| | | | }\t  #heirs: 0\t  kind:   101"
+    },
+    {
+      "class": "other",
+      "text": "| N_EndModule\t  #heirs: 1\t  kind:   345"
+    },
+    {
+      "class": "other",
+      "text": "| | =============================================================================\t  #heirs: 0\t  kind:   37"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "*** End of concrete syntax tree for Module 304"
+    }
+  ]
+}

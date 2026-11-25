@@ -1,0 +1,17 @@
+{
+  "version": "1.11 of 31 December 2020",
+  "files_written": [],
+  "labels_added": [],
+  "diagnostics": [
+    {
+      "tool": "pcal",
+      "severity": "error",
+      "message": "Command-line error: Input file Nope.pcal and Nope.tla.tla not found..",
+      "module": null,
+      "file": null,
+      "location": null,
+      "details": []
+    }
+  ],
+  "other": []
+}

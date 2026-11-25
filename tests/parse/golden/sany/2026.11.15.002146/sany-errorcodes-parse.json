@@ -1,0 +1,140 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Was expecting \"Expression or Instance\"\nEncountered \"Beginning of definition\" at line 4, column 9 and token \"==\"",
+        "module": "ParseErr",
+        "file": "<tmp>/q12/work-v1.8.0/ParseErr.tla",
+        "location": {
+          "module": "ParseErr",
+          "line": 4,
+          "column": 9,
+          "end_line": null,
+          "end_column": null
+        },
+        "details": [
+          "Definition starting at line 4, column 1.",
+          "Module body starting at line 3, column 1.",
+          "Module definition starting at line 1, column 1."
+        ]
+      }
+    ],
+    "module_files": {
+      "ParseErr": "<tmp>/q12/work-v1.8.0/ParseErr.tla"
+    },
+    "other": [],
+    "lines_used": 27
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/ParseErr.tla"
+    },
+    {
+      "class": "header",
+      "text": "***Parse Error***"
+    },
+    {
+      "class": "message",
+      "text": "Was expecting \"Expression or Instance\""
+    },
+    {
+      "class": "message",
+      "text": "Encountered \"Beginning of definition\" at line 4, column 9 and token \"==\" "
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "header",
+      "text": "Residual stack trace follows:"
+    },
+    {
+      "class": "message",
+      "text": "Definition starting at line 4, column 1."
+    },
+    {
+      "class": "message",
+      "text": "Module body starting at line 3, column 1."
+    },
+    {
+      "class": "message",
+      "text": "Module definition starting at line 1, column 1."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "header",
+      "text": "Fatal errors while parsing TLA+ spec in file ParseErr.tla"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "In module ParseErr"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "Could not parse module ParseErr from file ParseErr.tla"
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 1"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "In module ParseErr"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "Could not parse module ParseErr from file ParseErr.tla"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

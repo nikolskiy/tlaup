@@ -1,0 +1,16 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {},
+    "other": [
+      "Illegal switch: -h"
+    ],
+    "lines_used": 0
+  },
+  "lines": [
+    {
+      "class": "other",
+      "text": "Illegal switch: -h"
+    }
+  ]
+}

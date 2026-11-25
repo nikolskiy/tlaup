@@ -1,0 +1,23 @@
+{
+  "version": "1.12 of 01 July 2024",
+  "files_written": [],
+  "labels_added": [],
+  "diagnostics": [
+    {
+      "tool": "pcal",
+      "severity": "error",
+      "message": "Could not find resource file Foo.tla.",
+      "module": null,
+      "file": null,
+      "location": null,
+      "details": []
+    }
+  ],
+  "other": [
+    "Wrote file AST.tla.",
+    "",
+    "    There is probably something wrong with the way",
+    "    the +cal translator is installed.",
+    ""
+  ]
+}

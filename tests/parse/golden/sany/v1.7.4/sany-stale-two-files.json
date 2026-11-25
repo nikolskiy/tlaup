@@ -1,0 +1,97 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "warning",
+        "message": "The PlusCal algorithm in module PcalStaleAlg has changed since its last translation.",
+        "module": "PcalStaleAlg",
+        "file": "<tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleAlg.tla",
+        "location": null,
+        "details": []
+      },
+      {
+        "tool": "sany",
+        "severity": "warning",
+        "message": "The TLA+ translation in module PcalStaleTla has changed since its last translation.",
+        "module": "PcalStaleTla",
+        "file": "<tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleTla.tla",
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {
+      "PcalStaleAlg": "<tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleAlg.tla",
+      "Naturals": "/tmp/Naturals.tla",
+      "PcalStaleTla": "<tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleTla.tla"
+    },
+    "other": [],
+    "lines_used": 16
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleAlg.tla"
+    },
+    {
+      "class": "message",
+      "text": "!! WARNING: The PlusCal algorithm in module PcalStaleAlg has changed since its last translation."
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/Naturals.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module PcalStaleAlg"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.7.4/sany-stale-two-files/PcalStaleTla.tla"
+    },
+    {
+      "class": "message",
+      "text": "!! WARNING: The TLA+ translation in module PcalStaleTla has changed since its last translation."
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/Naturals.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module PcalStaleTla"
+    }
+  ]
+}

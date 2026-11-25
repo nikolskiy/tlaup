@@ -1,0 +1,60 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Something odd",
+        "module": null,
+        "file": null,
+        "location": null,
+        "details": [
+          "A frame."
+        ]
+      }
+    ],
+    "module_files": {
+      "NoPos": "NoPos.tla"
+    },
+    "other": [],
+    "lines_used": 9
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file NoPos.tla"
+    },
+    {
+      "class": "header",
+      "text": "***Parse Error***"
+    },
+    {
+      "class": "message",
+      "text": "Something odd"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "header",
+      "text": "Residual stack trace follows:"
+    },
+    {
+      "class": "message",
+      "text": "A frame."
+    }
+  ]
+}

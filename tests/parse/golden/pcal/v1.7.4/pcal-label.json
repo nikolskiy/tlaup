@@ -1,0 +1,16 @@
+{
+  "version": "1.11 of 31 December 2020",
+  "files_written": [
+    "PcalNoLabel.tla",
+    "PcalNoLabel.cfg"
+  ],
+  "labels_added": [
+    [
+      "Lbl_1",
+      7,
+      3
+    ]
+  ],
+  "diagnostics": [],
+  "other": []
+}

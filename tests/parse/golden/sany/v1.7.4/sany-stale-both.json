@@ -1,0 +1,55 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "warning",
+        "message": "The PlusCal algorithm and its TLA+ translation in module PcalStaleBoth filename since the last translation.",
+        "module": "PcalStaleBoth",
+        "file": "<tmp>/q22/work/v1.7.4/sany-stale-both/PcalStaleBoth.tla",
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {
+      "PcalStaleBoth": "<tmp>/q22/work/v1.7.4/sany-stale-both/PcalStaleBoth.tla",
+      "Naturals": "/tmp/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 8
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.7.4/sany-stale-both/PcalStaleBoth.tla"
+    },
+    {
+      "class": "message",
+      "text": "!! WARNING: The PlusCal algorithm and its TLA+ translation in module PcalStaleBoth filename since the last translation."
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/Naturals.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module PcalStaleBoth"
+    }
+  ]
+}

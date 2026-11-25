@@ -1,0 +1,42 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Cannot find the specified file Nope.tla.",
+        "module": null,
+        "file": null,
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {},
+    "other": [
+      "File does not exist: <tmp>/q12/work-v1.8.0/./Nope.tla while looking in these directories: <tmp>/q12/work-v1.8.0, , classpath:/tla2sany/StandardModules, classpath:/"
+    ],
+    "lines_used": 4
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "File does not exist: <tmp>/q12/work-v1.8.0/./Nope.tla while looking in these directories: <tmp>/q12/work-v1.8.0, , classpath:/tla2sany/StandardModules, classpath:/"
+    },
+    {
+      "class": "message",
+      "text": "Cannot find the specified file Nope.tla."
+    }
+  ]
+}

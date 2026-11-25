@@ -1,0 +1,60 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {
+      "Pos": "Pos.tla"
+    },
+    "other": [],
+    "lines_used": 12
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file Pos.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Pos"
+    },
+    {
+      "class": "header",
+      "text": "Semantic errors:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 1"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 4, col 13 to line 4, col 13 of module Pos"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

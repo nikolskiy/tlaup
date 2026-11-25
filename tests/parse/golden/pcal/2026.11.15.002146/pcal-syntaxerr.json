@@ -1,0 +1,23 @@
+{
+  "version": "1.12 of 01 July 2024",
+  "files_written": [],
+  "labels_added": [],
+  "diagnostics": [
+    {
+      "tool": "pcal",
+      "severity": "error",
+      "message": "Expected \"do\" but found \":=\"",
+      "module": null,
+      "file": null,
+      "location": {
+        "module": "",
+        "line": 6,
+        "column": 20,
+        "end_line": null,
+        "end_column": null
+      },
+      "details": []
+    }
+  ],
+  "other": []
+}
