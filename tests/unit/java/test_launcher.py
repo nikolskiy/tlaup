@@ -7,6 +7,7 @@ Every child is reaped by the launcher; `no_child_left` kills by process id any t
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import os
 import signal
 import sys
@@ -200,7 +201,7 @@ def test_a_callback_that_raises_stops_the_child_and_goes_on(java: Java) -> None:
 
     began = time.monotonic()
     with pytest.raises(BrokenPipeError):
-        run_streaming(inv, on_stdout=fails_at_the_fifth, on_stderr=lambda _: None, signals=Signals())
+        run_streaming(inv, on_stdout=fails_at_the_fifth, on_stderr=lambda _: None, signals=Signals(), reader_gone=never)
     assert time.monotonic() - began < 5
     assert java.exited()
     assert java.signals() == ["SIGTERM"]
@@ -247,6 +248,23 @@ def test_a_file_that_is_there_is_not_reported_as_not_found(tmp_path: Path) -> No
     assert str(locked) in caught.value.message
     assert "permission denied" in caught.value.message.lower()
     assert "not found" not in caught.value.message.lower()
+
+
+def test_a_missing_working_folder_is_named_as_what_could_not_be_used(java: Java, tmp_path: Path) -> None:
+    folder = tmp_path / "no-such-folder"
+    inv = dataclasses.replace(java.script(), cwd=folder)
+    with pytest.raises(ToolStartError) as caught:
+        streaming(inv, Signals())
+    assert caught.value.message.startswith(f"{folder} could not be started: ")
+    assert str(java.path) not in caught.value.message
+    assert java.log() == []
+
+
+def test_a_childrun_refuses_a_clock_of_its_own(java: Java) -> None:
+    signals = Signals(clock=lambda: 0.0)
+    with pytest.raises(InternalError):
+        ChildRun(java.script(), signals, clock=time.monotonic)
+    ChildRun(java.script(), signals, clock=signals.clock)  # the same clock is accepted
 
 
 def test_a_signal_that_came_first_starts_nothing(java: Java) -> None:
@@ -332,6 +350,20 @@ def test_passed_descriptors_are_closed_when_nothing_starts(tmp_path: Path, passe
     assert not is_open(passed_fd)
 
 
+def test_passed_descriptors_are_closed_once(tmp_path: Path, passed_fd: int) -> None:
+    signals = Signals()
+    signals.first = "int"
+    run = ChildRun(invocation(fd_reporter(tmp_path)), signals, pass_fds=(passed_fd,))
+    assert not run.may_start()
+    reused = os.open(os.devnull, os.O_RDONLY)  # the freed number, now someone else's
+    try:
+        assert reused == passed_fd
+        assert not run.may_start()
+        assert is_open(reused)
+    finally:
+        os.close(reused)
+
+
 def test_passed_descriptors_are_closed_when_the_start_fails(tmp_path: Path, passed_fd: int) -> None:
     with pytest.raises(ToolStartError):
         streaming(invocation(tmp_path / "missing"), Signals(), pass_fds=(passed_fd,))
@@ -378,7 +410,8 @@ class Checkpoint:
 
 
 def checkpoint_script(java: Java, **extra: Any) -> JavaInvocation:
-    return java.script(generate_lines=2, line_delay_ms=200, hang_after_line=2, **extra)
+    # The pause outlasts the look at the reader, which comes at most every TURN_SECONDS.
+    return java.script(generate_lines=2, line_delay_ms=500, hang_after_line=2, **extra)
 
 
 @pytest.mark.parametrize(("number", "name"), [(signal.SIGINT, "int"), (signal.SIGTERM, "term")])
@@ -411,7 +444,9 @@ def test_a_second_signal_during_a_checkpoint_kills_at_once(java: Java) -> None:
     with signals_held() as signals:
         mark = Checkpoint(signals, at_first=twice)
         mark.java = java
-        outcome = run_streaming(inv, on_stdout=mark.on_stdout, on_stderr=lambda _: None, signals=signals)
+        outcome = run_streaming(
+            inv, on_stdout=mark.on_stdout, on_stderr=lambda _: None, signals=signals, reader_gone=never
+        )
     assert mark.lines == ["line 1\n"]
     assert java.signals() == []  # SIGKILL leaves no note
     assert outcome == ProcessOutcome(130, -9, "int", ())

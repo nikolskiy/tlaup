@@ -191,7 +191,7 @@ The check found no flaw in G3 or R2. Not a finding, but worth knowing: two signa
 
 **Brought up to the revision of 2026-11-20** the same day, after the maintainer settled the three open points. What each machine gained, what it could not mirror (the kill of tlaup is a test of its own, not a rule; `RunLock`'s second look; `UnlinkOnRelease`), and how the machines did on broken models is in [design 03](../docs/design/03-run-stages-and-specs.md#specs-and-their-tests). The table and the paragraphs below are from 2026-11-18 except where they say otherwise. With the CI profile the three machines against their throwaway models took 44, 32 and 17 seconds on 2026-11-20, and the whole folder, with the plain tests, 98 seconds.
 
-`tests/stateful/` has one Hypothesis `RuleBasedStateMachine` per spec, as [03 describes](../docs/design/03-run-stages-and-specs.md#specs-and-their-tests). They call the step functions named in [11 R6](../docs/design/11-runner.md#r6-run-folders), [12 V1](../docs/design/12-tools-and-downloads.md#v1-version-store) and [20 G3](../docs/design/20-groundwork.md#g3-java-launcher), which do not exist yet, so those tests carry the `pending` marker, which `pyproject.toml` registers and deselects.
+`tests/stateful/` has one Hypothesis `RuleBasedStateMachine` per spec, as [03 describes](../docs/design/03-run-stages-and-specs.md#specs-and-their-tests). They call the step functions named in [11 R6](../docs/design/11-runner.md#r6-run-folders), [12 V1](../docs/design/12-tools-and-downloads.md#v1-version-store) and [20 G3](../docs/design/20-groundwork.md#g3-java-launcher). Those of R6 and V1 do not exist yet, so their tests carry the `pending` marker, which `pyproject.toml` registers and deselects; G3's exist (work package 21), and the signals tests run without it.
 
 | File | The machine | Checks, on real files, locks, handlers and a real child |
 | --- | --- | --- |
@@ -211,7 +211,7 @@ Each file also has a plain test with a second Python process. For the two that u
 uv run --with hypothesis pytest tests/stateful --no-cov
 ```
 
-Adding `-m pending` runs the tests for the real code, which fail at the import until it is built.
+Adding `-m pending` runs the tests for the real code that is not built yet, which fail at the import until it is; the signals tests run against `tlaup.java.launcher` without it.
 
 ## What was not checked
 
@@ -221,5 +221,5 @@ Adding `-m pending` runs the tests for the real code, which fail at the import u
 - Anything inside one step: the two system calls of a rename, a folder half deleted, a handler half installed.
 - Windows and macOS. Network file systems, where `flock` may not hold. The Windows variants of `RunFolders` switch the inherited lock off on POSIX files; they are not a model of Windows.
 - The lifeline agent and the inherited lock themselves: the specs assume that the agent ends the JVM and that the JVM's duplicate keeps the lock; research 33 and 35 tried both, and R6's and G3's unit tests pin them.
-- The stateful tests against real code: there is none. Whether a machine catches a mistake in the real step functions is known only from the broken throwaway models.
+- The stateful tests against real code: only the signals machine has it, `tlaup.java.launcher` (work package 21); for the run folders and the tool store there is none yet. Whether a machine catches a mistake in the real step functions is known only from the broken throwaway models.
 - The step functions' signatures were not tried against the rest of the design beyond reading it; a worker may find that one needs another argument.

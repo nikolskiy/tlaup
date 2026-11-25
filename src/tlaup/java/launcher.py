@@ -108,9 +108,9 @@ class Signals:
         run = self._run
         if run is not None and run.alive():
             self.first_at = self.clock()
-            run.send_terminate(self.first_at)
+            run._send_terminate(self.first_at)
 
-    def handle(self, number: int, _frame: FrameType | None = None) -> None:
+    def _handle(self, number: int, _frame: FrameType | None = None) -> None:
         """The handler of SIGINT, SIGTERM and SIGHUP. It never raises and does no I/O."""
         name = NAMES[number]
         if name == "int" and self.leave_interrupt:
@@ -121,7 +121,7 @@ class Signals:
         if run is not None and run.closed_pipe_first:
             # The closed pipe was the first stop and is not a signal (FC9): this one is a second stop.
             if alive:
-                run.send_kill()
+                run._send_kill()
             return
         if self.first is None:
             self.first = name
@@ -129,19 +129,19 @@ class Signals:
             return
         if self.count > 1 or run.terminate_sent:
             self.held = False
-            run.send_kill()
+            run._send_kill()
         elif self.checkpointing:
             self.held = True  # sent on by checkpoint_written, or at once by a second signal
         else:
             self.first_at = self.clock()
-            run.send_terminate(self.first_at)
+            run._send_terminate(self.first_at)
 
-    def handle_quit(self, _number: int, _frame: FrameType | None = None) -> None:
+    def _handle_quit(self, _number: int, _frame: FrameType | None = None) -> None:
         """SIGQUIT is never recorded. Only the JVM of a parsed run, in a group of its own (D60), gets it forwarded;
         every other child already has it from the terminal."""
         run = self._run
         if SIGQUIT is not None and run is not None and run.own_group and run.alive():
-            run.send(SIGQUIT)
+            run._send(SIGQUIT)
 
 
 @contextlib.contextmanager
@@ -152,9 +152,9 @@ def signals_held(*, leave_interrupt: bool = False, clock: Callable[[], float] = 
         message = "signals_held was entered off the main thread"
         raise InternalError(message)
     signals = Signals(leave_interrupt=leave_interrupt, clock=clock)
-    handlers: dict[int, Callable[[int, FrameType | None], None]] = dict.fromkeys(NAMES, signals.handle)
+    handlers: dict[int, Callable[[int, FrameType | None], None]] = dict.fromkeys(NAMES, signals._handle)
     if SIGQUIT is not None:
-        handlers[SIGQUIT] = signals.handle_quit
+        handlers[SIGQUIT] = signals._handle_quit
     previous: dict[int, Callable[[int, FrameType | None], object] | int | None] = {}
     try:
         for number, handler in handlers.items():
@@ -191,8 +191,12 @@ class ChildRun:
         stop_when_reader_gone: bool | None = None,  # None: when the output is read (run_streaming always polls)
         reader_gone: Callable[[int], bool] = stdio.reader_gone,
         grace_seconds: float = GRACE_SECONDS,
-        clock: Callable[[], float] | None = None,  # None: the clock of `signals`
+        clock: Callable[[], float] | None = None,  # None, or the clock of `signals`: one clock for both
     ) -> None:
+        if clock is not None and clock != signals.clock:
+            _close_all(pass_fds)
+            message = "a ChildRun's clock must be the clock of its Signals: the handler stamps first_at with it"
+            raise InternalError(message)
         if signals.leave_interrupt and not passthrough:
             _close_all(pass_fds)
             message = "a run whose output is read needs signals_held(leave_interrupt=False)"
@@ -209,7 +213,7 @@ class ChildRun:
         self._watch_reader = (not passthrough) if stop_when_reader_gone is None else stop_when_reader_gone
         self._reader_gone = reader_gone
         self._grace = grace_seconds
-        self._clock = signals.clock if clock is None else clock
+        self._clock = signals.clock
         self._proc: subprocess.Popen[bytes] | None = None
         self._queue: queue.Queue[tuple[Stream, bytes | None]] = queue.Queue(maxsize=QUEUE_BOUND)
         self._open_streams = 0
@@ -217,6 +221,7 @@ class ChildRun:
         self._terminated_at: float | None = None
         self._kill_sent = False
         self._held_told = False
+        self._next_poll = 0.0  # time.monotonic() of the next look at the reader
         self._outcome: ProcessOutcome | None = None
         self.closed_pipe_seen = False
         self.closed_pipe_first = False  # seen before any signal was recorded
@@ -239,29 +244,34 @@ class ChildRun:
     def alive(self) -> bool:
         return self._proc is not None and self._proc.poll() is None
 
-    def send(self, number: int) -> None:
+    def _send(self, number: int) -> None:
         if self._proc is not None:
             self._proc.send_signal(number)  # looks first, so a child already reaped gets nothing
 
-    def send_terminate(self, now: float) -> None:
+    def _send_terminate(self, now: float) -> None:
         """`terminate()`; the grace period runs from `now`."""
         self._terminated_at = now
         if self._proc is not None:
             self._proc.terminate()
 
-    def send_kill(self) -> None:
+    def _send_kill(self) -> None:
         self._kill_sent = True
         if self._proc is not None:
             self._proc.kill()
 
     # ------------------------------------------------------------------ the steps
 
+    def _close_pass_fds(self) -> None:
+        """Closed once: the numbers may belong to something else afterwards."""
+        fds, self._pass_fds = self._pass_fds, ()
+        _close_all(fds)
+
     def may_start(self) -> bool:
         """False when a signal came first: nothing is started, and the outcome is that signal's."""
         first = self.signals.first
         if first is None:
             return True
-        _close_all(self._pass_fds)
+        self._close_pass_fds()
         self._outcome = ProcessOutcome(CODES[first], None, first, ())
         return False
 
@@ -290,10 +300,11 @@ class ChildRun:
                 process_group=0 if self.own_group else None,
             )
         except OSError as error:
-            message = f"{self.inv.java} could not be started: {error.strerror or error}"
+            what = error.filename if error.filename is not None else self.inv.java  # a missing cwd names itself
+            message = f"{what} could not be started: {error.strerror or error}"
             raise ToolStartError(message, hint="check that the file is a Java program for this machine") from error
         finally:
-            _close_all(self._pass_fds)
+            self._close_pass_fds()
         for stream, pipe in (("stdout", self._proc.stdout), ("stderr", self._proc.stderr)):
             if pipe is not None:
                 self._open_streams += 1
@@ -316,7 +327,7 @@ class ChildRun:
         self.signals._run = self  # Signals and ChildRun are one mechanism
         if self.signals.first is not None and self._proc is not None and not self.terminate_sent:
             self.signals.first_at = self.signals.clock()
-            self.send_terminate(self.signals.first_at)
+            self._send_terminate(self.signals.first_at)
 
     def turn(self, timeout: float = TURN_SECONDS) -> bool:
         """One turn of the loop: a line handed on, or a wait for the child. True when the child is gone and its
@@ -349,10 +360,10 @@ class ChildRun:
             return
         proc = self._proc
         if proc.poll() is None and not self.terminate_sent:
-            self.send_terminate(self._clock())
+            self._send_terminate(self._clock())
         while proc.poll() is None:
             if not self._kill_sent and self._grace_over():
-                self.send_kill()
+                self._send_kill()
             with contextlib.suppress(subprocess.TimeoutExpired):
                 proc.wait(timeout=0.05)
         deadline = time.monotonic() + DRAIN_SECONDS  # real time: the injected clock is for the grace period
@@ -384,13 +395,16 @@ class ChildRun:
         return self._terminated_at is not None and self._clock() - self._terminated_at >= self._grace
 
     def _watch(self) -> None:
-        """The grace period, the reader of tlaup's stdout, a held signal."""
-        if not self.alive():
-            return
+        """The grace period and a held signal at every turn (flags, and the clock only once a stop was sent); the
+        child and the reader of tlaup's stdout, which cost a system call each, at most every `TURN_SECONDS`."""
         if self.terminate_sent and not self._kill_sent and self._grace_over():
-            self.send_kill()
-        if self._watch_reader and not self.closed_pipe_seen and self._reader_gone(1):
-            self._closed_pipe()
+            self._send_kill()  # looks first: a child already gone gets nothing
+        if self._watch_reader and not self.closed_pipe_seen:
+            now = time.monotonic()  # real time: the injected clock is for the grace period
+            if now >= self._next_poll:
+                self._next_poll = now + TURN_SECONDS
+                if self.alive() and self._reader_gone(1):
+                    self._closed_pipe()
         if self.signals.held and not self._held_told:
             self._held_told = True
             if self.on_held is not None and self.signals.first is not None:
@@ -408,7 +422,7 @@ class ChildRun:
         if signals.held:  # does not wait for the checkpoint: nobody can use it
             signals.held = False
             signals.first_at = now
-        self.send_terminate(now)
+        self._send_terminate(now)
 
     def _deliver(self, stream: Stream, data: bytes) -> None:
         text = data.decode("utf-8", errors="replace")  # cannot raise (R3)
