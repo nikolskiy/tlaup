@@ -233,7 +233,7 @@ Roadmap: "Live terminal reporter: render the layout on a terminal; fall back to 
 ```
 
 - **Header**: the two header lines of plain mode.
-- **Status**: the phase (`Parsing`, `Computing initial states`, `Checking`, `Checking liveness`, `Finished`, or `Interrupted` when `finish` gets an outcome whose run was stopped by a signal), the time since `start` from the reporter's clock as `HH:MM:SS`, the number of errors and warnings so far, the latest progress numbers, and the hint. While a first signal is held for a checkpoint, the waiting line that arrives through `notice` (O1), in the wording [20 G3](20-groundwork.md#g3-java-launcher) gives for each signal, stands in the hint's place.
+- **Status**: the phase (`Starting` before TLC has reported a phase, for `NOT_STARTED` and `STARTING` of [10 P3](10-parser.md#p3-result-model), settled with the maintainer on 2026-11-24; then `Parsing`, `Computing initial states`, `Checking`, `Checking liveness`, `Finished`, or `Interrupted` when `finish` gets an outcome whose run was stopped by a signal), the time since `start` from the reporter's clock as `HH:MM:SS`, the number of errors and warnings so far, the latest progress numbers, and the hint. While a first signal is held for a checkpoint, the waiting line that arrives through `notice` (O1), in the wording [20 G3](20-groundwork.md#g3-java-launcher) gives for each signal, stands in the hint's place.
 - **State space progress**: one row per TLC progress message, the newest that fit.
 - **Output**: the newest lines of the result text, the same lines plain mode writes to stdout, produced by the same `render_event`; and TLC's stderr lines, marked `stderr:`. Lines longer than the panel are cut with an ellipsis here, and only here; the full line is in the spool.
 
@@ -321,7 +321,7 @@ An error raised while the layout is up has no pty scenario: with the fake `java`
 - The refresh thread reads a value another thread replaces. Replacing one reference to a frozen value is safe in CPython; the code must not mutate a view in place.
 - Rich's behaviour on the alternate screen was tried on a real pty with five versions from 13.8.0 to 15.0.0 on Linux and four of them on macOS (research 30); resizing while the layout is up and a Windows console were not. The cap below 14 is gone ([30 B2](30-ci-and-release.md#b2-build-fixes)); the newest-dependencies job and the pty scenarios guard a later change.
 - The layout can be idle for up to a minute between progress rows (research 31), and longer while TLC writes a checkpoint or computes a slow state. The elapsed time ticks from the refresh thread, so a silence never reads as a hang.
-- The stderr lines of the tool lose their place among the output lines in the scrollback (the table above). During the run the Output panel shows them where they arrived. (Stage 4 review, 2026-11-24: the waiting line is shown in the Status panel and copied to stderr on close, question Q12; the interrupted scenario asserts O3's wording of the result line, index Clerical.)
+- The stderr lines of the tool lose their place among the output lines in the scrollback (the table above). During the run the Output panel shows them where they arrived. (Stage 4 review, 2026-11-24: the waiting line is shown in the Status panel and copied to stderr on close, question Q12; the interrupted scenario asserts O3's wording of the result line, index Clerical; the phase word `Starting`, finding E4, settled with the maintainer on 2026-11-24.)
 
 ## O5 Refresh interval
 

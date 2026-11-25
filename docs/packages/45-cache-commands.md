@@ -9,8 +9,8 @@ Size: M. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items:
-  - "Review the layout of every command so it follows the most common CLI patterns ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 325), in part: "one `cache` command replacing `fetch-cache clear` and the `tlc --cleanup` flag". The tree as a whole is [48](48-command-tree.md).
-  - "Stop run-cache cleanup from deleting other specs' directories ... TLC also adds a timestamped folder per run that is never removed; define when those are cleaned up." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 181), in part: the user's command for it. The rules and functions are [35](35-run-folders.md); `--keep`, the sweep at every run and removing `--cleanup` are [39](39-tlc-command.md).
+  - "Review the layout of every command so it follows the most common CLI patterns ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 334), in part: "one `cache` command replacing `fetch-cache clear` and the `tlc --cleanup` flag". The tree as a whole is [48](48-command-tree.md).
+  - "Stop run-cache cleanup from deleting other specs' directories ... TLC also adds a timestamped folder per run that is never removed; define when those are cleaned up." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 190), in part: the user's command for it. The rules and functions are [35](35-run-folders.md); `--keep`, the sweep at every run and removing `--cleanup` are [39](39-tlc-command.md).
 - Design sections:
   - [23 C1](../design/23-command-layout.md#c1-command-tree): the rows "`fetch-cache clear` and `tlc --cleanup` become `cache clean`; `cache dir` and `cache list` are new" and "`cache list` is new", with `--all` and a kind (question Q14) and nothing to clean (preserved-behaviour row O7) as C1 now states them; the `cache` lines of the tree, `cache.feature` of the Tests, and the changelog line of the first row (see Changelog).
   - [11 R6](../design/11-runner.md#r6-run-folders), in part: "Kept folders are visible" (the command `cache list`), the `cache clean` bullet list, and the feature tests "`cache clean` removes an unsettled folder that is not resumable and leaves a kept one; `cache clean <run-id>` removes the kept one; `cache clean` with an unknown id exits 4" and "`tlaup cache list` does not" print the reminder. The functions are 35's.
@@ -170,7 +170,7 @@ R6's Changed entry, which names `cache clean <run-id>` and `--all`, is 39's.
 - The scenarios and unit tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - `tlaup cache dir`, `cache list` and `cache clean` exist with the options of the tree and no one-letter form; `cmd/fetch_cache/` does not exist.
 - The changelog entries are written, and C1's line is under `## [Unreleased]` once (no separate Removed entry for `fetch-cache clear` or `tlc --cleanup` beside it).
-- The pull request pastes one real `cache list` output and one `cache clean` stderr, and says how `{kept-id}` was added.
+- The pull request pastes one real `cache list` output and one `cache clean` stderr, says how `{kept-id}` was added, and names the inventory row it owns (O7).
 
 ## Out of scope
 

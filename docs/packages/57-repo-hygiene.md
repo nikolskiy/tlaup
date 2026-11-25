@@ -9,11 +9,11 @@ The test hook runs at push time and not on every commit, mypy checks the whole p
 ## Covers
 
 - Roadmap items ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), "Repository hygiene"):
-  - "Pre-commit: move the test hook to pre-push; add a format hook; run mypy on the whole project instead of on staged files." (line 418). In full, with [01](01-ruff-format.md), which added the format hook.
-  - "`poe clean` also removes `build` and the egg-info folder ...; add `htmlcov/`, `coverage.xml`, `.direnv/` and editor folders to `.gitignore`." (line 419). In full.
-  - "One story for Python versions: `.python-version`, the CI matrix, the classifiers and the mypy and ruff targets agree, and every advertised version is tested." (line 420). In full, with [53](53-ci-workflows.md) (the matrix) and [56](56-build-and-metadata.md) (the classifiers).
-  - "A two-line `SECURITY.md` pointing at GitHub private vulnerability reporting ..." (line 421). In full.
-  - "Run the pre-commit hooks in CI, without the test hook ..." (line 392). In part: removing the temporary `SKIP: pytest` that 53 put on the CI step.
+  - "Pre-commit: move the test hook to pre-push; add a format hook; run mypy on the whole project instead of on staged files." (line 427). In full, with [01](01-ruff-format.md), which added the format hook.
+  - "`poe clean` also removes `build` and the egg-info folder ...; add `htmlcov/`, `coverage.xml`, `.direnv/` and editor folders to `.gitignore`." (line 428). In full.
+  - "One story for Python versions: `.python-version`, the CI matrix, the classifiers and the mypy and ruff targets agree, and every advertised version is tested." (line 429). In full, with [53](53-ci-workflows.md) (the matrix) and [56](56-build-and-metadata.md) (the classifiers).
+  - "A two-line `SECURITY.md` pointing at GitHub private vulnerability reporting ..." (line 430). In full.
+  - "Run the pre-commit hooks in CI, without the test hook ..." (line 401). In part: removing the temporary `SKIP: pytest` that 53 put on the CI step.
 - Design sections:
   - [30 H1](../design/30-ci-and-release.md#h1-pre-commit-hooks): the `pytest` hook's stage, the `mypy` hook, `poe install-hooks`, and the check that the `ruff-format` hook has `types_or: [python, pyi, markdown]` (question Q1). The `ruff-format` hook is [01](01-ruff-format.md)'s, which adds it with `types_or` together with the format commit that covers Markdown code blocks; the `no-typed-tool-output` hook is [03](03-test-foundation.md)'s; both exist when this starts.
   - [30 H2](../design/30-ci-and-release.md#h2-clean-task-and-gitignore): all of it, with the `.gitattributes` rule the review added.
@@ -106,6 +106,7 @@ None. Nothing a user of `tlaup` sees changes.
 - The hook, task, ignore-file and version changes above are in; `SECURITY.md` and `.gitattributes` exist.
 - The tests above pass; `uv run poe lint`, `uv run ruff format --check .` and `uv run poe test` pass on Python 3.11 locally.
 - CI is green, the `lint` job without `SKIP`.
+- The pull request names inventory row P8, which it owns.
 
 ## Out of scope
 

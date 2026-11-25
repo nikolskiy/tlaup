@@ -9,12 +9,12 @@ A release can only be tagged from a clean, pushed, green `main` whose lock file,
 ## Covers
 
 - Roadmap items ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), "Release"):
-  - "Harden `scripts/release.sh`: on `main`, clean tree, `HEAD` equal to `origin/main` after a fetch, ... an annotated tag (decision D21), an atomic push, and the local tag removed if the push fails. Read the version robustly." (line 398). In full.
-  - "Restructure `release.yml` into three jobs: a read-only build ..., then PyPI publish with the id-token permission only, then the release page with write access and no project code. ..." (line 399). In full.
-  - "Release pages: each page gets that version's changelog section as its text; backfill the existing pages from the changelog ...; PyPI's changelog link points at the GitHub releases page." (line 400). In part: new pages and the PyPI link. The backfill is a maintainer action after 0.9.0 (Context).
-  - "A `poe` task around `uv version --bump`, so `pyproject.toml` and `uv.lock` move together." (line 401). In full.
-  - "Before each release, refresh the lock file and let CI run before tagging." (line 403) and "Follow the version rule of decision D27 from 0.9.0 on." (line 404). In part: the steps in the release guide. Each is a step of every release, so neither item is closed by a pull request; the maintainer ticks them.
-  - "Enforce ... an explicit read-only `permissions` block, `timeout-minutes` and a concurrency group in each workflow ..." (line 391). In part: the same rules for `release.yml`; `test.yml` is [53](53-ci-workflows.md).
+  - "Harden `scripts/release.sh`: on `main`, clean tree, `HEAD` equal to `origin/main` after a fetch, ... an annotated tag (decision D21), an atomic push, and the local tag removed if the push fails. Read the version robustly." (line 407). In full.
+  - "Restructure `release.yml` into three jobs: a read-only build ..., then PyPI publish with the id-token permission only, then the release page with write access and no project code. ..." (line 408). In full.
+  - "Release pages: each page gets that version's changelog section as its text; backfill the existing pages from the changelog ...; PyPI's changelog link points at the GitHub releases page." (line 409). In part: new pages and the PyPI link. The backfill is a maintainer action after 0.9.0 (Context).
+  - "A `poe` task around `uv version --bump`, so `pyproject.toml` and `uv.lock` move together." (line 410). In full.
+  - "Before each release, refresh the lock file and let CI run before tagging." (line 412) and "Follow the version rule of decision D27 from 0.9.0 on." (line 413). In part: the steps in the release guide. Each is a step of every release, so neither item is closed by a pull request; the maintainer ticks them.
+  - "Enforce ... an explicit read-only `permissions` block, `timeout-minutes` and a concurrency group in each workflow ..." (line 400). In part: the same rules for `release.yml`; `test.yml` is [53](53-ci-workflows.md).
 - Design sections:
   - [30 L1](../design/30-ci-and-release.md#l1-release-script): all of it.
   - [30 L2](../design/30-ci-and-release.md#l2-release-workflow): all of it.
@@ -144,7 +144,7 @@ Keep its "Repository rules" section and add what this milestone sets: the rulese
 - The repository settings (L5, I7) and the backfill of old pages (L3): maintainer actions.
 - The lifeline jar and its build recipe: [06](06-lifeline-agent.md); it is checked in, so no release step builds it.
 - Changing a changelog entry or the version itself: the first release does that, following the guide.
-- The documentation track's "Changelog checks: CI warns when code changes without a changelog change" (roadmap line 506): not designed; not built here.
+- The documentation track's "Changelog checks: CI warns when code changes without a changelog change" (roadmap line 517): not designed; not built here.
 
 ## Risks
 

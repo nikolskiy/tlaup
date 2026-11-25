@@ -9,8 +9,8 @@ Every row of the [preserved-behaviour inventory](../design/preserved-behaviour-2
 ## Covers
 
 - Roadmap items:
-  - "Coverage policy: branch coverage on; a `fail_under` near the current 83 percent; coverage only in the full-suite task ...; randomised test order; warnings as errors." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), line 375). In part: the final `fail_under`. Everything else is [03](03-test-foundation.md)'s.
-  - The exit criteria of [milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust) (line 275), [milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout) (line 341) and [milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this) (line 427): checked, not built.
+  - "Coverage policy: branch coverage on; a `fail_under` near the current 83 percent; coverage only in the full-suite task ...; randomised test order; warnings as errors." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), line 384). In part: the final `fail_under`. Everything else is [03](03-test-foundation.md)'s.
+  - The exit criteria of [milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust) (line 284), [milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout) (line 350) and [milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this) (line 436): checked, not built.
 - Design sections:
   - [01 T10](../design/01-testing.md#t10-coverage-policy-and-pytest-settings): "No `fail_under` until the end of milestone 2": "The last milestone 2 work package measures it and sets `fail_under` to it, rounded down to a whole number", and a figure below 80 "goes to the maintainer instead of being set"; "When the last package has removed its marker, the marker and the `-m` option go."
   - [03, Order](../design/03-run-stages-and-specs.md#order) and "Specs and their tests": that every `pending` marker was removed by the package that built its code, and that "the work package that builds the code deletes the throwaway model".
@@ -73,7 +73,7 @@ Then the marker line, `-m 'not pending'` and the `PENDING` constant go in one co
 
 **The exit criteria**, as a checklist. For each, say how it was checked (the test, the CI run, or a step by hand) and the result. Nothing is built for any of them; a criterion that does not hold is a finding for the index.
 
-Milestone 1 (line 275):
+Milestone 1 (line 284):
 
 | Criterion | How to check |
 | --- | --- |
@@ -83,7 +83,7 @@ Milestone 1 (line 275):
 | No listed failure path prints a traceback | `errors.feature`, `tlc_errors.feature`, the closed-pipe and signal scenarios (02 X1, 14 F10) |
 | A truncated download is never reported as installed | T6's short-body and mid-stream rows (26) and the `install --force` scenario (29) |
 
-Milestone 1b (line 341):
+Milestone 1b (line 350):
 
 | Criterion | How to check |
 | --- | --- |
@@ -92,7 +92,7 @@ Milestone 1b (line 341):
 | The command tree is reviewed and signed off | Signed off with the design (2026-11-18, decision D47); check that 48's tree test matches [23 C1](../design/23-command-layout.md#c1-command-tree) |
 | Completion works in bash, zsh and fish | bash: 47's tests and 52's `test_completion.py`; zsh and fish: a hand check before the release, a maintainer action ([23 C3](../design/23-command-layout.md#c3-completion), Risks). Report it as waiting if not done. |
 
-Milestone 2 (line 427):
+Milestone 2 (line 436):
 
 | Criterion | How to check |
 | --- | --- |

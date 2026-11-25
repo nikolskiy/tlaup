@@ -9,12 +9,13 @@ Size: M. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items:
-  - "Shell completion, with completers for installed versions and module names." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 329), in full, apart from the integration check of the bash script ([52](52-integration-tests.md)) and the hand check of zsh and fish before the release (a maintainer action, below).
+  - "Shell completion, with completers for installed versions and module names." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 338), in full, apart from the integration check of the bash script ([52](52-integration-tests.md)) and the hand check of zsh and fish before the release (a maintainer action, below).
   - The exit criterion of milestone 1b, "completion works in bash, zsh and fish", in part: the automated tests here and in 52 cover bash; zsh and fish are met by a hand check ([23 C3](../design/23-command-layout.md#c3-completion), Risks).
 - Design sections:
   - [23 C3](../design/23-command-layout.md#c3-completion), in full apart from its integration test (52) and the test of Typer's shell registry, which is [14 F9](../design/14-config-and-cli.md#f9-startup-cost)'s ([49](49-startup-cost.md)). C3 as corrected (review finding D1): `import typer` already loads Typer's completion modules, so what stays off on an ordinary start is the shell registry, not a module.
   - [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks): "`main()` also switches Typer's completion on when that variable is set (C3)"; the private half of the contract tests of Typer, `_available_shells` included; the one exception to the test that no module imports a private Typer module.
   - [14 F9](../design/14-config-and-cli.md#f9-startup-cost), in part: its one exception, `tlaup/cmd/completion.py` imported at the top of `cli.py` and of the command modules that name a completer, with the completers importing what they need in their own bodies.
+  - [23 C1](../design/23-command-layout.md#c1-command-tree): the `completion bash|zsh|fish` line of the command tree; the tree test is [48](48-command-tree.md)'s (finding H12).
 
 ## Depends on
 

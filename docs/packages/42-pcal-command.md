@@ -9,13 +9,14 @@ Size: S. Suggested model: mid-tier. Status: ready. One reading of stage 4 stays 
 ## Covers
 
 - Roadmap items ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout)):
-  - "`pcal` command: run the PlusCal translator; passthrough for its flags." (line 299), in full apart from its integration test ([52](52-integration-tests.md)). The parser is [14](14-pcal-parser.md).
-  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." (line 306), in part: passthrough for `pcal` in `pcal.feature`.
-  - "Keep all three thin ..." (line 304), in part: `pcal` keeps to S4's rules, on [41](41-sany-command.md)'s shared shape.
+  - "`pcal` command: run the PlusCal translator; passthrough for its flags." (line 308), in full apart from its integration test ([52](52-integration-tests.md)). The parser is [14](14-pcal-parser.md).
+  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." (line 315), in part: passthrough for `pcal` in `pcal.feature`.
+  - "Keep all three thin ..." (line 313), in part: `pcal` keeps to S4's rules, on [41](41-sany-command.md)'s shared shape.
 - Design sections:
   - [21 S2](../design/21-other-tools.md#s2-pcal): steps 1, 2, 4 and 5, the added labels on stdout (D67, question Q13), the paragraph on the files `pcal` changes and its help text, the feature tests. Step 3 (the parser, with the singular and the plural label heading, its unit test, and `PcalResult.to_dict()`) is 14; the integration test is 52.
   - [21](../design/21-other-tools.md), the head, for `pcal`: `signals_held` entered plainly and held until the command has printed; `--java-opt`, `--auto-install`, the arguments after `--`.
   - [02 X1](../design/02-cross-cutting.md#x1-exit-codes) rule 4 (`pcal` passes the translator's code through, 255 after `-writeAST` included); [02 X2](../design/02-cross-cutting.md#x2-stdout-and-stderr) for `pcal`.
+  - [23 C1](../design/23-command-layout.md#c1-command-tree): the `pcal` line of the command tree; the tree test is [48](48-command-tree.md)'s (finding H12).
 
 ## Depends on
 
@@ -85,9 +86,9 @@ def pcal(ctx: typer.Context,
 
 **`label_line`** (S2 step 4, D67): `<path>:<line>:<col>: label <name> added`, `<path>` the spec's path by the same rule as a diagnostic's (relative to the folder tlaup was started from when beneath it, else absolute): `PcalNoLabel.tla:7:3: label Lbl_1 added`. One line per label, in the translator's order, on stdout: the labels are part of the result ([02 X2](../design/02-cross-cutting.md#x2-stdout-and-stderr)), and the position form lets an editor jump to each. Only a run with `-label -reportLabels` after `--` has any.
 
-**The command** is 41's `sany` with four differences: `resolve_tool_invocation("pcal", ...)`, `run_pcal`, a sink whose `label` prints `label_line` on `ui.out`, and a `finish` that prints `written_notes` with `ui.note` on stderr. Then `raise typer.Exit(outcome.exit_code)`: the translator's code unchanged (D29), including 255 after a successful `-writeAST`; 130, 143 or 129 after a signal; 141 after a closed pipe. The sink prints diagnostics with `format_diagnostic` on `ui.out` and other lines on `ui.out` as text, never as markup, not wrapped.
+**The command** is 41's `sany` with four differences: `resolve_tool_invocation("pcal", ...)`, `run_pcal`, a sink whose `label` prints `label_line` on `ui.out`, and a `finish` that prints `written_notes` with `ui.note` on stderr. Then `raise typer.Exit(outcome.exit_code)`: the translator's code unchanged (D29), including 255 after a successful `-writeAST`; 130, 143 or 129 after a signal; 141 after a closed pipe. The sink prints diagnostics with `format_diagnostic` on `ui.out`, with `source_text=None`, so each gives its editor-form line and then its details (`pcal` prints no excerpt), and other lines on `ui.out` as text, never as markup, not wrapped.
 
-**What is not printed**, read from S2 step 4, which lists what is printed (diagnostics, added labels, unrecognised lines; notes on stderr): the banner, `Parsing completed.`, `Translation completed.`, the label heading and the `New file X written.` lines (the labels and the notes stand for the last two). This is stage 4's reading (finding C16 of the review; the index keeps it among the readings to confirm), since `sany` writes its banner and progress to stderr instead. Its impact is low: printing them on stderr later adds lines no script reads from stdout.
+**What is not printed**, read from S2 step 4, which lists what is printed (diagnostics, added labels, unrecognised lines; notes on stderr): the banner, `Parsing completed.`, `Translation completed.`, the label heading and the `New file X written.` lines (the labels and the notes stand for the last two). This is stage 4's reading (finding C16 of the review; confirmed by reviewer H; the index lists it as settled), since `sany` writes its banner and progress to stderr instead. Its impact is low: printing them on stderr later adds lines no script reads from stdout.
 
 Help of `pcal` (S2), which [50](50-help-and-messages.md) may reword and not drop: the first lines say what is written: the spec is rewritten in place and the previous version kept as `SPEC.old`; `SPEC.cfg` is written or rewritten with no backup, and `-- -nocfg` leaves it alone. Then, in the same words as `sany`'s line, that it reads the spec from the spec's own folder. tlaup adds no `-nocfg` itself (D23: no prompts; S2, Rejected).
 

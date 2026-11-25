@@ -9,14 +9,14 @@ Size: M. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this)):
-  - "Unit job on Python 3.11 and the newest release, plus one macOS job; select Python through `uv`, dropping the separate setup step; remove Java and the jar download from the unit job ...; add a classifier for each Python version that is tested." (line 386). In part: the job. Java and the jar download were removed by [03](03-test-foundation.md); the classifiers are [56](56-build-and-metadata.md), and the test that keeps them in step with this matrix is [57](57-repo-hygiene.md).
-  - "One job that installs the newest dependency versions the ranges allow ..." (line 389). In full.
-  - "Build check on every push: build, `twine check`, install the wheel and run `tlaup --version` ..." (line 390). In full.
-  - "Enforce `ruff format --check`; `uv sync --locked`; an explicit read-only `permissions` block, `timeout-minutes` and a concurrency group in each workflow; `shellcheck` on the release script." (line 391). In part: everything except the format commit and its first check, which [01](01-ruff-format.md) did, and the release workflow's own block, which [55](55-release-tooling.md) writes with the rest of that file.
-  - "Run the pre-commit hooks in CI, without the test hook ..." (line 392). In full, with [57](57-repo-hygiene.md) removing the temporary skip (Context).
-  - "Isolation is automatic and total ..." (line 359). In part: the clean-home check on every cell of the unit matrix, macOS included, which 03 left for the matrix.
+  - "Unit job on Python 3.11 and the newest release, plus one macOS job; select Python through `uv`, dropping the separate setup step; remove Java and the jar download from the unit job ...; add a classifier for each Python version that is tested." (line 395). In part: the job. Java and the jar download were removed by [03](03-test-foundation.md); the classifiers are [56](56-build-and-metadata.md), and the test that keeps them in step with this matrix is [57](57-repo-hygiene.md).
+  - "One job that installs the newest dependency versions the ranges allow ..." (line 398). In full.
+  - "Build check on every push: build, `twine check`, install the wheel and run `tlaup --version` ..." (line 399). In full.
+  - "Enforce `ruff format --check`; `uv sync --locked`; an explicit read-only `permissions` block, `timeout-minutes` and a concurrency group in each workflow; `shellcheck` on the release script." (line 400). In part: everything except the format commit and its first check, which [01](01-ruff-format.md) did, and the release workflow's own block, which [55](55-release-tooling.md) writes with the rest of that file.
+  - "Run the pre-commit hooks in CI, without the test hook ..." (line 401). In full, with [57](57-repo-hygiene.md) removing the temporary skip (Context).
+  - "Isolation is automatic and total ..." (line 368). In part: the clean-home check on every cell of the unit matrix, macOS included, which 03 left for the matrix.
 - Design sections:
-  - [30 I2](../design/30-ci-and-release.md#i2-unit-job): all of it, including the lifeline job with its revised list of tests (the `-Xrs` case and the REPL under a pseudo-terminal) and the `lifeline` marker, and D62's consequence for CI (the one old command CI ran, `tlaup tools install`, went with the old tests in 03b).
+  - [30 I2](../design/30-ci-and-release.md#i2-unit-job): all of it, including the lifeline job with its revised list of tests (the `-Xrs` case and the REPL under a pseudo-terminal) and the `lifeline` marker, and D62's consequence for CI (the one old command CI ran with real TLC, `tlaup tools install`, went with the old tests in 03b; the wheel check's `tools dir` below is the one old command a job runs after that, until 29a, and it starts no TLC).
   - [30 I3](../design/30-ci-and-release.md#i3-newest-dependencies-job): all of it.
   - [30 I4](../design/30-ci-and-release.md#i4-build-check): all of it, including `scripts/check_wheel.py` and the `poe check-release` task.
   - [30 I5](../design/30-ci-and-release.md#i5-workflow-hygiene): every bullet but the first ("Format first", 01), for `test.yml`, with the lifeline job among the required jobs. The same rules for `release.yml` are 55.
@@ -146,7 +146,7 @@ None. CI only.
 
 **The clean-home check** (T2). Each unit cell ends with it, so it runs on Linux and macOS (`~/Library/...` there; 03's script lists both). The jar download that would have written into the runner's home is already gone (03).
 
-**The wheel smoke commands and the `tool` group.** I4 names `tlaup tool dir`. Until [29](29-tool-commands.md) switches the group, the command is `tlaup tools dir`. If 29 has merged, write `tool dir`. If not, write `tools dir` with a comment; 29's Files already say that 29 then changes that one word in `scripts/check_wheel.py`.
+**The wheel smoke commands and the `tool` group.** I4 names `tlaup tool dir`. Until [29](29-tool-commands.md) switches the group, the command is `tlaup tools dir`. If 29 has merged, write `tool dir`. If not, write `tools dir` with a comment; 29's Files already say that 29a then changes that one word in `scripts/check_wheel.py`. So the `build` job runs an old command from this package until 29a and none after; it downloads nothing and starts no Java, so D62's exception (a job that runs real TLC through an old command) does not arise ([30 I2](../design/30-ci-and-release.md#i2-unit-job); finding H9).
 
 **`check-release` and the lifeline jar.** The jar is checked in (A9; I4: "checking it in, with the lifeline job's comparison, is the simpler of the two"), so the build job needs no Java: the lifeline job compares the jar with its source on every push, and every test run and every wheel carries the same bytes.
 

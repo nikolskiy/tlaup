@@ -9,8 +9,8 @@ Every parsed golden case, of TLC, SANY and PlusCal on both builds, and every syn
 ## Covers
 
 - Roadmap items:
-  - "Capture real `-tool` output from TLC 1.7.4 and the current rolling build ... Add expected parsed results ..." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 147), in part: the expected parsed results. With this package the item is done (P1: "every case that has a capture has facts and an expected result, and all pass"), given 07, 08 and 09 to 13.
-  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 306), in part: the full expected results of S5. The per-case tests are [12](12-sany-parser.md) and [14](14-pcal-parser.md); passthrough is the feature files of 41 and 42.
+  - "Capture real `-tool` output from TLC 1.7.4 and the current rolling build ... Add expected parsed results ..." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 156), in part: the expected parsed results. With this package the item is done (P1: "every case that has a capture has facts and an expected result, and all pass"), given 07, 08 and 09 to 13.
+  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 315), in part: the full expected results of S5. The per-case tests are [12](12-sany-parser.md) and [14](14-pcal-parser.md); passthrough is the feature files of 41 and 42.
 - Design sections:
   - [01 T3](../design/01-testing.md#t3-golden-files): "Two kinds of expectation", item 2 (the full expected result, generated, then reviewed line by line by a separate agent).
   - [01 T8](../design/01-testing.md#t8-expected-output-files): its use for the parsed results, and its rule that the reviewer reads the diff of every expected file.

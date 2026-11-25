@@ -9,7 +9,7 @@ Real GitHub answers, trimmed to what tlaup reads, live under `tests/recordings/g
 ## Covers
 
 - Roadmap items:
-  - "Unit tests cannot reach the network or start an unmocked subprocess; ..." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), roadmap line 360), in part: the network half (recorded responses at the `requests` adapter). The socket block, the closed-port address and the process fakes are package [03](03-test-foundation.md).
+  - "Unit tests cannot reach the network or start an unmocked subprocess; ..." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), roadmap line 369), in part: the network half (recorded responses at the `requests` adapter). The socket block, the closed-port address and the process fakes are package [03](03-test-foundation.md).
 - Design sections:
   - [01 T4](../design/01-testing.md#t4-fakes-at-the-edges), "Network": the recordings, the `github` fixture, the small jar, `scripts/record_github.py`. The socket block and `TLAUP_TOOL_REPOSITORY`'s closed port are in the isolation fixture (03). The tests that use the fixture are the packages of the store track (24, 25, 26, 27, 28) and the GitHub steps of the feature vocabulary, which package 29 writes on it.
   - [01 T3](../design/01-testing.md#t3-golden-files), two rows of "What moves": research 29's `releases-paged` and `rate-limited` to `tests/recordings/github/` ("by T3's rule", T4), and the last row, `03-jar-identity/manifest-*.txt` and `14-jar-manifest/*.MF` to `tests/unit/data/manifests/`. The rest of T3 is packages 07 and 08.

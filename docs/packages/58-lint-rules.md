@@ -9,7 +9,7 @@ ruff's blind-except, naive-datetime and print rule groups are on and the tree pa
 ## Covers
 
 - Roadmap items:
-  - "Lint rules: enable ruff's blind-except, naive-datetime and print rule groups (BLE, DTZ, T20) and fix what they flag, including the two `except Exception: pass`; review the global `PLW1510` ignore and the bandit skips B404, B603 and B607; replace the `Any` escape hatches in the formatter and models." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), line 394). In full: most of what the rules flagged on 0.8.x is deleted by the packages that rewrite it; this package switches the rules on and fixes what is left.
+  - "Lint rules: enable ruff's blind-except, naive-datetime and print rule groups (BLE, DTZ, T20) and fix what they flag, including the two `except Exception: pass`; review the global `PLW1510` ignore and the bandit skips B404, B603 and B607; replace the `Any` escape hatches in the formatter and models." ([milestone 2](../roadmap.md#milestone-2-a-feedback-loop-that-catches-this), line 403). In full: most of what the rules flagged on 0.8.x is deleted by the packages that rewrite it; this package switches the rules on and fixes what is left.
   - "Route every message through the one UI helper ..." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)), in part: the mechanical guard, "a second check forbids `typer.echo` and `Console(` outside `ui.py` and the reporters" ([14 F6](../design/14-config-and-cli.md#f6-messages)). The helper is [16](16-ui-messages.md); the call sites are the switch packages.
 - Design sections:
   - [30 I8](../design/30-ci-and-release.md#i8-lint-rules): every row except `TID251`, which [03](03-test-foundation.md) switched on with the test rules.

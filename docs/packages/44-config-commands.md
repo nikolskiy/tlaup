@@ -9,10 +9,10 @@ Size: M. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)):
-  - "`config` commands work when the file is broken, and a broken file gives a readable validation message instead of a traceback." (line 259), the commands' part; the message is [19](19-layered-config.md)'s, the absence of a traceback [17](17-error-handler.md)'s.
-  - "`config edit`: accept `$VISUAL` and `$EDITOR` values with arguments such as `code --wait`, have a default that exists on the platform, and validate the file after editing." (line 262), in full.
-  - "Layered configuration (decision D10): ... No file is written until the user changes a setting." (line 258), in part: `config set` and `config edit` are the only writers.
-  - "Review the layout of every command so it follows the most common CLI patterns ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 325), in part: the `config` group (`config path`, `show`, `get`, `set`; the editor as a positional argument). The tree as a whole is [48](48-command-tree.md).
+  - "`config` commands work when the file is broken, and a broken file gives a readable validation message instead of a traceback." (line 268), the commands' part; the message is [19](19-layered-config.md)'s, the absence of a traceback [17](17-error-handler.md)'s.
+  - "`config edit`: accept `$VISUAL` and `$EDITOR` values with arguments such as `code --wait`, have a default that exists on the platform, and validate the file after editing." (line 271), in full.
+  - "Layered configuration (decision D10): ... No file is written until the user changes a setting." (line 267), in part: `config set` and `config edit` are the only writers.
+  - "Review the layout of every command so it follows the most common CLI patterns ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 334), in part: the `config` group (`config path`, `show`, `get`, `set`; the editor as a positional argument). The tree as a whole is [48](48-command-tree.md).
 - Design sections:
   - [14 F4](../design/14-config-and-cli.md#f4-config-commands-with-a-broken-file), in full apart from its scenario "`tlaup tlc Spec` exits 3 and names the key", which is [39](39-tlc-command.md)'s: 44 can land before the new `tlc` exists, and between packages no old command is promised to keep working (decision D62).
   - [14 F5](../design/14-config-and-cli.md#f5-config-edit), in full.
@@ -41,7 +41,8 @@ Creates:
 Changes:
 
 - `src/tlaup/cli.py`: the `config` group is registered from `tlaup.cmd.config` with `app.add_typer(...)`, its commands with explicit `command(...)` calls in one block ([23 C1](../design/23-command-layout.md#c1-command-tree), last row: registration is explicit and in one place). One block; the other switch packages each touch their own.
-- `src/tlaup/config/loader.py`: `config_path()` is deleted if `cmd/config/` was its last caller (it is today).
+- `src/tlaup/config/loader.py`: `config_path()` is deleted if `cmd/config/` was its last caller (it is today), and with it `config_dir()`, whose only caller is `config_path()` (finding F2).
+- `tests/unit/test_context.py` (02's test): the assertion that `config_dir()` follows `TLAUP_HOME` goes with the function, as [02](02-errors-and-paths.md) and [19](19-layered-config.md) hand it here. `cache_dir()` and its assertion are [39](39-tlc-command.md)'s.
 - `tests/features/errors.feature`: the scenarios under "Tests".
 - `CHANGELOG.md`.
 
@@ -91,7 +92,7 @@ Output, per command (stdout carries the result, [02 X2](../design/02-cross-cutti
 | `set KEY VALUE` | nothing; a `note` on stderr naming the key, the value and the file | 0; 2 for a value that does not fit; 4 for an unknown key; 3 for a broken file, nothing written | Yes, before writing |
 | `edit` | nothing | 0; 3 (no editor; the file invalid afterwards); 5 (the editor failed) | After the editor |
 
-The form of `show` and `get` is written by stage 4 (the design says "as YAML on stdout, each with where it came from" and "prints one value"); the expected files fix it, and the pull request shows them. `get` and `set` take leaf keys only; a section name (`tlc`) is not a key and is `ConfigKeyNotFound` with the hint listing the keys of that section (written by stage 4 from "a key that does not exist is code 4"). The order of checks in `set`: the key (4), then the value with `check_setting` (2), then the whole file through `load_settings` (3), then `write_user_setting`; so `config set no.such.key 1` is 4 with a broken file too, and a bad value never touches the file.
+The form of `show` and of `get`, and that `get` and `set` take leaf keys only (a section name such as `tlc` is not a key: `ConfigKeyNotFound`, code 4, with the hint listing the keys of that section), were settled with the maintainer on 2026-11-24 and are written in [14 F1](../design/14-config-and-cli.md#f1-layered-configuration) ("What `config show` prints", "What `config get KEY` prints"); the expected files fix the exact text, and the pull request shows them (finding H5). The order of checks in `set`: the key (4), then the value with `check_setting` (2), then the whole file through `load_settings` (3), then `write_user_setting`; so `config set no.such.key 1` is 4 with a broken file too, and a bad value never touches the file.
 
 Consumes: from 19 the names listed under Depends on; `Ui` (16); `NotSetUp`, `Failed`, `UsageError`, `ConfigKeyNotFound`, `ConfigInvalid` (02).
 
@@ -104,7 +105,7 @@ Used later by: completion of config keys ([47](47-completion.md), `setting_keys`
 F1 and C1:
 
 - `config set tlc.workers many` exits 2 and `the file "{config}/config.yaml" does not exist` afterwards.
-- `config set no.such.key 1` exits 4; `config get no.such.key` exits 4; `config get tlc.worker` exits 4 and stderr contains `tlc.workers`.
+- `config set no.such.key 1` exits 4; `config get no.such.key` exits 4; `config get tlc.worker` exits 4 and stderr contains `tlc.workers`; `config get tlc` (a section) exits 4 and stderr names the keys of `tlc`.
 - `config path` on a fresh home prints `{config}/config.yaml` and leaves `the file "{config}/config.yaml" does not exist` (the same property F1 states for `tlaup tool path`, whose scenario is 29b's, with the command).
 - `config set tlc.refresh_interval 0` exits 0 and `config get tlc.refresh_interval` prints `0`: the schema checks the type only, and the range is `tlc`'s, which gives 2 wherever the value came from ([14 F1](../design/14-config-and-cli.md#f1-layered-configuration), [22 O5](../design/22-reporters.md#o5-refresh-interval)).
 - `config show` on a fresh home matches the expected file `config/show-defaults.txt`; with a file holding `tlc.workers: 4` and `TLAUP_JAVA_MIN_VERSION` set to `17`, it matches `config/show-layers.txt`, which shows `user file` and `TLAUP_JAVA_MIN_VERSION` as sources.
@@ -128,7 +129,7 @@ F5, with the fake editor:
 - Quitting without changes (the editor writes nothing) on a fresh home exits 0 and leaves `the file "{config}/config.yaml" does not exist`.
 - `the editor exits with code 1`: exit 5.
 - Neither `VISUAL` nor `EDITOR` set: exit 3, stderr contains `EDITOR` (the isolation `PATH` has no `sensible-editor`, `nano` or `vi`).
-- `the environment variable "EDITOR" is "nosuch-editor --wait"`: exit 3, stderr contains `EDITOR` and `nosuch-editor`, and the editor was not started. F5 does not say what an editor that is not on `PATH` gives; the preserved-behaviour inventory notes it under row O10 (it was an error in 0.8.x too). Stage 4's answer: `NotSetUp`, code 3, naming the variable and the word, like no editor at all.
+- `the environment variable "EDITOR" is "nosuch-editor --wait"`: exit 3, stderr contains `EDITOR` and `nosuch-editor`, and the editor was not started. [F5](../design/14-config-and-cli.md#f5-config-edit) step 1 says so: a `$VISUAL` or `$EDITOR` whose first word is not on `PATH` is `NotSetUp`, code 3, naming the program and the variable (inventory row O10, changed on purpose; finding H11).
 
 `tests/features/errors.feature` (in-process), each asserting the code, `stdout is empty` and `stderr contains "error:" 1 times` ([02 X1](../design/02-cross-cutting.md#x1-exit-codes)'s rows 2 to 5 for what `config` reaches):
 
@@ -197,6 +198,8 @@ Not in the design, and required by the [conventions](../contributing/conventions
 - The scenarios and unit tests above pass.
 - No `typer.echo`, `print` or `Console(` in `cmd/config.py` or `config/editor.py`.
 - The changelog entries are written.
+- `config_path()` and `config_dir()` are gone from the loader, and `tests/unit/test_context.py` no longer asserts `config_dir()`.
+- The pull request names inventory row O10 (changed on purpose; its new behaviour is the `nosuch-editor` scenario above).
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 
 ## Out of scope
@@ -212,4 +215,4 @@ Not in the design, and required by the [conventions](../contributing/conventions
 
 - From F1: a user who keeps comments in the file and runs `config set` loses them; the help of `config set` says "Rewrites the config file. Comments in it are not kept; use `tlaup config edit` to keep them." (F1), and the changelog says so.
 - From F5: an editor that returns at once (a GUI editor started without its wait flag) makes `config edit` validate an unchanged file and, on a fresh home, remove it again. That is the user's editor setting; the help names `code --wait` as the form.
-- From the cut: `show`'s and `get`'s output forms are written by stage 4; if the maintainer wants another form, the expected files are the one place it changes.
+- From F1: `show`'s and `get`'s output forms were settled with the maintainer; the exact text is in the expected files, which are the one place it changes.

@@ -75,7 +75,7 @@ def read_auto_install(option: str | None, env: Mapping[str, str]) -> str | None
 | Nothing installed, `ui.is_interactive()` | `choose_first_build`, then `install` of the answer. |
 | Nothing installed, neither | `CannotAsk` (3): "no TLA+ tools installed" / "run `tlaup tool install stable` or `tlaup tool install rolling`, or set TLAUP_AUTO_INSTALL". |
 
-After an install, `ensure_tools` returns `store.pinned()`: the build just installed, unless another tlaup pinned one first, in which case the pin is what runs ("the choice is installed and pinned, and the command carries on", read so with the index's readings, settled 2026-11-24; the pin is the default once something is pinned, V9 Rejected).
+After an install, `ensure_tools` returns `store.pinned()`: the build just installed, unless another tlaup pinned one first, in which case the pin is what runs ("the choice is installed and pinned, and the command carries on", read so; the pin is the default once something is pinned, V9 Rejected). This is a reading, not confirmed: the index lists it under "Readings the packages build on".
 
 `choose_first_build`: `auto_install` set returns it with no request and no question. Otherwise, when `ui.is_interactive()`, it fetches the release list fresh (one request), and asks on stderr, through `ui.ask` with the choices `1` and `2` and the default `1`:
 
@@ -105,6 +105,7 @@ V9's cases in which the question is asked, all this package's:
 - `9` and then `1` asks twice (`stderr contains` the question twice) and installs stable;
 - an empty read (end of input) raises `CannotAsk`, and nothing is installed;
 - the network failing before the prompt raises the network error and writes no question to stderr;
+- no stable release available: with `interactive` true and a release list whose every release is a prerelease (the `releases` recording with each `prerelease` set to true, served with `responses`, as [25](25-remote-listing.md)'s row "All releases are prereleases" builds it), `choose_first_build` raises `VersionNotFound` and stderr holds no question (Context, "No stable release available"; finding G11 of the [second review](review-2026-11-24.md));
 - `may_install=False` raises `NoToolsInstalled` and asks nothing, with `interactive` true and false and with `auto_install` set and unset (no request is made).
 
 The other rows of the table, also here, since they are the function's: a pinned build is returned with no request; builds installed and none pinned raise `NoPinnedBuild` whose hint names them; a pin naming a missing build raises `PinnedBuildMissing`; `auto_install="rolling"` installs and pins rolling with no question and one notice on stderr; nothing installed, not interactive and no answer raises `CannotAsk`. `read_auto_install`: the option wins over the variable; an empty variable is unset; `nightly` from either is `UsageError`. The question goes to stderr and nothing to stdout.
@@ -137,7 +138,7 @@ Points a worker could miss:
 - **No prompt when builds are installed and none is pinned.** That user needs `tool pin`, not stable-or-rolling (V9, Rejected).
 - **A pin naming a missing build is not "nothing installed".** `ensure_tools` reports it; only `install` repairs it (V12, D50).
 - **Domain code prints only through the `ui` it was given**: the question and the one notice. Nothing else.
-- **No stable release available** (every release a prerelease, which V8 tests): the prompt cannot name one. The error `Remote.resolve` gives for `stable` ("no stable release is available", `VersionNotFound`) comes out before the question (settled with the index's readings, 2026-11-24); a unit test with a list of prereleases only shows it, and that no question was written.
+- **No stable release available** (every release a prerelease, which V8 tests): the prompt cannot name one. The error `Remote.resolve` gives for `stable` ("no stable release is available", `VersionNotFound`) comes out before the question; a unit test with a list of prereleases only shows it, and that no question was written (under Tests). This is a reading, not confirmed: the index lists it under "Readings the packages build on".
 - **Two list requests on a first run that picks stable**: one for the prompt's dates, one when `install` resolves `stable` fresh. V9 counts one request for the prompt; nothing counts the install's. Leave it.
 - **A first run downloads 4.5 MB in the middle of a command** (V9, Risks); the notice names what and where, and the caller's progress bar shows the download.
 

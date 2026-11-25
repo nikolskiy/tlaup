@@ -25,8 +25,9 @@ Size: M. Suggested model: mid-tier. Status: ready.
     | "The Java version check is remembered" | **This package** |
     | "Only a plain `java` binary is remembered", the macOS rules included | **This package** |
     | "Failures are told apart" | **This package** |
-    | "The minimum is the setting `java.min_version`, 11" | The setting: [19](19-layered-config.md). Here it is the argument `min_version`. |
+    | "The minimum is the setting `java.min_version`, 11" | The setting and its default: [19](19-layered-config.md), which owns inventory row J4 and asserts the default 11. Here it is the argument `min_version`, so no test here can show the default. |
   - [13 M3](../design/13-modules-and-java.md#m3-module-build-details), one bullet: "`javac` has its own version check" (`require_javac`, its own pattern, the same timeout and remembered answer). It lives in `locate.py`, so it is built here; the rest of M3 is [30](30-module-build.md).
+- The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): row J1 (the forms of `java -version` that 0.8.x understands), whose owner this package is. Row J4 (the default minimum 11) is [19](19-layered-config.md)'s, which holds the default.
 
 ## Depends on
 

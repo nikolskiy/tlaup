@@ -21,6 +21,7 @@ This is the security-sensitive package of the store track: it decides where the 
   - [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), one sentence: "Every line the handler prints under debug ... passes through the debug filter `redact(text, os.environ)`"; the handler itself is 17's.
   - [01 T6](../design/01-testing.md#t6-download-and-github-failure-tests): seven rows, listed below.
   - [01 T4](../design/01-testing.md#t4-fakes-at-the-edges), "Time": the client takes `sleep` as an argument.
+- The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): row T12 (User-Agent, timeout, the system's trust store), whose owner this package is.
 
 ## Depends on
 
@@ -146,9 +147,11 @@ Also: `download` writes exactly the body to `dest`, reports `size`, `content_len
 
 Not tested here and why: TLS through the operating system's trust store. `responses` answers below the adapter, so no test in the suite makes a TLS connection; the first real use is a `tlaup tool install` by hand and in the integration job's set-up ([30 I1](../design/30-ci-and-release.md#i1-integration-job)). Say in the pull request that one real request was made by hand, and against what.
 
-`tests/unit/versioning/test_redact.py`, V7's unit test of the filter: a text holding the values of both variables gives `***` for each; an address with `?sig=x` loses everything from the `?` and the rest of the line stays; with `GH_TOKEN` set to the empty string the text comes back unchanged; a text holding neither a token nor an address comes back unchanged. Also, through the handler: a small app built with `cls=TlaupGroup` (as 17's `test_handler.py` builds them) whose command raises `RuntimeError` with a message holding `GH_TOKEN`'s value (set with `monkeypatch`) and `https://example.org/x?sig=secret`, run under `--debug` through `CliRunner`: stderr holds `***` and neither the token's value nor `secret`, in the `error:` line and in the traceback. And `import tlaup.versioning.redact` in a fresh interpreter loads neither `requests` nor `tlaup.versioning.github` (it may load the old `tlaup.versioning` package and what it imports until 29 empties `__init__.py`; the test names only the two modules).
+`tests/unit/versioning/test_redact.py`, V7's unit test of the filter: a text holding the values of both variables gives `***` for each; an address with `?sig=x` loses everything from the `?` and the rest of the line stays; with `GH_TOKEN` set to the empty string the text comes back unchanged; a text holding neither a token nor an address comes back unchanged. Also, through the handler: a small app built with `cls=TlaupGroup` (as 17's `test_handler.py` builds them) whose command raises `RuntimeError` with a message holding `GH_TOKEN`'s value (set with `monkeypatch`) and `https://example.org/x?sig=secret`, run under `--debug` through `CliRunner`: stderr holds `***` and neither the token's value nor `secret`, in the `error:` line and in the traceback. And `import tlaup.versioning.redact` in a fresh interpreter does not load `tlaup.versioning.github`. The test asserts that one module only: today's `tlaup/versioning/__init__.py` imports `downloader.py`, which imports `requests` at its top, so importing `redact` loads `requests` until [29](29-tool-commands.md)b empties `__init__.py`, and 29b adds the `requests` half to this test (finding G3 of the [second review](review-2026-11-24.md)).
 
-Old tests: none is left (03b, decision D62); no row of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) names this package as its owner (T12, the headers and the timeout, is V7's unit tests above). Stateful tests: none applies.
+Row T12 of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) (requests to GitHub carry a User-Agent and a timeout, and TLS uses the operating system's trust store) is this package's (findings F1 and G1 of the [second review](review-2026-11-24.md)). Its test, in `test_github.py`: every request the client makes, the download and a redirect included, carries the `User-Agent` it was given and the timeout (the timeout case above); and, in a fresh interpreter, importing `tlaup.versioning.github` leaves `ssl.SSLContext` as it is, while constructing a `GitHubClient` makes it `truststore.SSLContext` (what `truststore.inject_into_ssl()` does; the child interpreter keeps the change out of the test process).
+
+Old tests: none is left (03b, decision D62). Stateful tests: none applies.
 
 ## Changelog
 
@@ -192,7 +195,7 @@ What research found that a worker could miss: `responses` 0.23.3 to 0.26.3 and `
 
 Not tried by anyone: a private repository, a GitHub Enterprise host, and how a later `requests` decides to read netrc. The netrc unit test is what fails if that changes.
 
-State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 17 on top. The old `versioning/api.py` and `downloader.py` call `requests.get` directly, with no token; they stay and keep serving `tlaup tools install` until package 29. `tlaup/versioning/__init__.py` still imports the old modules (and `requests`) until 29 empties it, so importing `redact` loads them; today's `cli.py` loads them already, so the handler pays nothing new, and [49](49-startup-cost.md)'s test runs after 29.
+State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 17 on top. The old `versioning/api.py` and `downloader.py` call `requests.get` directly, with no token; they stay and keep serving `tlaup tools install` until package 29. `tlaup/versioning/__init__.py` still imports the old modules (and `requests`) until 29 empties it, so importing `redact` loads them (which is why its import test names `tlaup.versioning.github` only until 29b); today's `cli.py` loads them already, so the handler pays nothing new, and [49](49-startup-cost.md)'s test runs after 29.
 
 ## Done when
 
@@ -200,6 +203,7 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 
 - No file listed under "Must not touch" is in the diff.
 - The pull request states: the three open points above and what was chosen; that one real request through the client was made by hand, with and without a token, and what the headers were; and, per T12 rule 6, that the netrc test and the backslash test fail when the auth object or the prepared-address rule is taken out.
 - `redact` exists in `tlaup/versioning/redact.py`, the handler calls it, and its tests pass.
+- The pull request names inventory row T12 and its test.
 
 ## Out of scope
 

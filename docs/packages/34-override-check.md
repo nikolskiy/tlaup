@@ -14,6 +14,7 @@ Size: M. Suggested model: mid-tier. Status: ready.
   - [11 R7](../design/11-runner.md#r7-override-modules-that-do-not-load), part 1 (`OverrideClass`, `collect_override_classes`) and part 2 (`check_overrides`), with their unit tests; and from part 4 the wording of the two hints, as functions of text, with the test on research 28's two captures. Part 3 is the parser's and the reporter's. The condition under which a hint is shown is the reporter's ([22 O3](../design/22-reporters.md#o3-terminal-reporter), "Override hint").
   - [13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder), one field: `BuiltModule.warnings` gets R7's warnings. The rest of M2 is [30](30-module-build.md).
   - [20 G1](../design/20-groundwork.md#g1-tlc-invocation): the field `TlcInvocation.override_classes` gets its value, and R7's warnings join `TlcInvocation.warnings`.
+- Rows of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) this package owns: M7 and R24, both held by `test_overrides.py` below (R24's property itself is placed by [33](33-tlc-invocation.md)'s builder, whose expected file shows it). It also writes M20's property half for [39](39-tlc-command.md): the classes of several modules, first wins, no duplicates (finding G1).
 
 ## Depends on
 
@@ -155,7 +156,7 @@ Which package writes them: the Fixed entry describes a run and is written by [39
 - `tests/unit/tlc/test_overrides.py` and the added cases pass.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 - The changelog is as the Changelog section says for the state of `main` on the day.
-- The pull request shows the red run named under Tests and names any choice under Context that it did not follow.
+- The pull request shows the red run named under Tests, names any choice under Context that it did not follow, and names the inventory rows it owns (M7, R24).
 
 ## Out of scope
 

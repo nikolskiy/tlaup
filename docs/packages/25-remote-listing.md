@@ -19,6 +19,7 @@ Size: M. Suggested model: mid-tier. Status: ready. What is cached was settled wi
   - [12 V2](../design/12-tools-and-downloads.md#v2-version-order-and-lookup): `stable_of` only.
   - [01 T6](../design/01-testing.md#t6-download-and-github-failure-tests): four rows.
   - [01 T4](../design/01-testing.md#t4-fakes-at-the-edges), "Time": the cache stores its fetch time inside the file.
+- The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): rows T7 (stable is never a prerelease), T21 (the cache half), T22 (the unit tests at 59 and 61 minutes and the offline states; [29](29-tool-commands.md) has the scenarios), T23 (a damaged cache file is ignored) and T26 (a release's prerelease flag and dates are recorded), whose owner this package is.
 
 ## Depends on
 
@@ -118,14 +119,14 @@ The rows of [01 T6](../design/01-testing.md#t6-download-and-github-failure-tests
 | 404 on a tag | `Remote.release("nosuch")` raises `VersionNotFound`; nothing is written to the cache folder. |
 | Release without `tla2tools.jar` | It is in `releases()` with `asset` `None`; `stable_of` never returns it; `resolve` of its tag raises `VersionNotFound` with the reason. The real list has seven such releases (`v1.4.8` to `v1.5.5`). |
 | List shuffled | `tests/unit/versioning/test_order.py`: the recorded list of 17 releases, shuffled 20 ways with seeded shuffles, gives the same order and the same `stable` each time (`v1.7.4` in the recording). |
-| All releases are prereleases | `stable_of` returns `None`; `resolve` of `stable` raises `VersionNotFound`; never the first entry. |
+| All releases are prereleases | `stable_of` returns `None`; `resolve` of `stable` raises `VersionNotFound`; never the first entry (inventory row T7). |
 
 V8's own unit tests:
 
-- The cache with an injected clock: at 59 minutes `releases()` makes no request and says cached; at 61 it makes one and says online.
-- A corrupt cache file is treated as absent (a request is made; no error).
+- The cache with an injected clock: at 59 minutes `releases()` makes no request and says cached; at 61 it makes one and says online (inventory row T22, with the next case but one; 29 has its scenarios).
+- A corrupt cache file is treated as absent (a request is made; no error) (inventory row T23).
 - Two different base addresses do not share a cache file.
-- The network fails with a cache present: the old data and stale. With none: an empty list and unavailable. Neither raises.
+- The network fails with a cache present: the old data and stale. With none: an empty list and unavailable. Neither raises (T22).
 - The list is cached as it came back (question Q7, settled): `releases()` over the `releases` recording writes a cache file whose list holds all 17 releases, the seven without a `tla2tools.jar` included (inventory row T21, this package's half; the other half, that `tool list` shows none of the seven, is [29](29-tool-commands.md)'s).
 - An error answer is never written to the cache: a 404, a 503 and a rate-limit answer write no cache file when there is none, and leave an existing one byte for byte as it was.
 - `cached()`: with no cache file, `None`; with a cache file a day old, its releases, and no request is sent (the `github` fixture's count is 0); with a corrupt one, `None`.
@@ -135,10 +136,11 @@ V8's own unit tests:
 - A list where a release object is expected, and a release object without `tag_name` or with an asset without `size`, are `RemoteDataError`.
 - `releases()` over the `releases-paged` recording gives the same 17 releases as over `releases` (the paging itself is tested in package 24).
 - The cache file is written to a temporary file and moved into place: after a write, the folder holds exactly one file for that address.
+- Inventory row T26, a release's flags and dates: over the `releases` recording, `rolling` and `v1.8.0` have `prerelease` true and `v1.7.4` false, and each release's `published_at` and its asset's `updated_at` are those of the recording, read fresh and read back from the cache file.
 
 `stable_of`, in `test_order.py`, beside the two rows above: a draft is skipped; a release with a higher number that is a prerelease does not win (`v1.8.0` is one in the recording); `v1.5.0rc1` is below `v1.5.0`.
 
-Old tests: none is left (03b). The pull request names the inventory row it covers (T21, the cache half). Stateful tests: `tests/stateful/test_tool_store.py` builds `Release` and `Asset` values, but it also needs `install.py`; its `pending` markers are removed by package 27.
+Old tests: none is left (03b). The pull request names the inventory rows this package owns, each with its test: T7, T21 (the cache half), T22 (the unit tests), T23 and T26 (findings F1 and G1 of the [second review](review-2026-11-24.md)). Stateful tests: `tests/stateful/test_tool_store.py` builds `Release` and `Asset` values, but it also needs `install.py`; its `pending` markers are removed by package 27.
 
 ## Changelog
 
@@ -186,6 +188,7 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 
 - The tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - No file listed under "Must not touch" is in the diff.
 - The pull request says how `resolve` gets the network error, what the cache's `data` holds, and what was found about `updated_at` in the recordings.
+- The pull request names inventory rows T7, T21 (the cache half), T22 (the unit tests), T23 and T26, each with its test.
 
 ## Out of scope
 

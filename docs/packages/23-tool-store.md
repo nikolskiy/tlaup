@@ -23,6 +23,7 @@ The size is at the upper end of M: one class with its lock and temporary folders
   - [02 X3](../design/02-cross-cutting.md#x3-version-syntax): `format_build`, the printing table, its unit tests and the Hypothesis round trip. Parsing was package 22.
   - [02 X4](../design/02-cross-cutting.md#x4-rolling): "How it sorts", for installed builds, and `stable` among installed builds.
   - [12 V11](../design/12-tools-and-downloads.md#v11-concurrent-installs): the parts that are the store's own: the store lock and its timeout, the lock file beside each temporary folder, the cleanup of leftovers, and their unit tests. The rest of V11 is package 27.
+- The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): rows T4 (an empty pin file is no pin; the store half, [27](27-install-steps.md) the `install` half), T14 (two builds of one tag side by side) and T30 (a pinned folder with no jar is `PinnedBuildMissing`), whose owner this package is.
 
 ## Depends on
 
@@ -153,7 +154,7 @@ Plain pytest and one property test, all on a store in `tmp_path` with small real
 - pin, unpin; `pinned()` is `None` with no pin file and raises `PinnedBuildMissing` when the build's folder is removed, and when the pinned build's folder holds no jar (inventory row T30).
 - An empty `pin` file, and one holding only a newline, give `pinned()` `None`; `pin(build)` on that store writes the build's id over it (inventory row T4, owner this package; [12 V1](../design/12-tools-and-downloads.md#v1-version-store)). That `Install` pins its build over an empty pin file, the other half of T4's test, needs `install.py` and is [27](27-install-steps.md)'s.
 - ids for a tag with a hyphen and a slash (no character outside `[A-Za-z0-9._-]` in the folder name).
-- two builds of one commit with different CalVers coexist; two different jars with the same name, the same commit and no build time coexist; a jar with no commit is stored with `commit` null and an id like any other.
+- two builds of one commit with different CalVers coexist; two different jars with the same name, the same commit and no build time coexist (these two cases are the test of inventory row T14, owner this package); a jar with no commit is stored with `commit` null and an id like any other.
 - the same jar under two names gives two builds; the same jar under `a-b` and then `a_b` gives two builds with two ids.
 - `add` when a folder with no `build.json`, with an unparsable one, and with `"schema": 99` already sits at the first id: each time that folder is untouched and the build lands at the next id (`-2`).
 - two jars made to agree in 12 digits coexist (the id function takes the prefix length as a parameter, and the test gives it a shorter one).
@@ -184,7 +185,7 @@ The stateful test. `tests/stateful/test_tool_store.py` mirrors the checked spec 
 
 About `filelock` and the reference-model tests. `tests/stateful/test_tool_store.py` and `test_run_folders.py` skip themselves when `filelock` cannot be imported. In the development environment it already can: `filelock` 4.2.10 is in `uv.lock` today as a dependency of a development tool. So their `..._reference_model` tests have been running since package 03 added `hypothesis`, not since this package. What changes here is that they no longer rest on another tool's dependency. If they do not run on `main` when this package starts (check the test run's skip reasons), they start with this package's first commit, and a failure then is a finding to report in the pull request, not a test to edit: the machines are reviewed artefacts of the formal check (03b fixed the `ResourceWarning`s that `filterwarnings = error` gave them, question Q17, without changing what they check).
 
-Old tests: none is left (03b). The pull request names the inventory rows it covers: T4 (its store half) and T30.
+Old tests: none is left (03b). The pull request names the inventory rows it owns, each with its test: T4 (its store half), T14 and T30 (findings F1 and G1 of the [second review](review-2026-11-24.md)).
 
 ## Changelog
 
@@ -234,6 +235,7 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03 and 22 o
 - `tests/stateful/` is unchanged and its reference-model tests pass.
 - No file listed under "Must not touch" is in the diff.
 - The pull request quotes the Hypothesis statistics of the round-trip test and says how the delete step is made to fail in the `remove` test.
+- The pull request names inventory rows T4 (the store half), T14 and T30, each with its test.
 
 ## Out of scope
 

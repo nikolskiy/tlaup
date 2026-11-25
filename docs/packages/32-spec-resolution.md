@@ -17,6 +17,7 @@ Four functions turn what the user typed into the paths a run uses: `resolve_spec
   - [11 R4](../design/11-runner.md#r4-spec-cfg-and-working-folder): steps 3 (the spec path, links and `..`), 4 (the `-config` value) and 5 (how `--cfg` is found), with the unit tests. Steps 1, 2 and 6 and "What changes for users" are properties of the command line that [33](33-tlc-invocation.md) builds and [39](39-tlc-command.md) switches on.
   - [11 R10](../design/11-runner.md#r10-project-root): all of it.
   - [14 F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay): only the row that says the names `spec`, `modules`, `classes` and `lib` are constants in `tlaup/project/core.py`. The settings themselves are [19](19-layered-config.md).
+- Rows of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) this package owns: S1 to S5, S9 and S13, each with its test below. S7 (with no `--cfg` nothing is checked and TLC uses `Spec.cfg`, R4 step 6) is handed to [33](33-tlc-invocation.md), whose builder test holds it, since no function here sees a missing `--cfg`. S8 is changed on purpose (R10); `test_project_root.py` tests the new rule. (finding G1)
 
 ## Depends on
 
@@ -229,7 +230,7 @@ In R9 the spec's folder is `Lf/`, the folder of the link itself, and TLC joins t
 - The three test files pass, with the F and R rows as parametrised cases.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 - R10's changelog entry is under `## [Unreleased]`, Breaking.
-- The pull request shows the red run of the `test_project_root.py` cases R10 changes (T12 rule 6), names any signature it adjusted, and names the inventory rows it covers (S1 to S5, S8, S9, S13).
+- The pull request shows the red run of the `test_project_root.py` cases R10 changes (T12 rule 6), names any signature it adjusted, and names the inventory rows it owns (S1 to S5, S9, S13) and S8's new rule.
 
 ## Out of scope
 

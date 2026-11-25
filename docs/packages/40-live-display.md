@@ -9,11 +9,11 @@ On a terminal, `tlaup tlc` shows the full-screen layout of [22 O4](../design/22-
 ## Covers
 
 - Roadmap items, [milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout):
-  - "Live terminal reporter: render the layout on a terminal; fall back to plain streamed output when stdout is not a terminal or `--raw` is given." (line 315). In part: the layout and the rule that chooses it; the plain output is [38](38-terminal-reporter.md)'s. Also the milestone's exit criterion "a long TLC run shows a live status on a terminal and clean line output when piped".
-  - "Make `--refresh-interval` and the matching config key take effect." (line 319). In full.
-  - "Fix the per-line re-rendering cost, which grows with the square of the output, and the unbounded list of output lines kept in memory." (line 320). In part: the layout-mode test and the changelog entry; the plain-mode tests are 38's.
-  - "Snapshot tests through a fixed-width, colourless console with an injected clock, replacing assertions on Rich internals." (line 321). In part: the layout half; the plain half is 38's.
-  - "Delete display code that nothing in `src/` references ..." (line 314). In part: nothing of the item's own list (package 04 deleted that), but the rows of O2's table marked O4, which this package finishes or replaces and then deletes.
+  - "Live terminal reporter: render the layout on a terminal; fall back to plain streamed output when stdout is not a terminal or `--raw` is given." (line 324). In part: the layout and the rule that chooses it; the plain output is [38](38-terminal-reporter.md)'s. Also the milestone's exit criterion "a long TLC run shows a live status on a terminal and clean line output when piped".
+  - "Make `--refresh-interval` and the matching config key take effect." (line 328). In full.
+  - "Fix the per-line re-rendering cost, which grows with the square of the output, and the unbounded list of output lines kept in memory." (line 329). In part: the layout-mode test and the changelog entry; the plain-mode tests are 38's.
+  - "Snapshot tests through a fixed-width, colourless console with an injected clock, replacing assertions on Rich internals." (line 330). In part: the layout half; the plain half is 38's.
+  - "Delete display code that nothing in `src/` references ..." (line 323). In part: nothing of the item's own list (package 04 deleted that), but the rows of O2's table marked O4, which this package finishes or replaces and then deletes.
 - Design sections:
   - [22 O4](../design/22-reporters.md#o4-live-display): all of it, the waiting line in the Status panel included (question Q12, settled: shown in place of the hint and copied to stderr on close).
   - [22 O5](../design/22-reporters.md#o5-refresh-interval): all of it.
@@ -24,6 +24,7 @@ On a terminal, `tlaup tlc` shows the full-screen layout of [22 O4](../design/22-
   - [02 X2](../design/02-cross-cutting.md#x2-stdout-and-stderr), "Where the live layout is drawn".
   - [01 T5](../design/01-testing.md#t5-feature-files-and-steps), situation 4 for the layout: the screen steps that need a terminal emulator, and `tlc_live.feature`. [01 T12](../design/01-testing.md#t12-rules-for-writing-tests), rule 5: the one test that depends on the real clock.
   - [14 F1](../design/14-config-and-cli.md#f1-layered-configuration), [F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay): `tlc.plain` and `tlc.refresh_interval` take effect, with their flags; F1's rule that the schema checks the type only and a range is the command's (question Q16, kept as built).
+- Rows of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) this package owns: R13 (`--refresh-interval` is accepted, and `tlc.refresh_interval` defaults to 1.0), with its test under part A (finding G1).
 
 ## Depends on
 
@@ -54,7 +55,7 @@ Changes:
 - `src/tlaup/cmd/tlc.py`: the options `--plain` and `--refresh-interval SECONDS`, their help lines, the range check, and the two values passed in `ReporterOptions`.
 - `src/tlaup/config/schema.py` and `src/tlaup/resources/default_config.yaml`: only if [19](19-layered-config.md) left out `tlc.plain` (false) or `tlc.refresh_interval` (1.0), or gave the latter a range (see Context, "The range").
 - `pyproject.toml` and `uv.lock`: `pyte` as a development dependency, if 18 did not add it.
-- `tests/features/tlc_errors.feature` ([39](39-tlc-command.md)'s): O5's usage-error scenarios are added to it.
+- `tests/features/tlc_errors.feature` ([39](39-tlc-command.md)'s): O5's usage-error scenarios are added to it. `tests/features/tlc_run.feature` (39's): one scenario for inventory row R13.
 - `CHANGELOG.md`.
 
 Deletes ([22 O2](../design/22-reporters.md#o2-delete-dead-display-code)), in the pull request that adds the layout frames:
@@ -129,7 +130,7 @@ O4's interface says the flag is "already merged into" `settings.tlc.plain`, as F
 **The four panels** (O4's mock-up is the reference; `render_layout` builds them on Rich's `Layout`):
 
 - Header: `view.header`.
-- Status, four lines: the phase word, `elapsed` and `format_clock(now - started_at)`, `errors N   warnings M`; the latest progress numbers; the hint `Ctrl-C to interrupt`, or `view.notice` when set. Phase words: `PARSING` `Parsing`, `INITIAL_STATES` `Computing initial states`, `CHECKING` `Checking`, `LIVENESS` `Checking liveness`, `FINISHED` `Finished`, and `Interrupted` when `view.interrupted`. O4 names no word for `NOT_STARTED` and `STARTING`; both show `Starting` (the index's reading, taken).
+- Status, four lines: the phase word, `elapsed` and `format_clock(now - started_at)`, `errors N   warnings M`; the latest progress numbers; the hint `Ctrl-C to interrupt`, or `view.notice` when set. Phase words: `PARSING` `Parsing`, `INITIAL_STATES` `Computing initial states`, `CHECKING` `Checking`, `LIVENESS` `Checking liveness`, `FINISHED` `Finished`, and `Interrupted` when `view.interrupted`. Before TLC reports anything (`NOT_STARTED` and `STARTING`) the word is `Starting`, as settled with the maintainer on 2026-11-24 and written into O4.
 - State space progress, up to a third of the height: one row per progress message, newest that fit, columns `Time`, `Diameter`, `Generated`, `Distinct`, `Queue`, numbers with thousands separators.
 - Output, the rest: the newest lines of `tail` that fit, each cut with an ellipsis when longer than the panel (only here is anything cut).
 
@@ -152,7 +153,7 @@ Plain pytest, a reporter driven with events and in-memory consoles ([01 T12](../
 - **The two streams** (O6, D30, D40): in the same runs, the stdout stream holds no escape sequence and nothing before `close`; the stderr stream holds the header before the enter sequence of the alternate screen, the enter and leave sequences once each, the panel titles between them, and after the leave sequence the tool's stderr lines and nothing of the result text. With two literal lines given to `stderr_line` (plain text, not TLC output, so rule 3 allows them), they stand after the leave sequence, in order, unmarked.
 - **`close`** (O6), in layout mode: after `start` and a few events with no `finish`, it writes the leave sequence, then the result text so far to stdout, and no result line; a second call, and a call on a reporter never started, write nothing. With a stderr stream that raises on the first write of the enter sequence (so `start` fails after the spools exist and before the display starts), `close` returns, no spool file is left in the temporary folder (point `tempfile.tempdir` at a test folder with `monkeypatch`, or list the folder; the spools must be on disk for that, so write more than 1 MiB first or use a small `max_size` through a constructor argument that production does not pass, and say which in the pull request), and no leave sequence is written. With a stdout stream that raises `BrokenPipeError`, `close` returns, the leave sequence is in the stderr stream, and `write_error` is that error. Through `run_tlc` ([37](37-run-tlc.md)) with a Java command whose executable does not exist: the leave sequence is in the stderr stream when the `ToolStartError` leaves `run_tlc`.
 - **The markup test of [10 P11](../design/10-parser.md#p11-tlc-text-and-rich-markup)** in layout mode: the four strings of 38's test, as `OutputLine` events; the Output panel of a frame shows them as text, and the stdout written at `close` equals the input.
-- **O5**: started with `interval=0.5` and then with `interval=2`, `reporter.live.refresh_per_second` is 2 and then 0.5. This is the one place a test reads a Rich object (O5, O6). With the injected clock, two `refresh()` calls one clock-second apart show `elapsed` values one second apart.
+- **O5**: started with `interval=0.5` and then with `interval=2`, `reporter.live.refresh_per_second` is 2 and then 0.5. This is the one place a test reads a Rich object (O5, O6). Inventory row R13: with no option and no setting (19's defaults), `make_reporter` in layout mode gives `refresh_per_second` 1, and `--refresh-interval 0.5` is accepted: an in-process scenario added to [39](39-tlc-command.md)'s `tlc_run.feature`, `tlaup tlc Spec --refresh-interval 0.5`, exits with the replayed case's code. With the injected clock, two `refresh()` calls one clock-second apart show `elapsed` values one second apart.
 - **O7**, layout mode: 300,000 numbered lines (`line 1` ...) through a `TlcParser` into the reporter leave a view whose `tail` has 200 lines; the stderr stream holds only the frames drawn by `start`, the test's own two `refresh()` calls and `finish`, a number that does not grow with the events (count them by Rich's frame start in the stream, without reading Rich internals); and the stdout written at `close` has 300,000 lines. No test measures time.
 - **The size, read at `start`**: a layout-mode reporter on 59 by 15 and on 60 by 14 writes plain output (no enter sequence; the output equals plain mode's); 60 by 15 draws the layout.
 - **The waiting line** (O6): in layout mode a `notice` shows the line in the Status panel of the next frame, in place of the hint, and after the leave sequence it is in the stderr stream with the tool's stderr lines, in arrival order; stdout has nothing of it. The plain-mode half is 38's test.
@@ -226,7 +227,7 @@ O7's entry is written here rather than at [39](39-tlc-command.md), whose list do
 - Parts A and B pass; part B on Linux and macOS in CI. `uv run poe lint` and `uv run poe test` pass; CI is green; `uv run poe test-clean` leaves the home folder empty.
 - `src/tlaup/tlc/formatter.py`, `components.py` and `models.py` are gone; nothing imports them.
 - The three changelog entries are under `## [Unreleased]`.
-- The pull request shows the "updates while silent" scenario failing with the refresh thread switched off (`refresh_thread=False` passed by `make_reporter` for one run of the red build), which is the defect only that scenario catches (T12 rule 6); lists the steps it added with the reason for each; says which build the layout frames use, how the spool-file test makes the spools reach the disk, and whether `TERM=unknown` needed the rule above.
+- The pull request shows the "updates while silent" scenario failing with the refresh thread switched off (`refresh_thread=False` passed by `make_reporter` for one run of the red build), which is the defect only that scenario catches (T12 rule 6); lists the steps it added with the reason for each; says which build the layout frames use, how the spool-file test makes the spools reach the disk, and whether `TERM=unknown` needed the rule above, and names the inventory row it owns (R13).
 - A reviewer can read every frame file and `tlc_live/violation.txt` as what a user sees.
 
 ## Out of scope

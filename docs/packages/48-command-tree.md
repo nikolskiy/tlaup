@@ -9,10 +9,10 @@ The registered commands are exactly the signed-off tree of [23 C1](../design/23-
 ## Covers
 
 - Roadmap items:
-  - "Review the layout of every command so it follows the most common CLI patterns and users can guess commands from other tools. No aliases for old command names (decision D14). ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 325), in part: the tree as a whole, its test, the removed names, the root options. Each group's commands are their packages' (29, 31, 39, 41 to 47).
-  - "Move the version flag to `-V` so `-v` can mean verbose (note 42)." (line 332), in full.
-  - "Housekeeping (raised list), done when each area is touched: ... one command registration style, the explicit one; ..." ([milestone 5](../roadmap.md#milestone-5-structure), line 490), in part: the explicit registration style.
-  - "Exit codes: documented; ... 2 for usage errors that are hand-written today; non-zero when an operation failed; ..." ([milestone 4](../roadmap.md#milestone-4-automation-surface), line 471), in part: the check that no own exit 1 is left. The mapping is [17](17-error-handler.md)'s.
+  - "Review the layout of every command so it follows the most common CLI patterns and users can guess commands from other tools. No aliases for old command names (decision D14). ..." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 334), in part: the tree as a whole, its test, the removed names, the root options. Each group's commands are their packages' (29, 31, 39, 41 to 47).
+  - "Move the version flag to `-V` so `-v` can mean verbose (note 42)." (line 341), in full.
+  - "Housekeeping (raised list), done when each area is touched: ... one command registration style, the explicit one; ..." ([milestone 5](../roadmap.md#milestone-5-structure), line 500), in part: the explicit registration style.
+  - "Exit codes: documented; ... 2 for usage errors that are hand-written today; non-zero when an operation failed; ..." ([milestone 4](../roadmap.md#milestone-4-automation-surface), line 481), in part: the check that no own exit 1 is left. The mapping is [17](17-error-handler.md)'s.
 - Design sections:
   - [23 C1](../design/23-command-layout.md#c1-command-tree): the tree; the root options paragraph; "With no command, `tlaup` prints the root help on stdout and exits 2, and a group alone ... does the same"; the rows "Registration is explicit and in one place", "No `ls`, `rm` or other short forms", "The short options `-f` and `-y` are removed" (the check), "`SPEC` is a required argument ... `VERSION` of `pin`; `NAME` of `module remove`" (the check); the Tests' unit test, the no-command scenarios and the removed-name scenarios; the Changelog's rule "one line per row" as a check.
   - [23 C4](../design/23-command-layout.md#c4-version-flag), in full apart from the summary line's source, which is [50](50-help-and-messages.md)'s ("the same text the root help shows").
@@ -89,7 +89,7 @@ No new function. The tree, from [23 C1](../design/23-command-layout.md#c1-comman
 - The set of command paths equals the tree above, so a command added or removed without updating [23 C1](../design/23-command-layout.md#c1-command-tree) fails (C1, Tests). The test's tree is written out by hand in the test, not derived from the code.
 - For each command, its arguments (name, required or not, variadic or not) and its long options equal the table's.
 - No option anywhere has a one-letter form except `-V` on the root (C1, Tests): every name in `opts` and `secondary_opts` that is a dash and one letter is `-V`. This is also what keeps `-f`, `-y` and `-v` out.
-- `-V` and `--version` through `CliRunner` exit 0 and give the same stdout, of two lines; the first is `tlaup ` followed by the version `get_app_version` returns for the installed metadata version, the second equals the metadata's `Summary` (C4: "print the same"; two results compared with each other are plain pytest, [01 T5](../design/01-testing.md#t5-feature-files-and-steps); inventory row P2). `-v` exiting 2 is the `errors.feature` row below.
+- `-V` and `--version` through `CliRunner` exit 0 and give the same stdout, of two lines; the first is `tlaup ` followed by the version `get_app_version` returns for the installed metadata version, the second equals the metadata's `Summary` (C4: "print the same"; two results compared with each other are plain pytest, [01 T5](../design/01-testing.md#t5-feature-files-and-steps); inventory row P2). `-v` exiting 2 is the `errors.feature` row below. There is no `version.feature`: C4's Tests and T5's layout now name plain pytest for the comparison and `errors.feature` for `-v` (finding H7).
 - Registration is in one place: an AST walk of every module under `src/tlaup/cmd/` finds no call of `.command(`, `.add_typer(` or `.callback(` on a Typer object and no import whose only purpose is a side effect (an `import` or `from . import` marked `noqa: F401`); `src/tlaup/cli.py` holds them all.
 - No command or group is registered under a second name: the registered names are unique, and no Typer `name` differs from its path in the table (no alias, D14; no short form, D38).
 
@@ -183,7 +183,7 @@ Left for this package: C4's and X1's entries above, and any row the check finds 
 - The tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - `tlaup --help` lists exactly the tree's top-level commands; `tlaup -V` prints the two lines; `tlaup -v` exits 2.
 - Every row of the changelog table is under `## [Unreleased]` once; C4's and X1's entries are written.
-- The pull request lists the `typer.Exit(<expression>)` places the exit-1 test found, and anything old it had to delete or fix, with the package that left it.
+- The pull request lists the `typer.Exit(<expression>)` places the exit-1 test found, and anything old it had to delete or fix, with the package that left it, and names the inventory rows it owns (P2, P4).
 
 ## Out of scope
 

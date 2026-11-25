@@ -9,14 +9,15 @@ Size: S. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout)):
-  - "`repl` command: interactive, so no output parsing; the terminal is passed straight through." (line 302), in full apart from its integration test ([52](52-integration-tests.md)).
-  - "Keep all three thin ... Check which jar build is running, so the tool can switch to upstream's own entry point when it exists and fall back for older jars." (line 304), in part: the one tool whose availability depends on the build, refused from the stored capability. The check itself is [41](41-sany-command.md)'s.
-  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." (line 306), in part: passthrough for `repl` in `repl.feature`. The REPL has no golden files (S5).
+  - "`repl` command: interactive, so no output parsing; the terminal is passed straight through." (line 311), in full apart from its integration test ([52](52-integration-tests.md)).
+  - "Keep all three thin ... Check which jar build is running, so the tool can switch to upstream's own entry point when it exists and fall back for older jars." (line 313), in part: the one tool whose availability depends on the build, refused from the stored capability. The check itself is [41](41-sany-command.md)'s.
+  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." (line 315), in part: passthrough for `repl` in `repl.feature`. The REPL has no golden files (S5).
 - Design sections:
   - [21 S3](../design/21-other-tools.md#s3-repl): all of it except its integration test (52).
   - [21](../design/21-other-tools.md), the head, for `repl`: `signals_held(leave_interrupt=True)`, the instant between entering the block and the REPL's start, `--java-opt`, `--auto-install`, the arguments after `--`.
   - [12 V1](../design/12-tools-and-downloads.md#v1-version-store) and [V5](../design/12-tools-and-downloads.md#v5-download-and-verify), as used: the `repl` capability stored with the build ([00](../design/00-overview.md#what-a-build-can-do)), read here and never decided again.
   - [02 X1](../design/02-cross-cutting.md#x1-exit-codes): rule 2's note on a Ctrl-C left to the child, rule 4 (`repl` passes its code through), and "the pinned build has no REPL" in row 3.
+  - [23 C1](../design/23-command-layout.md#c1-command-tree): the `repl` line of the command tree; the tree test is [48](48-command-tree.md)'s (finding H12).
 
 ## Depends on
 

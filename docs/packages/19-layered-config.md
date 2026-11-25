@@ -9,14 +9,15 @@ Settings are read in layers (packaged defaults, the user file, the environment, 
 ## Covers
 
 - Roadmap items ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)):
-  - "Layered configuration (decision D10): packaged defaults, user file, environment, flags; the project file joins the chain in milestone 3. Every section has defaults, so an old or trimmed file still loads. No file is written until the user changes a setting." (line 258), in full apart from the command that writes (`config set`, [44](44-config-commands.md)).
-  - "Unknown config keys are silently ignored, so a typo has no effect and no warning." (line 198).
-  - "Remove settings nothing reads (`workspace.root`, `workspace.spec_dir`, the unread `tla.community_modules` block, `save_config`) and the comment describing behaviour that no longer exists. ..." (line 260), in full: the settings, the hard-coded names, the stale comment, `module_path` and `module_lib_path` left as they are at run time (the design's departure; that `module_lib_path` is no longer on the compile classpath is [30](30-module-build.md)'s, decision D61).
-  - "`config` commands work when the file is broken, and a broken file gives a readable validation message instead of a traceback." (line 259), in part: the readable message (`ConfigInvalid` with the file, line and column or the key). The commands are [44](44-config-commands.md); that no traceback is shown is [17](17-error-handler.md)'s handler.
+  - "Layered configuration (decision D10): packaged defaults, user file, environment, flags; the project file joins the chain in milestone 3. Every section has defaults, so an old or trimmed file still loads. No file is written until the user changes a setting." (line 267), in full apart from the command that writes (`config set`, [44](44-config-commands.md)).
+  - "Unknown config keys are silently ignored, so a typo has no effect and no warning." (line 207).
+  - "Remove settings nothing reads (`workspace.root`, `workspace.spec_dir`, the unread `tla.community_modules` block, `save_config`) and the comment describing behaviour that no longer exists. ..." (line 269), in full: the settings, the hard-coded names, the stale comment, `module_path` and `module_lib_path` left as they are at run time (the design's departure; that `module_lib_path` is no longer on the compile classpath is [30](30-module-build.md)'s, decision D61).
+  - "`config` commands work when the file is broken, and a broken file gives a readable validation message instead of a traceback." (line 268), in part: the readable message (`ConfigInvalid` with the file, line and column or the key). The commands are [44](44-config-commands.md); that no traceback is shown is [17](17-error-handler.md)'s handler.
 - Design sections:
   - [14 F1](../design/14-config-and-cli.md#f1-layered-configuration): `LoadedSettings`, `Layer`, `read_layers`, `merge_layers`, `load_settings`, `write_user_setting`, the environment layer, the broken-file messages, unknown keys, the value check shared with `config set`; its unit tests. Not here: `config set` itself and the two in-process `config.feature` scenarios (44).
   - [14 F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-that-stay): the schema, the packaged `default_config.yaml`, the removed names and their one-line warning, the two keys a project layer may not set, the deletions; its unit tests. Not here: the feature "`tool.repository` set to another `https` address is the host the requests go to" ([29](29-tool-commands.md)a, the first command that makes requests), and the Added entry for `tool.token_hosts` (29a).
   - [00, application context](../design/00-overview.md#application-context): `AppContext.settings`, loaded on first use.
+- The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): rows C2 (the packaged defaults read through `importlib.resources`), C4 (the safe loader), J4 (the minimum Java version defaults to 11), R25 (the default JVM options) and the environment half of C6 (`TLAUP_MODULE_PATH`, `TLAUP_MODULE_LIB_PATH`), whose owner this package is.
 
 ## Depends on
 
@@ -34,7 +35,7 @@ Creates:
 Changes (rewritten):
 
 - `src/tlaup/config/schema.py`: the first wave's schema (Interfaces). The old `TlaUrls`, `TlaConfig`, `WorkspaceConfig`, `TlcConfig`, `JavaConfig` and its `JAVA_OPTS` validator go.
-- `src/tlaup/config/loader.py`: the layered loader and the writer. `save_config`, `ensure_config`, `workspace_root` and `_default_config_content` are deleted (F3). The old path helpers `config_dir`, `config_path` and `cache_dir` stay with the bodies package 02 gave them, for their old callers; each goes with its last caller (`config_path` with [44](44-config-commands.md), `cache_dir` with 29 and 39). `load_config()` stays as the old commands' entry point (see Context).
+- `src/tlaup/config/loader.py`: the layered loader and the writer. `save_config`, `ensure_config`, `workspace_root` and `_default_config_content` are deleted (F3). The defaults layer reads `default_config.yaml` as `_default_config_content` does today, through `importlib.resources.files("tlaup.resources")` (inventory row C2). The old path helpers `config_dir`, `config_path` and `cache_dir` stay with the bodies package 02 gave them, for their old callers; each goes with its last caller: `config_dir()` with `config_path()`, its only caller, in [44](44-config-commands.md), and `cache_dir()` in [39](39-tlc-command.md), which deletes the last of `versioning/paths.py`, its last caller once 04 has removed the legacy fallbacks (finding F2 of the [second review](review-2026-11-24.md)). `load_config()` stays as the old commands' entry point (see Context).
 - `src/tlaup/resources/default_config.yaml`: the defaults below, every key with a value, no comments describing behaviour.
 - `src/tlaup/context.py`: `AppContext.settings`, loaded on first use. 02's `reset()` does not clear `load_config`'s `lru_cache` (02, Context), so there is no line to remove. Nothing else calls `load_config.cache_clear()`: the old tests that did (`tests/unit/cmd/test_modules.py`, `tests/unit/test_config_suite.py`, finding B1) went in 03b, and the one call in `src/`, in `save_config`, goes with that function.
 
@@ -45,7 +46,7 @@ Changes (the old readers of removed keys, one or two lines each; see "The old re
 - `src/tlaup/java/classpath.py`: the three `self.config.workspace.*` reads become `MODULES_DIR`, `CLASSES_DIR` and `LIB_DIR`.
 - `src/tlaup/cmd/modules/add.py`: `config.tlc.overrides_class` becomes the literal `tlc2.overrides.TLCOverrides` as a module constant.
 - `src/tlaup/versioning/api.py`: a helper giving the old two addresses and page size from `tool.repository`; `src/tlaup/cmd/tools/list.py`, `install.py`, `upgrade.py`, `meta/sync.py` call it instead of reading `config.tla.urls`.
-- `tests/unit/test_context.py` (02's new test): its two assertions on the old loader (`config_dir()` and `cache_dir()` follow `TLAUP_HOME`) stay as they are, because both functions stay here with 02's bodies; each assertion goes in the pull request that deletes its function (`cache_dir` with its last caller, 29 or 39; `config_dir` with `config_path`, 44).
+- `tests/unit/test_context.py` (02's new test): not changed. Its two assertions on the old loader (`config_dir()` and `cache_dir()` follow `TLAUP_HOME`) stay, because both functions stay here with 02's bodies; each assertion goes in the pull request that deletes its function ([44](44-config-commands.md) the `config_dir` one, [39](39-tlc-command.md) the `cache_dir` one).
 - `CHANGELOG.md`: see Changelog.
 
 Deletes: nothing beyond the functions named above. The old tests of the loader and the schema (`tests/unit/test_config.py`, `test_settings.py`, `test_config_suite.py`, the `base_settings` fixture) went in 03b ([01 T11](../design/01-testing.md#t11-the-existing-tests), decision D62).
@@ -135,9 +136,10 @@ Used later by: the config commands (44), the tool commands (29: `tool.repository
 
 Plain pytest, real files in a temporary folder, `AppPaths` from the isolation fixture, the environment as a dictionary argument ([01 T12](../design/01-testing.md#t12-rules-for-writing-tests): pure functions given real files).
 
-`tests/unit/config/test_loader.py`, on `load_settings` (F1's list, and F3's; the C4 and C6 rows of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) are this package's, as marked):
+`tests/unit/config/test_loader.py`, on `load_settings` (F1's list, and F3's). The rows of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) this package owns are C2, C4, J4, R25 and C6's environment half; each test below that holds one is marked with it (findings F1 and G1 of the [second review](review-2026-11-24.md)):
 
 - No user file: the defaults, every `sources` entry `"default"`, no warnings.
+- J4 and R25, the defaults' values: with no user file and no `TLAUP_` setting variable, `settings.java.min_version == 11` and `settings.java.opts == ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC"]`. That these options reach the Java command line is [33](33-tlc-invocation.md)'s.
 - A file holding one key: that key from `"user file"`, the rest defaults.
 - Each layer overriding the one below: default, then user file, then `TLAUP_TLC_WORKERS`, then the `overrides` argument; `sources` names the winner each time (`"TLAUP_TLC_WORKERS"`, `"--workers"`).
 - A list in the environment: `TLAUP_TOOL_TOKEN_HOSTS=ghe.example.com, api.ghe.example.com` gives two hosts with the spaces dropped; an empty value gives the empty list.
@@ -149,8 +151,8 @@ Plain pytest, real files in a temporary folder, `AppPaths` from the isolation fi
 - A union-typed key with a bad value (`tlc.workers: 0`, `tlc.workers: many`) names `tlc.workers`, not Pydantic's tagged location.
 - Reading never creates a file or a folder.
 - C4, the safe loader ([14 F1](../design/14-config-and-cli.md#f1-layered-configuration)): a user file holding `!!python/object/apply:os.mkdir ["<tmp>/made"]` (the path a folder under `tmp_path`) raises `ConfigInvalid` naming the file, and `<tmp>/made` does not exist afterwards. The same for the packaged-defaults reader is not needed: it reads a file in the wheel, through the same function.
-- C6, the environment half that is this package's: `TLAUP_MODULE_PATH=<a folder>` gives `module_path` that folder with the source `"TLAUP_MODULE_PATH"`, and `TLAUP_MODULE_LIB_PATH` the same for `module_lib_path`. The rest of C6 (the logged Java command) is [33](33-tlc-invocation.md)'s.
-- F3: the packaged default file validates; `config-0.8.2.yaml` loads and gives exactly `config.yaml: 4 settings are no longer used (workspace, tla, tlc.java_class, tlc.overrides_class); run `tlaup config edit` and delete them` (the text of the warning, without the `warning:` prefix that `Ui` adds), and no other warning; a file with `tlc.java_class` alone inside a kept section is reported in the same kind of line, counting 1; `tool.token_hosts` with a scheme, a path, a port or a wildcard is `ConfigInvalid`; `tool.repository` with `http`, a user part, a query string, a fragment, a backslash or white space is `ConfigInvalid`.
+- C6, the environment half that is this package's (the names settled with the maintainer on 2026-11-24, [14 F1](../design/14-config-and-cli.md#f1-layered-configuration)): `TLAUP_MODULE_PATH=<a folder>` gives `module_path` that folder with the source `"TLAUP_MODULE_PATH"`, and `TLAUP_MODULE_LIB_PATH` the same for `module_lib_path`. The rest of C6 (the logged Java command) is [33](33-tlc-invocation.md)'s.
+- F3 and C2: the packaged default file validates, read the way the loader reads it, through `importlib.resources.files("tlaup.resources")` (not a path built from `__file__`), so the test fails if the file is not reachable as a package resource; `config-0.8.2.yaml` loads and gives exactly `config.yaml: 4 settings are no longer used (workspace, tla, tlc.java_class, tlc.overrides_class); run `tlaup config edit` and delete them` (the text of the warning, without the `warning:` prefix that `Ui` adds), and no other warning; a file with `tlc.java_class` alone inside a kept section is reported in the same kind of line, counting 1; `tool.token_hosts` with a scheme, a path, a port or a wildcard is `ConfigInvalid`; `tool.repository` with `http`, a user part, a query string, a fragment, a backslash or white space is `ConfigInvalid`.
 
 `tests/unit/config/test_loader.py`, on `merge_layers` with hand-made lists: the order of the list decides the winner; `sources` takes its text from the winning layer's `labels`; a layer of kind `"project"` that sets `tool.repository` or `tool.token_hosts` has the key dropped with a warning, and the value and source stay those of the layer below.
 
@@ -177,7 +179,7 @@ From [14 F3](../design/14-config-and-cli.md#f3-settings-that-go-and-settings-tha
 
 - Breaking: "Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`."
 
-Not here: F1's "`tlaup config set KEY VALUE` changes one setting ..." ([44](44-config-commands.md)); F3's "`tool.token_hosts` lists extra hosts that may receive the GitHub token." ([29](29-tool-commands.md)a, where the token is first sent, and which has it in its Added list); the Changed entry on the compile classpath, which names `module_lib_path` ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder), written by [31](31-module-commands.md)).
+Not here: F1's "`tlaup config set KEY VALUE` changes one setting ..." ([44](44-config-commands.md)); F3's "`tool.token_hosts` lists extra hosts that may receive the GitHub token." ([29](29-tool-commands.md)a, where the token is first sent, and which has it in its Added list); the Breaking entry on the compile classpath, which names `module_lib_path` ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder), written by [31](31-module-commands.md)).
 
 ## Context for the worker
 
@@ -187,7 +189,7 @@ Not here: F1's "`tlaup config set KEY VALUE` changes one setting ..." ([44](44-c
 
 | Removed key | Old reader today | After this package | Last old reader deleted by |
 | --- | --- | --- | --- |
-| `workspace.modules_dir`, `workspace.classes_dir` | `cmd/tlc.py` (two calls of `find_project_root`), `tlc/runner.py` (two), `java/classpath.py` (three reads) | `MODULES_DIR`, `CLASSES_DIR`, `LIB_DIR` from `tlaup/project/core.py` (the final form, F3; shared with 32) | none needed: the constants are the design |
+| `workspace.modules_dir`, `workspace.classes_dir` | `cmd/tlc.py` (two calls of `find_project_root` today, one of them in `_show_diagnostic_info`; one if [04](04-delete-dead-code.md) has merged first and deleted that function), `tlc/runner.py` (two), `java/classpath.py` (three reads) | `MODULES_DIR`, `CLASSES_DIR`, `LIB_DIR` from `tlaup/project/core.py` (the final form, F3; shared with 32) | none needed: the constants are the design |
 | `workspace.root`, `workspace.spec_dir` | `workspace_root()` (no caller) | deleted | here |
 | `tlc.java_class` | `tlc/runner.py` (the run and the `-version` call) | the constant `tlc2.TLC` in `runner.py` | [39](39-tlc-command.md), which deletes `runner.py`; the new code has the constant of 33 and later `ENTRY_POINTS` (41) |
 | `tlc.overrides_class` | `cmd/modules/add.py` (the service file default) | the constant `tlc2.overrides.TLCOverrides` in `add.py` | [31](31-module-commands.md), which replaces `module add` and stops writing the service file (M3) |
@@ -210,7 +212,7 @@ Two more points about the old code:
 **The environment layer** (F1).
 
 - `TLAUP_<SECTION>_<KEY>` in upper case, for every leaf key of the schema except `java.opts`. Read only the names that map to a known key; any other `TLAUP_` variable (`TLAUP_HOME`, `TLAUP_DEBUG`, `TLAUP_AUTO_INSTALL`, `TLAUP_JAVA_OPTS`, the test variables) is not this layer's and gets no warning.
-- **The two top-level keys** `module_path` and `module_lib_path` have no section. "Each setting" ([F1's Added entry](../design/14-config-and-cli.md#f1-layered-configuration)) joins the dotted key's parts with `_`: `TLAUP_MODULE_PATH`, `TLAUP_MODULE_LIB_PATH` (settled 2026-11-24 with the index's readings; C6's environment half).
+- **The two top-level keys** `module_path` and `module_lib_path` have no section. "Each setting" ([F1's Added entry](../design/14-config-and-cli.md#f1-layered-configuration)) joins the dotted key's parts with `_`: `TLAUP_MODULE_PATH`, `TLAUP_MODULE_LIB_PATH`. Settled with the maintainer on 2026-11-24 and written into [14 F1](../design/14-config-and-cli.md#f1-layered-configuration) (findings F4 and G6 of the [second review](review-2026-11-24.md)); C6's environment half.
 - A list key's value is its items separated by commas, white space around an item dropped, an empty value the empty list; empty items between commas are dropped. A scalar is passed as text and left to Pydantic's lax parsing (`"4"` for an integer, `"false"` for a boolean).
 - The label of an environment value is the variable's name.
 
@@ -224,7 +226,7 @@ Two more points about the old code:
 
 **`write_user_setting`** reads the user file as data (an empty mapping if there is none), sets the one key, and writes the whole file with PyYAML (`sort_keys=False`), starting with `CONFIG_HEADER`, through a temporary file in the same folder and `os.replace`. Comments, blank lines and quoting are not kept (PyYAML cannot carry them). A file that does not parse is not rewritten. It does not validate the value: the caller has already called `check_setting`, and `config set` first loads the whole file so that a file with an invalid value elsewhere is refused (F4).
 
-**`CONFIG_HEADER`** names the configuration reference page, which the documentation track writes ("Reference pages: configuration"); it does not exist yet. Write it as one constant naming the page's planned address on GitHub (`docs/reference/` beside the generated `cli.md` of [23 C5](../design/23-command-layout.md#c5-help-and-the-cli-reference)), so the documentation track can change one line (settled 2026-11-24 with the index's readings).
+**`CONFIG_HEADER`** names the configuration reference page, which the documentation track writes ("Reference pages: configuration"); it does not exist yet. Write it as one constant naming the page's planned address on GitHub (`docs/reference/` beside the generated `cli.md` of [23 C5](../design/23-command-layout.md#c5-help-and-the-cli-reference)), so the documentation track can change one line. This is a reading of the design, not confirmed: the index lists it under "Readings the packages build on".
 
 **Loading lazily.** `AppContext` is a frozen dataclass; give it a lazily computed `settings` (a `functools.cached_property` works on a frozen dataclass without `slots`). A broken file raises `ConfigInvalid` each time `settings` is asked for, so a command that needs settings stops cleanly; a command that does not ask never reads the file (`tlaup --help`, `tool path`, `config path`). The context imports the loader inside that property, so importing `tlaup.context` loads neither the schema nor `yaml` (F9; [49](49-startup-cost.md) tests it). Warnings are printed once, through `ui.warning`, when settings are first loaded.
 
@@ -244,6 +246,7 @@ Two more points about the old code:
 - `grep` finds no `workspace`, `tla.urls`, `java_class` or `overrides_class` in `src/` outside the `REMOVED` list and the two constants named above.
 - On a fresh `TLAUP_HOME`, `uv run tlaup tools dir` leaves no `config.yaml` (tried by hand once and said in the pull request; [29](29-tool-commands.md)b adds the scenario with `tool path`).
 - The changelog entries are written.
+- The pull request names inventory rows C2, C4, J4, R25 and C6's environment half, each with its test.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 
 ## Out of scope

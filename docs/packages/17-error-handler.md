@@ -9,15 +9,16 @@ Every exception that leaves a command, the root callback or the parsing of the r
 ## Covers
 
 - Roadmap items:
-  - "No tracebacks for users: missing Java, missing jar with `--raw` or `--show-command`, a broken config, an unreadable pin file. Turn off Typer's decorated crash reports, add one top-level handler that prints a one-line error, and add `--debug` to show the full traceback." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 238), in part: the handler, `--debug`, `TLAUP_DEBUG`, the crash reports off. The four cases are each a `TlaupError` raised by the code that builds them, with their scenarios: missing Java and the missing jar with `--raw` or `--show-command` ([39](39-tlc-command.md)), a broken config ([19](19-layered-config.md) raises, [44](44-config-commands.md) has the scenarios), an unreadable pin file ([23](23-tool-store.md) raises `FileOperationError`, code 5; [29](29-tool-commands.md)a has the scenario).
-  - "A small family of domain errors (spec not found, tool not installed, Java missing or too old) mapped to exit codes in one place." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 284), in part: the one place that maps them. The classes are [02](02-errors-and-paths.md)'s.
+  - "No tracebacks for users: missing Java, missing jar with `--raw` or `--show-command`, a broken config, an unreadable pin file. Turn off Typer's decorated crash reports, add one top-level handler that prints a one-line error, and add `--debug` to show the full traceback." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 247), in part: the handler, `--debug`, `TLAUP_DEBUG`, the crash reports off. The four cases are each a `TlaupError` raised by the code that builds them, with their scenarios: missing Java and the missing jar with `--raw` or `--show-command` ([39](39-tlc-command.md)), a broken config ([19](19-layered-config.md) raises, [44](44-config-commands.md) has the scenarios), an unreadable pin file ([23](23-tool-store.md) raises `FileOperationError`, code 5; [29](29-tool-commands.md)a has the scenario).
+  - "A small family of domain errors (spec not found, tool not installed, Java missing or too old) mapped to exit codes in one place." ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout), line 293), in part: the one place that maps them. The classes are [02](02-errors-and-paths.md)'s.
   - "Report run errors as what they are." (milestone 1), in part: exit 141 at the top and the stream helpers the launcher polls. The rest is [21](21-java-launcher.md), [37](37-run-tlc.md), [39](39-tlc-command.md).
-  - "Exit codes: documented; ... 2 for usage errors that are hand-written today; non-zero when an operation failed" ([milestone 4](../roadmap.md#milestone-4-automation-surface), line 471), in part: the mapping. Each command's codes come with its switch.
+  - "Exit codes: documented; ... 2 for usage errors that are hand-written today; non-zero when an operation failed" ([milestone 4](../roadmap.md#milestone-4-automation-surface), line 481), in part: the mapping. Each command's codes come with its switch.
 - Design sections:
   - [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks), all of its Design, the contract tests of Typer (the public half), and the Tests that can be written without the step vocabulary (see "Tests that must pass" for where each of F10's tests goes). Not here: completion in `main()` ([47](47-completion.md), [23 C3](../design/23-command-layout.md#c3-completion)), the private-name half of the contract tests (47), the scenarios that need steps ([18](18-feature-harness.md) and later).
   - [02 X1](../design/02-cross-cutting.md#x1-exit-codes): rules 1, 6, 7 and 8 as far as the handler and `main()` make them true (its Breaking changelog entry is [48](48-command-tree.md)'s). The table's examples are raised by the packages that build each command.
   - [20 G2](../design/20-groundwork.md#g2-domain-errors): "mapped to exit codes in one place", and the printing of an exception's notes.
   - [00, application context](../design/00-overview.md#application-context): the root callback builds the context from the environment and the root options and stores it on Typer's context object.
+- The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): row P1 (the installed command is `tlaup`), whose owner this package is (findings F1 and G1 of the [second review](review-2026-11-24.md)).
 
 ## Depends on
 
@@ -150,7 +151,7 @@ Where each of F10's and X1's tests goes. Feature scenarios need the step vocabul
 | Two calls of `run_app` in one process: a command exiting 1 through `typer.Exit`, then `--help` into a pipe with no reader | small app | the second gives 141 |
 | `--version` | `python -m tlaup --version` and the console script | the same stdout |
 
-The console script for the last row is found beside `sys.executable` (the isolation fixture's `PATH` holds only the fakes). No test measures time; "within a few seconds" is the wait's timeout.
+The console script for the last row is found beside `sys.executable` (the isolation fixture's `PATH` holds only the fakes). That row is the test of [preserved-behaviour row](../design/preserved-behaviour-2026-11-22.md) P1 (the installed command is `tlaup`), which this package owns: the console script beside `sys.executable` is named `tlaup` (`tlaup.exe` on Windows) and answers as `python -m tlaup` does. No test measures time; "within a few seconds" is the wait's timeout.
 
 **`tests/unit/test_typer_contract.py`** (public half of F10's contract tests): `typer.Exit`, `typer.Abort`, `typer.BadParameter` and `typer.TyperException` exist; the error Typer raises for an unknown option is a `TyperException`; `typer.core.TyperGroup` has `make_context(info_name, args, parent=None, **extra)` and `invoke(ctx)`, checked with `inspect.signature`. Each check names the Typer name in its failure message. The private half (completion) is added by [47](47-completion.md).
 
@@ -219,6 +220,7 @@ Not here: [02 X1](../design/02-cross-cutting.md#x1-exit-codes)'s Breaking entry 
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 - The pull request names the one function the debug printing goes through, which [24](24-github-client.md) points at `redact`.
 - The `PLC0415` per-file ignores are in `pyproject.toml`.
+- The pull request names inventory row P1 and its test (the `--version` row through the console script).
 
 ## Out of scope
 

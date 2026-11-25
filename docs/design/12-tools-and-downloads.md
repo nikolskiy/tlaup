@@ -196,7 +196,7 @@ The pin of step 2 is read under the lock, after the removals, not when the comma
 | `--yes` | All of them are removed: `--yes` answers "which" with "all" (the roadmap's milestone 4 asks that `--yes` cover every prompt). |
 | Not on a terminal | All of them are removed: naming the name is the confirmation for every build of that name. A script that wants one build names it as `name@commit`. |
 
-`--all` keeps its confirmation, and each case has one rule:
+`--all` keeps its confirmation, and each case has one rule. On a terminal the question offers the choices `y` and `n`, with `n` the default, so that pressing Enter removes nothing (settled with the maintainer on 2026-11-24; finding E4):
 
 | `uninstall --all` | What happens |
 | --- | --- |
@@ -225,12 +225,14 @@ The rows are read after one check that comes first: **when nothing is installed*
 
 Roadmap (milestone 1): "`tools upgrade`, and an install of a moving tag, check the remote again instead of trusting the one-hour cache." Milestone 3 items done here because the store makes them free: "`tools upgrade` by name compares only the first of several installed builds of that tag."
 
-**Design.** `upgrade(store, remote, client, spec: VersionSpec | None, *, keep_old: bool = False, progress)`, beside `install` (V12), whose arguments it shares (Stage 4 review, 2026-11-24: the sketch lacked the remote and named its argument `name`; clerical):
+**Design.** `upgrade(store, remote, client, spec: VersionSpec | None, *, keep_old: bool = False, progress)`, beside `install` (V12), whose arguments it shares:
 
 1. The name is the argument, or the pinned build's name. A build spec is a usage error (code 2), because upgrade moves a name forward and a build does not move: that covers `NAME@COMMIT`, `NAME@CalVer`, `NAME@sha256:...` and a bare CalVer ([02 X3](02-cross-cutting.md#x3-version-syntax)); the message names the name to use instead when the spec matches an installed build. `stable` and `rolling` are names and are accepted. `stable` is resolved fresh to the newest stable tag, as in V12, and then compared like any name: when that tag is newer than every installed stable build, it is installed beside them and nothing is removed, since "the old build" in step 4 is a build of the same name; the pin moves to it only if the pinned build was the newest installed stable one, and the note says which builds remain. With no argument and nothing pinned, it is `NoPinnedBuild` (code 3) when builds are installed, with the hint to name one (`tlaup tool upgrade rolling`), and `NoToolsInstalled` (code 3) when none are. If no build of the name is installed, upgrade is `install` of that name (V12).
 2. Fetch the release for that name fresh, never from the lookup cache (V8).
 3. Compare with the **newest installed build of that name** (V2), using `same_as_published(build, release)`, which V12 uses too: equal if the release's digest (the hexadecimal part after `sha256:`, V5) equals the build's `sha256`, or, for a release without a digest, if `asset_updated_at` and `size` are equal. Equal means "up to date": nothing is downloaded, and the build's `prerelease` flag is refreshed if upstream changed it (`store.update`).
 4. Otherwise install the published build (V5). If the old build was pinned, the pin moves to the new one and the command says so. The old build is then removed, as today. **With several installed builds of the name, "the old build" is only the newest one**, the one that was compared. Older builds of that name are left alone, and the note says how many remain and names `tlaup tool uninstall`. The pin moves only if it named the replaced build; a pin on an older build of the name stays where it is, and the note says that too. Both are read under the lock (V1): if another tlaup has upgraded the name in the meantime, the build that was compared is gone and the pin no longer names it, so this upgrade finds the new build already there, moves nothing and removes nothing. Whether upgrade should keep it is a question of the milestone 3 design note, since a rolling build cannot be downloaded again ([40](40-later-milestones.md#milestone-3-reproducibility)); the function has a `keep_old` parameter, false for now.
+
+(Stage 4 review, 2026-11-24: the sketch lacked the remote and named its argument `name`; clerical. The note moved out of the signature line, finding E13.)
 
 `pin(store, spec, ui)`: finds the build (V2); when several match, asks which if `ui.is_interactive()`, which needs stdin and stderr both to be terminals ([14 F6](14-config-and-cli.md#f6-messages)), and otherwise fails with code 2 and the candidates; writes the pin. Decision D26 (installing a newer build of a pinned tag moves the pin) stays a milestone 3 item; `install` here pins only when nothing is pinned.
 

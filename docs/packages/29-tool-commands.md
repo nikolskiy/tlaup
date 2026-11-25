@@ -42,7 +42,7 @@ This is the switch package of the store track.
   - [14 F1](../design/14-config-and-cli.md#f1-layered-configuration): the scenario "`tlaup tool path` on a fresh home leaves `the file "{config}/config.yaml" does not exist`" (findings B5, D3).
   - [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks): the unreadable pin file, one of its four cases, as a scenario (finding B4).
   - [02 X1](../design/02-cross-cutting.md#x1-exit-codes) and [20 G2](../design/20-groundwork.md#g2-domain-errors): the `errors.feature` scenarios of the classes these commands reach, `NetworkError` and `RemoteDataError` included (finding B17).
-  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): rows T20 and T21 (this package's half), whose owner this package is; the other kept rows of "Tool versions and the store" are held by the feature files below, as their notes say.
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): rows T1, T5, T11, T18, T19, T20, T27, T28, T29, T31, T33, T34 and T39, whose owner this package is, and its halves of T21 (the `tool list` half; 25 the cache half), T22 (the scenarios; 25 the unit tests) and T8 (the `VersionNotFound` scenarios of these commands; [50](50-help-and-messages.md) owns the row). Each row's test is named in the table under Tests (findings F1 and G1 of the [second review](review-2026-11-24.md)).
 
 ## Depends on
 
@@ -86,6 +86,7 @@ Changes:
 - 29a: `docs/contributing/development.md`: the `tlaup tools list` example becomes `tlaup tool list`, if 03 has not changed the line (29b's command; the line is a doc, so it may name it ahead).
 - 29a: `scripts/check_wheel.py`, if [53](53-ci-workflows.md) merged first: its smoke test runs `tlaup tools dir`, which this package removes; change it to `tlaup tool dir` (I4 names the new form).
 - 29b: `tests/unit/test_context.py` (02's new test): its assertion that `tlaup.versioning.paths.get_tools_dir()` follows `TLAUP_HOME` goes with that function (02 hands it here).
+- 29b: `tests/unit/versioning/test_redact.py` (24's test): its import test gains the `requests` half. Once `versioning/__init__.py` is emptied, `import tlaup.versioning.redact` in a fresh interpreter loads neither `tlaup.versioning.github` nor `requests` ([24](24-github-client.md) asserts only the first until then; finding G3 of the [second review](review-2026-11-24.md)).
 - 29a and 29b: `CHANGELOG.md`, the entries under Changelog, each in the pull request named there.
 
 Not here: the `tlaup tools install` steps of the workflows. 03b removes the one in `test.yml` with the old tests (D62); the one in `release.yml` is [55](55-release-tooling.md)'s alone. Between 29a and 55 the release workflow would fail at that step, which matters only on a tag push, and nothing is released in between (D6).
@@ -144,7 +145,7 @@ What each command does, beyond the domain function it calls:
 - **`tool dir`.** One line on stdout, `AppPaths.tools`, whether or not it exists. It no longer lists builds.
 - **`tool list [--installed]`.** One table on stdout through `ui.result` ([12 V8](../design/12-tools-and-downloads.md#v8-remote-listing-and-its-cache), "`tool list` in the first wave"): the releases **that have a `tla2tools.jar`**, in X4's order, each directly followed by the installed builds of that name (decision D64). A release without the jar has no row, as in 0.8.x, though the cached list still holds it (25). An installed build of a name whose release has no jar at the moment (upstream's upload gap) keeps its place in X4's order, with the status `installed`. Installed builds whose name upstream no longer lists come last, with the status `installed, not upstream`, and no hint against uninstalling them is printed (decision D65). Columns Version, Build, Published (the asset's update date), Status, Pinned. The release list may come from the lookup cache (`Remote.releases()`, the one-hour default); when it is unavailable the installed builds are listed and one `warning:` line goes to stderr. With `--installed`: the installed builds only, in store order, no request.
 
-  Status (settled with the index's readings; the expected files fix the result and the review reads them, [01 T8](../design/01-testing.md#t8-expected-output-files)): a release row is `available` when no installed build of its name is what upstream publishes (`same_as_published`), `installed` when one is; the row of the newest installed build of a name is `installed, update available` when it is not what upstream publishes, a build whose name upstream no longer lists is `installed, not upstream`, and every other installed row `installed`. V8's sentence ("`installed, update available` when the newest installed build of that name differs from the published one") and its test ("an older installed rolling build shows `update available` on its own row, directly under the `rolling` row") both hold under this reading. V8 does not write what a release row shows under Build, since no commit is read from a tag (V8, Rejected), nor how a cached or stale list is marked; the expected files decide both, and the pull request says what it chose.
+  Status (a reading of V8, not confirmed; the index lists it under "Readings the packages build on"; the expected files fix the result and the review reads them, [01 T8](../design/01-testing.md#t8-expected-output-files)): a release row is `available` when no installed build of its name is what upstream publishes (`same_as_published`), `installed` when one is; the row of the newest installed build of a name is `installed, update available` when it is not what upstream publishes, a build whose name upstream no longer lists is `installed, not upstream`, and every other installed row `installed`. V8's sentence ("`installed, update available` when the newest installed build of that name differs from the published one") and its test ("an older installed rolling build shows `update available` on its own row, directly under the `rolling` row") both hold under this reading. V8 does not write what a release row shows under Build, since no commit is read from a tag (V8, Rejected), nor how a cached or stale list is marked; the expected files decide both, and the pull request says what it chose.
 
 Consumes: everything named under Depends on. `AppContext` from the Typer context object (02, 17).
 
@@ -174,8 +175,9 @@ Consumes: everything named under Depends on. `AppContext` from the Typer context
 
 - three builds with the middle one pinned, `--all --yes` leaves none and `no build is pinned`;
 - two named builds with the pinned one first: both removed;
+- one build named that is not the pinned one: it is removed and `the pinned build is` still the other (T31);
 - two builds named, the pinned one made impossible to remove (`the folder "<its folder>" is read-only`; the tools folder stays writable): exit 5, the other build gone, the stuck one intact and still pinned;
-- on a terminal: two builds of `rolling`, `tool uninstall rolling` answered `-1, 7, 2`: `stderr contains "<question>" 3 times`, the second build removed, the first left; the same answered `all`;
+- on a terminal: two builds of `rolling`, `tool uninstall rolling` answered `-1, 7, 2`: `stderr contains "<question>" 3 times`, the second build removed, the first left; the same answered `all`; the same answered with an empty line removes both, `all` being the default answer (T33);
 - the same store with `--yes` removes both without asking; with no terminal and no `--yes` removes both;
 - `rolling@<commit>` removes one, in every mode;
 - removing the pinned build leaves `no build is pinned`, and the next `tlaup tool current` exits 3 (V3's test names `tlaup tlc`, which is still the old command here, so the scenario uses `tool current`, and package 39 adds the `tlc` form to `tlc_errors.feature`);
@@ -190,6 +192,7 @@ Consumes: everything named under Depends on. `AppContext` from the Typer context
 
 - by tag without `v` (`tool pin 1.7.4`, X3); `tag@commit`;
 - ambiguous without a terminal exits 2 and lists the candidates;
+- `tool pin v1.8.0` with only `v1.7.4` installed exits 4, and stderr names `tlaup tool install` (T27); (29b) `tool path v1.8.0` on the same store exits 4 (T29);
 - on a terminal: ambiguous, the typed answer is pinned; with stderr redirected to a file, exits 2;
 - the C2 outline: `v1.7.4`, `1.7.4`, `stable`, `v1.7.4@5a47802` give the same pinned build; the same outline for `tool path`;
 - two builds of `rolling`, `tool path rolling` exits 2 and lists both (X3);
@@ -200,6 +203,7 @@ Consumes: everything named under Depends on. `AppContext` from the Typer context
 `tool_upgrade.feature` (V4, C2):
 
 - the installed build equals the published digest: nothing downloaded and `1 request(s) were sent to GitHub` although `the release list is cached from "releases", 1 minutes old`;
+- `tool upgrade` with no argument and `rolling` pinned upgrades `rolling`, and says it is up to date when it is (T39);
 - a different digest installs the new build, moves the pin, removes the old;
 - two installed builds of `rolling`: compared with the newer, and afterwards the older is still installed; the same with the older one pinned leaves the pin on it;
 - upgrading a name that is not installed installs it;
@@ -236,9 +240,31 @@ Consumes: everything named under Depends on. `AppContext` from the Typer context
 **Plain pytest**, `tests/unit/test_tool_commands.py`:
 
 - `tool install` with no version, the question answered on in-memory streams (`interactive=True`, the answer in stdin), with one build installed and `responses` serving GitHub: the chosen build is installed ([12 V12](../design/12-tools-and-downloads.md#v12-install), Tests). It calls the command's plain function, not the Typer app, since in-process `CliRunner` has no terminal.
+- T11, the download's progress bar: `tool install v1.7.4`'s plain function with a `Ui` whose stderr is a terminal (Rich forced to terminal mode, a fixed size, as 16's tests build it) and `responses` serving GitHub: stderr holds the bar with the jar's size and a transfer speed, and stdout holds nothing. Written by stage 4: the inventory row names no test, and in-process scenarios have no terminal.
 - V7's query strings: `responses` serves a download that redirects to an address with `?sig=secret-value`. When the download succeeds, no `build.json` under the store contains `secret-value`. When the body then fails, under `--debug`, `secret-value` is in neither captured stream.
 
-**Old tests:** none to delete, keep or change; the old suite went in 03b (D62). No test is written for the old `tlc`'s jar lookup in between (29b's edit below): the old command goes in 39, and its behaviour meanwhile is not promised. The pull request names the inventory rows it covers (T20, T21's half).
+**Old tests:** none to delete, keep or change; the old suite went in 03b (D62). No test is written for the old `tlc`'s jar lookup in between (29b's edit below): the old command goes in 39, and its behaviour meanwhile is not promised.
+
+**Inventory rows** ([preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md)) this package owns, and the test that holds each; each pull request names its rows:
+
+| Row | Test | Pull request |
+| --- | --- | --- |
+| T1 (install downloads and installs a release's jar) | `tool_install.feature`, the rows of V12's table | 29a |
+| T5 (already installed: no download, says so; `--force` downloads again) | `tool_install.feature`, V12's rows "already installed" and `--force`, and `tool install v1.7.4` run twice | 29a |
+| T11 (a progress bar with size and speed) | the plain pytest above | 29a |
+| T18 (`tool list`'s table and columns) | `tool_list.feature`, the four states against expected files | 29b |
+| T19 (an installed build beside the current upstream build of its tag; with [25](25-remote-listing.md) for the status) | `tool_list.feature`, the older installed rolling build under the `rolling` row | 29b |
+| T20 (`installed, not upstream`, decided by D64) | `tool_list.feature`, the build under a tag the recording does not list | 29b |
+| T21, the `tool list` half (releases without a jar hidden) | `tool_list.feature`, the seven releases without a jar | 29b |
+| T22, the scenarios (offline, cached, stale, unavailable) | `tool_list.feature`, the four states | 29b |
+| T27 (pin an installed build; not installed is code 4 naming `tool install`) | `tool_pin.feature`, `tool pin 1.7.4` and `tool pin v1.8.0` | 29a |
+| T28 (several builds of one name: `pin` asks which) | `tool_pin.feature`, on a terminal, the typed answer pinned | 29a |
+| T29 (`tool path` prints one path; fails when nothing is pinned or not installed) | `tool_pin.feature`, the `tool path` scenarios | 29b |
+| T31 (uninstall removes the named builds; a build not pinned leaves the pin) | `tool_uninstall.feature`, the two-build and the not-pinned scenarios | 29a |
+| T33 (several builds: asks which, `all` the default) | `tool_uninstall.feature`, the terminal scenarios | 29a |
+| T34 (`--all` asks; `--yes` skips it) | `tool_uninstall.feature`, the `--all` scenarios | 29a |
+| T39 (upgrade with no argument upgrades the pinned name; up to date; not installed is installed) | `tool_upgrade.feature` | 29a |
+| T8, this package's part (an unknown version is `VersionNotFound` naming it; [50](50-help-and-messages.md) owns the row) | `tool_uninstall.feature`'s `v1.8.0 nosuch`, `tool_pin.feature`'s `tool pin v1.8.0` | 29a |
 
 No stateful test applies: the store machine is package 27's.
 
@@ -306,7 +332,7 @@ Decisions:
 
 Help text: write each command's help in the words of [14 F7](../design/14-config-and-cli.md#f7-help-text) where it has them (what `upgrade` means; `install` with no version and the first build pinned; the scope of `--yes`; a help string for `tool path VERSION`; "TLA+ tools", not "TLC", in every help string of the group). Package 50 owns F7 as a whole, its changelog entry and the reference.
 
-**The old `tlaup tlc` meanwhile** (29b). `tlaup tlc` stays on the old runner until package 39, and the old module commands on `cmd/modules/` until package 31. Nothing promises that they keep working in between (decision D62; no CI job runs real TLC through them), but `main` must type-check, and they find the tool jar through `get_tlc_jar_path` in `tlc/compiler.py` (six call sites: `cmd/tlc.py` twice, `tlc/runner.py` twice, `cmd/modules/add.py`, `cmd/modules/path.py`; package 04 made it return `Path | None`), which imports `get_pinned_version_dir`. When 29b deletes that function, the body that type-checks and costs least is a read of the new store's pin:
+**The old `tlaup tlc` meanwhile** (29b). `tlaup tlc` stays on the old runner until package 39, and the old module commands on `cmd/modules/` until package 31. Nothing promises that they keep working in between (decision D62; no CI job runs real TLC through them), but `main` must type-check, and they find the tool jar through `get_tlc_jar_path` in `tlc/compiler.py` (five call sites when 29b starts: `cmd/tlc.py` once, `tlc/runner.py` twice, `cmd/modules/add.py`, `cmd/modules/path.py`; today there are six, and the second in `cmd/tlc.py`, inside `_show_diagnostic_info`, went with that function in package 04, which also made it return `Path | None`; finding G4 of the [second review](review-2026-11-24.md)), which imports `get_pinned_version_dir`. When 29b deletes that function, the body that type-checks and costs least is a read of the new store's pin:
 
 ```python
 def get_tlc_jar_path() -> Path | None:
@@ -321,7 +347,7 @@ Points a worker could miss:
 - **The order of the uninstall checks** (V3): "nothing installed" first for `--all`; every named argument resolved before anything is removed and before any question; then the questions; then the removal. A question about "which build" is never asked when another argument matches nothing.
 - **Not on a terminal is not an error for `uninstall NAME`**: it removes every build of the name. It is an error for `pin` (2), for `uninstall --all` without `--yes` (2, a usage error, not `CannotAsk`), and for `tool install` with no version and no variable (2).
 - **`tool path` never asks**, on a terminal either: its output is for scripts.
-- **The `--all` question** has no wording, choices or default in V3. Ask it through `Ui.ask` with the choices `y` and `n` and the default `n`, the usual for a question that deletes (settled with the index's readings, 2026-11-24).
+- **The `--all` question.** Ask it through `Ui.ask` with the choices `y` and `n` and the default `n`, so that pressing Enter removes nothing: settled with the maintainer on 2026-11-24 and written into [12 V3](../design/12-tools-and-downloads.md#v3-uninstall). V3 gives no wording; the pull request says how the question reads.
 - **`tool list` warns once.** The old code printed a warning glyph to stdout; the new one prints one `warning:` line to stderr through `ui.warning`, and only when the list is unavailable.
 - **Candidates and builds are always printed by `format_build` with every installed build as `others`**, so the form typed back finds exactly that build (X3).
 - **Imports.** `versioning/__init__.py` emptied means `import tlaup.versioning.store` no longer drags in `requests`; keep it so. Package 49's test runs `tlaup tool dir` in-process and asserts that `requests`, `yaml`, `truststore`, `rich.progress`, the settings schema and `tlaup.versioning.github` were not imported.
@@ -334,7 +360,7 @@ State of `main` when this starts: packages 01 to 28 merged (the store track comp
 - The feature scenarios and plain tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - After 29a: `tlaup tools` and `tlaup tools meta sync` no longer exist. After 29b: `tlaup fetch-cache` no longer exists, and nothing under `src/` imports `tlaup.versioning.api`, `downloader`, `metadata`, `resolver`, `schema` or `tlaup.cache`.
 - The changelog entries are written, each in its pull request; `README.md` and `docs/contributing/development.md` name the new commands.
-- Each pull request names the inventory rows it covers (29b: T20, T21's `tool list` half).
+- Each pull request names the inventory rows of the table under Tests that it covers, each with its test: 29a T1, T5, T11, T27, T28, T31, T33, T34, T39 and its `VersionNotFound` scenarios of T8; 29b T18, T19, T20, T29, and the halves of T21 and T22.
 - The pull request says what the expected files of `tool list` chose for a release row's Build column and for the cached and stale lists, and how the `--all` question reads.
 
 ## Out of scope
@@ -360,6 +386,6 @@ State of `main` when this starts: packages 01 to 28 merged (the store track comp
 This package is delivered as two pull requests; the index lists them as 29a and 29b. Readers first does not work (two stores would be live, or nothing could install), so the split is by command. Each entry under Files names its pull request.
 
 - **29a** (L): `tool install`, `upgrade`, `uninstall`, `pin`, `current` and `dir`; deletion of the old `tools` group (`cmd/tools/`) and its registration; the store and GitHub steps and the `not-json` recording; four feature files and 29a's `errors.feature` scenarios; the renamed commands in 18's scenarios and 17's handler test; the changelog entries of V1, V3, V4, V5, V7, V11, V12, J3, F3, the C1 rows of these commands and X3's Added entry. Depends on everything this file lists.
-- **29b** (M): `tool list` (with `--installed`) and `tool path`, `tool_list.feature`, the `tool path` scenarios and F1's no-file scenario; deletion of `cmd/fetch_cache/`, `src/tlaup/cache/`, the old versioning modules and the tool functions of `versioning/paths.py`; `versioning/__init__.py` emptied and `cli.py`'s `get_app_version` import; the `get_tools_dir` assertion of `test_context.py`; `get_tlc_jar_path`'s new body; the entries of V8 (with D64's), X4, X3's Breaking entry and F6's `tool list` entry. Depends on 29a.
+- **29b** (M): `tool list` (with `--installed`) and `tool path`, `tool_list.feature`, the `tool path` scenarios and F1's no-file scenario; deletion of `cmd/fetch_cache/`, `src/tlaup/cache/`, the old versioning modules and the tool functions of `versioning/paths.py`; `versioning/__init__.py` emptied and `cli.py`'s `get_app_version` import; the `requests` half of 24's import test in `test_redact.py`; the `get_tools_dir` assertion of `test_context.py`; `get_tlc_jar_path`'s new body; the entries of V8 (with D64's), X4, X3's Breaking entry and F6's `tool list` entry. Depends on 29a.
 
 A package that names 29 as a dependency waits for 29b.

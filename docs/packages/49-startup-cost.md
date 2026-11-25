@@ -9,7 +9,7 @@ Size: S. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items:
-  - "Skip the `git rev-parse` call on normal installs; load heavy libraries (requests, Rich progress, pydantic schema) only in the commands that need them; set up the OS trust store where the network is used, not as a side effect of importing the package. `tlaup --help` took about a third of a second when measured." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 273), in full, with the design's correction that `pydantic` itself cannot be kept out.
+  - "Skip the `git rev-parse` call on normal installs; load heavy libraries (requests, Rich progress, pydantic schema) only in the commands that need them; set up the OS trust store where the network is used, not as a side effect of importing the package. `tlaup --help` took about a third of a second when measured." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 282), in full, with the design's correction that `pydantic` itself cannot be kept out.
 - Design sections:
   - [14 F9](../design/14-config-and-cli.md#f9-startup-cost), in full: the empty `tlaup/__init__.py`, function-level imports in command modules with the one exception of `tlaup/cmd/completion.py`, the check that the lint configuration says so, `get_app_version`, the three import tests (the third, on Typer's shell registry, as corrected by review finding D1), `test_app_version` with the fake `git`. `truststore` in `GitHubClient.__init__` is [24](24-github-client.md)'s, and the `PLC0415` per-file ignores are [17](17-error-handler.md)'s (review finding D2: they must be in place before the first command module); this package checks both.
   - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row P3 (a development install shows `+<short commit>` after the version): its test is here.
@@ -118,7 +118,7 @@ Under `## [Unreleased]`, word for word from [14 F9](../design/14-config-and-cli.
 - The three import tests and the version tests pass.
 - `tlaup/__init__.py` holds only a docstring.
 - The lint configuration states the function-level import rule for `src/tlaup/cmd/` and `src/tlaup/cli.py` (17's lines, checked).
-- The pull request gives the measurements described above.
+- The pull request gives the measurements described above and names the inventory row it owns (P3).
 - The changelog entries are written.
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 

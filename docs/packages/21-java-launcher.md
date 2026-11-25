@@ -330,6 +330,6 @@ From the cut:
 
 - No command reaches the launcher until 37 and 39, so its real-process and terminal scenarios, the ones that prove forwarding from outside the process and D60 on a real terminal, come many packages later. A fault they find then is fixed there, in this module.
 - After the throwaway model is deleted, no test kills a process that runs this launcher until [52](52-integration-tests.md). The three tests named under "Tests that must pass" cover the parts; the whole is seen first in the integration job.
-- Three joints are written by stage 4 (`stopped_for_closed_pipe`, the arguments of `ChildRun`, `reader_gone` as a parameter), settled with the index's readings on 2026-11-24, and `on_held` is G3's own. 35 and 37 are cut against them; a change here must reach those packages.
+- Three joints are written by stage 4 (`stopped_for_closed_pipe`, the arguments of `ChildRun`, `reader_gone` as a parameter), a reading of G3 that nobody has confirmed (the index lists it under "Readings the packages build on"), and `on_held` is G3's own. 35 and 37 are cut against them; a change here must reach those packages.
 - The stateful test fixes the step functions' names and arguments. If a step needs another argument, the test changes with it, and the specs' README says a worker may find that.
 - The package is large for one pull request: one module, three test files and an edited stateful test. It was not split, because the stateful test needs the whole of `ChildRun` and `Signals` before it can pass.

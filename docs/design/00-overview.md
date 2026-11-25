@@ -38,6 +38,7 @@ src/
     ui.py               the two consoles; error, warning, hint, note                         14 F6
     doctor.py           run_checks: doctor's checks as values; prints nothing                23 C1
     config/             schema.py, loader.py (layers)                                        14 F1
+      editor.py         editor_command, edit_file: config edit's editor                      14 F5
     project/
       core.py           find_project_root; the folder names spec, modules, classes, lib     11 R10
       spec.py           resolve_spec, resolve_cfg, the -config argument                      11 R4, R5
@@ -53,6 +54,8 @@ src/
       rundirs.py        run folders and their locks                                          11 R6
       overrides.py      which override classes will load on this build                       11 R7
     tools/              sany.py, pcal.py, repl.py: invocation and run for each               21
+      __init__.py       ENTRY_POINTS only, so tlc/command.py imports it cheaply              21 S4
+      invocation.py     ToolInvocation, resolve_tool_invocation, build_tool_command          21 S4
     reporters/          base.py, terminal.py, layout.py, collecting.py                       22
       text.py           pure text functions: durations, counts, diagnostics, lines           22 O3
     versioning/
@@ -61,6 +64,7 @@ src/
       jarinfo.py        read a jar's manifest and capabilities                               12 V5
       store.py          ToolStore, Build, the pin, the lock                                  12 V1
       github.py         GitHubClient                                                         12 V7
+      redact.py         redact(): the debug filter, no state                                 12 V7
       remote.py         releases, the lookup cache                                           12 V8
       download.py       download, verify                                                     12 V5
       install.py        install, upgrade, uninstall as functions                             12 V12, V3, V4
@@ -73,7 +77,7 @@ src/
       common.py         what the run commands share: the get_build wrapper                   21
 ```
 
-(Stage 4 review, 2026-11-24: the tree lists the modules stage 4 placed, `stdio.py`, `doctor.py`, `project/core.py` and `project/spec.py`, `java/opts.py`, `reporters/text.py`, `versioning/first_run.py` and `cmd/common.py`; index, "Clerical".)
+(Stage 4 review, 2026-11-24: the tree lists the modules stage 4 placed, `stdio.py`, `doctor.py`, `project/core.py` and `project/spec.py`, `java/opts.py`, `reporters/text.py`, `versioning/first_run.py` and `cmd/common.py`; index, "Clerical". Then `versioning/redact.py`, finding E11, and `config/editor.py`, `tools/__init__.py` with `ENTRY_POINTS` and `tools/invocation.py`, finding H14.)
 
 Rules that hold across the tree, all taken from the roadmap's "Keep" list or its milestone 5 items:
 
@@ -220,4 +224,4 @@ Items 4, 5 and 6 can run in parallel; so can 8, 9 and 10 once 7 is in.
 - The exit codes of [02 X1](02-cross-cutting.md#x1-exit-codes) and the stream rule of [02 X2](02-cross-cutting.md#x2-stdout-and-stderr).
 - The test rules of [01 T12](01-testing.md#t12-rules-for-writing-tests).
 - Decision D15: no Windows CI, but write code so it should work there. Use `os.pathsep` and `pathlib`; no `:` in folder names; signal code guarded by `hasattr(signal, ...)`; executables found with `shutil.which`, which adds `.exe`.
-- Between packages `main` is green: it builds, lint and the type checks pass, and the tests still in the suite pass. Nothing is released in between (D6), so an old command is not promised to keep working until the package that switches it (decision D62). The one exception is a CI job that runs real TLC through an old command: that command keeps working for as long as the job runs it ([30 I2](30-ci-and-release.md#i2-unit-job) names the one job and when it stops). (Stage 4 review, 2026-11-24: D62.)
+- Between packages `main` is green: it builds, lint and the type checks pass, and the tests still in the suite pass. Nothing is released in between (D6), so an old command is not promised to keep working until the package that switches it (decision D62). The one exception is a CI job that runs real TLC through an old command: that command keeps working for as long as the job runs it. The exception arises once: today's `tools install` step, which goes in 03b ([30 I2](30-ci-and-release.md#i2-unit-job)). (Stage 4 review, 2026-11-24: D62; the exception in one wording, finding E12.)

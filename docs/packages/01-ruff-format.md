@@ -25,9 +25,7 @@ Nothing.
 Changes, in the format commit (measured on the tree of 2026-11-24 with the locked ruff 0.17.5; run the formatter and take what it changes, the list is for orientation):
 
 - Eight Python files: `src/tlaup/cmd/tlc.py`, `src/tlaup/config/loader.py`, `src/tlaup/tlc/runner.py`, `tests/unit/cmd/test_tlc_cmd.py`, `tests/unit/test_cli.py`, `tests/unit/test_tlc_show_command.py`, `tests/unit/tlc/test_runner.py`, `tests/unit/tools/test_list.py`. The five test files are deleted with the rest of the old suite in 03b ([03](03-test-foundation.md), decision D62); they are formatted all the same, since the commit is the formatter's output and nothing else.
-- The Python code blocks of Markdown files: on that day seven design documents (`docs/design/01-testing.md`, `10-parser.md`, `11-runner.md`, `14-config-and-cli.md`, `20-groundwork.md`, `21-other-tools.md`, `22-reporters.md`) and ten package files under `docs/packages/`. Documents may change before this package is built, so the list on the day of the commit is whatever `uv run ruff format --check .` names.
-
-`uv run ruff format --check .` reported 25 files on 2026-11-24; the other files are already in the formatter's form.
+- The Python code blocks of Markdown files: the design documents and package files that `uv run ruff format --check .` names on the day of the commit. Documents change while the packages are reviewed, so no list or count is given here (finding F8 of the [second review](review-2026-11-24.md)); every other file is already in the formatter's form.
 
 Changes, in the commits around it:
 

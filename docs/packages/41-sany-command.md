@@ -9,17 +9,18 @@ Size: M. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items ([milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout)):
-  - "`sany` command: parse a spec and report diagnostics with file, line and column. Reuses the fixed SANY parser." (line 293), in full apart from its integration tests ([52](52-integration-tests.md)).
-  - "Keep all three thin (note 15): no logic beyond reading their output, everything through the shared launcher. Check which jar build is running, so the tool can switch to upstream's own entry point when it exists and fall back for older jars." (line 304), in part: the table of entry points, the capability check, the shared invocation and its unit tests. 42 and 43 keep their commands to the same rules.
-  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." (line 306), in part: passthrough for `sany` in `sany.feature`. The golden tests are [12](12-sany-parser.md) and [14](14-pcal-parser.md); `pcal`'s passthrough is 42's, `repl`'s 43's.
+  - "`sany` command: parse a spec and report diagnostics with file, line and column. Reuses the fixed SANY parser." (line 302), in full apart from its integration tests ([52](52-integration-tests.md)).
+  - "Keep all three thin (note 15): no logic beyond reading their output, everything through the shared launcher. Check which jar build is running, so the tool can switch to upstream's own entry point when it exists and fall back for older jars." (line 313), in part: the table of entry points, the capability check, the shared invocation and its unit tests. 42 and 43 keep their commands to the same rules.
+  - "Golden-file tests for SANY and PlusCal output per TLC version; passthrough after `--` for each." (line 315), in part: passthrough for `sany` in `sany.feature`. The golden tests are [12](12-sany-parser.md) and [14](14-pcal-parser.md); `pcal`'s passthrough is 42's, `repl`'s 43's.
 - Design sections:
   - [21](../design/21-other-tools.md), the head: `ToolInvocation`, `resolve_tool_invocation`, `build_tool_command`, the order of the preflight with the capability check, signals for `sany` (`signals_held` entered plainly, held until the command has printed), `--java-opt` and `--auto-install`, the tool's arguments after `--`. The `pcal` and `repl` uses of the same pieces are 42 and 43.
   - [21 S1](../design/21-other-tools.md#s1-sany): all of it except its integration tests (52), and except `source_excerpt` itself and its unit test, which [38](38-terminal-reporter.md) builds beside `format_diagnostic`; this package calls it and has the excerpt's feature scenarios (D66).
-  - Inventory row R21 (the SANY source excerpt, decided by D66), for `sany`: owner this package, with 38 for `tlc`.
+  - [23 C1](../design/23-command-layout.md#c1-command-tree): the `sany` line of the command tree (`tlaup sany SPEC`, `--java-opt`, `--auto-install`, the tool's arguments after `--`); the tree test is [48](48-command-tree.md)'s (finding H12).
   - [21 S4](../design/21-other-tools.md#s4-keeping-them-thin): `ENTRY_POINTS`, the capability check as the way to tell what a build can run, and its unit test with the recorded class lists.
   - [11 R11](../design/11-runner.md#r11-preflight), the paragraph on `sany`, `pcal` and `repl`: one resolving function on the same steps as `tlc`, step 0 holding the Java option check and the refusal of `-d`.
   - [02 X1](../design/02-cross-cutting.md#x1-exit-codes) rule 2, second exception (150 from `sany`), and rule 5's `sany -- -d`; [02 X2](../design/02-cross-cutting.md#x2-stdout-and-stderr) for `sany`: diagnostics on stdout, banner and progress on stderr, two streams through one pipe.
   - [01 T5](../design/01-testing.md#t5-feature-files-and-steps): `sany.feature`.
+- Rows of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) this package writes for `sany`, beside [38](38-terminal-reporter.md), their owner, which writes them for `tlc`: R20 (SANY errors with the file and line) and R21 (the source excerpt, decided by D66), each named beside its scenario under Tests (findings G1, H13).
 
 ## Depends on
 
@@ -29,7 +30,7 @@ Size: M. Suggested model: mid-tier. Status: ready.
 - [12](12-sany-parser.md): `SanyParser`, `SanyStep`, `SanyLineClass`, `SanyResult`.
 - [28](28-first-run.md): `ensure_tools`, `read_auto_install`.
 - [38](38-terminal-reporter.md): `format_diagnostic`, which writes a `Diagnostic` in the editor form, and `source_excerpt`, which makes the excerpt under it, both in `reporters/text.py` and shared with the terminal reporter ([22 O3](../design/22-reporters.md#o3-terminal-reporter): "Diagnostics in the editor form of 21 S1, each followed by the source excerpt ... made by the same function as for `tlaup sany`").
-- [18](18-feature-harness.md): `tests/test_features.py`, the steps of T5, the fake `java` that logs its working folder ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges)).
+- [18](18-feature-harness.md): `tests/test_features.py`, the steps of T5, the fake `java` that logs its working folder ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges)), and the modifier `java's output has "<text>" replaced by "<text>"`, which 18 adds outside T5's table for the fake's `replace` field and which the excerpt scenario needs (finding H2).
 - [39](39-tlc-command.md): the command conventions of the new `tlc`: the `get_build` wrapper round `ensure_tools`, reading `--auto-install` before the preflight, printing the preflight's warnings, `raise typer.Exit(code)`, imports inside the function; the registration line in `cli.py`.
 - [20](20-java-location.md): `require_java`, `JavaRuntime`. [23](23-tool-store.md): `Build.capabilities`, `Build.jar`, `format_build`. [22](22-version-spec-and-jarinfo.md): the `repl` capability as `read_jar` decides it.
 - [07](07-golden-files.md): the SANY captures under `tests/parse/golden/sany/<build>/` and their specs under `golden/specs/`, which the fake `java` replays.
@@ -61,7 +62,7 @@ Changes:
 
 Deletes: nothing. The old `tlaup.tlc.sany` went with [39](39-tlc-command.md).
 
-Files another package of the same period touches: `src/tlaup/cli.py` (one line each for 40 to 47); `src/tlaup/cmd/tlc.py` with [40](40-live-display.md), which adds two options there (this package changes one import line); `CHANGELOG.md`; `tests/steps/*.py`, if a step is added (none is planned). 42 and 43 come after this package and add their own files beside these.
+Files another package of the same period touches: `src/tlaup/cli.py` (one line each for 40 to 47); `src/tlaup/cmd/tlc.py` with [40](40-live-display.md), which adds two options there (this package changes one import line); `CHANGELOG.md`. No step file: the replace step this package's scenarios use (`java's output has "<text>" replaced by "<text>"`) is 18's, in [01 T5](../design/01-testing.md#t5-feature-files-and-steps)'s table. 42 and 43 come after this package and add their own files beside these.
 
 ## Interfaces
 
@@ -152,18 +153,19 @@ and each diagnostic in `SanyStep.diagnostics` to `sink.diagnostic`, with `file` 
 
 `sany_exit_code` (S1, step 6, D29, D55): the launcher's code when a signal or a closed pipe stopped the run (`process.stopped_by` set, or `process.stopped_for_closed_pipe`); else 150 when any diagnostic of `result` has severity `error`; else `process.exit_code`, SANY's own. A warning alone changes nothing. No `-error-codes` is added, on either build.
 
-**The editor form and the excerpt** (S1, step 4, D66), from [38](38-terminal-reporter.md), which owns both in `reporters/text.py`. This package and the terminal reporter call the same functions, so the two commands print a diagnostic the same way; the signatures are 38's (38 adds `spec`, the path written when the parser left `file` as `None`, so the fallback above can also be left to it):
+**The editor form and the excerpt** (S1, step 4, D66), from [38](38-terminal-reporter.md), which owns both in `reporters/text.py`. This package and the terminal reporter call the same functions, so the two commands print a diagnostic the same way; the signatures are S1's (`spec` is the path written when the parser left `file` as `None`, so the fallback above can also be left to it; `source_text` is the file's text, which the caller reads):
 
 ```python
-def format_diagnostic(d: Diagnostic, *, cwd: Path, spec: Path) -> list[str]
+def format_diagnostic(d: Diagnostic, *, cwd: Path, spec: Path, source_text: str | None) -> list[str]
     # first line: "<path>:<line>:<col>: <severity>: <message>", or "<path>: <severity>: <message>" with no location;
     # <path> is diagnostic.file written relative to cwd when it lies beneath cwd, else as given (absolute);
-    # the message's lines joined with "; "; then each line of `details`, indented
+    # the message's lines joined with "; "; then the excerpt (source_excerpt, when source_text is given and
+    # d has a location the text holds); then each line of `details`, indented (21 S1; finding H4)
 def source_excerpt(text: str, location: Location) -> list[str]
     # S1: two lines before, the line, the ^ marks, "Error here: line L, col A to B", two lines after
 ```
 
-The sink's `diagnostic` prints the editor-form line, then, for a diagnostic with a location, the excerpt, then the details the parser kept apart (a parse error's residual stack), indented, all on stdout. The command reads the file the editor-form line names (the file SANY announced for the module, absolute), as UTF-8 with undecodable bytes replaced, and gives its text to `source_excerpt`; no location, a file that cannot be read, or a line not in it give the editor-form line alone, with no note. The excerpt is text from outside tlaup, printed as text, never as markup ([10 P11](../design/10-parser.md#p11-tlc-text-and-rich-markup)). For research 12's `SemErr.tla` S1 gives:
+The sink's `diagnostic` prints `format_diagnostic`'s list on stdout as it comes: the editor-form line, then, for a diagnostic with a location, the excerpt, then the details (the lines the parser kept apart, a parse error's residual stack, indented). It splices nothing; 38's reporter prints a diagnostic the same way. The command reads the file the editor-form line names (the file SANY announced for the module, absolute), as UTF-8 with undecodable bytes replaced, and passes its text to `format_diagnostic` as `source_text` (`None` when the read fails); no location, a file that cannot be read, or a line not in it give the editor-form line alone, with no note. The excerpt is text from outside tlaup, printed as text, never as markup ([10 P11](../design/10-parser.md#p11-tlc-text-and-rich-markup)). For research 12's `SemErr.tla` S1 gives:
 
 ```
 SemErr.tla:4:13: error: Unknown operator: `y'.
@@ -207,13 +209,13 @@ Used by: [42](42-pcal-command.md) and [43](43-repl-command.md) (`resolve_tool_in
 `tests/features/sany.feature`, in-process (the fake `java` gets pipes under `run_streaming`, so no situation of T5 applies), with the fake replaying the SANY golden captures of 07 and a spec of the same name from the golden specs. On each build where the case exists:
 
 - A good spec (`sany-good`): exit 0, `stdout is empty`, `stderr contains "no errors"`.
-- Two semantic errors (`sany-semerr`, replayed with exit code 0): exit 150; `stdout contains ": error: " 2 times`; `stdout contains "SemErr.tla:4:13: error: Unknown operator: `y'."`.
+- Two semantic errors (`sany-semerr`, replayed with exit code 0): exit 150; `stdout contains ": error: " 2 times`; `stdout contains "SemErr.tla:4:13: error: Unknown operator: `y'."` (inventory row R20, for `sany`: the file, line and column).
 - A parse error (`sany-parseerr`, exit 255): one `: error: ` line and exit 150.
 - A missing module (`sany-missingmod`) on the replay of each build: one line with no position (`MissingMod.tla: error: Cannot find source file for module NoSuchModule`), exit 150; on v1.7.4 `stdout contains "File does not exist"` (the line that comes from SANY's stderr, through the one pipe), and on rolling the message once although SANY printed it twice.
 - 4802 (`sany-warn4802`, replayed with exit code 0): `stdout contains ": error: " 1 times` and exit 150 (D55).
 - The stale-PlusCal warning alone (`sany-stale-alg`, both forms): `stdout contains ": warning: " 1 times`, exit 0.
 - `-- -xy` (`sany-grouped-unknown`, exit 255): `java was started with "-xy"`; SANY's own text (`Illegal switch: -xy` on v1.7.4, `Invalid option: -xy` on rolling) is on stdout; exit 255.
-- The source excerpt (D66; inventory row R21): the `sany-semerr` replay with the fake's `replace` mapping the capture's folder to the scenario's folder, where the scenario writes research 12's `SemErr.tla` (`a file "SemErr.tla" containing:`), gives on stdout exactly the two editor-form lines, each followed by its excerpt as above (the two lines after included), and exit 150. The same replay without the file there gives the two editor-form lines alone, exit 150, and no `error:` line of tlaup's own. The pull request names row R21.
+- The source excerpt (D66; inventory row R21): the `sany-semerr` replay with `java's output has "<the capture's folder>" replaced by "{work}"` (18's modifier, which fills the fake's `replace`; the folder is the one the capture's `Parsing file` line holds), where the scenario writes research 12's `SemErr.tla` (`a file "SemErr.tla" containing:`), gives on stdout exactly the two editor-form lines, each followed by its excerpt as above (the two lines after included), and exit 150. The same replay without the file there gives the two editor-form lines alone, exit 150, and no `error:` line of tlaup's own. The pull request names row R21.
 - `-- -d`: exit 2, one `error:` line, `java was not started`; the same with `no build is installed`, and then `0 requests were sent to GitHub` and nothing installed (no prompt, D45).
 - The banner and progress of a replay: `stderr contains "SANY2 Version"` and `stderr contains "Semantic processing of module"`; `stdout does not contain "Parsing file"`.
 - The working folder: `java was started with "SemErr.tla"` (the bare file name), and `java was started in the folder` the spec's folder, in a scenario where tlaup is started in another folder and the spec is named by a relative path from there.
@@ -289,14 +291,14 @@ S4 has none. V9's entry, which names `sany`, `pcal` and `repl` among the command
 - `ENTRY_POINTS` is the only place a main class is named in `src/` (a search for the four names finds no other use outside comments); `tlc/command.py` uses it; the classpath of a TLC run and of `sany` come from one function.
 - The two class lists are committed with the build they were read from, and the pull request says how they were made (from the jars' file lists, for example with `zipfile`; class names only).
 - The changelog entry is under `## [Unreleased]`; the code map names `tools/`.
-- The pull request shows `sany.feature` failing before the command existed (T12 rule 6), says which `get_build` module it used, and names the inventory row it covers (R21, for `sany`).
+- The pull request shows `sany.feature` failing before the command existed (T12 rule 6), says which `get_build` module it used, and names the inventory rows it writes for `sany` (R20, R21).
 
 ## Out of scope
 
 - `tlaup pcal`, `pcal.feature`, the notes for the files the translator writes: [42](42-pcal-command.md). `tlaup repl`, `repl.feature`, `leave_interrupt`, the scenario for `ToolNotInBuild`: [43](43-repl-command.md).
 - `SanyParser` and the SANY golden tests: [12](12-sany-parser.md). The expected SANY results: [15](15-golden-expected-results.md) (15e).
 - The terminal reporter's use of the editor form inside a `tlc` run: [38](38-terminal-reporter.md).
-- Integration tests ([01 T9](../design/01-testing.md#t9-integration-tests)), all in [52](52-integration-tests.md): the T9 row "`sany` on a good and a bad spec; `pcal` on a copy of a PlusCal spec" (its `sany` half: diagnostics with file, line and column, the exit codes of D29), and S1's integration list: real SANY on both builds, the missing module on v1.7.4 (the run that shows the stderr line is not lost), a spec that extends a registered module, and a spec beside which a module lies while a module of the same name lies in the starting folder (the spec's own is used). The weekly run that catches an upstream rename of a main class: [54](54-integration-job.md).
+- Integration tests ([01 T9](../design/01-testing.md#t9-integration-tests)), all in [52](52-integration-tests.md): the T9 row "`sany` on a good and a bad spec; `pcal` on a copy of a PlusCal spec" (its `sany` half: diagnostics with file, line and column, the exit codes of D29), and S1's integration list: real SANY on both builds, the missing module on v1.7.4 (the run that shows the stderr line is not lost), a spec that extends a registered module, and a spec beside which a module lies while a module of the same name lies in the starting folder (the spec's own is used). S1's excerpt against real SANY output and a real file (a semantic error on both builds; the excerpt's lines under each editor-form line come from the spec on disk) is in 52a too (finding H3). The weekly run that catches an upstream rename of a main class: [54](54-integration-job.md).
 - The command-tree test and the removed names: [48](48-command-tree.md). Help wording beyond the lines named above: [50](50-help-and-messages.md).
 - The hand-off to an upstream entry point: nothing to design until upstream ships one (S4, research 3).
 

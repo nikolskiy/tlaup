@@ -9,7 +9,7 @@ Size: L, as two pull requests of size M (08a, 08b). Suggested model: most capabl
 ## Covers
 
 - Roadmap items:
-  - "Capture real `-tool` output from TLC 1.7.4 and the current rolling build ... Add expected parsed results. Drive the parser exactly as the runner does, with lines that keep their newline. These tests should fail first." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 147), in part: the tests that fail first, and the driving of the parser. The files are [07](07-golden-files.md); the full expected results are [15](15-golden-expected-results.md); the parser is [09](09-parse-package-and-model.md) to [13](13-tlc-parser.md).
+  - "Capture real `-tool` output from TLC 1.7.4 and the current rolling build ... Add expected parsed results. Drive the parser exactly as the runner does, with lines that keep their newline. These tests should fail first." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 156), in part: the tests that fail first, and the driving of the parser. The files are [07](07-golden-files.md); the full expected results are [15](15-golden-expected-results.md); the parser is [09](09-parse-package-and-model.md) to [13](13-tlc-parser.md).
 - Design sections:
   - [01 T3](../design/01-testing.md#t3-golden-files): "Two kinds of expectation", item 1 (the facts) and the sentence on `facts.py` and the integration tests, which now says that the file holds TLC facts only (question Q18); "How the parser is driven" for the facts. The three properties are [10](10-framing-and-codes.md) and 13; item 2 is 15.
   - [10 P1](../design/10-parser.md#p1-golden-files): "every TLC case that has a capture has facts".
@@ -157,6 +157,7 @@ Every case gets at least, from stage 4: its verdict and status (`run`); the numb
 - Each pull request shows `uv run pytest -m pending tests/parse/test_facts.py` failing, with its summary line.
 - Every fact carries the comment naming its capture line, so the reviewer can check it against the file; the pull request says which facts are per line and why.
 - A separate review agent checks every fact of a pull request against its capture, one pull request at a sitting.
+- The pull request that writes the facts R30 rests on (08a, research 1's finished runs) names inventory row R30 and those facts.
 
 ## Out of scope
 

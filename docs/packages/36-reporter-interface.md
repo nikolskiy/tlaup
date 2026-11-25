@@ -9,7 +9,7 @@ Size: S. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items, [milestone 1b](../roadmap.md#milestone-1b-other-tools-reporters-command-layout):
-  - "A reporter interface fed by the parsed result and run events. Move the streaming state and the final summary out of the command into it; the command shrinks to option parsing, error mapping and the exit code. Terminal and non-terminal output differ only in where they write and in the footer." (line 313). In part: the interface. The order of calls and O1's unit test of it are [37](37-run-tlc.md)'s; the terminal reporter [38](38-terminal-reporter.md)'s; the command that shrinks, and `make_reporter`, [39](39-tlc-command.md)'s.
+  - "A reporter interface fed by the parsed result and run events. Move the streaming state and the final summary out of the command into it; the command shrinks to option parsing, error mapping and the exit code. Terminal and non-terminal output differ only in where they write and in the footer." (line 322). In part: the interface. The order of calls and O1's unit test of it are [37](37-run-tlc.md)'s; the terminal reporter [38](38-terminal-reporter.md)'s; the command that shrinks, and `make_reporter`, [39](39-tlc-command.md)'s.
 - Design sections:
   - [22 O1](../design/22-reporters.md#o1-reporter-interface): `RunInfo`, the `Reporter` protocol with its rules for `start`, `handle`, `stderr_line`, `notice`, `finish`, `close` and `write_error` (`notice` added by the stage 4 review, question Q12), the `CollectingReporter` of the reporters table, which also records the notices, and the signature of `make_reporter` (written here, created in 39). Not this package: the order of the calls as `run_tlc` makes them and O1's Tests paragraph (37); the command sketch (39); the `TerminalReporter`'s own `close` (O6, packages 38 and 40).
 
@@ -99,7 +99,7 @@ class CollectingReporter:            # tests and the Python API; prints nothing
 
 What O1 leaves to the class, as built (stage 4's choices, all internal to tests):
 
-- `calls` records the name of each method as it is called, `notice` included. A test that also wants the runner's `notice` argument (the kept-folders reminder, printed through `ui.note` before `start`) in the same order passes its own list as `calls` and appends to it from its `notice` function; [37](37-run-tlc.md) does that.
+- `calls` records the name of each method as it is called, `notice` included. A test that also wants the runner's `notice` argument (the kept-folders reminder, printed through `ui.note` before `start`) in the same order passes its own list as `calls` and appends `"note: <line>"` to it from its `notice` function, so the two kinds of entry stay apart: `"notice"` is the reporter's method, `"note: ..."` the runner's argument; [37](37-run-tlc.md) does that (finding G9).
 - `finish` records the outcome and does not call `close`: it holds nothing. `close` appends `"close"` the first time it is called and does nothing on a later call, so O1's sequence "`start`, events, `finish`, `close`" is what a test reads. A test that needs to count every call can count them in a subclass.
 - The methods are plain and do nothing else, so a test may subclass the reporter to act from a callback: send a signal from `start` or `handle` ([37](37-run-tlc.md)'s exact-moment tests), raise from `handle`, or set `write_error` in `close`.
 

@@ -9,13 +9,13 @@ Size: S. Suggested model: mid-tier. Status: ready.
 ## Covers
 
 - Roadmap items:
-  - "CLI reference generated from the code, with CI failing when the checked-in copy drifts. Run the README quick start commands in CI." ([documentation track](../roadmap.md#documentation-track-parallel-start-with-milestone-1), line 497), in part: the first sentence. The second, running the README quick start in CI, is not in [23 C5](../design/23-command-layout.md#c5-help-and-the-cli-reference) and has no package in this cut (the report says so).
-  - "Help text (raised list): ... the generated reference is built from help." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 268), in part: the generated reference. The help text is [50](50-help-and-messages.md).
+  - "CLI reference generated from the code, with CI failing when the checked-in copy drifts. Run the README quick start commands in CI." ([documentation track](../roadmap.md#documentation-track-parallel-start-with-milestone-1), line 508), in part: the first sentence. The second, running the README quick start in CI, is not in [23 C5](../design/23-command-layout.md#c5-help-and-the-cli-reference) and has no package in this cut (the report says so).
+  - "Help text (raised list): ... the generated reference is built from help." ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust), line 277), in part: the generated reference. The help text is [50](50-help-and-messages.md).
 - Design sections:
   - [23 C5](../design/23-command-layout.md#c5-help-and-the-cli-reference), in full.
   - [01 T8](../design/01-testing.md#t8-expected-output-files): the generated CLI reference is one of the expected files the helper compares.
   - [14 F7](../design/14-config-and-cli.md#f7-help-text), Tests: "The generated reference is an expected file; CI fails when it drifts."
-  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row P5 (owner 51): help shows every command with a one-line description, and `tlc --help` lists its options. The checked-in reference and its drift test hold it.
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row P5 (owner 51): help shows every command with a one-line description, and `tlc --help` lists its options. The test that holds it is `test_every_command_has_help` below; the checked-in reference shows the same to a reader (finding H6).
 
 ## Depends on
 
@@ -31,7 +31,7 @@ Creates:
 
 - `scripts/gen_cli_reference.py`: `render_reference(app) -> str` and a `main()` that writes `docs/reference/cli.md`.
 - `docs/reference/cli.md`: the generated reference, checked in.
-- `tests/unit/test_cli_reference.py`: the drift test.
+- `tests/unit/test_cli_reference.py`: the drift test, and the test that every command has a description (inventory row P5).
 
 Changes:
 
@@ -71,7 +71,9 @@ Consumes: `tlaup.cli.app` (17, 48); `assert_matches` (03).
 
 T12 rule 6: the pull request shows the test failing on a help string changed by hand and passing after `uv run poe docs-cli`.
 
-No feature file, no stateful test. The pull request names inventory row P5 as covered: the reference lists every command with its one-line description and `tlc`'s options, and the drift test fails when one goes missing.
+**`test_every_command_has_help`**, in the same file (inventory row P5; finding H6). The drift test alone does not hold P5: a command whose docstring is removed passes it once the reference is regenerated. So, on `typer.main.get_command(tlaup.cli.app)` walked depth first: every group and command, the root included, has a non-empty short help (`get_short_help_str()`, or `short_help` or the first line of `help`), so the root's and each group's help show a one-line description beside every command; and every option of `tlc` has a non-empty `help`, so `tlc --help` lists each with a description (which options `tlc` has is [48](48-command-tree.md)'s tree test against [23 C1](../design/23-command-layout.md#c1-command-tree)). The test asserts presence only, never wording (T12 rule 4).
+
+No feature file, no stateful test. The pull request names inventory row P5 as covered, by `test_every_command_has_help`.
 
 ## Changelog
 
@@ -92,10 +94,10 @@ None (C5: documentation).
 ## Done when
 
 - `uv run poe docs-cli` writes `docs/reference/cli.md`; a second run changes nothing.
-- The drift test passes in the default suite and fails, with a diff, after any help string is changed without regenerating.
+- The drift test passes in the default suite and fails, with a diff, after any help string is changed without regenerating; `test_every_command_has_help` passes, and fails when one command's help is emptied.
 - `docs/README.md` has the row for `reference/`; `docs/contributing/development.md` names the task.
 - `uv run poe lint` (mypy and ruff on `scripts/`), `uv run poe test` and `uv run pre-commit run --all-files` pass; CI is green.
-- The pull request shows the red run of T12 rule 6 and says how usage lines are made.
+- The pull request shows the red run of T12 rule 6, says how usage lines are made, and names the inventory row it owns (P5).
 
 ## Out of scope
 

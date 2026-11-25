@@ -15,6 +15,7 @@ Size: M. Suggested model: most capable. Status: ready.
 - Design sections:
   - [12 V5](../design/12-tools-and-downloads.md#v5-download-and-verify): `download.py`, that is `fetch_build` and its six steps, with V5's download tests. `jarinfo.py` was package [22](22-version-spec-and-jarinfo.md). "The commit comparison" for a typed commit, `tool_install.feature` and V5's changelog entries are packages 27 and 29.
   - [01 T6](../design/01-testing.md#t6-download-and-github-failure-tests): the nine download rows.
+- The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md): row T9 (a failed download leaves no half-installed build behind), whose owner this package is, with [27](27-install-steps.md).
 
 ## Depends on
 
@@ -102,7 +103,9 @@ Also:
 - The retry happens once, not once per kind of mismatch: a 404, then a wrong digest, is the error after two attempts.
 - `usable_digest` for a lower-case and an upper-case `sha256:` digest, another prefix, a `sha256:` with the wrong number of digits, and `None`.
 
-Old tests: none is left (03b). No row of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) names this package as its owner; T9 (a failed download leaves nothing half-installed) is held by the store-state assertions above and by 29's feature. Stateful tests: none applies to this package; the stateful store test replaces `fetch_build` with its own function.
+Row T9 of the [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md) (a failed download leaves no half-installed build behind) is this package's, with [27](27-install-steps.md) (findings F1 and G1 of the [second review](review-2026-11-24.md)). Its test here is the store-state assertion of every failing T6 row above: `store.builds()` is what it was, the earlier build's jar keeps its SHA-256, and nothing was written outside `dest_dir`. 27's test that nothing of the command is left under `.tmp/` after a failed download is the other half, and 29's `--force` scenario shows it to a user.
+
+Old tests: none is left (03b). Stateful tests: none applies to this package; the stateful store test replaces `fetch_build` with its own function.
 
 ## Changelog
 
@@ -129,7 +132,7 @@ Points that are easy to miss:
 - **The two rows about a body that stops.** A connection that is reset or times out while the body is read comes out of the client as `NetworkError` and is not retried here: step 4's retry is for a mismatch or a 404. A body that simply ends early is a size mismatch, `DownloadVerificationError`, and is retried once. If the finished client cannot tell the two apart for some way of serving the body, T6's Risks apply: the row that cannot be reached is removed with a line in the pull request, not bent to fit.
 - **Step 4 fetches the release again**, because the likely cause is a replaced asset: the second attempt compares with the new `size` and `digest`. Fetch it with `client.get_json` on the tag's path, percent-encoded, and `parse_release` (package 25). The retry is once in total.
 - **Before the second attempt the file is started again from nothing**, and so is the hash.
-- **`fetch_build` returns the jar and the info, not the release.** After a retry the caller still holds the release it looked up first, whose `asset.id` and `asset.updated_at` may be one upload old. What the caller writes into `Source` is package 27's business (settled with the index's readings: the one extra download at the next install for a release without a digest is accepted). Do not change the return type to hand the release back: the stateful test fixes it.
+- **`fetch_build` returns the jar and the info, not the release.** After a retry the caller still holds the release it looked up first, whose `asset.id` and `asset.updated_at` may be one upload old. What the caller writes into `Source` is package 27's business; the cost, one extra download at the next install for a release without a digest, is accepted (a reading, not confirmed: the index lists it under "Readings the packages build on"). Do not change the return type to hand the release back: the stateful test fixes it.
 - **`limit`.** Pass the asset's `size + 1` to `client.download`, so that a body longer than the asset is seen and a server cannot fill the disk.
 - **A digest with another prefix is not an error.** It is treated as a release with no digest. For such a release the checks are size, zip validity and `tlc2/TLC.class`.
 - **`read_jar` hashes the file again.** Its `sha256` must equal the hash made while downloading; if they differ, something wrote to the file in between, and that is `DownloadVerificationError`.
@@ -149,6 +152,7 @@ State of `main` when this starts: the 0.8.x code with packages 01 to 03, 05 and 
 - The tests above pass; `uv run poe lint` and `uv run poe test` pass; CI is green.
 - No file listed under "Must not touch" is in the diff.
 - The pull request says: which T6 row, if any, was removed as unreachable and why; what happens when the refreshed release has no asset; and what was found about the fixture's sizes and digests.
+- The pull request names inventory row T9 and its test (the store-state assertions of the failing T6 rows).
 
 ## Out of scope
 

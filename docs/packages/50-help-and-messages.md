@@ -9,17 +9,17 @@ Every command's help says what the raised list asks for, the root help is groupe
 ## Covers
 
 - Roadmap items ([milestone 1](../roadmap.md#milestone-1-a-runner-you-can-trust)):
-  - "Help text (raised list): what `upgrade` means ...; examples or a longer description on the main commands, since none has any and the generated reference is built from help." (line 268), in full apart from the generated reference ([51](51-cli-reference.md)).
-  - "Wording: one word for a stopped run ('canceled' and 'stopped' are both used); module timestamps with a time zone; the typos listed in the report." (line 269), in full: most of it is built by earlier packages, which this one checks and completes.
-  - "Error messages (raised list): list the locations searched when a spec is not found; 'did you mean v1.8.0' for a version typed without the `v`; say when GitHub rate-limited the request and how to give a token; add the next command to 'no pinned version' errors; drop 'Successfully installed' after 'already installed' and mention `--force`; show the classpath when `javac` fails." (line 266), in full: each message is built where it is raised; this package adds the scenarios and closes what is missing.
-  - "Route every message through the one UI helper; ..." (line 267), in part: the check that nothing is left and the two changelog entries (see Changelog).
+  - "Help text (raised list): what `upgrade` means ...; examples or a longer description on the main commands, since none has any and the generated reference is built from help." (line 277), in full apart from the generated reference ([51](51-cli-reference.md)).
+  - "Wording: one word for a stopped run ('canceled' and 'stopped' are both used); module timestamps with a time zone; the typos listed in the report." (line 278), in full: most of it is built by earlier packages, which this one checks and completes.
+  - "Error messages (raised list): list the locations searched when a spec is not found; 'did you mean v1.8.0' for a version typed without the `v`; say when GitHub rate-limited the request and how to give a token; add the next command to 'no pinned version' errors; drop 'Successfully installed' after 'already installed' and mention `--force`; show the classpath when `javac` fails." (line 275), in full: each message is built where it is raised; this package adds the scenarios and closes what is missing.
+  - "Route every message through the one UI helper; ..." (line 276), in part: the check that nothing is left and the two changelog entries (see Changelog).
 - Design sections:
   - [14 F7](../design/14-config-and-cli.md#f7-help-text), in full.
   - [14 F8](../design/14-config-and-cli.md#f8-wording), in full (the parts built by 09, 30, 31, 38 and 40 are checked here).
   - [14 F11](../design/14-config-and-cli.md#f11-error-messages), in full: the checklist and its scenarios.
   - [14 F6](../design/14-config-and-cli.md#f6-messages), in part: the Changed and Fixed entries and the check that no old message helper is left (proposed by stage 4; see Changelog).
   - [23 C4](../design/23-command-layout.md#c4-version-flag), in part: "the package's one-line summary, which is the same text the root help shows". `-V` itself is [48](48-command-tree.md).
-  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row T8 (an unknown version name is an error naming it): its `errors.feature` scenario is F11's "closest tag" row below.
+  - The [preserved-behaviour inventory](../design/preserved-behaviour-2026-11-22.md), row T8 (an unknown version name is an error naming it), whose owner this package is: its `errors.feature` scenario is F11's "closest tag" row below; the row's "With" part is [29](29-tool-commands.md)'s `VersionNotFound` scenarios (`tool_uninstall.feature`'s `v1.8.0 nosuch`, `tool_pin.feature`'s `tool pin v1.8.0`). Row P5 (help shows every command with a one-line description, and `tlc --help` lists its options), with [51](51-cli-reference.md), its owner: this package writes the one-line help of every command and the help of each `tlc` option, and 51's test asserts that none is missing (finding H13).
 
 ## Depends on
 
@@ -146,6 +146,7 @@ F6's third entry, "A warning from `tool list` went to stdout.", is [29](29-tool-
 - No user-visible "canceled", "cancelled" or "stopped" for a run is left in `src/`; `module list` shows `UTC`; the two changelog typos are corrected.
 - No old message function is left in `tlaup/ui.py`; no `typer.echo` remains outside `ui.py` and the reporters (`grep`, ahead of [58](58-lint-rules.md)'s rule).
 - The changelog entries are written.
+- The pull request names inventory row T8, which it owns, and its part of P5 (every command's one-line help, every `tlc` option's help; 51's test holds the row).
 - `uv run poe lint` and `uv run poe test` pass; CI is green.
 
 ## Out of scope
