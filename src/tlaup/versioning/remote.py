@@ -144,7 +144,7 @@ class Remote:
         self._now = now
         self._url = f"{client.base_url}/releases"
 
-    def _fetch(self) -> list[Release]:
+    def fetch_releases(self) -> list[Release]:
         """Ask GitHub for the list and cache what came back. Raises the client's errors; an error is never cached."""
         data = self._client.get_paged("/releases")
         releases = [parse_release(item, url=self._url) for item in data]
@@ -158,7 +158,7 @@ class Remote:
         if cached is not None and 0 <= (self._now() - cached[1]).total_seconds() < max_age:
             return cached[0], Freshness.CACHED
         try:
-            return self._fetch(), Freshness.ONLINE
+            return self.fetch_releases(), Freshness.ONLINE
         except (NetworkError, RateLimited, RemoteDataError):
             if cached is not None:
                 return cached[0], Freshness.STALE
@@ -188,7 +188,7 @@ class Remote:
             message = "a build time does not name a release"
             raise VersionNotFound(message)
         if name == "stable":
-            chosen = stable_of(self._fetch())
+            chosen = stable_of(self.fetch_releases())
             if chosen is None:
                 message = "no stable release is available"
                 raise VersionNotFound(message, hint="run `tlaup tool list` to see the releases")

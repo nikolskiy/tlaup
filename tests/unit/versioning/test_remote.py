@@ -475,3 +475,17 @@ def test_a_null_or_absent_digest_and_a_null_published_at_parse() -> None:
     assert parse_release(item, url="u").asset.digest is None  # type: ignore[union-attr]
     del jar["digest"]
     assert parse_release(item, url="u").asset.digest is None  # type: ignore[union-attr]
+
+
+def test_fetch_releases_is_fresh_raises_the_clients_error_and_never_serves_the_cache(
+    github: GitHub, remote: Remote, cache_dir: Path, clock: FakeClock
+) -> None:
+    fake = github()
+    assert len(remote.fetch_releases()) == len(recorded_list())
+    assert len(files(cache_dir)) == 1  # written as releases() writes it
+    remote.fetch_releases()
+    assert sum(1 for r in fake.requests if (r.url or "").split("?")[0] == URL) == 2  # no cache hit
+    fake.unreachable()
+    with pytest.raises(NetworkError):
+        remote.fetch_releases()
+    assert remote.releases(max_age=0)[1] is Freshness.STALE  # releases() still falls back to the cache
