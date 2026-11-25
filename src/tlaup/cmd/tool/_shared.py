@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-from tlaup.errors import ConfigInvalid
+from tlaup.errors import ConfigInvalid, NoPinnedBuild, NoToolsInstalled, VersionNotFound
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
@@ -96,6 +96,32 @@ def printed(build: Build, every: Sequence[Build]) -> str:
     from tlaup.versioning.spec import format_build
 
     return format_build(build, every)
+
+
+def pinned_build(store: ToolStore) -> Build:
+    """The pinned build, for ``tool current`` and ``tool path``; NoPinnedBuild, NoToolsInstalled or
+    PinnedBuildMissing (3) when there is none to show."""
+    build = store.pinned()  # PinnedBuildMissing for a pin that names no installed build
+    if build is not None:
+        return build
+    every = store.builds()
+    if every:
+        names = ", ".join(printed(other, every) for other in every)
+        message = "no version pinned"
+        raise NoPinnedBuild(message, hint=f"run `tlaup tool pin <one of: {names}>`")
+    message = "no TLA+ tools installed"
+    raise NoToolsInstalled(message, hint="run `tlaup tool install stable` or `tlaup tool install rolling`")
+
+
+def not_installed(text: str, spec: VersionSpec) -> VersionNotFound:
+    """``VersionNotFound`` for a spec no installed build matches, naming ``tool install`` where it names a release."""
+    names_a_release = spec.name is not None and spec.sha256 is None
+    hint = (
+        f"run `tlaup tool install {text}` to install it, or `tlaup tool list --installed` to see what is"
+        if names_a_release
+        else "run `tlaup tool list --installed` to see the installed builds"
+    )
+    return VersionNotFound(f"{text} is not installed", hint=hint)
 
 
 def joined(names: Sequence[str]) -> str:

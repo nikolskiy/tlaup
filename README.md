@@ -16,7 +16,7 @@ Command-line tool for working with TLA+ specifications and the TLC model checker
 
 ### 1. Toolset Management (`tlaup tool`)
 * `tlaup check-java`: Verify Java installation and compatibility.
-* `tlaup tools list`: List available and installed toolset versions (`tla2tools.jar`).
+* `tlaup tool list`: List available and installed toolset versions (`tla2tools.jar`).
 * `tlaup tool install [vX.Y.Z]`: Download and install a toolset version.
 * `tlaup tool pin <version>`: Set default toolset version for TLC runs.
 

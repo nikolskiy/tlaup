@@ -10,6 +10,10 @@ import io
 import json
 import os
 import stat
+import subprocess
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -18,20 +22,19 @@ import responses
 import tlaup.cli
 from tests.clock import FakeClock
 from tests.github import BASE
-from tests.steps._store import add_build
+from tests.steps._store import add_build, published_jars, recorded_releases
 from tlaup.cmd.tool._shared import download_progress
 from tlaup.cmd.tool.install import install_tools
 from tlaup.cmd.tool.upgrade import upgrade_tools
 from tlaup.errors import TlaupError
 from tlaup.ui import Ui
 from tlaup.versioning.github import GitHubClient
-from tlaup.versioning.remote import Remote
+from tlaup.versioning.remote import Remote, write_cache
 from tlaup.versioning.spec import parse_version_spec
 from tlaup.versioning.store import ToolStore
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from pathlib import Path
 
     from tests.conftest import Isolated
     from tests.github import GitHubFake
@@ -192,3 +195,27 @@ def test_an_upgrade_whose_old_build_cannot_be_removed_says_what_was_done_and_exi
     assert len(lines) == 3
     assert out.getvalue() == ""
     assert old.id in [build.id for build in store.builds()]  # the old build is intact
+
+
+@pytest.mark.skipif(not Path("/dev/full").exists(), reason="/dev/full exists on Linux only")
+def test_tool_list_with_stdout_on_dev_full_exits_5(isolated: Isolated, tmp_path: Path) -> None:
+    # 02 X1: a full disk under the table is "cannot write output" and 5. A real process, from a store that already
+    # holds two builds and a fresh cache, so that it asks no one.
+    store = ToolStore(isolated.paths, now=FakeClock().now)
+    add_build(store, tmp_path, "v1.7.4", pinned=True)
+    add_build(store, tmp_path, "rolling")
+    url = f"{os.environ['TLAUP_TOOL_REPOSITORY']}/releases"
+    write_cache(isolated.paths.remote, url, recorded_releases("releases", published_jars(tmp_path)), datetime.now(UTC))
+    with Path("/dev/full").open("wb") as full:
+        done = subprocess.run(
+            [sys.executable, "-m", "tlaup", "tool", "list"],
+            stdin=subprocess.DEVNULL,
+            stdout=full,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+    assert done.returncode == 5
+    assert "cannot write output" in done.stderr
+    assert "Traceback" not in done.stderr

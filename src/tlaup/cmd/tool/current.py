@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING
 
 import typer
 
-from tlaup.errors import NoPinnedBuild, NoToolsInstalled
-
 if TYPE_CHECKING:
     from tlaup.context import AppContext
     from tlaup.ui import Ui
@@ -27,18 +25,10 @@ def current_command(ctx: typer.Context) -> None:
 
 def show_current(store: ToolStore, ui: Ui) -> int:
     """Two lines on stdout: the pinned build with its build time, and its jar."""
-    from tlaup.cmd.tool._shared import printed
+    from tlaup.cmd.tool._shared import pinned_build, printed
 
-    build = store.pinned()  # PinnedBuildMissing for a pin that names no installed build
-    every = store.builds()
-    if build is None:
-        if every:
-            names = ", ".join(printed(other, every) for other in every)
-            message = "no version pinned"
-            raise NoPinnedBuild(message, hint=f"run `tlaup tool pin <one of: {names}>`")
-        message = "no TLA+ tools installed"
-        raise NoToolsInstalled(message, hint="run `tlaup tool install stable` or `tlaup tool install rolling`")
-    shown = printed(build, every)
+    build = pinned_build(store)
+    shown = printed(build, store.builds())
     if build.calver is not None and not shown.endswith(build.calver):
         shown = f"{shown} ({build.calver})"
     ui.result(shown)
