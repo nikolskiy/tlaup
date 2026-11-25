@@ -1,6 +1,6 @@
 # 04. Delete dead code
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

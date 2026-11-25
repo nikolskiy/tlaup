@@ -10,7 +10,6 @@ from rich.tree import Tree
 
 from tlaup.tlc.components import (
     HeaderComponent,
-    LogDeduplicator,
     LogsComponent,
     StatsTableComponent,
     StatusInfoComponent,
@@ -79,7 +78,6 @@ class TlcFormatter:
     """Generates Rich layout for TLC model checking."""
 
     def __init__(self, tlc_version: str = "unknown") -> None:
-        self.info_dedup = LogDeduplicator()
         self.tlc_version = tlc_version
         self.header_comp = HeaderComponent(tlc_version)
         self.status_info_comp = StatusInfoComponent()

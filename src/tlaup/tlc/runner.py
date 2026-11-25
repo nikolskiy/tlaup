@@ -114,7 +114,7 @@ def build_tlc_command(spec: str, cfg: str | None = None) -> list[str]:
     config = load_config()
 
     jar_path = get_tlc_jar_path()
-    if not jar_path.exists():
+    if jar_path is None or not jar_path.exists():
         msg = "tla2tools.jar not found. Run 'tlaup tools install' first."
         raise FileNotFoundError(msg)
 
@@ -270,7 +270,7 @@ def get_tlc_version() -> str | None:
     """Return the first line of 'java -cp tla2tools.jar tlc2.TLC -version'."""
     config = load_config()
     jar_path = get_tlc_jar_path()
-    if not jar_path.exists():
+    if jar_path is None or not jar_path.exists():
         return None
 
     cmd = ["java", "-cp", str(jar_path), config.tlc.java_class, "-version"]

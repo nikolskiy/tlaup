@@ -2,11 +2,6 @@ import contextlib
 from pathlib import Path
 
 from tlaup.config.loader import cache_dir
-from tlaup.ui import warn
-
-
-def get_github_cache_file() -> Path:
-    return cache_dir() / "github_cache.json"
 
 
 def get_tools_dir() -> Path:
@@ -32,7 +27,6 @@ def get_pinned_path() -> Path:
 
 def get_pinned_version_dir() -> Path | None:
     """Returns the pinned version directory, or None if not pinned."""
-    _migrate_legacy_pin()
     pin_file = get_pinned_path()
     if not pin_file.exists():
         return None
@@ -41,38 +35,6 @@ def get_pinned_version_dir() -> Path | None:
         return None
     target = get_tools_dir() / dir_name
     return target if target.is_dir() else None
-
-
-def _migrate_legacy_pin() -> None:
-    """Migrate legacy cache directory and pin files."""
-    old_dir = cache_dir() / "tlc"
-    new_dir = get_tools_dir()
-
-    # 1. Migrate directory
-    if old_dir.exists() and not new_dir.exists():
-        try:
-            old_dir.rename(new_dir)
-        except OSError as e:
-            warn(f"Failed to migrate legacy cache: {e}")
-
-    # 2. Migrate legacy symlink pin
-    legacy_symlink = new_dir / "pinned"
-    if legacy_symlink.is_symlink():
-        try:
-            target_name = legacy_symlink.readlink().name
-            legacy_symlink.unlink()
-            get_pinned_path().write_text(target_name)
-        except OSError as e:
-            warn(f"Failed to migrate legacy symlink pin: {e}")
-
-    # 3. Migrate legacy filename tlc-pinned-version.txt -> tools-pinned-version.txt
-    old_pin_file = new_dir / "tlc-pinned-version.txt"
-    new_pin_file = get_pinned_path()
-    if old_pin_file.exists() and not new_pin_file.exists():
-        try:
-            old_pin_file.rename(new_pin_file)
-        except OSError as e:
-            warn(f"Failed to migrate legacy pin file: {e}")
 
 
 def set_pin(version_dir: Path) -> None:
@@ -91,7 +53,7 @@ def clear_pin() -> None:
 
 def clear_cache() -> None:
     """Remove all remote versions cache files."""
-    cache_dir_path = get_github_cache_file().parent
+    cache_dir_path = cache_dir()
     for cache_file in cache_dir_path.glob("github_cache*.json"):
         with contextlib.suppress(OSError):
             cache_file.unlink()

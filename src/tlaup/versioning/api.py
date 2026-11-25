@@ -5,8 +5,8 @@ from typing import Any
 import requests
 
 from tlaup.cache.github import load_github_cache, save_github_cache
+from tlaup.config.loader import cache_dir
 from tlaup.ui import warn
-from tlaup.versioning.paths import get_github_cache_file
 from tlaup.versioning.schema import FetchStatus, RemoteVersion
 
 
@@ -81,7 +81,7 @@ def fetch_remote_versions(
     # Create a unique cache file name based on asset_name
     # Replace dots and special chars to keep it a valid filename
     safe_name = asset_name.replace(".", "_").replace("/", "_")
-    cache_file = get_github_cache_file().parent / f"github_cache_{safe_name}.json"
+    cache_file = cache_dir() / f"github_cache_{safe_name}.json"
 
     # Check cache TTL
     if cache_file.exists():

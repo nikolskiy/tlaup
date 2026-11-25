@@ -4,13 +4,8 @@ from pathlib import Path
 import requests
 from rich.progress import BarColumn, DownloadColumn, Progress, TransferSpeedColumn
 
-from tlaup.versioning.metadata import (
-    _utc_now_iso,
-    write_version_metadata,
-    write_version_metadata_from_url,
-)
+from tlaup.versioning.metadata import write_version_metadata
 from tlaup.versioning.paths import get_tools_dir
-from tlaup.versioning.resolver import extract_version_from_url
 from tlaup.versioning.schema import RemoteVersion
 
 
@@ -63,28 +58,4 @@ def download_version(
 
     write_version_metadata(version_dir, target)
 
-    return version_dir
-
-
-def download_version_from_url(url: str, *, base_dir: Path | None = None, jar_name: str = "tla2tools.jar") -> Path:
-    """Download a jar file from *url* and store it in a timestamped version directory."""
-    version_name = extract_version_from_url(url)
-    if version_name is None:
-        msg = 'could not extract a version name from the URL. The URL must contain a version segment (e.g. "v1.8.0").'
-        raise ValueError(msg)
-
-    tag = _utc_now_iso()
-    if base_dir is None:
-        base_dir = get_tools_dir()
-    version_dir = base_dir / f"{version_name}-{tag}"
-    version_dir.mkdir(parents=True, exist_ok=True)
-    jar_path = version_dir / jar_name
-
-    try:
-        _download_jar(url, jar_path, version_name)
-    except (requests.RequestException, OSError):
-        shutil.rmtree(version_dir, ignore_errors=True)
-        raise
-
-    write_version_metadata_from_url(version_dir, version_name=version_name, tag=tag, url=url)
     return version_dir

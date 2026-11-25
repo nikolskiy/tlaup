@@ -4,7 +4,6 @@ from pathlib import Path
 import typer
 
 from tlaup.cmd.tools import app
-from tlaup.config.loader import cache_dir
 from tlaup.ui import warn
 from tlaup.versioning import (
     clear_pin,
@@ -20,14 +19,6 @@ def _resolve_uninstall_targets(versions: list[str]) -> list[Path]:
     local_versions = list_local_versions()
     targets: list[Path] = []
     for v in versions:
-        if v == "default":
-            legacy = cache_dir() / "tla2tools.jar"
-            if legacy.exists():
-                targets.append(legacy)
-            else:
-                warn("Default (legacy) tla2tools.jar not found.")
-            continue
-
         matching = sorted([lv for lv in local_versions if lv.name == v], key=lambda x: x.path.name)
         if not matching:
             warn(f"Version {v} not found locally.")
@@ -61,10 +52,7 @@ def _remove_path(path: Path, pinned_dir: Path | None) -> bool:
 
     typer.echo(f"Removing {path.name} ...")
     try:
-        if path.is_dir():
-            shutil.rmtree(path)
-        else:
-            path.unlink()
+        shutil.rmtree(path)
     except OSError as e:
         typer.echo(f"Error: Failed to remove {path.name}: {e}", err=True)
     return pinned_removed

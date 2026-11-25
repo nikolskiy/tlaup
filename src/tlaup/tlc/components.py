@@ -1,8 +1,7 @@
 from datetime import datetime
-from typing import Protocol
 
 from rich.align import Align
-from rich.console import Group, RenderableType
+from rich.console import Group
 from rich.table import Table
 from rich.text import Text
 
@@ -25,14 +24,6 @@ class LogDeduplicator:
         self.last_line = stripped_line
         self.count = 1
         return stripped_line
-
-
-class TlcComponent(Protocol):
-    """Protocol for a TLC display component."""
-
-    def render(self, result: ModelCheckResult) -> RenderableType:
-        """Render the component based on current model check result."""
-        ...
 
 
 class HeaderComponent:
@@ -134,69 +125,6 @@ class StatsTableComponent:
                 f"{item.queue_size:,}",
             )
         return table
-
-
-class StatusFooterComponent:
-    """Renders a single-line live ticking status bar footer."""
-
-    def render(self, result: ModelCheckResult) -> Text:
-        status_text = result.status.name
-        if result.state == CheckState.Stopped:
-            status_text = "canceled"
-        elif result.state == CheckState.Success:
-            status_text = "success"
-        elif result.state == CheckState.Error:
-            status_text = "failed"
-
-        if not result.start_date_time:
-            elapsed_str = "00:00:00"
-            elapsed_style = "dim"
-        else:
-            if result.state == CheckState.Running:
-                elapsed = datetime.now() - result.start_date_time
-            else:
-                elapsed = (result.end_date_time or datetime.now()) - result.start_date_time
-            seconds = int(elapsed.total_seconds())
-            hours, remainder = divmod(seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            elapsed_str = f"{hours:02}:{minutes:02}:{seconds:02}"
-            elapsed_style = "bold cyan"
-
-        latest_stats = ""
-        if result.initial_states_stat:
-            latest = result.initial_states_stat[-1]
-            latest_stats = (
-                f" | Diam: {latest.diameter} | Gen: {latest.total:,} | "
-                f"Dist: {latest.distinct:,} | Queue: {latest.queue_size:,}"
-            )
-
-        footer = Text()
-        footer.append("TLC Status: ", style="bold")
-        footer.append(status_text, style="cyan")
-        footer.append(f" | Elapsed: {elapsed_str}", style=elapsed_style)
-        if latest_stats:
-            footer.append(latest_stats)
-
-        if result.state == CheckState.Running:
-            footer.append(" | Stop with Ctrl + C", style="yellow dim")
-
-        return footer
-
-
-class TlcDisplayComposer:
-    """Composes and arranges multiple components."""
-
-    def __init__(self) -> None:
-        self.components: dict[str, TlcComponent] = {}
-
-    def register(self, name: str, component: TlcComponent) -> None:
-        self.components[name] = component
-
-    def get(self, name: str) -> TlcComponent:
-        return self.components[name]
-
-    def render(self, name: str, result: ModelCheckResult) -> RenderableType:
-        return self.components[name].render(result)
 
 
 class StatsTableFormatter:
