@@ -1,6 +1,6 @@
 # 22. Version spec and jar information
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
