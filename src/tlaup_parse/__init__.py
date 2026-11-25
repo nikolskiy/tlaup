@@ -46,6 +46,7 @@ from tlaup_parse.model import (
     VersionSeen,
     WarningFound,
 )
+from tlaup_parse.pcal import PcalParser, PcalResult
 from tlaup_parse.sany import SanyLineClass, SanyParser, SanyResult, SanyStep
 from tlaup_parse.tlc import TlcParser
 from tlaup_parse.values import Value, parse_value
@@ -70,6 +71,8 @@ __all__ = [
     "ModeSeen",
     "OutputLine",
     "OverrideLoaded",
+    "PcalParser",
+    "PcalResult",
     "Phase",
     "PhaseChanged",
     "Progress",

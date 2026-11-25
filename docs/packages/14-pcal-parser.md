@@ -1,6 +1,6 @@
 # 14. The PlusCal parser
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
