@@ -200,6 +200,9 @@ def error_message(key: str, error: Any) -> str:
     if error["type"] == "value_error":
         return f"{key}: {error['ctx']['error']}"
     expects = _EXPECTS.get(key, "a valid value")
+    item = next((part for part in error["loc"] if isinstance(part, int)), None)
+    if item is not None:
+        return f"{key}: expected {expects}, but item {item + 1} is {show(error['input'])}"
     return f"{key}: expected {expects}, got {show(error['input'])}"
 
 

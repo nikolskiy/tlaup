@@ -355,3 +355,31 @@ def test_load_config_hands_over_the_contexts_settings(isolated: Isolated) -> Non
     context.reset()
     assert load_config().tlc.workers == 6
     assert load_config() is context.get_context().settings
+
+
+def test_a_non_string_key_inside_a_section(isolated: Isolated) -> None:
+    user_file(isolated, "tlc:\n  1: x\n")
+    with pytest.raises(ConfigInvalid, match=r"config\.yaml: tlc\.1: expected a setting name") as caught:
+        load_settings(isolated.paths, {})
+    assert caught.value.hint is not None
+
+
+def test_a_null_section_is_an_empty_section(isolated: Isolated) -> None:
+    user_file(isolated, "tlc:\n  # workers: 4\njava:\n")
+    loaded = load_settings(isolated.paths, {})
+    assert loaded.warnings == ()
+    assert set(loaded.sources.values()) == {"default"}
+
+
+def test_a_bad_list_item_is_named_by_position(isolated: Isolated) -> None:
+    user_file(isolated, 'java:\n  opts: ["-Xmx1g", 1]\n')
+    with pytest.raises(ConfigInvalid) as caught:
+        load_settings(isolated.paths, {})
+    assert str(caught.value) == "config.yaml: java.opts: expected a list of strings, but item 2 is 1"
+
+
+def test_an_empty_module_path_variable_means_unset(isolated: Isolated) -> None:
+    loaded = load_settings(isolated.paths, {"TLAUP_MODULE_PATH": "", "TLAUP_MODULE_LIB_PATH": ""})
+    assert loaded.settings.module_path is None
+    assert loaded.settings.module_lib_path is None
+    assert loaded.sources["module_path"] == "TLAUP_MODULE_PATH"

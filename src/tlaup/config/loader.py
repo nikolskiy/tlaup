@@ -22,6 +22,7 @@ CONFIG_HEADER = "# tlaup settings; see https://github.com/nikolskiy/tlaup/blob/m
 
 _USER_FILE = "config.yaml"
 _EDIT_HINT = "run `tlaup config edit` to fix the file"
+_EMPTY_IS_UNSET = ("module_path", "module_lib_path")  # an empty variable means unset
 _NOT_IN_ENV = "java.opts"  # TLAUP_JAVA_OPTS adds at run time instead (design 13 J1)
 _KIND_LABELS = {"defaults": "default", "user": "user file", "project": "project file", "env": "environment"}
 _KIND_FILES = {"defaults": "default_config.yaml", "user": _USER_FILE, "project": "project file"}
@@ -96,6 +97,8 @@ def _env_layer(env: Mapping[str, str]) -> Layer:
         text = env[variable]
         if schema.is_list_key(key):
             flat[key] = [item for item in (part.strip() for part in text.split(",")) if item]
+        elif text == "" and key in _EMPTY_IS_UNSET:
+            flat[key] = None
         else:
             flat[key] = text
         labels[key] = variable
@@ -132,6 +135,9 @@ def _scan(layer: Layer) -> tuple[dict[str, object], list[str], list[str]]:
     def walk(data: Mapping[str, object], node: dict[str, Any], prefix: str) -> dict[str, object]:
         out: dict[str, object] = {}
         for name, value in data.items():
+            if not isinstance(name, str):
+                edit = _EDIT_HINT if layer.kind == "user" else None
+                raise ConfigInvalid(f"{file}: {prefix}{name}: expected a setting name", hint=edit)  # noqa: TRY003
             key = prefix + name
             child = node.get(name, False)
             if key in REMOVED:
@@ -142,6 +148,8 @@ def _scan(layer: Layer) -> tuple[dict[str, object], list[str], list[str]]:
                 warnings.append(f'{file}: unknown key "{key}" (ignored){hint}')
             elif child is None:
                 out[key] = value
+            elif value is None:
+                continue  # a section with every key commented out is an empty section
             elif not isinstance(value, Mapping):
                 edit = _EDIT_HINT if layer.kind == "user" else None
                 got = schema.show(value)
@@ -169,7 +177,7 @@ def merge_layers(layers: Sequence[Layer]) -> LoadedSettings:
         warnings.extend(unknown)
         for key, value in keys.items():
             if layer.kind == "project" and schema.not_for_project(key):
-                warnings.append(f'{_KIND_FILES["project"]}: "{key}" cannot be set by a project file (ignored)')
+                warnings.append(f'{_KIND_FILES["project"]}: "{key}" cannot be set here (ignored)')
                 continue
             flat[key] = value
             sources[key] = layer.labels.get(key) or _KIND_LABELS.get(layer.kind, layer.kind)
@@ -243,7 +251,7 @@ def write_user_setting(paths: AppPaths, key: str, value: object) -> None:
             target[part] = child
         target = child
     target[last] = value
-    text = CONFIG_HEADER + "\n" + yaml.safe_dump(data, sort_keys=False, default_flow_style=False)
+    text = CONFIG_HEADER + "\n" + yaml.safe_dump(data, sort_keys=False, default_flow_style=False, allow_unicode=True)
     path = paths.config_file
     temporary: str | None = None
     try:
@@ -251,6 +259,8 @@ def write_user_setting(paths: AppPaths, key: str, value: object) -> None:
         fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=".config-", suffix=".tmp")
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(text)
+        if path.exists():
+            Path(temporary).chmod(path.stat().st_mode & 0o7777)  # keep the old file's mode
         Path(temporary).replace(path)
         temporary = None
     except OSError as e:

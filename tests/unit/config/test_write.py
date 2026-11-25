@@ -78,3 +78,17 @@ def test_a_failed_write_leaves_the_old_file(isolated: Isolated) -> None:
         path.parent.chmod(stat.S_IRWXU)
     assert path.read_bytes() == b"tlc:\n  keep: true\n"
     assert [p.name for p in path.parent.iterdir()] == ["config.yaml"]
+
+
+def test_the_old_files_mode_is_kept(isolated: Isolated) -> None:
+    path = isolated.paths.config_file
+    path.parent.mkdir(parents=True)
+    path.write_text("tlc:\n  keep: true\n", encoding="utf-8")
+    path.chmod(0o640)
+    write_user_setting(isolated.paths, "tlc.workers", 2)
+    assert stat.S_IMODE(path.stat().st_mode) == 0o640
+
+
+def test_non_ascii_values_stay_readable(isolated: Isolated) -> None:
+    write_user_setting(isolated.paths, "module_path", "modüle")
+    assert "modüle" in isolated.paths.config_file.read_text(encoding="utf-8")
