@@ -63,11 +63,16 @@ def token_from_env(env: Mapping[str, str]) -> str | None:
     return None
 
 
+def printable(text: str) -> str:
+    """``text`` with every character that is not printable (ESC, a tab, a newline, ...) written as ``\\xNN``."""
+    return "".join(c if c.isprintable() else f"\\x{ord(c):02x}" if ord(c) < 256 else f"\\u{ord(c):04x}" for c in text)
+
+
 def shown(url: str) -> str:
-    """An address as it may be printed: cut at ``?`` and ``#``, no user part, control characters escaped."""
+    """An address as it may be printed: cut at ``?`` and ``#``, no user part, nothing that is not printable."""
     cut = re.split(r"[?#]", url, maxsplit=1)[0]
     cut = re.sub(r"^([A-Za-z][A-Za-z0-9+.-]*://)[^/]*@", r"\1***@", cut)
-    return cut.encode("ascii", "backslashreplace").decode("ascii").replace("\t", "\\t").replace("\n", "\\n")
+    return printable(cut)
 
 
 def _host(url: str) -> str:
@@ -76,7 +81,7 @@ def _host(url: str) -> str:
         host = urlsplit(url).hostname
     except ValueError:
         host = None
-    return host or shown(url)
+    return printable(host) if host else shown(url)
 
 
 def _origin(url: str | None) -> str | None:
@@ -138,7 +143,7 @@ def _github_message(response: requests.Response) -> str | None:
     message = data.get("message") if isinstance(data, dict) else None
     if not isinstance(message, str) or not message.strip():
         return None
-    return redact(" ".join(message.split())[:200], {})  # an address in it loses its query string
+    return printable(redact(" ".join(message.split())[:200], {}))  # an address in it loses its query string
 
 
 def _limited(chunks: Iterator[bytes], limit: int) -> Iterator[bytes]:
@@ -151,10 +156,12 @@ def _limited(chunks: Iterator[bytes], limit: int) -> Iterator[bytes]:
 
 
 def _reset_at(response: requests.Response) -> datetime | None:
-    """From ``x-ratelimit-reset`` (seconds since the epoch), else ``Retry-After`` read against ``Date``."""
+    """From ``x-ratelimit-reset`` (seconds since the epoch) when the allowance is used up, else from
+    ``Retry-After`` (a secondary limit), in seconds read against ``Date`` or as a date."""
     headers = response.headers
     reset = headers.get("x-ratelimit-reset", "").strip()
-    if reset.isdigit():
+    used_up = headers.get("x-ratelimit-remaining", "").strip() == "0"
+    if used_up and reset.isascii() and reset.isdigit():
         try:
             return datetime.fromtimestamp(int(reset), tz=UTC)
         except (OverflowError, OSError, ValueError):
@@ -163,11 +170,17 @@ def _reset_at(response: requests.Response) -> datetime | None:
     if not retry_after:
         return None
     try:
-        if retry_after.isdigit():
-            return parsedate_to_datetime(headers.get("date", "")).astimezone(UTC) + timedelta(seconds=int(retry_after))
-        return parsedate_to_datetime(retry_after).astimezone(UTC)
+        if retry_after.isascii() and retry_after.isdigit():
+            return _http_date(headers.get("date", "")) + timedelta(seconds=int(retry_after))
+        return _http_date(retry_after)
     except (TypeError, ValueError, OverflowError):
         return None
+
+
+def _http_date(text: str) -> datetime:
+    """An HTTP date, aware; one with no zone (``-0000``) is UTC, never the machine's zone."""
+    when = parsedate_to_datetime(text)
+    return when.replace(tzinfo=UTC) if when.tzinfo is None else when.astimezone(UTC)
 
 
 def _is_rate_limit(response: requests.Response) -> bool:
@@ -304,7 +317,8 @@ class GitHubClient:
     def _prepare(self, url: str, accept: str | None = None) -> requests.PreparedRequest:
         """The request ``requests`` would send; RemoteDataError for an address refused outright."""
         if _REFUSED_CHARS.search(url) or _has_user_part(url):
-            message = f"refused the address {shown(url)}: it has a backslash, white space or a user part"
+            reason = "it has a character that is not allowed in an address, or a user part"
+            message = f"refused the address {shown(url)}: {reason}"
             raise RemoteDataError(message)
         headers = {"Accept": accept} if accept is not None else None
         try:
@@ -391,9 +405,13 @@ class GitHubClient:
         reset_at = _reset_at(response)
         when = f" (resets at {reset_at.astimezone().strftime('%H:%M')})" if reset_at is not None else ""
         message = f"GitHub's rate limit is used up{when}."
+        hint = None
         if "Authorization" not in prepared.headers:
-            message += " Set GITHUB_TOKEN to raise it from 60 to 5,000 requests an hour."
-        error = RateLimited(message)
+            if self._auth.has_token:
+                hint = self._token_hosts_hint(prepared.url or "")
+            else:
+                message += " Set GITHUB_TOKEN to raise it from 60 to 5,000 requests an hour."
+        error = RateLimited(message, hint=hint)
         error.reset_at = reset_at
         return error
 
@@ -406,10 +424,14 @@ class GitHubClient:
         message = f"{shown(url)} answered {status}" + (f": {github_says}" if github_says else "")
         hint = None
         if status in (401, 404) and self._auth.has_token and not self._auth.allows(url):
-            hint = f"the GitHub token is not sent to {_host(url)}; list that host in tool.token_hosts to send it"
+            hint = self._token_hosts_hint(url)
         error = NetworkError(message, hint=hint)
         error.status = status
         return error
+
+    @staticmethod
+    def _token_hosts_hint(url: str) -> str:
+        return f"the GitHub token is not sent to {_host(url)}; list that host in tool.token_hosts to send it"
 
     def _successful(self, response: requests.Response, prepared: requests.PreparedRequest) -> requests.Response:
         if 200 <= response.status_code < 300:

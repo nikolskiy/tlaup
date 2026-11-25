@@ -17,7 +17,14 @@ import requests
 import responses
 
 from tests.github import BASE
-from tests.unit.versioning.conftest import TOKEN, USER_AGENT, has_authorization, has_token
+from tests.unit.versioning.conftest import (
+    TOKEN,
+    USER_AGENT,
+    has_authorization,
+    has_token,
+    printable_only,
+    secret_free,
+)
 from tlaup.errors import ConfigInvalid, NetworkError, RemoteDataError, TlaupError
 
 if TYPE_CHECKING:
@@ -39,11 +46,6 @@ OTHER = "https://git.example.org/api/v3/repos/tlaplus/tlaplus"
 
 def hosts(fake: GitHubFake) -> list[str]:
     return [(r.url or "").split("/")[2] for r in fake.requests]
-
-
-def secret_free(error: TlaupError, *secrets: str) -> bool:
-    text = " ".join(str(part) for part in (error, error.message, error.hint, error.details, repr(error)))
-    return not any(secret in text for secret in secrets)
 
 
 def serve_redirect(fake: GitHubFake, source: str, target: str, status: int = 302) -> None:
@@ -156,6 +158,20 @@ def test_a_redirect_location_refused_outright_sends_nothing(
     with pytest.raises(RemoteDataError):
         make_client(token=TOKEN).get_json("/releases/tags/rolling")
     assert len(fake.requests) == 1
+
+
+def test_control_characters_never_reach_an_error(github: GitHub, make_client: MakeClient) -> None:
+    fake = github("releases")
+    serve_redirect(fake, BASE + "/releases/tags/rolling", "https://api.github.com/a\x1b[31mb")
+    fake.mock.add(responses.GET, BASE + "/gone", status=404, json={"message": "Not \x1b[31mFound\x07 at all"})
+    client = make_client(token=TOKEN)
+    with pytest.raises(RemoteDataError) as refused:
+        client.get_json("/releases/tags/rolling")
+    with pytest.raises(NetworkError) as answered:
+        client.get_json("/gone")
+    assert printable_only(refused.value)
+    assert printable_only(answered.value)
+    assert answered.value.status == 404
 
 
 def test_a_redirect_to_http_is_refused_before_it_is_sent(github: GitHub, make_client: MakeClient) -> None:

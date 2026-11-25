@@ -25,6 +25,11 @@ def test_an_address_loses_its_query_string_and_the_rest_of_the_line_stays() -> N
     assert redact(text, {}) == "GET https://example.org/a/b failed\nnext 'http://h.example/p' line"
 
 
+def test_a_token_that_holds_the_other_is_replaced_whole() -> None:
+    assert redact("abcdef and abc", {"GH_TOKEN": "abc", "GITHUB_TOKEN": "abcdef"}) == "*** and ***"
+    assert redact("abcdef and abc", {"GH_TOKEN": "abcdef", "GITHUB_TOKEN": "abc"}) == "*** and ***"
+
+
 def test_an_empty_variable_replaces_nothing() -> None:
     text = "a text with no secret in it, and a = sign"
     assert redact(text, {"GH_TOKEN": "", "GITHUB_TOKEN": ""}) == text
@@ -54,10 +59,10 @@ def test_the_handler_filters_the_error_line_and_the_traceback(monkeypatch: pytes
     finally:
         context.reset()
     assert result.exit_code == 5
-    first = result.stderr.splitlines()[0]
-    assert first.startswith("error: internal error: RuntimeError: token ***")
+    out = result.stderr.splitlines()
+    assert out[0] == "error: internal error: RuntimeError: token *** at https://example.org/x"
     assert "Traceback (most recent call last):" in result.stderr
-    assert result.stderr.count("***") >= 2  # the error line and the traceback's last line
+    assert "RuntimeError: token *** at https://example.org/x" in out[out.index("Traceback (most recent call last):") :]
     assert GH not in result.stderr
     assert "secret" not in result.stderr
 

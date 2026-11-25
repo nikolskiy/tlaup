@@ -177,7 +177,8 @@ class GitHubFake:
     def answer(self, status: int, path: str) -> None:
         """An answer with that status for a path under the base address; it wins over the recording.
 
-        The latest registration wins (inserted ahead).
+        The latest registration wins (inserted ahead). Where it overrides a recording it answers one request:
+        ``responses`` then takes it out of its list, and the recording answers the next.
         """
         response = responses.Response("GET", BASE + path, body=b"", status=status)
         self.mock.registered().insert(0, response)

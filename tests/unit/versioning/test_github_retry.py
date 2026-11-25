@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import time
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlsplit
@@ -16,7 +17,7 @@ import requests
 import responses
 
 from tests.github import BASE
-from tests.unit.versioning.conftest import TOKEN
+from tests.unit.versioning.conftest import TOKEN, secret_free
 from tlaup.errors import DownloadVerificationError, NetworkError, RateLimited, RemoteDataError
 from tlaup.versioning.github import token_from_env
 
@@ -73,6 +74,54 @@ def test_a_429_with_retry_after_is_raised_at_once(github: GitHub, make_client: M
     assert caught.value.reset_at == datetime(2026, 11, 25, 6, 14, 14, tzinfo=UTC)
     assert len(fake.requests) == 1
     assert clock.sleeps == []
+    assert secret_free(caught.value, TOKEN)
+
+
+def rate_limited(headers: dict[str, str]) -> responses.Response:
+    return responses.Response("GET", ROLLING, status=403, json={"message": "limited"}, headers=headers)
+
+
+def test_a_date_with_no_zone_is_utc_whatever_the_machine_zone(
+    github: GitHub, make_client: MakeClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    if not hasattr(time, "tzset"):
+        pytest.skip("time.tzset is not available on Windows")
+    monkeypatch.setenv("TZ", "America/New_York")
+    time.tzset()
+    fake = github("releases")
+    ahead(fake, rate_limited({"Retry-After": "120", "Date": "Wed, 25 Nov 2026 06:12:14 -0000"}))
+    with pytest.raises(RateLimited) as caught:
+        make_client().get_json("/releases/tags/rolling")
+    assert caught.value.reset_at == datetime(2026, 11, 25, 6, 14, 14, tzinfo=UTC)
+
+
+def test_retry_after_wins_while_the_allowance_is_not_used_up(github: GitHub, make_client: MakeClient) -> None:
+    # Synthetic: a secondary limit, with the primary allowance left; x-ratelimit-reset is not its reset time.
+    fake = github("releases")
+    headers = {
+        "x-ratelimit-remaining": "12",
+        "x-ratelimit-reset": "1795078778",
+        "Retry-After": "60",
+        "Date": "Wed, 25 Nov 2026 06:12:14 GMT",
+    }
+    ahead(fake, rate_limited(headers))
+    with pytest.raises(RateLimited) as caught:
+        make_client().get_json("/releases/tags/rolling")
+    assert caught.value.reset_at == datetime(2026, 11, 25, 6, 13, 14, tzinfo=UTC)
+
+
+def test_a_rate_limit_off_the_token_hosts_hints_at_the_setting(github: GitHub, make_client: MakeClient) -> None:
+    fake = github("releases")
+    other = "https://git.example.org/api/v3/repos/tlaplus/tlaplus"
+    fake.mock.add(
+        responses.GET, other + "/x", status=403, json={"message": "limited"},
+        headers={"x-ratelimit-remaining": "0", "x-ratelimit-reset": "1795078778"},
+    )  # fmt: skip
+    with pytest.raises(RateLimited) as caught:
+        make_client(other, token=TOKEN).get_json("/x")
+    assert caught.value.hint is not None
+    assert "tool.token_hosts" in caught.value.hint
+    assert secret_free(caught.value, TOKEN)
 
 
 def test_a_403_without_rate_limit_headers_is_a_plain_error(
@@ -106,10 +155,11 @@ def test_three_failing_answers_give_two_sleeps_then_network_error(
     fake = github("releases")
     ahead(fake, *(responses.Response("GET", ROLLING, status=503, body=b"") for _ in range(3)))
     with pytest.raises(NetworkError) as caught:
-        make_client().get_json("/releases/tags/rolling")
+        make_client(token=TOKEN).get_json("/releases/tags/rolling")
     assert caught.value.status == 503
     assert len(fake.requests) == 3
     assert clock.sleeps == [1, 2]
+    assert secret_free(caught.value, TOKEN)
 
 
 def test_the_waits_double_for_more_attempts(github: GitHub, make_client: MakeClient, clock: FakeClock) -> None:
@@ -158,17 +208,19 @@ def test_a_404_is_not_retried_and_carries_its_status(github: GitHub, make_client
 def test_a_body_that_is_not_json_is_remote_data_error(github: GitHub, make_client: MakeClient) -> None:
     fake = github("releases")
     ahead(fake, responses.Response("GET", ROLLING, body=b"<html>a proxy</html>", content_type="text/html"))
-    with pytest.raises(RemoteDataError):
-        make_client().get_json("/releases/tags/rolling")
+    with pytest.raises(RemoteDataError) as caught:
+        make_client(token=TOKEN).get_json("/releases/tags/rolling")
     assert len(fake.requests) == 1
+    assert secret_free(caught.value, TOKEN)
 
 
 def test_a_page_that_is_not_a_list_is_remote_data_error(github: GitHub, make_client: MakeClient) -> None:
     fake = github("releases")
     ahead(fake, responses.Response("GET", BASE + "/releases", json={"message": "an object"}))
-    with pytest.raises(RemoteDataError):
-        make_client().get_paged("/releases")
+    with pytest.raises(RemoteDataError) as caught:
+        make_client(token=TOKEN).get_paged("/releases")
     assert len(fake.requests) == 1
+    assert secret_free(caught.value, TOKEN, "per_page")
 
 
 def test_get_json_returns_a_list_or_an_object_as_it_came(github: GitHub, make_client: MakeClient) -> None:
@@ -208,9 +260,10 @@ def test_a_next_page_off_the_host_or_not_https_is_not_followed(
     fake = github("releases")
     ahead(fake, responses.Response("GET", BASE + "/releases", json=[], headers={"Link": f'<{following}>; rel="next"'}))
     fake.mock.add(responses.GET, following.replace("\\", ""), json=[])
-    with pytest.raises(RemoteDataError):
+    with pytest.raises(RemoteDataError) as caught:
         make_client(token=TOKEN).get_paged("/releases")
     assert len(fake.requests) == 1
+    assert secret_free(caught.value, TOKEN, "page=2")
 
 
 def test_more_than_fifty_pages_is_an_error(github: GitHub, make_client: MakeClient) -> None:

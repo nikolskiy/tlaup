@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     import requests
 
     from tests.conftest import Isolated
+    from tlaup.errors import TlaupError
     from tlaup.versioning.jarinfo import JarInfo
 
 SOURCE = Source(
@@ -124,6 +125,17 @@ def has_authorization(request: requests.PreparedRequest) -> bool:
 def has_token(request: requests.PreparedRequest) -> bool:
     """Whether the request carried the test token as a bearer header."""
     return request.headers.get("Authorization") == f"Bearer {TOKEN}"
+
+
+def secret_free(error: TlaupError, *secrets: str) -> bool:
+    """Whether none of ``secrets`` is in the error's text, message, hint, details or repr."""
+    text = " ".join(str(part) for part in (error, error.message, error.hint, error.details, repr(error)))
+    return not any(secret in text for secret in secrets)
+
+
+def printable_only(error: TlaupError) -> bool:
+    """Whether every character of the error's message, hint and details is printable."""
+    return all(part is None or part.isprintable() for part in (error.message, error.hint, error.details))
 
 
 @pytest.fixture

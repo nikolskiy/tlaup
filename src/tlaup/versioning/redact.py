@@ -20,8 +20,7 @@ def redact(text: str, env: Mapping[str, str]) -> str:
 
     An unset or empty variable replaces nothing. No state: the tokens are read from ``env`` on every call.
     """
-    for name in TOKEN_VARIABLES:
-        value = env.get(name)
-        if value:
-            text = text.replace(value, "***")
+    values = {env.get(name) or "" for name in TOKEN_VARIABLES} - {""}
+    for value in sorted(values, key=len, reverse=True):  # the longer first: one value may hold the other
+        text = text.replace(value, "***")
     return _ADDRESS.sub(_cut, text)

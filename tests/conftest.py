@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -76,6 +77,9 @@ def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Isolated:
     monkeypatch.setenv("TLAUP_HOME", str(home / "tlaup"))  # moves config, cache and data (D25)
     monkeypatch.setenv("HOME", str(home))  # anything that still asks for the home folder
     monkeypatch.setenv("USERPROFILE", str(home))
+    monkeypatch.setenv("TZ", "UTC")  # no output depends on the machine's zone
+    if hasattr(time, "tzset"):
+        time.tzset()
     monkeypatch.setenv("NO_COLOR", "1")
     monkeypatch.setenv("TERM", "dumb")
     monkeypatch.setenv("COLUMNS", "100")
