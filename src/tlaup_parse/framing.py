@@ -19,9 +19,9 @@ from tlaup_parse.model import TlcMessage
 # ``\d`` would take other scripts' digits, which ``str(int(...))`` does not give back.
 _N = r"0|[1-9][0-9]*"
 # Recognised only at the end of a line; the text in front is the message's ``before``.
-START_MARKER = re.compile(rf"^(?P<before>.*)@!@!@STARTMSG (?P<code>{_N}):(?P<sev>{_N}) @!@!@$")
+START_MARKER = re.compile(rf"^(?P<before>.*)@!@!@STARTMSG (?P<code>{_N}):(?P<sev>{_N}) @!@!@\Z")
 # Recognised only at the start of a line, and only when its code is open; the text behind is ``after``.
-END_MARKER = re.compile(rf"^@!@!@ENDMSG (?P<code>{_N}) @!@!@(?P<after>.*)$")
+END_MARKER = re.compile(rf"^@!@!@ENDMSG (?P<code>{_N}) @!@!@(?P<after>.*)\Z")
 
 
 @dataclass(frozen=True)

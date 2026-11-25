@@ -8,7 +8,7 @@ closes a message by its end marker or leaves one truncated.
 
 from __future__ import annotations
 
-from hypothesis import event, given
+from hypothesis import event, example, given
 from hypothesis import strategies as st
 
 from tlaup_parse import Framer, TlcMessage, Unframed, render_framed
@@ -19,11 +19,11 @@ END = "@!@!@ENDMSG {code} @!@!@"
 # Few codes, so that an end marker often matches an open start; 1000 nests in 1000 as in the captures.
 codes = st.sampled_from(["1", "2", "1000"])
 severities = st.sampled_from(["0", "1", "3", "4"])
-# The last is more digits than int() reads (4300): a line, not a marker, and nothing raises.
-bad_codes = st.sampled_from(["-1", "01", "00", "x", "9" * 5000])
-# Plain text with no line break in it; "\r" may occur, also at the end.
-text = st.text(st.characters(exclude_characters="\n"), max_size=12)
-some_text = st.text(st.characters(exclude_characters="\n"), min_size=1, max_size=4)
+# The last is one digit more than int() reads by default (4300): a line, not a marker, and nothing raises.
+bad_codes = st.sampled_from(["-1", "01", "00", "x", "9" * 4301])
+# Plain text may hold "\r" and "\n" anywhere, also at the end, so a fed line can end in "\n\n".
+text = st.text(max_size=12)
+some_text = st.text(min_size=1, max_size=4)
 around = st.one_of(st.just(""), st.just(": "), st.just(","), text)
 
 
@@ -40,6 +40,7 @@ ends = st.builds(end, codes, around)
 malformed = st.one_of(
     st.builds(start, st.just(""), bad_codes, severities),  # a negative code, a leading zero, letters, too long
     st.builds(end, bad_codes, st.just("")),
+    st.builds(start, st.just(""), codes, bad_codes),  # a malformed severity
     st.builds(lambda code: f"@!@!@STARTMSG {code} @!@!@", codes),  # no severity
     st.builds(lambda line, after: line + after, starts, some_text),  # text after a start marker
     st.builds(lambda before, line: before + line, some_text, ends),  # text before an end marker
@@ -93,6 +94,9 @@ def _label(items: list[Unframed | TlcMessage]) -> None:
 
 
 @given(lines())
+# A marker line fed with two line endings: only one is removed, and the rest is not a marker (no "$" anchor).
+@example(["x@!@!@STARTMSG 1:0 @!@!@\n\n"])
+@example(["@!@!@STARTMSG 1:0 @!@!@\n", "@!@!@ENDMSG 1 @!@!@\n\n"])
 def test_rendering_the_framed_lines_rebuilds_them(fed: list[str]) -> None:
     framer = Framer()
     items: list[Unframed | TlcMessage] = []
