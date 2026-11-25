@@ -1,6 +1,6 @@
 # 09. The tlaup_parse package and its result model
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 

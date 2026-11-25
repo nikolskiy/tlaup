@@ -47,6 +47,7 @@ include = ["tlaup*"]
 
 [tool.setuptools.package-data]
 tlaup = ["py.typed"]
+tlaup_parse = ["py.typed"]
 "tlaup.resources" = ["*.yaml"]
 "tlaup.java" = ["lifeline.jar", "lifeline/*.java"]
 
@@ -90,7 +91,7 @@ markers = [
 branch = true
 parallel = true
 patch = ["subprocess"]
-source = ["tlaup"]  # package 09 adds "tlaup_parse"
+source = ["tlaup", "tlaup_parse"]
 
 [tool.coverage.report]
 show_missing = true
@@ -147,7 +148,7 @@ skips = ["B404", "B603", "B607"]
 check = "pre-commit run --all-files"
 lint = ["lint-ruff", "lint-bandit", "type-check"]
 lint-ruff = "ruff check ."
-lint-bandit = "bandit -c pyproject.toml -r src/tlaup"
+lint-bandit = "bandit -c pyproject.toml -r src/tlaup src/tlaup_parse"
 type-check = "mypy ."
 fix = ["format", "lint-fix"]
 format = "ruff format ."
