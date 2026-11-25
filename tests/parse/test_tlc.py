@@ -62,31 +62,18 @@ def _outputs(events: list[Event]) -> list[str]:
 # --- Synthetic cases (P3, P4) ---------------------------------------------------------------------------------------
 
 
-def test_the_last_message_of_the_cut_off_file_is_truncated_and_has_its_event() -> None:
+def test_a_cut_off_run_is_running_and_incomplete() -> None:
+    # cut-off.out is success.out cut inside its 2268, before the 2186 (cut-off.why).
     result, events = _drive(SYNTHETIC / "cut-off.out")
-    last = [m for m in map(_message, events) if m is not None][-1]
-    assert last.truncated
-    assert any(_message(event) is last for event in events)
-    assert (result.finished, result.duration_ms) == (None, None)
-    assert result.phase is not Phase.FINISHED
-
-
-def test_a_run_cut_off_before_the_finish_is_running_and_incomplete() -> None:
-    # success.out cut inside its 2268, the message before the 2186: no error, no finish message.
-    lines = read_lines(BUILDS["v1.7.4"] / "success.out")
-    start = next(i for i, line in enumerate(lines) if line.startswith("The average outdegree"))
-    parser = TlcParser()
-    events: list[Event] = []
-    for line in lines[: start + 1]:
-        events.extend(parser.feed(line))
-    events.extend(parser.close())
-    result = parser.result
     assert result.status is Status.RUNNING
     assert result.verdict is Verdict.INCOMPLETE
+    assert result.errors == []
     last = _message(events[-1])
     assert last is not None
     assert last.truncated
     assert last.code == 2268
+    assert (result.finished, result.duration_ms) == (None, None)
+    assert result.phase is not Phase.FINISHED
 
 
 def test_a_severity_1_message_nested_in_a_severity_0_one_is_one_error() -> None:
