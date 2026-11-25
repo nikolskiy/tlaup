@@ -1,0 +1,62 @@
+{
+  "tool": {
+    "version": "2.19",
+    "revision": "5a47802",
+    "date": "08 August 2024",
+    "line": "stable",
+    "raw": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "exception",
+      "name": null,
+      "message": {
+        "code": 1000,
+        "severity": 1,
+        "name": "GENERAL",
+        "body": [
+          "TLC threw an unexpected exception.",
+          "This was probably caused by an error in the spec or model.",
+          "See the User Output or TLC Console for clues to what happened.",
+          "The exception was a java.lang.UnsupportedClassVersionError",
+          ": tlc2/overrides/Newer has been compiled by a more recent version of the Java Runtime (class file version 69.0), this version of the Java Runtime only recognizes class file versions up to 55.0"
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [],
+  "sany": [],
+  "module_files": {
+    "spec": "<tmp>/q28/work/ovr-case/spec.tla",
+    "Naturals": "/tmp/Naturals.tla",
+    "TLC": "/tmp/TLC.tla",
+    "Ovr": "<tmp>/q28/work/ovr-case/modules/Ovr.tla",
+    "Sequences": "/tmp/Sequences.tla",
+    "FiniteSets": "/tmp/FiniteSets.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 12,
+  "sany_lines_used": 12,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-18 22:09:02",
+  "finished": "2026-11-18 22:09:02",
+  "duration_ms": 2007
+}

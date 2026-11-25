@@ -1,0 +1,37 @@
+{
+  "tool": {
+    "version": "2.19",
+    "revision": "5a47802",
+    "date": "08 August 2024",
+    "line": "stable",
+    "raw": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+  },
+  "mode": null,
+  "workers": null,
+  "phase": "finished",
+  "status": "success",
+  "verdict": "no-error",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [],
+  "warnings": [],
+  "sany": [],
+  "module_files": {},
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [
+    "@!@!@STARTMSG 02185:0 @!@!@",
+    "Starting... (2026-11-14 22:25:53)",
+    "@!@!@ENDMSG 02185 @!@!@"
+  ],
+  "output_dropped": 0,
+  "unframed_lines": 3,
+  "sany_lines_used": 0,
+  "unknown_messages": [],
+  "info": [],
+  "started": null,
+  "finished": "2026-11-14 22:25:54",
+  "duration_ms": 621
+}
