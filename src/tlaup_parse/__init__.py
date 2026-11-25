@@ -47,6 +47,7 @@ from tlaup_parse.model import (
     WarningFound,
 )
 from tlaup_parse.sany import SanyLineClass, SanyParser, SanyResult, SanyStep
+from tlaup_parse.tlc import TlcParser
 from tlaup_parse.values import Value, parse_value
 
 __all__ = [
@@ -83,6 +84,7 @@ __all__ = [
     "Status",
     "TlcError",
     "TlcMessage",
+    "TlcParser",
     "ToolInfo",
     "Trace",
     "TraceClosed",
