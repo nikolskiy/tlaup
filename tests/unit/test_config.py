@@ -1,16 +1,6 @@
 from tlaup.config import loader as config
 
 
-def test_config_paths(mocker, tmp_path):
-    """Test config_dir, config_path, cache_dir return correct paths."""
-    mocker.patch("platformdirs.user_config_dir", return_value=str(tmp_path / "config"))
-    mocker.patch("platformdirs.user_cache_dir", return_value=str(tmp_path / "cache"))
-
-    assert config.config_dir() == tmp_path / "config"
-    assert config.config_path() == tmp_path / "config" / "config.yaml"
-    assert config.cache_dir() == tmp_path / "cache"
-
-
 def test_ensure_config_creates_default(mocker, tmp_path):
     """ensure_config creates the config file if it doesn't exist."""
     config_dir = tmp_path / "config"

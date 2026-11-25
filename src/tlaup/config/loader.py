@@ -2,12 +2,10 @@ import importlib.resources
 from functools import lru_cache
 from pathlib import Path
 
-import platformdirs
 import yaml
 
 from tlaup.config.schema import Settings
-
-_APP_NAME = "tlaup"
+from tlaup.context import get_context
 
 
 @lru_cache(maxsize=1)
@@ -44,7 +42,7 @@ def save_config(settings: Settings) -> None:
 
 def config_dir() -> Path:
     """OS-standard user config directory for this app."""
-    return Path(platformdirs.user_config_dir(_APP_NAME))
+    return get_context().paths.config
 
 
 def config_path() -> Path:
@@ -54,7 +52,7 @@ def config_path() -> Path:
 
 def cache_dir() -> Path:
     """OS-standard cache directory (stores tla2tools.jar)."""
-    return Path(platformdirs.user_cache_dir(_APP_NAME))
+    return get_context().paths.cache
 
 
 def _default_config_content() -> str:
