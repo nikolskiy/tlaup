@@ -1,5 +1,6 @@
 """Domain errors. The class attribute `exit_code` is the whole mapping to exit codes."""
 
+from datetime import datetime
 from typing import ClassVar
 
 
@@ -96,11 +97,11 @@ class ConfigKeyNotFound(NotFound):
 
 
 class NetworkError(Failed):
-    pass
+    status: int | None = None  # the answer's HTTP status; None for a failure with no answer
 
 
 class RateLimited(Failed):
-    pass
+    reset_at: datetime | None = None  # aware; None when the answer gave no reset time
 
 
 class RemoteDataError(Failed):

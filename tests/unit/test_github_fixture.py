@@ -132,6 +132,15 @@ def test_unreachable_and_answer(github: Github) -> None:
         get(f"{BASE}/releases/tags/rolling")
 
 
+def test_unreachable_refuses_every_later_request(github: Github) -> None:
+    fake = github()
+    url = jar_asset(get(f"{BASE}/releases/tags/rolling").json())["browser_download_url"]
+    fake.unreachable()
+    for address in (f"{BASE}/releases/tags/rolling", f"{BASE}/releases/tags/rolling", url):
+        with pytest.raises(requests.ConnectionError):
+            get(address)
+
+
 def test_answer_wins_over_the_recording(github: Github) -> None:
     fake = github()
     fake.answer(500, "/releases/tags/rolling")

@@ -22,6 +22,7 @@ from tlaup.errors import CannotAsk, Failed, TlaupError
 from tlaup.stdio import WRITE_ERRNOS, closed_pipe_on_windows, is_null_device, reader_gone, silence
 from tlaup.ui import Ui
 from tlaup.versioning import get_app_version
+from tlaup.versioning.redact import redact
 
 
 class _OwnExit:
@@ -34,8 +35,8 @@ own_exit = _OwnExit()
 
 
 def _debug_text(text: str) -> str:
-    """Every line printed under debug goes through here; package 24 makes it the call of the debug filter."""
-    return text
+    """Every line printed under debug goes through the debug filter: no token, no query string (12 V7)."""
+    return redact(text, os.environ)
 
 
 def _plain(text: str) -> str:

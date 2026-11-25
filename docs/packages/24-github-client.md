@@ -1,6 +1,6 @@
 # 24. GitHub client
 
-Size: M. Suggested model: most capable. Status: ready. The debug filter (question Q6) is settled: a stand-alone `redact` owned by this package (Interfaces).
+Size: M. Suggested model: most capable. Status: built, not yet proven on CI. The debug filter (question Q6) is settled: a stand-alone `redact` owned by this package (Interfaces).
 
 This is the security-sensitive package of the store track: it decides where the user's GitHub token goes.
 
