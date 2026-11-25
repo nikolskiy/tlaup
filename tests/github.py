@@ -158,17 +158,21 @@ class GitHubFake:
         return self._jars[tag]
 
     def unreachable(self) -> None:
-        """From now on every request fails with ``requests.ConnectionError``.
+        """From now on every request fails with ``requests.ConnectionError``, however many are made.
 
-        The latest registration wins (inserted ahead).
+        The recordings and earlier answers are removed: ``responses`` takes the first of several matching
+        registrations out of its list, so a refusal registered beside them would refuse only one request.
+        An ``answer`` registered after this call still wins, for one request.
         """
 
         def refuse(request: requests.PreparedRequest) -> Any:
             message = f"GitHub is unreachable: {request.method} {request.url}"
             raise requests.ConnectionError(message)
 
+        registered = self.mock.registered()
+        registered.clear()
         for method in ("GET", "HEAD", "POST"):
-            self.mock.registered().insert(0, responses.CallbackResponse(method, re.compile(r"https://.*"), refuse))
+            registered.append(responses.CallbackResponse(method, re.compile(r"https://.*"), refuse))
 
     def answer(self, status: int, path: str) -> None:
         """An answer with that status for a path under the base address; it wins over the recording.
