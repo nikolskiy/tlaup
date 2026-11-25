@@ -63,6 +63,13 @@ dev = [
     "pre-commit-hooks>=6.0.0,<7.0.0",
     "twine>=6.0.0,<7.0.0",
     "bandit>=1.9.4",
+    "pytest-bdd>=9.0.1,<10",
+    "coverage>=7.10.6",
+    "responses>=0.23.3,<1",
+    "pytest-socket>=0.8.1,<1",
+    "pyte>=0.8.2,<1",
+    "hypothesis>=6.170.17,<7",
+    "pytest-randomly>=5.1.0,<6",
 ]
 
 [tool.pytest.ini_options]
