@@ -26,6 +26,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from tests.parse.drive import build_folders, read_lines
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
@@ -815,22 +817,14 @@ def _java_override_exception_shape(r: RunResult) -> None:
     _same("nested 2154 (severity, before, after)", (nested.severity, nested.before, nested.after), (0, ": ", ""))
     _same("nested 2154 lines", len(nested.lines), 4)  # v1.7.4:38-41, rolling:39-42
     _same("nested 2154 last line", nested.lines[-1], "boom from Java override")
-    # P4: text_lines() equal the error's lines in plain/java-override-exception.out (v1.7.4:13-20, rolling:13-20,
-    # identical), whose first line carries plain mode's "Error: " prefix, which -tool mode does not print.
-    _same(
-        "text lines",
-        list(message.text_lines()),
-        [
-            "TLC threw an unexpected exception.",
-            "This was probably caused by an error in the spec or model.",
-            "See the User Output or TLC Console for clues to what happened.",
-            "The exception was a java.lang.RuntimeException",
-            ": Attempted to apply the operator overridden by the Java method",
-            "public static tlc2.value.impl.Value tlc2.module.Boom.Boom(tlc2.value.impl.Value),",
-            "but it produced the following error:",
-            "boom from Java override",
-        ],
-    )
+    # P4: text_lines() equal the error's lines in plain/java-override-exception.out of every TLC build folder,
+    # read from the capture (01 T12 rule 3): the eight lines from its first "Error: " line, v1.7.4:13-20 and
+    # rolling:28-35. Plain mode puts "Error: " in front of the first line, which -tool mode does not print.
+    for folder in build_folders("tlc"):
+        lines = [line.rstrip("\r\n") for line in read_lines(folder / "plain" / "java-override-exception.out")]
+        start = next(n for n, line in enumerate(lines) if line.startswith("Error: "))
+        plain = [lines[start].removeprefix("Error: "), *lines[start + 1 : start + 8]]
+        _same(f"text lines against {folder.name}/plain", list(message.text_lines()), plain)
 
 
 # --- java-override-stack-trace: BoomTrace.tla, an override whose error is a Java stack ----------------------------
