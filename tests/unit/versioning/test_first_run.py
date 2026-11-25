@@ -8,7 +8,7 @@ the builds, the pin, the requests, and what reached stdout and stderr, never the
 from __future__ import annotations
 
 import io
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -104,22 +104,55 @@ def test_end_of_input_is_cannot_ask_and_installs_nothing(store: ToolStore, upstr
     assert store.pinned() is None
 
 
-def test_the_question_names_both_dates_on_stderr_and_writes_nothing_to_stdout(
-    store: ToolStore, upstream: Upstream
-) -> None:
+def recorded(tag: str) -> dict[str, Any]:
+    return next(r for r in recorded_list() if r["tag_name"] == tag)
+
+
+def jar_of(release: dict[str, Any]) -> dict[str, Any]:
+    return next(a for a in release["assets"] if a["name"] == "tla2tools.jar")
+
+
+def block(stable_day: str, rolling_tail: str) -> str:
+    return (
+        "No TLA+ tools are installed. Which build should tlaup install?\n"
+        f"  1) stable   v1.7.4, released {stable_day}\n"
+        f"  2) rolling  the newest development build{rolling_tail}\n"
+        "Choice [1]: "
+    )
+
+
+def test_the_question_block_reads_its_dates_from_the_recording_and_stdout_stays_empty(upstream: Upstream) -> None:
     terminal = Terminal("1\n")
     choose_first_build(upstream.remote, terminal.ui, auto_install=None)
-    stable = next(r for r in recorded_list() if r["tag_name"] == "v1.7.4")
-    rolling = next(r for r in recorded_list() if r["tag_name"] == "rolling")
-    jar = next(a for a in rolling["assets"] if a["name"] == "tla2tools.jar")
-    text = terminal.err.getvalue()
-    assert QUESTION in text
-    assert "v1.7.4" in text
-    assert stable["published_at"][:10] in text
-    assert jar["updated_at"][:10] in text
-    assert rolling["published_at"][:10] not in text or rolling["published_at"][:10] == jar["updated_at"][:10]
+    stable_day = recorded("v1.7.4")["published_at"][:10]
+    updated = jar_of(recorded("rolling"))["updated_at"][:10]
+    assert recorded("rolling")["published_at"][:10] != updated  # the test can tell the two dates apart
+    assert terminal.err.getvalue() == block(stable_day, f", updated {updated}")
     assert terminal.out.getvalue() == ""
     assert upstream.list_requests == 1
+
+
+def test_a_stable_release_with_no_publication_date_shows_its_creation_date(upstream: Upstream) -> None:
+    data = [dict(item, published_at=None) if item["tag_name"] == "v1.7.4" else item for item in recorded_list()]
+    upstream.publish_list(data)
+    terminal = Terminal("1\n")
+    choose_first_build(upstream.remote, terminal.ui, auto_install=None)
+    created = recorded("v1.7.4")["created_at"][:10]
+    updated = jar_of(recorded("rolling"))["updated_at"][:10]
+    assert terminal.err.getvalue() == block(created, f", updated {updated}")
+
+
+def test_a_rolling_release_with_no_jar_prints_no_date(upstream: Upstream) -> None:
+    data = [
+        dict(item, assets=[a for a in item["assets"] if a["name"] != "tla2tools.jar"])
+        if item["tag_name"] == "rolling"
+        else item
+        for item in recorded_list()
+    ]
+    upstream.publish_list(data)
+    terminal = Terminal("1\n")
+    choose_first_build(upstream.remote, terminal.ui, auto_install=None)
+    assert terminal.err.getvalue() == block(recorded("v1.7.4")["published_at"][:10], "")
 
 
 def test_choose_first_build_returns_the_spec_of_the_answer(upstream: Upstream) -> None:
