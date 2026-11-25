@@ -1,4 +1,4 @@
-from tlaup.versioning.api import fetch_remote_versions
+from tlaup.versioning.api import fetch_remote_versions, list_addresses
 from tlaup.versioning.app_version import (
     get_app_version,
     get_git_commit_hash,
@@ -39,6 +39,7 @@ __all__ = [
     "get_pinned_version_dir",
     "get_tools_dir",
     "is_editable_install",
+    "list_addresses",
     "list_local_versions",
     "read_version_metadata",
     "resolve_latest_version",

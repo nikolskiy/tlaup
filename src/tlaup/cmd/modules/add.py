@@ -14,6 +14,8 @@ from tlaup.tlc.compiler import get_tlc_jar_path
 from tlaup.tlc.run_cache import clear_tlc_run_cache
 from tlaup.versioning.paths import get_modules_dir
 
+DEFAULT_OVERRIDES_CLASS = "tlc2.overrides.TLCOverrides"
+
 
 def find_override_classes(java_files: list[Path]) -> list[str]:
     """Find all class names implementing ITLCOverrides in Java files."""
@@ -125,7 +127,7 @@ def add_module(  # noqa: PLR0912, PLR0915
 
         override_classes = find_override_classes(java_files)
         if not override_classes:
-            override_classes = [config.tlc.overrides_class]
+            override_classes = [DEFAULT_OVERRIDES_CLASS]
 
         with service_file.open("w") as f:
             for cls in override_classes:

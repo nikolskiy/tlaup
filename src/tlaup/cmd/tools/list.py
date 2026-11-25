@@ -8,6 +8,7 @@ from tlaup.versioning import (
     FetchStatus,
     fetch_remote_versions,
     get_pinned_version_dir,
+    list_addresses,
     list_local_versions,
     read_version_metadata,
 )
@@ -17,7 +18,7 @@ from tlaup.versioning import (
 def list_versions() -> None:
     """List available and installed TLC versions."""
     config = load_config()
-    versions, status = fetch_remote_versions(config.tla.urls.tags, config.tla.urls.releases, config.tla.urls.per_page)
+    versions, status = fetch_remote_versions(*list_addresses(config.tool.repository))
 
     local_versions = list_local_versions()
     pinned_dir = get_pinned_version_dir()

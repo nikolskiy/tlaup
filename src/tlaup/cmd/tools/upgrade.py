@@ -10,6 +10,7 @@ from tlaup.versioning import (
     download_version,
     fetch_remote_versions,
     get_pinned_version_dir,
+    list_addresses,
     list_local_versions,
     set_pin,
 )
@@ -39,7 +40,7 @@ def upgrade(version: str = typer.Argument(None, help="Specific version to upgrad
     target_name, local_path = _resolve_upgrade_target(version, pinned_dir)
 
     config = load_config()
-    versions, status = fetch_remote_versions(config.tla.urls.tags, config.tla.urls.releases, config.tla.urls.per_page)
+    versions, status = fetch_remote_versions(*list_addresses(config.tool.repository))
 
     if not versions:
         typer.echo(f"Error: Could not fetch remote versions (status: {status.value})", err=True)

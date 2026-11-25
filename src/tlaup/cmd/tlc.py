@@ -5,8 +5,8 @@ from rich.console import Console
 from rich.live import Live
 
 from tlaup import ui
-from tlaup.config.loader import load_config
 from tlaup.project import find_project_root
+from tlaup.project.core import CLASSES_DIR, MODULES_DIR
 from tlaup.tlc.compiler import get_tlc_jar_path
 from tlaup.tlc.components import StatsTableFormatter, StatusFooterRenderable
 from tlaup.tlc.formatter import TlcFormatter
@@ -84,12 +84,7 @@ def tlc(  # noqa: PLR0912, PLR0913, PLR0915, PLR0917
     try:
         spec_file, _spec_name = resolve_spec_file(spec)
         if cfg:
-            config_obj = load_config()
-            project_root = find_project_root(
-                spec_file,
-                modules_dir=config_obj.workspace.modules_dir,
-                classes_dir=config_obj.workspace.classes_dir,
-            )
+            project_root = find_project_root(spec_file, modules_dir=MODULES_DIR, classes_dir=CLASSES_DIR)
             resolve_cfg_file(cfg, spec_file, project_root=project_root)
     except FileNotFoundError as e:
         ui.error(str(e))

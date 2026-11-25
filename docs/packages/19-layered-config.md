@@ -1,6 +1,6 @@
 # 19. Layered settings
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
