@@ -20,7 +20,20 @@ import pytest
 import typer
 from pytest_bdd.steps import StepFunctionContext, step_function_context_registry
 
-from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, TLAUP_JAVA_DIR, Outcome
+from tests.steps._process import closed_pipe, exit_code_of, run_as_process, start, start_and_signal
+from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, TLAUP_JAVA_DIR, Outcome, _process_alive
+from tests.steps._terminal import (
+    ENTER_ALT,
+    LEAVE_ALT,
+    TerminalRun,
+    _shows,
+    ctrl_c_at_checkpoint,
+    ctrl_c_once_shown,
+    run_in_terminal,
+    run_on_terminal,
+    screen_text,
+    without_escapes,
+)
 
 if TYPE_CHECKING:
     from tests.conftest import Isolated
@@ -175,6 +188,9 @@ THEN_FORMS = [
     "java ran from PATH",
     'the java command matches the expected file "a.txt"',
     "the java process has exited",
+    'the terminal contains "x"',
+    'the terminal does not contain "x"',
+    'the terminal ends with the expected file "a.txt"',
 ]
 
 
@@ -188,16 +204,73 @@ def test_each_then_form_finds_one_step(text: str) -> None:
     find_step("then", text)
 
 
-def test_the_when_form_finds_one_step() -> None:
-    assert find_step("when", 'I run "tlaup tlc Spec"').step_func.__name__ == "i_run"
+# Each When form of T5 that package 18 owns, with the one step function it must find.
+WHEN_FORMS = {
+    'I run "tlaup tlc Spec"': "i_run",
+    'I run "tlaup tlc Spec --raw" as a process': "i_run_as_a_process",
+    'I run "tlaup repl" as a process with input:': "i_run_as_a_process_with_input",
+    'I run "tlaup tlc Spec" as a process whose reader closes after 1 line': "i_run_as_a_process_whose_reader_closes",
+    'I run "tlaup tlc Spec" as a process whose reader closes after 2 lines': "i_run_as_a_process_whose_reader_closes",
+    'I run "tlaup --help" as a process with stdout on a closed pipe': "i_run_as_a_process_with_stdout_on_a_closed_pipe",
+    'I run "tlaup --nosuch" as a process with stdout and stderr on a closed pipe': (
+        "i_run_as_a_process_with_both_on_a_closed_pipe"
+    ),
+    'I run "tlaup --nosuch" as a process with stdout on the null device and stderr on a closed pipe': (
+        "i_run_as_a_process_with_stderr_on_a_closed_pipe"
+    ),
+    'I start "tlaup tlc Big" and send SIGTERM once java is running': "i_start_and_send_once_java_is_running",
+    'I start "tlaup tlc Big" and send SIGINT to the foreground group once java is running': (
+        "i_start_and_send_once_java_is_running"
+    ),
+    'I start "tlaup tlc Big" and send SIGINT twice': "i_start_and_send_twice",
+    'I start "tlaup tlc Big" and send SIGHUP to the foreground group twice': "i_start_and_send_twice",
+    'I start "tlaup tlc Spec --keep" and send SIGINT once java has begun its checkpoint': (
+        "i_start_and_send_once_java_has_begun_its_checkpoint"
+    ),
+    'I start "tlaup tlc Spec" and send SIGINT once java has begun its checkpoint, '
+    'and again once stderr contains "waiting for TLC"': "i_start_and_send_once_java_has_begun_its_checkpoint",
+    'I start "tlaup tlc Spec" and send SIGTERM to the foreground group once java has begun its checkpoint': (
+        "i_start_and_send_once_java_has_begun_its_checkpoint"
+    ),
+    'I run "tlaup tool list" in a terminal 100 by 30': "i_run_in_a_terminal",
+    'I run "tlaup tool list" in a terminal 100 by 30 with stdout redirected to "out.txt"': (
+        "i_run_in_a_terminal_with_a_stream_redirected"
+    ),
+    'I run "tlaup tool list" in a terminal 100 by 30 with stderr redirected to "{work}/err.txt"': (
+        "i_run_in_a_terminal_with_a_stream_redirected"
+    ),
+    'I run "tlaup tool uninstall rolling" in a terminal 100 by 30 and answer "-1, 7, 2"': (
+        "i_run_in_a_terminal_and_answer"
+    ),
+    'I start "tlaup tlc Big" in a terminal 100 by 30 and press Ctrl-C once the terminal has shown "a" and then "b"': (
+        "i_start_in_a_terminal_and_press_ctrl_c_once_shown"
+    ),
+    'I start "tlaup tlc Spec --keep" in a terminal 100 by 30 and press Ctrl-C once java has begun its checkpoint': (
+        "i_start_in_a_terminal_and_press_ctrl_c_at_the_checkpoint"
+    ),
+}
 
 
-def test_the_terminal_forms_do_not_match_the_in_process_step() -> None:
-    for text in [
-        'I run "tlaup x" in a terminal 100 by 30 and answer "y"',
-        'I run "tlaup x" in a terminal 100 by 30 with stdout redirected to "out.txt"',
-    ]:
-        assert not [c for c in contexts("when") if c.parser.is_matching(text)], text
+@pytest.mark.parametrize("text", list(WHEN_FORMS))
+def test_each_when_form_finds_its_own_step(text: str) -> None:
+    # find_step asserts exactly one match, so a shorter form never also matches a longer one.
+    assert find_step("when", text).step_func.__name__ == WHEN_FORMS[text]
+
+
+def test_the_when_forms_parse_their_arguments() -> None:
+    def parsed(text: str) -> dict[str, Any]:
+        return find_step("when", text).parser.parse_arguments(text) or {}
+
+    form = 'I start "tlaup tlc Spec" and send SIGINT once java has begun its checkpoint'
+    assert parsed(form) == {"command": "tlaup tlc Spec", "signal": "SIGINT", "group": None, "text": None}
+    again = parsed(f'{form}, and again once stderr contains "waiting for TLC"')
+    assert again["text"] == "waiting for TLC"
+    group = parsed('I start "tlaup tlc Big" and send SIGINT to the foreground group twice')
+    assert (group["signal"], group["group"]) == ("SIGINT", " to the foreground group")
+    shown = parsed(
+        'I start "tlaup x" in a terminal 80 by 24 and press Ctrl-C once the terminal has shown "a" and then "b"'
+    )
+    assert (shown["width"], shown["height"], shown["first"], shown["second"]) == ("80", "24", "a", "b")
 
 
 def test_the_overlapping_pairs_choose_their_own_step() -> None:
@@ -223,6 +296,16 @@ def test_steps_owned_by_later_packages_are_not_here() -> None:
         ("then", 'the pinned build is "v1.7.4"'),
         ("then", "the terminal showed the layout"),
         ("then", "1 request was sent to GitHub"),
+        ("then", 'the last layout frame contains "x"'),
+        ("then", "the terminal stayed on the main screen"),
+        ("then", "java received SIGINT"),
+        ("then", "java ran in its own process group"),
+        (
+            "when",
+            'I start "tlaup tlc Big" in a terminal 100 by 30 and press Ctrl-C once the terminal has shown "Checking" '
+            "and then an elapsed time 2 seconds later",
+        ),
+        ("when", 'I start "tlaup tlc Big" in a terminal 100 by 30 and press Ctrl-\\ once java is running'),
     ]:
         assert not [c for c in contexts(kind) if c.parser.is_matching(text)], text
 
@@ -795,3 +878,394 @@ def test_the_java_process_has_exited_waits_for_an_orphan(scenario: Scenario, fak
         scenario.check_java_exited(timeout=0.1)
     os.close(write_end)  # end of input: the fake ends
     then(scenario, "the java process has exited")
+
+
+# The real-process runner (package 18b), with small programs as argv
+
+
+def py(code: str, *args: str | Path) -> list[str]:
+    return [sys.executable, "-c", code, *(str(arg) for arg in args)]
+
+
+@pytest.fixture
+def reap(fakes: Fakes) -> Any:
+    """Kill, by process id, any fake java a test leaves running (a failing test must not leak one)."""
+    yield
+    for line in fakes.log("java"):
+        if line.get("event") == "start" and _process_alive(int(line["pid"])):
+            os.kill(int(line["pid"]), signal.SIGKILL)
+
+
+def test_exit_code_of() -> None:
+    assert exit_code_of(-15) == 143
+    assert exit_code_of(-2) == 130
+    assert exit_code_of(3) == 3
+
+
+def test_a_write_to_a_closed_pipe_fails_in_the_child() -> None:
+    write_end = closed_pipe()
+    code = "import os\ntry:\n    os.write(1, b'x')\nexcept BrokenPipeError:\n    os._exit(7)\n"
+    try:
+        child = start(py(code), stdin=subprocess.DEVNULL, stdout=write_end, stderr=subprocess.DEVNULL)
+    finally:
+        os.close(write_end)
+    assert child.wait(timeout=TIMEOUT) == 7
+
+
+def test_the_captured_streams_and_the_null_stdin(scenario: Scenario) -> None:
+    code = "import sys; print('out'); print('err', file=sys.stderr); print(repr(sys.stdin.read()))"
+    result = run_as_process(scenario, py(code))
+    assert (result.exit_code, result.stdout, result.stderr) == (0, "out\n''\n", "err\n")
+    assert result.pid is not None
+
+
+def test_the_input_form_writes_the_doc_string_and_closes(scenario: Scenario, isolated: Isolated) -> None:
+    result = run_as_process(scenario, py("import sys; sys.stdout.write(sys.stdin.read())"), "input", text="a\n{work}\n")
+    assert result.stdout == f"a\n{isolated.work}\n"
+
+
+@POSIX_ONLY
+def test_a_child_killed_by_sigterm_reports_143(scenario: Scenario) -> None:
+    result = run_as_process(scenario, py("import os, signal; os.kill(os.getpid(), signal.SIGTERM)"))
+    assert result.exit_code == 143
+
+
+def test_the_reader_closes_after_one_line_of_a_long_output(scenario: Scenario) -> None:
+    result = run_as_process(scenario, py("for i in range(100_000): print(i)"), "reader", lines=1)
+    assert result.stdout == "0\n"
+    assert result.exit_code != 0  # ended by the closed pipe, not by printing everything
+
+
+def test_the_closed_pipe_forms_cannot_be_read(scenario: Scenario) -> None:
+    code = "import sys; print('x'); print('y', file=sys.stderr)"
+    for arrangement, readable in [("closed-stdout", (False, True)), ("closed-both", (False, False))]:
+        result = run_as_process(scenario, py(code), arrangement)
+        assert (result.stdout is not None, result.stderr is not None) == readable, arrangement
+    result = run_as_process(scenario, py(code), "null-and-closed")
+    assert (result.stdout, result.stderr) == (None, None)
+
+
+def test_the_closed_pipe_steps_on_tlaup(scenario: Scenario) -> None:
+    step(scenario, "when", 'I run "tlaup --nosuch" as a process with stdout and stderr on a closed pipe')
+    then(scenario, "the exit code is 141")
+    with pytest.raises(FAILED, match="closed pipe"):
+        then(scenario, 'stderr does not contain "Traceback"')
+
+
+def test_a_process_that_outlives_its_wait_is_killed_and_shows_its_output(scenario: Scenario) -> None:
+    code = "import sys, time; print('hello', flush=True); time.sleep(60)"
+    with pytest.raises(FAILED, match=r"(?s)still running.*hello"):
+        run_as_process(scenario, py(code), timeout=1)
+
+
+@POSIX_ONLY
+def test_reset_sigint_gives_the_child_sigint_at_its_default() -> None:
+    code = "import signal; print(signal.getsignal(signal.SIGINT) is signal.default_int_handler)"
+    previous = signal.signal(signal.SIGINT, signal.SIG_IGN)
+    try:
+        reset = start(py(code), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        kept = start(
+            py(code), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, reset_sigint=False
+        )
+    finally:
+        signal.signal(signal.SIGINT, previous)
+    assert reset.communicate(timeout=TIMEOUT)[0].strip() == b"True"
+    assert kept.communicate(timeout=TIMEOUT)[0].strip() == b"False"
+
+
+# A child standing in for tlaup: it starts the fake java as tlaup would and reacts to signals as told.
+# A signal that comes before the fake's process is known is handled once it is.
+CHILD = """
+import os, signal, subprocess, sys, time
+java, mode = sys.argv[1], sys.argv[2]
+extra = sys.argv[3:]
+fake = None
+count = 0
+def log(text):
+    sys.stderr.write(text + "\\n"); sys.stderr.flush()
+pending = []
+def handler(number, frame):
+    global count
+    if fake is None:
+        pending.append(number)
+        return
+    count += 1
+    log(f"signal {count}")
+    if mode == "forward-then-kill":
+        if count == 1:
+            fake.send_signal(signal.SIGTERM)
+            return
+        fake.kill(); fake.wait(); sys.exit(143)
+    if mode == "hold":  # the checkpoint deferral: show the waiting line, wait for the commit, then stop
+        log("release before: " + str(os.path.exists(extra[0])))
+        log("tmp files: " + str(bool(list(__import__("pathlib").Path(extra[1]).rglob("*.tmp")))))
+        log("waiting for TLC to finish writing its checkpoint; press Ctrl-C again to stop now")
+        for _ in range(5):  # lines 1 to 3 are in the pipe; 4 and 5 come only after the release
+            fake.stdout.readline()
+        fake.terminate(); fake.wait(); sys.exit(130)
+    if mode == "pass-on":  # a raw run: the fake gets the signal itself
+        fake.send_signal(number)
+        sys.exit(fake.wait() and 130)
+    if mode == "again":
+        if count == 1:
+            log("x")
+            return
+        fake.kill(); fake.wait(); sys.exit(130)
+    if fake is not None:
+        fake.terminate(); fake.wait()
+    sys.exit(143)
+signal.signal(signal.SIGTERM, handler)
+signal.signal(signal.SIGINT, handler)
+subprocess.run([java, "-version"], capture_output=True)
+args = [java, "tlc2.TLC"] + (["-metadir", extra[1]] if mode in ("hold", "pass-on", "again") else [])
+if mode == "group":
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+fake = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL,
+                        process_group=0 if mode in ("hold", "pass-on", "again") else None)
+for number in pending:
+    handler(number, None)
+while True:
+    signal.pause()
+"""
+
+
+def child(fakes: Fakes, mode: str, *extra: str | Path) -> list[str]:
+    return py(CHILD, fakes.bin / "java", mode, *extra)
+
+
+def java_lines(fakes: Fakes, event: str) -> list[dict[str, Any]]:
+    return [line for line in fakes.log("java") if line["event"] == event]
+
+
+@POSIX_ONLY
+def test_once_java_is_running_waits_for_the_tool_start(scenario: Scenario, fakes: Fakes, reap: Any) -> None:
+    given(scenario, "java takes 1 seconds to report its version")  # a signal during the check would show
+    given(scenario, "java prints 1 lines")
+    given(scenario, "java hangs after line 1")
+    result = start_and_signal(scenario, child(fakes, "terminate"), "SIGTERM", "running")
+    assert result.exit_code == 143
+    assert [line["main"] for line in java_lines(fakes, "start")] == ["-version", "tlc2.TLC"]
+    assert [line["name"] for line in java_lines(fakes, "signal")] == ["SIGTERM"]  # the child stopped it
+    assert result.pgid == os.getpgrp()  # tlaup alone, in the test's group
+
+
+@POSIX_ONLY
+def test_twice_waits_for_the_fakes_own_signal_line(scenario: Scenario, fakes: Fakes, reap: Any) -> None:
+    given(scenario, "java prints 1 lines")
+    given(scenario, "java hangs after line 1")
+    given(scenario, "java ignores SIGTERM")
+    result = start_and_signal(scenario, child(fakes, "forward-then-kill"), "SIGTERM", "twice")
+    assert result.exit_code == 143
+    assert result.stderr == "signal 1\nsignal 2\n"
+    assert [line["name"] for line in java_lines(fakes, "signal")] == ["SIGTERM"]
+
+
+@POSIX_ONLY
+def test_to_the_foreground_group_reaches_a_grandchild(scenario: Scenario, fakes: Fakes, reap: Any) -> None:
+    given(scenario, "java prints 1 lines")
+    given(scenario, "java hangs after line 1")
+    result = start_and_signal(scenario, child(fakes, "group"), "SIGTERM", "running", group=True)
+    assert result.exit_code == 143
+    assert result.pgid == result.pid
+    assert [line["name"] for line in java_lines(fakes, "signal")] == ["SIGTERM"]
+    assert java_lines(fakes, "exit")[-1]["code"] == 143
+    start_line = java_lines(fakes, "start")[-1]
+    assert start_line["pgid"] == result.pgid
+
+
+def declare_checkpoint(scenario: Scenario) -> Path:
+    given(scenario, 'java replays "tlc/v1.7.4/violation" with exit code 12')
+    given(scenario, "java begins a checkpoint after line 3 and commits it before line 5")
+    given(scenario, "java hangs after line 5")
+    return Path(scenario.java_runs[-1]["checkpoint"]["release_file"])
+
+
+@POSIX_ONLY
+def test_once_java_has_begun_its_checkpoint_releases_after_the_waiting_line(
+    scenario: Scenario, fakes: Fakes, tmp_path: Path, reap: Any
+) -> None:
+    release = declare_checkpoint(scenario)
+    result = start_and_signal(scenario, child(fakes, "hold", release, tmp_path / "meta"), "SIGINT", "checkpoint")
+    assert result.exit_code == 130
+    assert result.stderr is not None
+    assert "tmp files: True" in result.stderr  # sent after the checkpoint line
+    assert "release before: False" in result.stderr  # released only after the waiting line
+    assert release.exists()
+    assert sorted(p.name for p in tmp_path.joinpath("meta").rglob("*.chkpt")) == ["queue.chkpt", "vars.chkpt"]
+
+
+@POSIX_ONLY
+def test_no_release_when_the_fake_gets_the_signal_itself(
+    scenario: Scenario, fakes: Fakes, tmp_path: Path, reap: Any
+) -> None:
+    release = declare_checkpoint(scenario)
+    result = start_and_signal(scenario, child(fakes, "pass-on", release, tmp_path / "meta"), "SIGINT", "checkpoint")
+    assert result.exit_code == 130
+    assert java_lines(fakes, "exit")[-1]["code"] == 130
+    assert not release.exists()
+
+
+@POSIX_ONLY
+def test_and_again_sends_the_second_signal_after_the_text(
+    scenario: Scenario, fakes: Fakes, tmp_path: Path, reap: Any
+) -> None:
+    release = declare_checkpoint(scenario)
+    argv = child(fakes, "again", release, tmp_path / "meta")
+    result = start_and_signal(scenario, argv, "SIGINT", "checkpoint", again_once="x")
+    assert result.exit_code == 130
+    assert result.stderr == "signal 1\nx\nsignal 2\n"
+    assert not release.exists()
+
+
+def test_a_signal_the_steps_do_not_know_fails(scenario: Scenario) -> None:
+    with pytest.raises(FAILED, match="SIGUSR1"):
+        start_and_signal(scenario, py("pass"), "SIGUSR1", "running")
+
+
+@POSIX_ONLY
+def test_a_process_that_ends_before_java_runs_fails_the_wait(scenario: Scenario) -> None:
+    with pytest.raises(FAILED, match="the process ended before"):
+        start_and_signal(scenario, py("print('bye')"), "SIGTERM", "running")
+
+
+# The terminal runner (package 18b): Linux and macOS
+
+
+PTY_ONLY = pytest.mark.skipif(os.name == "nt", reason="no pty on Windows; no Windows CI (D15)")
+
+
+@PTY_ONLY
+def test_the_terminal_has_the_steps_size_and_terminal_type(scenario: Scenario) -> None:
+    code = (
+        "import os; size = os.get_terminal_size(); "
+        "print(size.columns, size.lines, os.environ.get('TERM'), os.environ.get('COLUMNS'), os.environ.get('LINES'))"
+    )
+    result = run_in_terminal(scenario, py(code), (90, 20))
+    assert result.exit_code == 0
+    assert result.stdout == "90 20 xterm-256color None None\n"
+    assert result.stderr == result.stdout  # both streams are the pty
+    assert result.terminal_size == (90, 20)
+
+
+@PTY_ONLY
+def test_a_redirected_stream_reads_as_its_file(scenario: Scenario, isolated: Isolated) -> None:
+    code = "import sys; print('on screen'); print('in file', file=sys.stderr)"
+    result = run_in_terminal(scenario, py(code), (80, 24), redirect={"stderr": isolated.work / "err.txt"})
+    assert (result.stdout, result.stderr) == ("on screen\n", "in file\n")
+
+
+@PTY_ONLY
+def test_two_questions_get_both_typed_answers(scenario: Scenario) -> None:
+    code = "a = input('first? '); b = input('second? '); print(f'got [{a}] [{b}]')"
+    result = run_in_terminal(scenario, py(code), (80, 24), answers="yes , 7")
+    assert result.exit_code == 0
+    assert result.stdout is not None
+    assert "got [yes] [7]" in result.stdout
+
+
+@PTY_ONLY
+def test_ctrl_c_once_the_terminal_has_shown_two_texts(scenario: Scenario) -> None:
+    code = "import time\nprint('a', flush=True)\nprint('b', flush=True)\nwhile True:\n    time.sleep(0.05)\n"
+    result = ctrl_c_once_shown(scenario, py(code), (80, 24), "a", "b")
+    assert result.exit_code == 130
+
+
+@PTY_ONLY
+def test_feed_until_fails_with_the_last_screen(scenario: Scenario) -> None:
+    run = run_on_terminal(py("print('abc')"), size=(80, 24))
+    with pytest.raises(FAILED, match=r"(?s)ended before.*abc"):
+        run.feed_until("zzz")
+
+
+@PTY_ONLY
+def test_ctrl_c_once_java_has_begun_its_checkpoint(scenario: Scenario, fakes: Fakes, tmp_path: Path, reap: Any) -> None:
+    release = declare_checkpoint(scenario)
+    # The fake in a group of its own, as tlaup starts a parsed run's JVM (D60): the Ctrl-C reaches the child alone.
+    result = ctrl_c_at_checkpoint(scenario, child(fakes, "hold", release, tmp_path / "meta"), (100, 30))
+    assert result.exit_code == 130
+    assert result.stdout is not None
+    assert "tmp files: True" in result.stdout
+    assert "release before: False" in result.stdout
+    assert release.exists()
+    assert not java_lines(fakes, "signal") or java_lines(fakes, "signal")[0]["name"] == "SIGTERM"
+
+
+def terminal_outcome(scenario: Scenario, data: bytes, size: tuple[int, int] = (40, 5)) -> None:
+    scenario.outcome = Outcome(exit_code=0, stdout="", stderr="", terminal=data, terminal_size=size)
+
+
+def test_the_terminal_ends_with_what_follows_the_alternate_screen(scenario: Scenario) -> None:
+    scenario.expected_dir = UNIT_EXPECTED
+    frame = b"\x1b[H\x1b[2JLayout frame\r\nPanel"
+    terminal_outcome(scenario, b"before\r\n" + ENTER_ALT + frame + LEAVE_ALT + b"Result: done\r\nbye\r\n")
+    then(scenario, 'the terminal ends with the expected file "harness/terminal-end.txt"')
+    then(scenario, 'the terminal contains "Result: done"')
+    with pytest.raises(FAILED, match="does not show"):
+        then(scenario, 'the terminal contains "Layout frame"')
+
+
+def test_the_terminal_does_not_contain_sees_overwritten_text(scenario: Scenario) -> None:
+    terminal_outcome(scenario, b"secret\r\x1b[2Kshown\r\n")
+    then(scenario, 'the terminal contains "shown"')
+    then(scenario, 'the terminal does not contain "other"')
+    with pytest.raises(FAILED, match="no longer on the screen"):
+        then(scenario, 'the terminal does not contain "secret"')
+
+
+def test_screen_text_keeps_lines_that_scrolled_off() -> None:
+    data = b"".join(f"line {i}\r\n".encode() for i in range(1, 11))
+    assert screen_text(data, (20, 3)) == "".join(f"line {i}\n" for i in range(1, 11))
+
+
+def test_a_terminal_step_after_a_plain_run_fails(scenario: Scenario) -> None:
+    outcome(scenario)
+    with pytest.raises(FAILED, match="not on a terminal"):
+        then(scenario, 'the terminal contains "x"')
+
+
+# A run killed on its timeout ends the fake java too, even in a group of its own (D60)
+
+HANGING_PARENT = """
+import subprocess, sys, time
+fake = subprocess.Popen([sys.argv[1], "tlc2.TLC"], stdout=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                        process_group=0)
+fake.stdout.readline()  # the fake has started and logged its start line
+print("ready", flush=True)
+time.sleep(60)
+"""
+
+
+def fake_pid(fakes: Fakes) -> int:
+    return int(java_lines(fakes, "start")[-1]["pid"])
+
+
+@POSIX_ONLY
+def test_a_killed_process_run_ends_its_fake_java(scenario: Scenario, fakes: Fakes, reap: Any) -> None:
+    given(scenario, "java prints 1 lines")
+    given(scenario, "java hangs after line 1")
+    with pytest.raises(FAILED, match=r"(?s)still running.*ready"):
+        run_as_process(scenario, py(HANGING_PARENT, fakes.bin / "java"), timeout=3)
+    assert not _process_alive(fake_pid(fakes))
+
+
+@PTY_ONLY
+def test_a_killed_terminal_run_ends_its_fake_java(scenario: Scenario, fakes: Fakes, reap: Any) -> None:
+    given(scenario, "java prints 1 lines")
+    given(scenario, "java hangs after line 1")
+    run = run_on_terminal(py(HANGING_PARENT, fakes.bin / "java"), size=(80, 24)).watch(fakes, 0)
+    run.feed_until("ready")
+    with pytest.raises(FAILED, match="did not end"):
+        run.finish(timeout=1)
+    assert not _process_alive(fake_pid(fakes))
+
+
+def test_escapes_removed_include_the_two_byte_forms_and_dcs() -> None:
+    data = b"\x1b7a\x1b8b\x1b=c\x1b>d\x1bPq#0;1;1\x1b\\e\x1b[1mf\x1b]0;title\x07g"
+    assert without_escapes(data) == "abcdefg"
+
+
+def test_a_text_is_found_across_a_wrap_but_not_across_two_lines(scenario: Scenario) -> None:
+    run = TerminalRun(process=None, master=-1, size=(4, 3))  # type: ignore[arg-type]
+    run.stream.feed(b"abcdef\r\ngh\r\nij")
+    assert _shows(run.screen, "cdef")  # "abcd" filled the line and wrapped
+    assert not _shows(run.screen, "ghij")

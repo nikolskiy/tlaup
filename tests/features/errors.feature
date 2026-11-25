@@ -53,3 +53,16 @@ Feature: Errors and exit codes
       | tlaup tools dir         | 0     | does not contain |
       | tlaup --debug tools dir | 0     | contains         |
       | tlaup tools dir         | 1     | contains         |
+
+  Scenario: Help on a closed pipe exits 141 without a traceback
+    When I run "tlaup --help" as a process with stdout on a closed pipe
+    Then the exit code is 141
+    And stderr does not contain "Traceback"
+
+  Scenario: A usage error with both streams on a closed pipe exits 141
+    When I run "tlaup --nosuch" as a process with stdout and stderr on a closed pipe
+    Then the exit code is 141
+
+  Scenario: A usage error with stderr on a closed pipe exits 141
+    When I run "tlaup --nosuch" as a process with stdout on the null device and stderr on a closed pipe
+    Then the exit code is 141

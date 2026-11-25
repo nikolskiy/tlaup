@@ -1,6 +1,6 @@
 # 18. The feature harness: steps, processes, terminals and the first scenarios
 
-Size: L as a whole, delivered as two pull requests of size M each (18a and 18b, see the end of this file). Suggested model: most capable. Status: 18a built, 18b ready.
+Size: L as a whole, delivered as two pull requests of size M each (18a and 18b, see the end of this file). Suggested model: most capable. Status: built, not yet proven on CI.
 
 ## Goal
 
@@ -130,7 +130,7 @@ The steps, each starting `start(...)` and storing an `Outcome` with `pid` and `p
 | `I start "<command>" and send <signal> twice` | As above; after the first signal waits for a `signal` line of the fake's own (tlaup has passed it on), then sends the second. Used with `java ignores <signal>` (T5). |
 | `I start "<command>" and send <signal> once java has begun its checkpoint` | As `once java is running`, but waits with `wait_for_log` for the fake's `checkpoint` line ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges)), which it writes once the 2195 line is flushed and the `.tmp` files exist; then sends the signal. Then it gives the fake its release: it waits until the captured stderr file holds the waiting line (`waiting for TLC to finish writing its checkpoint`, the part both wordings of [11 R2](../design/11-runner.md#r2-signals) share) and creates the run's `release_file`, so the fake commits and prints 2196 only after tlaup has shown that it holds the signal. If the fake's log shows its `exit` first (a raw run, where the fake gets the signal itself, or the window under Context), it gives no release. The one way to place a signal between 2195 and 2196 (question Q10; finding E1 of the [second review](review-2026-11-24.md)). |
 | the same, ending `, and again once stderr contains "<text>"` | After the first signal, waits until the captured stderr file holds the text (tlaup has printed the waiting line, so the first signal was held), then sends the second, and gives no release: the second signal ends the run at once. |
-| each `send` form `... to the foreground group` | Started with `new_group=True`; the signals go to the group (`os.killpg`), as Ctrl-C in a terminal does. |
+| each `send` form with `to the foreground group` right after the signal (`send SIGINT to the foreground group once java is running`) | Started with `new_group=True`; the signals go to the group (`os.killpg`), as Ctrl-C in a terminal does. |
 
 Every real-process step waits for the process with a timeout of 60 seconds, then kills it and fails with what it printed. The pipe the `I start` steps hold is closed after the process has exited. `<signal>` is `SIGINT`, `SIGTERM` or `SIGHUP` (and `SIGQUIT` for 39's `Ctrl-\` form); on a platform without the signal, or on Windows, the step skips the scenario with the reason (D15).
 

@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, cast
 
 from pytest_bdd import parsers, then
 
+from tests.steps import _terminal
+
 if TYPE_CHECKING:
     from tests.fakes.control import Tool
     from tests.steps._scenario import Scenario
@@ -159,3 +161,21 @@ def the_java_command_matches_the_expected_file(scenario: Scenario, name: str) ->
 @then(parsers.re(r"the java process has exited"))
 def the_java_process_has_exited(scenario: Scenario) -> None:
     scenario.check_java_exited()
+
+
+# Then: the terminal
+
+
+@then(parsers.re(r'the terminal contains "(?P<text>.*)"'))
+def the_terminal_contains(scenario: Scenario, text: str) -> None:
+    _terminal.check_terminal_contains(scenario, text)
+
+
+@then(parsers.re(r'the terminal does not contain "(?P<text>.*)"'))
+def the_terminal_does_not_contain(scenario: Scenario, text: str) -> None:
+    _terminal.check_terminal_not_contains(scenario, text)
+
+
+@then(parsers.re(r'the terminal ends with the expected file "(?P<name>[^"]+)"'))
+def the_terminal_ends_with_the_expected_file(scenario: Scenario, name: str) -> None:
+    scenario.check_matches(_terminal.terminal_end(scenario), name)

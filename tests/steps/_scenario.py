@@ -2,7 +2,7 @@
 
 ``given.py``, ``when.py`` and ``then.py`` are thin wrappers over the methods of ``Scenario``, so that
 ``tests/unit/test_harness.py`` can call the helpers without a feature file. The real-process and terminal
-runners will live in ``_process.py`` and ``_terminal.py`` (18b).
+runners are in ``_process.py`` and ``_terminal.py``.
 """
 
 from __future__ import annotations
