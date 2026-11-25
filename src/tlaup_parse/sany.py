@@ -86,7 +86,7 @@ _NO_FILE = "Cannot find the specified file "
 _PARSE_STATES = frozenset({"parse_error", "parse_stack", "parse_tail"})
 
 
-def module_of_path(path: str) -> str:
+def _module_of_path(path: str) -> str:
     """The module a ``Parsing file`` path stands for: the file name without its extension, for ``/`` or ``\\``."""
     name = re.split(r"[\\/]", path)[-1]
     stem, dot, _ = name.rpartition(".")
@@ -233,7 +233,7 @@ class SanyParser:
         jar = _JAR_SUFFIX.fullmatch(path)
         if jar:
             path = jar.group(1)
-        self._module_files[module_of_path(path)] = path
+        self._module_files[_module_of_path(path)] = path
 
     # -- completing diagnostics ----------------------------------------------------------------------------------
 

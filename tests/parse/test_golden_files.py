@@ -68,7 +68,7 @@ def test_every_synthetic_case_has_its_note() -> None:
     outs = {p.stem for p in SYNTHETIC.glob("*.out")}
     whys = {p.stem for p in SYNTHETIC.glob("*.why")}
     assert outs == whys
-    assert len(outs) == 12
+    assert len(outs) == 15
 
 
 def test_the_byte_level_synthetic_cases_are_unchanged() -> None:

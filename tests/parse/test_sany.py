@@ -79,7 +79,10 @@ def test_two_semantic_errors_each_have_their_position(build: str) -> None:
     assert all(d.details == () for d in result.diagnostics)
 
 
-@pytest.mark.parametrize(("build", "case"), [("v1.7.4", "sany-levelerr-174"), ("rolling", "sany-levelerr")])
+@pytest.mark.parametrize(
+    ("build", "case"),
+    [("v1.7.4", "sany-levelerr-174"), ("rolling", "sany-levelerr"), ("rolling", "sany-levelerr-174")],
+)
 def test_two_level_errors_with_two_line_messages(build: str, case: str) -> None:
     result = result_of(build, case)
     assert [shape(d) for d in result.diagnostics] == [
@@ -139,6 +142,7 @@ def test_several_parse_errors_in_one_spec_give_one_diagnostic(build: str) -> Non
     result = result_of(build, "sany-multi")
     (diagnostic,) = result.diagnostics
     assert diagnostic.module == "Multi"
+    assert diagnostic.file is not None and diagnostic.file.endswith("Multi.tla")
     assert diagnostic.location == loc("Multi", 7, 6, None, None)
 
 
@@ -149,6 +153,7 @@ def test_a_missing_module_gives_one_diagnostic_without_location(build: str) -> N
     assert diagnostic.severity == "error"
     assert diagnostic.location is None
     assert diagnostic.message == "Cannot find source file for module NoSuchModule imported in module MissingMod."
+    assert diagnostic.module is None if build == "v1.7.4" else diagnostic.module == "MissingMod"
     file_lines = [line for line in result.other if line.startswith("File does not exist:")]
     assert len(file_lines) == (1 if build == "v1.7.4" else 0)
 
@@ -321,17 +326,12 @@ def test_module_files_come_from_the_parsing_file_lines() -> None:
     assert result.module_files["Naturals"].endswith("Naturals.tla")
 
 
-def test_a_warning_block_header_gives_no_file(tmp_path: Path) -> None:
-    parser = SanyParser()
-    for line in ["Warnings (1) during syntax parsing of Other.tla:\n", "\n", "In module Other\n", "\n", "Careful.\n"]:
-        parser.feed(line)
-    (diagnostic,) = parser.close().diagnostics
-    assert (diagnostic.severity, diagnostic.module, diagnostic.file, diagnostic.message) == (
-        "warning",
-        "Other",
-        None,
-        "Careful.",
-    )
+def test_a_warning_block_header_gives_no_file() -> None:
+    lines = read_lines(BUILDS["rolling"] / "sany-stale-alg.out")
+    announced = next(line for line in lines if line.startswith("Parsing file ") and "PcalStaleAlg" in line)
+    parser, _ = drive([line for line in lines if line != announced])
+    (diagnostic,) = parser.result.diagnostics
+    assert (diagnostic.severity, diagnostic.module, diagnostic.file) == ("warning", "PcalStaleAlg", None)
 
 
 def test_classes_of_a_semantic_error_capture() -> None:
@@ -357,27 +357,26 @@ def test_an_empty_line_after_an_other_line_is_other() -> None:
     assert parser.result.other == ("something odd", "", "")
 
 
+SYNTHETIC = SANY.parent / "synthetic"
+
+
 def test_a_location_line_inside_the_parse_states_is_an_ordinary_line() -> None:
-    parser = SanyParser()
-    parser.feed("***Parse Error***\n")
-    step = parser.feed("line 6, col 27 to line 6, col 27 of module Level\n")
-    assert step.line_class is SanyLineClass.MESSAGE
-    parser.feed("Residual stack trace follows:\n")
-    step = parser.feed("line 1, col 1 to line 1, col 2 of module Level\n")
-    assert step.line_class is SanyLineClass.MESSAGE
+    lines = read_lines(SYNTHETIC / "sany-location-line-in-parse-error.out")
+    parser, steps = drive(lines)
+    whole = [step.line_class for line, step in zip(lines, steps, strict=False) if line.startswith("line ")]
+    assert whole == [SanyLineClass.MESSAGE, SanyLineClass.MESSAGE]
+    (diagnostic,) = parser.result.diagnostics
+    assert diagnostic.message.startswith("line 6, col 27 to line 6, col 27 of module Level\n")
+    assert diagnostic.details == ("line 1, col 1 to line 1, col 2 of module Level",)
+    assert diagnostic.location == loc("Level", 6, 27, 6, 27)
 
 
 def test_a_location_with_no_text_under_it_is_dropped_but_counted_as_used() -> None:
-    parser = SanyParser()
-    parser.feed("Semantic errors:\n")
-    parser.feed("line 4, col 13 to line 4, col 13 of module M\n")
-    parser.feed("\n")
-    step = parser.feed("*** Errors: 1\n")
-    assert step.diagnostics == ()
-    parser.close()
+    lines = read_lines(SYNTHETIC / "sany-position-without-text.out")
+    parser, _ = drive(lines)
     assert parser.result.diagnostics == ()
     assert parser.result.other == ()
-    assert parser.result.lines_used == 4
+    assert parser.result.lines_used == len(lines)
 
 
 def test_close_returns_a_parse_error_without_module_when_the_input_ends_early() -> None:
@@ -390,7 +389,7 @@ def test_close_returns_a_parse_error_without_module_when_the_input_ends_early() 
     assert step.line_class is None
     (diagnostic,) = step.diagnostics
     assert diagnostic.module is None
-    assert diagnostic.location is not None and (diagnostic.location.line, diagnostic.location.column) == (4, 9)
+    assert diagnostic.location == loc("", 4, 9, None, None)
     assert len(diagnostic.details) == 3
 
 
@@ -506,9 +505,15 @@ def test_one_error_block_fed_twice_gives_the_diagnostic_once(build: str) -> None
 
 
 def test_a_parse_error_whose_message_has_no_position_has_no_location() -> None:
-    parser = SanyParser()
-    for line in ["***Parse Error***\n", "Something odd\n", "Residual stack trace follows:\n", "A frame.\n"]:
-        parser.feed(line)
-    (diagnostic,) = parser.close().diagnostics
+    parser, steps = drive(read_lines(SYNTHETIC / "sany-parse-error-without-position.out"))
+    (diagnostic,) = steps[-1].diagnostics
     assert diagnostic.location is None
+    assert diagnostic.module is None
     assert diagnostic.details == ("A frame.",)
+    assert parser.result.diagnostics == (diagnostic,)
+
+
+def test_a_windows_path_gives_its_module_from_the_file_name() -> None:
+    parser = SanyParser()
+    parser.feed("Parsing file C:\\x\\Foo.tla\n")
+    assert parser.result.module_files == {"Foo": "C:\\x\\Foo.tla"}
