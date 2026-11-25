@@ -538,9 +538,12 @@ def _repair(store: ToolStore, remote: Remote, build: Build, fetch: Fetch, every:
     def check(info: JarInfo) -> None:
         if info.sha256 != build.sha256:
             printed = format_build(build, every)
-            message = f"{printed} is installed, but upstream now publishes another build under {release.tag}"
-            hint = f"it cannot be downloaded again and was left as it is; `tlaup tool install --force {release.tag}`"
-            raise VersionNotFound(message, hint=hint + " installs what upstream publishes now")
+            message = (
+                f"{printed} is installed and cannot be downloaded again: upstream now publishes another build "
+                f"under {release.tag}; {printed} was left as it is"
+            )
+            hint = f"`tlaup tool install --force {release.tag}` installs what upstream publishes now"
+            raise VersionNotFound(message, hint=hint)
 
     lookup = _first_then_fresh(remote, release)
     return _run(Install(store, release.tag, lookup, fetch, force=True), check)
