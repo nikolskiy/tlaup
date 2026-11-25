@@ -146,11 +146,11 @@ class Ui:
     def ask(self, question: str, *, choices: Sequence[str], default: str | None) -> str:
         """Ask on stderr, read one line from the stream given; end of input is `CannotAsk`.
 
+        The prompt is "<question> [<default>]: ", or "<question>: " with no default; the choices are not listed.
         An answer is compared with the choices exactly, after stripping white space. A line with nothing in it gives
         the default (asked again when there is none); any other answer is asked again.
         """
-        shown = "/".join(choices)
-        suffix = f" [{shown}]" + (f" (default: {default})" if default is not None else "")
+        suffix = f" [{default}]" if default is not None else ""
         while True:
             self.err.print(Text(f"{question}{suffix}: "), end="", soft_wrap=True)
             self._stderr.flush()

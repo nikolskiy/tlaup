@@ -111,7 +111,7 @@ def test_a_long_message_stays_on_one_line() -> None:
 def test_ask_returns_a_valid_answer() -> None:
     ui, out, err = make("v1.7.4\n")
     assert ui.ask("Which build?", choices=["rolling", "v1.7.4"], default="rolling") == "v1.7.4"
-    assert err.getvalue() == "Which build? [rolling/v1.7.4] (default: rolling): "
+    assert err.getvalue() == "Which build? [rolling]: "
     assert out.getvalue() == ""
 
 
@@ -203,3 +203,9 @@ def test_for_process_replaces_what_the_encoding_lacks(monkeypatch: pytest.Monkey
     ui.note("café")
     assert raw.getvalue() == b"caf?\n"
     assert raw_err.getvalue() == b"caf?\n"
+
+
+def test_ask_shows_only_the_default_and_never_the_choices() -> None:
+    ui, _, err = make("a\n")
+    ui.ask("Which?", choices=["a", "b"], default=None)
+    assert err.getvalue() == "Which?: "
