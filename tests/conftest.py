@@ -14,11 +14,15 @@ import tlaup.context
 from tests import expected
 from tests.fakes.control import Fakes, fake_bin_dir
 from tests.github import GitHubFake
+from tests.steps._scenario import Scenario
 from tlaup.paths import AppPaths
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
     from pathlib import Path
+
+# The step vocabulary of the feature files (design 01 T5), visible to tests/test_features.py's scenarios.
+pytest_plugins = ["tests.steps.given", "tests.steps.when", "tests.steps.then"]
 
 # Fixed and reproducible in CI; no example database (T7).
 _QUIET = [HealthCheck.too_slow, HealthCheck.filter_too_much]
@@ -91,6 +95,14 @@ def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Isolated:
 def fakes(isolated: Isolated, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Fakes:
     """The four fake launchers on PATH, unscripted (T4)."""
     return Fakes(isolated.bin, tmp_path, monkeypatch)
+
+
+@pytest.fixture
+def scenario(
+    isolated: Isolated, fakes: Fakes, request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> Scenario:
+    """The state one feature scenario carries between its steps (T5, package 18)."""
+    return Scenario(isolated, fakes, request, monkeypatch, tmp_path)
 
 
 @pytest.fixture
