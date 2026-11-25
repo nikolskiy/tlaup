@@ -1,0 +1,359 @@
+"""The terminal runner of the feature steps: a pty read through ``pyte`` (design 01 T5, 22 O4).
+
+The child is the leader of a new session with the pty as its controlling terminal, so the interrupt
+character typed into the pty is the terminal's own SIGINT to the foreground group. ``pyte`` does not model
+the alternate screen, so what stays on the user's terminal is the screen of the bytes after the last
+``LEAVE_ALT``.
+"""
+
+from __future__ import annotations
+
+import errno
+import os
+import re
+import select
+import signal
+import struct
+import subprocess
+import time
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
+
+import pyte
+import pytest
+
+from tests.steps._process import (
+    POSIX,
+    WAIT_SECONDS,
+    WAITING_LINE,
+    exit_code_of,
+    find_log,
+    is_tool_start,
+    prepare,
+    release_when_waiting,
+    wait_for_log,
+)
+from tests.steps._scenario import POLL_SECONDS, Outcome, fail
+
+try:  # POSIX only; none on Windows, where the terminal steps skip (D15)
+    import fcntl
+    import termios
+except ImportError:  # pragma: no cover - Windows
+    fcntl = None  # type: ignore[assignment]
+    termios = None  # type: ignore[assignment]
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Mapping, Sequence
+    from pathlib import Path
+
+    from tests.steps._scenario import Scenario
+
+ENTER_ALT = b"\x1b[?1049h"
+LEAVE_ALT = b"\x1b[?1049l"
+INTERRUPT = "\x03"  # Ctrl-C, which the terminal turns into SIGINT for its foreground group
+TERMINAL_TYPE = "xterm-256color"
+FEED_SECONDS = 10.0
+HISTORY_LINES = 100_000
+# Escape sequences, for "the whole output with escape sequences removed": CSI, OSC, and the two-byte forms.
+_ESCAPES = re.compile(rb"\x1b\[[0-?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[()][0-9A-Za-z]|\x1b[@-Z\\-_]")
+
+
+def _new_screen(size: tuple[int, int]) -> tuple[pyte.HistoryScreen, pyte.ByteStream]:
+    columns, lines = size
+    screen = pyte.HistoryScreen(columns, lines, history=HISTORY_LINES)
+    return screen, pyte.ByteStream(screen)
+
+
+def _lines(screen: pyte.HistoryScreen) -> list[str]:
+    """The lines that scrolled off, then the screen, each with trailing spaces removed."""
+    scrolled = ["".join(line[x].data for x in range(screen.columns)).rstrip() for line in screen.history.top]
+    return [*scrolled, *(line.rstrip() for line in screen.display)]
+
+
+def _join(lines: list[str]) -> str:
+    while lines and not lines[-1]:
+        lines.pop()
+    return "\n".join(lines) + "\n" if lines else ""
+
+
+def screen_text(data: bytes, size: tuple[int, int]) -> str:
+    """``data`` replayed through ``pyte``: the lines that scrolled off count, trailing empty lines dropped."""
+    screen, stream = _new_screen(size)
+    stream.feed(data)
+    return _join(_lines(screen))
+
+
+def final_screen(data: bytes, size: tuple[int, int]) -> str:
+    """What stays on the user's terminal: the screen of the bytes after the last ``LEAVE_ALT``, if any."""
+    _, found, rest = data.rpartition(LEAVE_ALT)
+    return screen_text(rest if found else data, size)
+
+
+def without_escapes(data: bytes) -> str:
+    """Every byte written, escape sequences removed: text that was drawn and then overwritten stays."""
+    return _ESCAPES.sub(b"", data).decode("utf-8", errors="replace")
+
+
+def _shows(screen: pyte.HistoryScreen, text: str) -> bool:
+    lines = _lines(screen)
+    # Joined both ways, so a text that wrapped at the right edge is still found.
+    return text in "\n".join(lines) or text in "".join(lines)
+
+
+@dataclass
+class TerminalRun:
+    """One process on a pty, and everything read from it so far."""
+
+    process: subprocess.Popen[bytes]
+    master: int  # the pty's master end
+    size: tuple[int, int]  # columns, lines
+    redirect: dict[str, Path] = field(default_factory=dict)
+    output: bytearray = field(default_factory=bytearray)
+    ended: bool = False  # end of output was read
+    screen: Any = None
+    stream: Any = None
+
+    def __post_init__(self) -> None:
+        self.screen, self.stream = _new_screen(self.size)
+
+    def read(self, wait: float = POLL_SECONDS) -> None:
+        """Read what is there within ``wait``; end of output is EIO on Linux, an empty read on macOS."""
+        if self.ended:
+            return
+        ready, _, _ = select.select([self.master], [], [], wait)
+        if not ready:
+            return
+        try:
+            data = os.read(self.master, 65536)
+        except OSError as error:
+            if error.errno != errno.EIO:
+                raise
+            data = b""
+        if not data:
+            self.ended = True
+            return
+        self.output += data
+        self.stream.feed(data)
+
+    def last_screen(self) -> str:
+        return _join(_lines(self.screen))
+
+    def kill(self) -> None:
+        if self.process.poll() is None:
+            try:
+                os.killpg(self.process.pid, signal.SIGKILL)  # the session's group: tlaup and the fake
+            except ProcessLookupError:
+                self.process.kill()
+        self.process.wait()
+
+    def fail_with_screen(self, message: str) -> None:
+        self.kill()
+        self.close()
+        fail(f"{message}; it was killed. The last screen:\n{self.last_screen()}")
+
+    def close(self) -> None:
+        if self.master >= 0:
+            os.close(self.master)
+            self.master = -1
+
+    def pump_until(self, condition: Callable[[], bool], *, timeout: float, what: str) -> None:
+        """Read the pty until ``condition()``; fails with the last screen after ``timeout`` or at end of output."""
+        deadline = time.monotonic() + timeout
+        while not condition():
+            if self.ended:
+                self.fail_with_screen(f"the output ended before {what}")
+            if time.monotonic() >= deadline:
+                self.fail_with_screen(f"{what} did not happen within {timeout} seconds")
+            self.read()
+
+    def feed_until(self, text: str, *, timeout: float = FEED_SECONDS) -> pyte.Screen:
+        """Read and feed the emulator until the screen shows ``text``; fails with the last screen it saw."""
+        self.pump_until(lambda: _shows(self.screen, text), timeout=timeout, what=f"the terminal showing {text!r}")
+        return self.screen
+
+    def type(self, text: str) -> None:
+        os.write(self.master, text.encode("utf-8"))
+
+    def finish(self, *, timeout: float = WAIT_SECONDS) -> Outcome:
+        """Read to end of output, then wait; a process still running after ``timeout`` is killed."""
+        deadline = time.monotonic() + timeout
+        while not self.ended:
+            if time.monotonic() >= deadline:
+                self.fail_with_screen(f"the output did not end within {timeout} seconds")
+            self.read(0.1)
+        try:
+            self.process.wait(timeout=max(deadline - time.monotonic(), 0.1))
+        except subprocess.TimeoutExpired:
+            self.fail_with_screen(f"the process was still running after {timeout} seconds")
+        self.close()
+        data = bytes(self.output)
+        on_pty = screen_text(data, self.size)
+
+        def stream(name: str) -> str:
+            path = self.redirect.get(name)
+            return path.read_bytes().decode("utf-8", errors="replace") if path is not None else on_pty
+
+        return Outcome(
+            exit_code=exit_code_of(self.process.returncode),
+            stdout=stream("stdout"),
+            stderr=stream("stderr"),
+            terminal=data,
+            terminal_size=self.size,
+            pid=self.process.pid,
+            pgid=self.process.pid,  # the session leader leads its own group
+        )
+
+
+def run_on_terminal(
+    argv: Sequence[str], *, size: tuple[int, int], redirect: Mapping[str, Path] | None = None
+) -> TerminalRun:
+    """Start ``argv`` on a new pty of ``size`` (columns, lines), as the leader of a new session.
+
+    stdin and both streams are on the pty unless redirected to a file; ``TERM=xterm-256color`` and no
+    ``COLUMNS`` or ``LINES``, which Rich would take over the terminal's own size (T2).
+    """
+    if not POSIX or fcntl is None or termios is None:
+        pytest.skip("no pty on this platform; no Windows CI (D15)")
+    columns, lines = size
+    master, slave = os.openpty()
+    fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", lines, columns, 0, 0))
+    env = dict(os.environ)
+    env["TERM"] = TERMINAL_TYPE
+    env.pop("COLUMNS", None)
+    env.pop("LINES", None)
+    targets = dict(redirect or {})
+    files = {name: path.open("wb") for name, path in targets.items()}
+
+    def setup() -> None:
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        os.setsid()
+        fcntl.ioctl(0, termios.TIOCSCTTY, 0)  # stdin is the pty: it becomes the controlling terminal
+
+    try:
+        # Test code only: the rule against preexec_fn is the launcher's (20 G3).
+        process = subprocess.Popen(
+            list(argv),
+            stdin=slave,
+            stdout=files.get("stdout", slave),
+            stderr=files.get("stderr", slave),
+            env=env,
+            preexec_fn=setup,  # noqa: PLW1509
+        )
+    except BaseException:
+        os.close(master)
+        raise
+    finally:
+        os.close(slave)  # else end of output never comes
+        for handle in files.values():
+            handle.close()
+    return TerminalRun(process=process, master=master, size=size, redirect=targets)
+
+
+def run_in_terminal(
+    scenario: Scenario,
+    argv: Sequence[str],
+    size: tuple[int, int],
+    *,
+    redirect: Mapping[str, Path] | None = None,
+    answers: str | None = None,
+) -> Outcome:
+    """``I run ... in a terminal <w> by <h>``, redirected or answered: the answers typed at once (T5's note)."""
+    prepare(scenario)
+    run = run_on_terminal(argv, size=size, redirect=redirect)
+    try:
+        if answers is not None:
+            run.type("".join(f"{answer.strip()}\n" for answer in answers.split(",")))
+        scenario.outcome = run.finish()
+    except BaseException:
+        run.kill()
+        run.close()
+        raise
+    return scenario.outcome
+
+
+def ctrl_c_once_shown(
+    scenario: Scenario, argv: Sequence[str], size: tuple[int, int], first: str, second: str
+) -> Outcome:
+    """``... and press Ctrl-C once the terminal has shown "<a>" and then "<b>"``."""
+    prepare(scenario)
+    run = run_on_terminal(argv, size=size)
+    try:
+        run.feed_until(first)
+        run.feed_until(second)
+        run.type(INTERRUPT)
+        scenario.outcome = run.finish()
+    except BaseException:
+        run.kill()
+        run.close()
+        raise
+    return scenario.outcome
+
+
+def ctrl_c_at_checkpoint(scenario: Scenario, argv: Sequence[str], size: tuple[int, int]) -> Outcome:
+    """``... and press Ctrl-C once java has begun its checkpoint``: the pty is read all the while."""
+    after = prepare(scenario)
+    run = run_on_terminal(argv, size=size)
+    fakes = scenario.fakes
+    try:
+        marks: list[dict[str, Any]] = []
+
+        def checkpoint_logged() -> bool:
+            line = find_log(fakes, "java", lambda line: line.get("event") == "checkpoint", after=after)
+            if line is not None:
+                marks.append(line)
+            return line is not None
+
+        run.pump_until(checkpoint_logged, timeout=FEED_SECONDS, what="the fake java's checkpoint line")
+        start_line = wait_for_log(
+            fakes,
+            "java",
+            lambda line: is_tool_start(line) and line.get("pid") == marks[0]["pid"],
+            after=after,
+            what="the start line of the checkpointing run",
+        )
+        run.type(INTERRUPT)
+        release_when_waiting(
+            scenario,
+            start_line,
+            lambda: _shows(run.screen, WAITING_LINE),
+            after=after,
+            ended=lambda: run.ended,
+            pump=run.read,
+        )
+        scenario.outcome = run.finish()
+    except BaseException:
+        run.kill()
+        run.close()
+        raise
+    return scenario.outcome
+
+
+# Then: the terminal
+
+
+def _terminal(scenario: Scenario) -> tuple[bytes, tuple[int, int]]:
+    outcome = scenario.result()
+    if outcome.terminal is None or outcome.terminal_size is None:
+        fail('the last run was not on a terminal: a terminal step needs "I run ... in a terminal <w> by <h>"')
+    return outcome.terminal, outcome.terminal_size
+
+
+def check_terminal_contains(scenario: Scenario, text: str) -> None:
+    data, size = _terminal(scenario)
+    wanted, screen = scenario.expand(text), final_screen(data, size)
+    if wanted not in screen:
+        fail(f"the terminal does not show {wanted!r}; it ends with:\n{screen}")
+
+
+def check_terminal_not_contains(scenario: Scenario, text: str) -> None:
+    data, size = _terminal(scenario)
+    wanted, screen = scenario.expand(text), final_screen(data, size)
+    if wanted in screen:
+        fail(f"the terminal shows {wanted!r}; it ends with:\n{screen}")
+    if wanted in without_escapes(data):
+        fail(f"{wanted!r} was written to the terminal, though it is no longer on the screen:\n{screen}")
+
+
+def terminal_end(scenario: Scenario) -> str:
+    data, size = _terminal(scenario)
+    return final_screen(data, size)
