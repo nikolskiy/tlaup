@@ -88,8 +88,9 @@ def test_derived_properties(tmp_path: Path) -> None:
 
 def test_nothing_is_created(tmp_path: Path) -> None:
     home = tmp_path / "h"
+    before = sorted(tmp_path.iterdir())  # the isolation fixture's home, work and bin
     p = AppPaths.from_env({"TLAUP_HOME": str(home)})
     for prop in (p.config_file, p.tools, p.pin, p.modules, p.runs, p.remote, p.java_cache):
         assert isinstance(prop, Path)
     assert not home.exists()
-    assert list(tmp_path.iterdir()) == []
+    assert sorted(tmp_path.iterdir()) == before
