@@ -69,6 +69,9 @@ def raw(text: str) -> Value:
         pytest.param('"hello"', s("hello"), id="string"),
         pytest.param(r'"say \"hi\" \\ bye"', s('say "hi" \\ bye'), id="string-escaped-quotes"),
         pytest.param('"a :> b"', s("a :> b"), id="string-with-function-arrow"),
+        pytest.param(r'"a\"b"', s('a"b'), id="string-escaped-quote"),
+        pytest.param(r'"a\\b"', s("a\\b"), id="string-escaped-backslash"),
+        pytest.param('"a\nb é"', s("a\nb é"), id="string-literal-newline-non-ascii"),
         pytest.param("m1", m("m1"), id="model"),
         pytest.param("1..3", Value(kind="interval", text="", bounds=(1, 3)), id="interval"),
         pytest.param("-2 .. -1", Value(kind="interval", text="", bounds=(-2, -1)), id="negative-interval"),
@@ -168,6 +171,8 @@ def test_golden_wrapped_sequence_of_records(folder: Path) -> None:
         pytest.param("- 1", id="minus-apart"),
         pytest.param('"open', id="unterminated-string"),
         pytest.param('"open\\', id="string-ending-in-backslash"),
+        pytest.param(r'"a\nb"', id="string-other-escape"),
+        pytest.param("9" * 5000, id="integer-too-long-for-int"),
     ],
 )
 def test_raw(text: str) -> None:

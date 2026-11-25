@@ -125,18 +125,52 @@ def test_round_trip(value: Value) -> None:
 gaps = st.sampled_from([" ", "\n", "\n   ", "\n\t", "  \n     ", "\r\n  "])
 
 
+def is_word(token: str) -> bool:
+    """A name or a number, which needs white space before another name or number."""
+    return token[0].isalnum() or token[0] in "_-"
+
+
+@st.composite
+def spaced(draw: st.DrawFn, value: Value) -> str:
+    """``value`` printed with white space, or none, at each token boundary and at both ends.
+
+    A gap may be empty only where neither neighbour is a name or a number, so compact forms such as ``<<1>>``
+    and ``{1}`` come up.
+    """
+    parts = tokens(value)
+    text = draw(st.one_of(st.just(""), gaps))
+    for part, following in zip(parts, [*parts[1:], None], strict=True):
+        text += part
+        if following is None or not (is_word(part) or is_word(following)):
+            text += draw(st.one_of(st.just(""), gaps))
+        else:
+            text += draw(gaps)
+    return text
+
+
 @given(values, st.data())
 def test_white_space_does_not_matter(value: Value, data: st.DataObject) -> None:
     label(value)
-    parts = tokens(value)
-    # One gap before each token and one after the last; the ends may also have none.
-    ends = st.one_of(st.just(""), gaps)
-    inner = data.draw(st.lists(gaps, min_size=len(parts) - 1, max_size=len(parts) - 1))
-    text = data.draw(ends) + "".join(part + gap for part, gap in zip(parts, [*inner, ""], strict=True))
-    text += data.draw(ends)
+    text = data.draw(spaced(value))
     parsed = parse_value(text)
     assert parsed == value
     assert parsed.text == text
+
+
+def descendants(value: Value) -> list[Value]:
+    children = [*value.items, *(child for _, child in value.fields)]
+    children += [part for pair in value.pairs for part in pair]
+    return [node for child in children for node in [child, *descendants(child)]]
+
+
+@given(values, st.data())
+def test_each_node_text_reparses_to_the_node(value: Value, data: st.DataObject) -> None:
+    label(value)
+    parsed = parse_value(data.draw(spaced(value)))
+    nodes = descendants(parsed)
+    event(f"nodes below the root: {min(len(nodes), 10)}{'+' if len(nodes) >= 10 else ''}")
+    for node in nodes:
+        assert parse_value(node.text.strip()) == node
 
 
 @given(st.text())

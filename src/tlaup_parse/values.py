@@ -170,6 +170,10 @@ class _Parser:
         return Value(kind="int", text=self.text[start : self.pos], scalar=low)
 
     def string(self, start: int) -> Value:
+        """A quoted string. Only ``\\"`` and ``\\\\`` are escapes; any other backslash is an odd form and fails.
+
+        Characters inside the quotes, newlines and non-ASCII ones included, are kept as they are.
+        """
         self.pos += 1
         chars: list[str] = []
         while self.pos < len(self.text):
@@ -178,9 +182,9 @@ class _Parser:
                 self.pos += 1
                 return Value(kind="string", text=self.text[start : self.pos], scalar="".join(chars))
             if char == "\\":
-                if self.pos + 1 >= len(self.text):
+                char = self.text[self.pos + 1 : self.pos + 2]
+                if char not in {'"', "\\"}:
                     break
-                char = self.text[self.pos + 1]
                 self.pos += 1
             chars.append(char)
             self.pos += 1
