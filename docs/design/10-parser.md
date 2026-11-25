@@ -126,7 +126,7 @@ class RunResult:
     mode: str | None  # "exhaustive search" (2187), "simulate" (2188, also -generate): the Examples
     # manifest's words (research 10); "depth-first" (2271, -dfid), tlaup's word,
     # since the manifest has none (top-up, research 22). None for another shape.
-    workers: int | None  # from 2187 "with N worker(s)"
+    workers: int | None  # from 2187, 2188 or 2271 "with N worker(s)"
     phase: Phase  # where the run is: see below
     status: Status  # "running", "success", "failure"; the runner may set "interrupted"
     verdict: Verdict  # top-up, D54: what the run found, from TLC's messages; see below

@@ -154,6 +154,8 @@ None. Tests only.
 
 **Which golden cases run live** (T9: "every golden case whose spec needs no Java class"; [07](07-golden-files.md)'s `cases.toml` keys). A case is run live unless one of these rules leaves it out, each from a key of `cases.toml`:
 
+**One worker unless the case says otherwise** (settled while building 08a, 2026-11-24, a low-impact choice by the stage 5 lead). A live golden run passes `-workers 1` when the case's `args` name no `-workers`, since `run_tlc` otherwise defaults to `auto` (11 R8). The facts assume one worker in those cases (the `workers` value, the order of `output`, the trace found), as the captures were made. `--workers auto` itself is tested by `test_workers_auto_one_cpu`.
+
 - it has no `spec` (`version-bad-option`, `tool-noargs`): `run_tlc` needs a spec;
 - `plain = true`: not parsed, only replayed by raw-mode scenarios;
 - it has `java_sources` or `classpath`, or its `jvm_options` name an override class: its spec needs a Java class (research 13's override cases, research 28's Java 11 cases);
