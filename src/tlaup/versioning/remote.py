@@ -195,10 +195,11 @@ class Remote:
             return chosen
         try:
             found = self.release(name)
-        except VersionNotFound:
-            if not name[:1].isdigit():
-                raise
-            found = self.release(f"v{name}")
+        except VersionNotFound as first:
+            try:
+                found = self.release(f"v{name}")
+            except VersionNotFound:
+                raise first from None  # names the name as the user typed it
         if found.asset is None:
             message = f"the release {found.tag!r} has no {JAR_NAME} to install"
             raise VersionNotFound(message, hint="run `tlaup tool list` to see the releases that have one")

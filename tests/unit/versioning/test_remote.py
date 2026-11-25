@@ -356,8 +356,20 @@ def test_resolve_tries_the_name_as_typed_then_with_v(github: GitHub, remote: Rem
     assert remote.resolve(parse_version_spec("1.7.4")).tag == "v1.7.4"
 
 
+def test_resolve_tries_foo_then_vfoo_and_the_error_names_foo(github: GitHub, remote: Remote) -> None:
+    fake = github()
+    fake.answer(404, "/releases/tags/foo")
+    fake.answer(404, "/releases/tags/vfoo")
+    with pytest.raises(VersionNotFound) as error:
+        remote.resolve(parse_version_spec("foo"))
+    assert "'foo'" in error.value.message
+    assert [r.url.split("/")[-1] for r in fake.requests] == ["foo", "vfoo"]
+
+
 def test_resolve_a_tag_nobody_published_is_version_not_found(github: GitHub, remote: Remote) -> None:
-    github().answer(404, "/releases/tags/v9.9.9")
+    fake = github()
+    fake.answer(404, "/releases/tags/v9.9.9")
+    fake.answer(404, "/releases/tags/vv9.9.9")
     with pytest.raises(VersionNotFound):
         remote.resolve(parse_version_spec("v9.9.9"))
 
@@ -430,3 +442,35 @@ def test_a_flag_is_not_a_size() -> None:
             asset["size"] = True
     with pytest.raises(RemoteDataError):
         parse_release(item, url="https://example.invalid/r")
+
+
+# ---------------------------------------------------------------------- the cache's edges
+
+
+def test_a_cache_write_failing_is_ignored_and_the_list_is_online(
+    github: GitHub, make_client: MakeClient, tmp_path: Path, clock: FakeClock
+) -> None:
+    github()
+    blocked = tmp_path / "blocked"
+    blocked.write_text("a file where the cache folder should be", encoding="utf-8")
+    releases, freshness = Remote(make_client(), blocked, now=clock.now).releases()
+    assert (len(releases), freshness) == (17, Freshness.ONLINE)
+
+
+def test_a_cache_file_for_another_url_is_absent(remote: Remote, cache_dir: Path, clock: FakeClock) -> None:
+    path = seed_cache(cache_dir, clock, minutes_old=1)
+    record = json.loads(path.read_text(encoding="utf-8"))
+    record["url"] = "https://api.github.com/repos/someone/else/releases"
+    path.write_text(json.dumps(record), encoding="utf-8")
+    assert remote.cached() is None
+
+
+def test_a_null_or_absent_digest_and_a_null_published_at_parse() -> None:
+    item = json.loads(json.dumps(next(i for i in recorded_list() if i["tag_name"] == "v1.7.4")))
+    item["published_at"] = None
+    jar = next(a for a in item["assets"] if a["name"] == "tla2tools.jar")
+    jar["digest"] = None
+    assert parse_release(item, url="u").published_at is None
+    assert parse_release(item, url="u").asset.digest is None  # type: ignore[union-attr]
+    del jar["digest"]
+    assert parse_release(item, url="u").asset.digest is None  # type: ignore[union-attr]
