@@ -46,7 +46,7 @@ from tlaup_parse.model import (
     VersionSeen,
     WarningFound,
 )
-from tlaup_parse.values import Value
+from tlaup_parse.values import Value, parse_value
 
 __all__ = [
     "CheckpointStarted",
@@ -91,5 +91,6 @@ __all__ = [
     "VersionSeen",
     "WarningFound",
     "describe_exit_status",
+    "parse_value",
     "render_framed",
 ]
