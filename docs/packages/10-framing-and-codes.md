@@ -1,6 +1,6 @@
 # 10. Framing and the code table
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 

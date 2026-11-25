@@ -108,7 +108,9 @@ repos:
         entry: '@!@!@STARTMSG'
         files: ^tests/.*\.(py|feature)$
         # tests/fixtures/research/: evidence; two capture scripts there hold the marker.
-        exclude: ^tests/fixtures/research/
+        # tests/parse/test_framing_props.py: its Hypothesis strategy writes the marker,
+        # which 01 T12 rule 3 exempts.
+        exclude: ^(tests/fixtures/research/|tests/parse/test_framing_props\.py$)
 
       - id: check-added-large-files
         name: Check for added large files
