@@ -1,24 +1,47 @@
-"""``install()``, ``same_as_published`` and the ``Uninstall`` steps under the lock (design 12 V1, V3, V12).
+"""``install()``, ``upgrade()``, ``uninstall()``, ``pin()`` and their steps (design 12 V1, V3, V4, V12).
 
 On a real store in the test's folder, with small real jars, the real client and ``fetch_build``, and
 ``responses`` serving the ``releases`` recording (01 T4). Each test asserts state: the builds, the pin, the
 report's fields and the number of requests and downloads, never wording (T12 rule 4).
 
 Inventory rows: T2 (the first build is pinned; later installs never move a pin), T3 (a missing pin, or one
-naming a gone folder, is nothing pinned) and T4's ``install`` half (an empty pin file is nothing pinned).
+naming a gone folder, is nothing pinned), T4's ``install`` half (an empty pin file is nothing pinned), T40
+(upgrade replaces the old build and moves the pin) and T41 (upgrade with nothing pinned is an error).
 """
 
 from __future__ import annotations
 
 import dataclasses
 import hashlib
+import io
+import os
 from typing import TYPE_CHECKING
 
 import pytest
 
 from tests.unit.versioning.conftest import SOURCE, commit, make_build, manifest, tmp_entries, with_jar
-from tlaup.errors import NetworkError, UsageError, VersionNotFound
-from tlaup.versioning.install import Uninstall, install, same_as_published
+from tlaup.errors import (
+    AmbiguousVersion,
+    CannotAsk,
+    DownloadVerificationError,
+    FileOperationError,
+    NetworkError,
+    NoPinnedBuild,
+    NoToolsInstalled,
+    PinnedBuildMissing,
+    UsageError,
+    VersionNotFound,
+)
+from tlaup.ui import Ui
+from tlaup.versioning.install import (
+    Uninstall,
+    choose_build,
+    install,
+    pin,
+    same_as_published,
+    uninstall,
+    upgrade,
+)
 from tlaup.versioning.remote import Asset, Release
 from tlaup.versioning.spec import parse_version_spec
 from tlaup.versioning.store import ToolStore
@@ -27,7 +50,7 @@ if TYPE_CHECKING:
     from tests.clock import FakeClock
     from tests.conftest import Isolated
     from tests.unit.versioning.conftest import Downloads, Upstream
-    from tlaup.versioning.install import InstallReport
+    from tlaup.versioning.install import InstallReport, UpgradeReport
     from tlaup.versioning.store import Build
 
 ROLLING_CALVER = "2026.11.15.002146"  # the build time of the recorded rolling and v1.8.0 jars
@@ -605,3 +628,419 @@ def test_install_starts_again_when_the_build_it_found_has_gone(
     assert pin_text(isolated) == report.build.id
     assert upstream.downloads == 1
     assert upstream.tag_requests == (2 if text == "rolling" else 1)  # the lookup again, never the first answer
+
+
+# ---------------------------------------------------------------------- upgrade (V4; rows T40 and T41)
+
+
+def run_upgrade(store: ToolStore, upstream: Upstream, text: str | None, *, keep_old: bool = False) -> UpgradeReport:
+    spec = None if text is None else parse_version_spec(text)
+    return upgrade(store, upstream.remote, upstream.client, spec, keep_old=keep_old)
+
+
+def publish_rolling(upstream: Upstream, label: str, prefix: str, built_at: str) -> None:
+    """A new rolling build upstream, with a later build time than the recorded one."""
+    upstream.publish_jar("rolling", upstream.jar(label, commit=commit(prefix), built_at=built_at))
+
+
+def test_upgrade_up_to_date_downloads_nothing_and_asks_github_once(
+    store: ToolStore, upstream: Upstream, clock: FakeClock
+) -> None:
+    first = run(store, upstream, "rolling").build
+    upstream.remote.releases()  # the lookup cache, written now
+    clock.advance(60)  # one minute old: upgrade does not read it
+    upstream.fake.clear()
+    report = run_upgrade(store, upstream, "rolling")
+    assert report.up_to_date
+    assert (report.name, report.build, report.old) == ("rolling", first, first)
+    assert (report.installed, report.pin_moved, report.removed, report.remaining) == (None, False, None, ())
+    assert (upstream.api_requests, upstream.tag_requests, upstream.downloads) == (1, 1, 0)
+    assert store.builds() == [first]
+
+
+def test_upgrade_up_to_date_writes_a_changed_prerelease_flag(store: ToolStore, upstream: Upstream) -> None:
+    first = run(store, upstream, "rolling").build
+    upstream.publish({**upstream.release("rolling"), "prerelease": False})
+    report = run_upgrade(store, upstream, "rolling")
+    assert report.up_to_date
+    assert not report.build.prerelease
+    assert [(build.id, build.prerelease) for build in store.builds()] == [(first.id, False)]
+    assert upstream.downloads == 0
+
+
+def test_upgrade_with_another_digest_replaces_the_old_build_and_moves_the_pin_row_t40(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    old = run(store, upstream, "rolling").build
+    publish_rolling(upstream, "newer", "1a2b3c4", "2026-11-16T00:00:00Z")
+    report = run_upgrade(store, upstream, "rolling")
+    assert not report.up_to_date
+    assert report.old == old
+    assert report.removed == old
+    assert report.pin_moved
+    assert report.build.commit == commit("1a2b3c4")
+    assert store.builds() == [report.build]
+    assert pin_text(isolated) == report.build.id
+    assert report.remaining == ()
+    assert (upstream.tag_requests, upstream.downloads) == (1, 1)
+    assert tmp_entries(store) == []
+
+
+def two_rolling_builds(store: ToolStore, upstream: Upstream) -> tuple[Build, Build]:
+    """The recorded rolling build (pinned) and a newer one; upstream then publishes a third."""
+    older = run(store, upstream, "rolling").build
+    publish_rolling(upstream, "middle", "1a2b3c4", "2026-11-16T00:00:00Z")
+    newer = run(store, upstream, "rolling").build
+    assert store.builds() == [newer, older]
+    publish_rolling(upstream, "newest", "2b3c4d5", "2026-11-17T00:00:00Z")
+    return older, newer
+
+
+def test_upgrade_compares_with_the_newest_build_of_the_name_and_leaves_the_older(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    older, newer = two_rolling_builds(store, upstream)
+    with store.locked(timeout=0):
+        store.pin(newer)
+    report = run_upgrade(store, upstream, "rolling")
+    assert report.old == newer
+    assert report.removed == newer
+    assert report.pin_moved
+    assert report.remaining == (older,)
+    assert store.builds() == [report.build, older]
+    assert pin_text(isolated) == report.build.id
+
+
+def test_upgrade_leaves_a_pin_on_an_older_build_of_the_name(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    older, newer = two_rolling_builds(store, upstream)
+    report = run_upgrade(store, upstream, "rolling")
+    assert report.removed == newer
+    assert not report.pin_moved
+    assert pin_text(isolated) == older.id
+    assert report.remaining == (older,)
+
+
+def test_upgrade_with_keep_old_keeps_the_old_build(store: ToolStore, upstream: Upstream, isolated: Isolated) -> None:
+    old = run(store, upstream, "rolling").build
+    publish_rolling(upstream, "newer", "1a2b3c4", "2026-11-16T00:00:00Z")
+    report = run_upgrade(store, upstream, "rolling", keep_old=True)
+    assert report.removed is None
+    assert report.pin_moved
+    assert store.builds() == [report.build, old]
+    assert report.remaining == (old,)
+    assert pin_text(isolated) == report.build.id
+
+
+def test_upgrade_of_a_name_not_installed_installs_it(store: ToolStore, upstream: Upstream, isolated: Isolated) -> None:
+    report = run_upgrade(store, upstream, "v1.7.4")
+    assert report.installed is not None
+    assert report.installed.downloaded
+    assert report.installed.pinned
+    assert (report.name, report.old, report.up_to_date) == ("v1.7.4", None, False)
+    assert store.builds() == [report.build]
+    assert pin_text(isolated) == report.build.id
+
+
+def test_upgrade_of_a_tag_typed_without_v_upgrades_the_installed_tag(store: ToolStore, upstream: Upstream) -> None:
+    first = run(store, upstream, "v1.7.4").build
+    upstream.fake.clear()
+    report = run_upgrade(store, upstream, "1.7.4")
+    assert report.up_to_date
+    assert (report.name, report.build) == ("v1.7.4", first)
+    assert upstream.api_requests == 1
+
+
+def test_upgrade_with_no_spec_upgrades_the_pinned_name(store: ToolStore, upstream: Upstream) -> None:
+    run(store, upstream, "v1.7.4")
+    old = run(store, upstream, "rolling").build
+    with store.locked(timeout=0):
+        store.pin(old)
+    publish_rolling(upstream, "newer", "1a2b3c4", "2026-11-16T00:00:00Z")
+    report = run_upgrade(store, upstream, None)
+    assert (report.name, report.removed, report.pin_moved) == ("rolling", old, True)
+
+
+def test_upgrade_with_no_spec_and_nothing_pinned_is_no_pinned_build_row_t41(
+    store: ToolStore, upstream: Upstream
+) -> None:
+    run(store, upstream, "rolling")
+    unpin(store)
+    before = store.builds()
+    upstream.fake.clear()
+    with pytest.raises(NoPinnedBuild):
+        run_upgrade(store, upstream, None)
+    assert upstream.fake.requests == []
+    assert store.builds() == before
+
+
+def test_upgrade_with_no_spec_and_nothing_installed_is_no_tools_installed_row_t41(
+    store: ToolStore, upstream: Upstream
+) -> None:
+    with pytest.raises(NoToolsInstalled):
+        run_upgrade(store, upstream, None)
+    assert upstream.fake.requests == []
+
+
+def test_upgrade_with_no_spec_and_a_pin_naming_a_missing_build_is_pinned_build_missing(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    isolated.paths.pin.parent.mkdir(parents=True, exist_ok=True)
+    isolated.paths.pin.write_text("rolling-000000000000\n", encoding="utf-8")
+    with pytest.raises(PinnedBuildMissing):
+        run_upgrade(store, upstream, None)
+    assert upstream.fake.requests == []
+
+
+@pytest.mark.parametrize("text", [ROLLING_CALVER, f"rolling@{ROLLING_COMMIT}", "rolling@sha256:0123456789ab"])
+def test_upgrade_of_a_build_spec_is_a_usage_error_with_no_request(
+    store: ToolStore, upstream: Upstream, text: str
+) -> None:
+    run(store, upstream, "rolling")
+    before = store.builds()
+    upstream.fake.clear()
+    with pytest.raises(UsageError):
+        run_upgrade(store, upstream, text)
+    assert upstream.fake.requests == []
+    assert store.builds() == before
+
+
+def test_upgrade_of_stable_installs_a_newer_stable_tag_beside_the_old_and_moves_the_pin(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    v174 = run(store, upstream, "v1.7.4").build
+    releases = [{**r, "prerelease": False} if r["tag_name"] == "v1.8.0" else r for r in upstream.releases()]
+    upstream.publish_list(releases)
+    upstream.fake.clear()
+    report = run_upgrade(store, upstream, "stable")
+    assert report.name == "v1.8.0"
+    assert report.build.name == "v1.8.0"
+    assert not report.build.prerelease
+    assert report.old == v174
+    assert report.pin_moved
+    assert report.removed is None
+    assert report.remaining == (v174,)
+    assert {build.name for build in store.builds()} == {"v1.8.0", "v1.7.4"}
+    assert pin_text(isolated) == report.build.id
+    assert (upstream.list_requests, upstream.tag_requests, upstream.downloads) == (1, 0, 1)
+
+
+def test_upgrade_of_stable_with_its_tag_installed_compares_like_a_name(store: ToolStore, upstream: Upstream) -> None:
+    v174 = run(store, upstream, "v1.7.4").build
+    upstream.fake.clear()
+    report = run_upgrade(store, upstream, "stable")
+    assert report.up_to_date
+    assert (report.name, report.build) == ("v1.7.4", v174)
+    assert (upstream.list_requests, upstream.tag_requests, upstream.downloads) == (1, 0, 0)
+
+
+def test_upgrade_of_stable_with_no_stable_build_installed_is_install(store: ToolStore, upstream: Upstream) -> None:
+    run(store, upstream, "rolling")
+    report = run_upgrade(store, upstream, "stable")
+    assert report.installed is not None
+    assert (report.name, report.old, report.pin_moved) == ("v1.7.4", None, False)
+    assert {build.name for build in store.builds()} == {"rolling", "v1.7.4"}
+
+
+def test_upgrade_whose_download_fails_leaves_the_store_as_it_was(
+    store: ToolStore, upstream: Upstream, isolated: Isolated
+) -> None:
+    old = run(store, upstream, "rolling").build
+    body = upstream.jar("newer", commit=commit("1a2b3c4"), built_at="2026-11-16T00:00:00Z")
+    published = upstream.publish_jar("rolling", body, times=2)  # the retry looks the release up again
+    url = next(a["browser_download_url"] for a in published["assets"] if a["name"] == "tla2tools.jar")
+    upstream.serve(url, body[:100], times=2)  # cut short, and again on the one retry
+    with pytest.raises(DownloadVerificationError):
+        run_upgrade(store, upstream, "rolling")
+    assert store.builds() == [old]
+    assert pin_text(isolated) == old.id
+    assert tmp_entries(store) == []
+
+
+def test_upgrade_starts_again_when_the_build_it_compared_has_gone(
+    store: ToolStore, upstream: Upstream, isolated: Isolated, clock: FakeClock
+) -> None:
+    run(store, upstream, "rolling")
+    unpin(store)
+    racing = RemovedBeforeTheLock(isolated, clock, "rolling")
+    report = run_upgrade(racing, upstream, "rolling")
+    assert report.installed is not None  # no build of the name was left, so upgrade was install
+    assert store.builds() == [report.build]
+    assert pin_text(isolated) == report.build.id
+
+
+# ---------------------------------------------------------------------- uninstall (V3)
+
+
+def test_uninstall_reports_a_failure_goes_on_and_leaves_the_pin_on_the_build_that_failed(
+    store: ToolStore, downloads: Downloads, isolated: Isolated
+) -> None:
+    if getattr(os, "geteuid", lambda: -1)() == 0:
+        pytest.skip("root can rename a read-only folder, so the failure cannot be made")
+    stuck = downloads.add(manifest(commit("a1")), name="v1.7.4")
+    gone = downloads.add(manifest(commit("b2")))
+    with store.locked(timeout=0):
+        store.pin(stuck)
+    stuck.path.chmod(0o555)  # its own folder read-only: it cannot be moved out; the tool folder stays writable
+    try:
+        report = uninstall(store, [stuck, gone])
+    finally:
+        stuck.path.chmod(0o755)
+    assert [build for build, _ in report.failed] == [stuck]
+    assert isinstance(report.failed[0][1], FileOperationError)
+    assert report.removed == (gone,)
+    assert report.missing == ()
+    assert report.unpinned is None
+    assert store.builds() == [stuck]
+    assert sha256(stuck.jar.read_bytes()) == stuck.sha256
+    assert pin_text(isolated) == stuck.id
+
+
+def test_uninstall_of_the_pinned_build_clears_the_pin_and_does_not_move_it(
+    store: ToolStore, downloads: Downloads, isolated: Isolated
+) -> None:
+    kept = downloads.add(manifest(commit("a1")), name="v1.7.4")
+    pinned = downloads.add(manifest(commit("b2")))
+    with store.locked(timeout=0):
+        store.pin(pinned)
+    report = uninstall(store, [pinned])
+    assert report.removed == (pinned,)
+    assert report.unpinned == pinned
+    assert pin_text(isolated) is None
+    assert store.builds() == [kept]
+
+
+def test_uninstall_of_three_builds_with_the_middle_one_pinned_removes_all(
+    store: ToolStore, downloads: Downloads, isolated: Isolated
+) -> None:
+    every = [
+        downloads.add(manifest(commit("a1"))),
+        downloads.add(manifest(commit("b2")), name="v1.8.0"),
+        downloads.add(manifest(commit("c3")), name="v1.7.4"),
+    ]
+    with store.locked(timeout=0):
+        store.pin(every[1])
+    report = uninstall(store, every, groups=[every])
+    assert report.removed == tuple(every)
+    assert report.unpinned == every[1]
+    assert store.builds() == []
+    assert pin_text(isolated) is None
+    downloads.release()
+    assert tmp_entries(store) == []
+
+
+def test_uninstall_of_a_group_with_nothing_left_removes_nothing(
+    store: ToolStore, downloads: Downloads, isolated: Isolated
+) -> None:
+    kept = downloads.add(manifest(commit("a1")), name="v1.7.4")
+    gone = downloads.add(manifest(commit("b2")))
+    with store.locked(timeout=0):
+        store.pin(kept)
+        store.remove(gone)
+    report = uninstall(store, [kept, gone], groups=[[kept], [gone]])
+    assert (report.removed, report.missing, report.failed, report.unpinned) == ((), (gone,), (), None)
+    assert store.builds() == [kept]
+    assert pin_text(isolated) == kept.id
+
+
+# ---------------------------------------------------------------------- pin and the which-build question (V3, V4)
+
+
+class Answers(io.StringIO):
+    """Stdin with the answers typed, counting how often a line was read: once per question asked."""
+
+    def __init__(self, text: str) -> None:
+        super().__init__(text)
+        self.asked = 0
+
+    def readline(self, size: int | None = -1) -> str:
+        self.asked += 1
+        return super().readline(size)
+
+
+def make_ui(answers: str = "", *, interactive: bool = True) -> tuple[Ui, Answers]:
+    stdin = Answers(answers)
+    return Ui(io.StringIO(), io.StringIO(), stdin, color=False, env={}, interactive=interactive), stdin
+
+
+def two_rolling(downloads: Downloads) -> tuple[Build, Build]:
+    """Two rolling builds, newest first, as ``find`` lists them."""
+    older = downloads.add(manifest(commit("a1"), "2026-11-14T00:00:00Z"))
+    newer = downloads.add(manifest(commit("b2"), "2026-11-15T00:00:00Z"))
+    return newer, older
+
+
+def test_pin_by_spec_writes_the_pin(store: ToolStore, downloads: Downloads, isolated: Isolated) -> None:
+    downloads.add(manifest(commit("a1")))
+    wanted = downloads.add(manifest(commit("b2")), name="v1.7.4")
+    ui, stdin = make_ui()
+    assert pin(store, parse_version_spec("1.7.4"), ui) == wanted
+    assert pin_text(isolated) == wanted.id
+    assert stdin.asked == 0
+
+
+def test_pin_of_a_spec_that_matches_nothing_is_version_not_found(
+    store: ToolStore, downloads: Downloads, isolated: Isolated
+) -> None:
+    downloads.add(manifest(commit("a1")))
+    with pytest.raises(VersionNotFound):
+        pin(store, parse_version_spec("v1.7.4"), make_ui()[0])
+    assert pin_text(isolated) is None
+
+
+def test_pin_of_several_matches_on_a_terminal_pins_the_answer(
+    store: ToolStore, downloads: Downloads, isolated: Isolated
+) -> None:
+    _, older = two_rolling(downloads)
+    ui, stdin = make_ui("2\n")
+    assert pin(store, parse_version_spec("rolling"), ui) == older
+    assert pin_text(isolated) == older.id
+    assert stdin.asked == 1
+
+
+def test_pin_asks_again_for_an_answer_out_of_range(store: ToolStore, downloads: Downloads, isolated: Isolated) -> None:
+    _, older = two_rolling(downloads)
+    ui, stdin = make_ui("-1\n7\n2\n")
+    assert pin(store, parse_version_spec("rolling"), ui) == older
+    assert stdin.asked == 3
+    assert pin_text(isolated) == older.id
+
+
+def test_pin_of_several_matches_without_a_terminal_is_ambiguous_and_writes_nothing(
+    store: ToolStore, downloads: Downloads, isolated: Isolated
+) -> None:
+    two_rolling(downloads)
+    ui, stdin = make_ui("1\n", interactive=False)
+    with pytest.raises(AmbiguousVersion):
+        pin(store, parse_version_spec("rolling"), ui)
+    assert stdin.asked == 0
+    assert pin_text(isolated) is None
+
+
+def test_pin_of_a_build_removed_before_the_lock_is_version_not_found(
+    isolated: Isolated, clock: FakeClock, downloads: Downloads
+) -> None:
+    kept = downloads.add(manifest(commit("a1")), name="v1.7.4")
+    downloads.add(manifest(commit("b2")))
+    with downloads.store.locked(timeout=0):
+        downloads.store.pin(kept)
+    racing = RemovedBeforeTheLock(isolated, clock, "rolling")
+    with pytest.raises(VersionNotFound):
+        pin(racing, parse_version_spec("rolling"), make_ui()[0])
+    assert pin_text(isolated) == kept.id
+
+
+def test_choose_build_takes_all_when_allowed_and_asks_again_on_an_empty_line(downloads: Downloads) -> None:
+    builds = list(two_rolling(downloads))
+    ui, stdin = make_ui("\nall\n")
+    assert choose_build(ui, "Which build should be removed?", builds, allow_all=True) == builds
+    assert stdin.asked == 2
+
+
+def test_choose_build_refuses_all_when_not_allowed(downloads: Downloads) -> None:
+    builds = list(two_rolling(downloads))
+    ui, stdin = make_ui("all\n0\n")
+    with pytest.raises(CannotAsk):  # the input ended with no answer in range
+        choose_build(ui, "Which build should be pinned?", builds, allow_all=False)
+    assert stdin.asked == 3
