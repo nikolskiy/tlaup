@@ -1,0 +1,2 @@
+error: no version pinned
+hint: run `tlaup tool pin v1.7.4`

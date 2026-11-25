@@ -5,6 +5,7 @@ import pytest
 
 from tlaup import context
 from tlaup.config import loader
+from tlaup.ui import Ui
 from tlaup.versioning import paths as vpaths
 
 
@@ -42,3 +43,7 @@ def test_old_code_follows_the_variables(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert loader.config_dir() == tmp_path / "config"
     assert loader.cache_dir() == tmp_path / "cache"
     assert vpaths.get_tools_dir() == tmp_path / "cache" / "tools"
+
+
+def test_context_carries_a_ui() -> None:
+    assert isinstance(context.get_context().ui, Ui)

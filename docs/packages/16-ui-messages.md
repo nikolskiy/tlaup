@@ -1,6 +1,6 @@
 # 16. The messages helper (`Ui`)
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
