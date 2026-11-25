@@ -119,6 +119,7 @@ def test_help_into_an_open_pipe_is_0() -> None:
     done = run([*TLAUP, "--help"])
     assert done.code == 0
     assert "Usage:" in (done.stdout or "")
+    no_traceback(done)
 
 
 # --- errors reported while a reader has gone ---
@@ -189,7 +190,7 @@ def test_sigint_while_the_reader_does_not_read_is_130(both: bool) -> None:
             small("forever"),
             stdin=subprocess.DEVNULL,
             stdout=write,
-            stderr=write if both else subprocess.DEVNULL,
+            stderr=write if both else subprocess.PIPE,
             preexec_fn=_default_sigint,  # noqa: PLW1509 - test code: the child must see SIGINT (01 T5)
         ) as child:
             os.close(write)
@@ -197,12 +198,15 @@ def test_sigint_while_the_reader_does_not_read_is_130(both: bool) -> None:
             ready, _, _ = select.select([read], [], [], TIMEOUT)  # the command has begun printing
             assert ready, "the child printed nothing"
             child.send_signal(signal.SIGINT)
-            code = child.wait(timeout=TIMEOUT)
+            _, err = child.communicate(timeout=TIMEOUT)
+            code = child.returncode
     finally:
         os.close(read)
         if write != -1:
             os.close(write)
     assert code == 130
+    if not both:
+        assert "Traceback" not in err.decode(), err.decode()
 
 
 # --- two calls of run_app in one process ---

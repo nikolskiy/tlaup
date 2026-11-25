@@ -16,7 +16,10 @@ from typer.testing import CliRunner, Result
 from tlaup import context
 from tlaup.cli import TlaupGroup, report
 from tlaup.cli import app as tlaup_app
+from tlaup.cli import root as tlaup_root
+from tlaup.context import AppContext
 from tlaup.errors import CannotAsk, ConfigInvalid, ModuleNotFound, TlaupError
+from tlaup.stdio import closed_pipe_on_windows
 
 INTERNAL_HINT = 'hint: run it again as "tlaup --debug ..." or with TLAUP_DEBUG=1, and report it at '
 
@@ -247,6 +250,19 @@ def test_debug_prints_the_line_then_a_traceback(
     assert result.stderr.index("Traceback") > result.stderr.index(first_line)
 
 
+def test_debug_prints_the_notes_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    def noted() -> BaseException:
+        error = ConfigInvalid("bad config")
+        error.add_note("a note")
+        return error
+
+    monkeypatch.setenv("TLAUP_DEBUG", "1")
+    result = invoke(app_raising(noted), "fail")
+    assert result.exit_code == 3
+    assert lines(result.stderr).count("a note") == 1
+    assert result.stderr.rstrip("\n").endswith("a note")
+
+
 def test_debug_in_make_context_is_read_from_the_arguments() -> None:
     def eager(value: bool) -> None:
         if value:
@@ -300,12 +316,21 @@ def test_no_command_prints_help_on_stdout_and_exits_2(args: list[str]) -> None:
     assert result.stderr == ""
 
 
-def test_the_root_callback_puts_the_context_on_ctx_obj(monkeypatch: pytest.MonkeyPatch) -> None:
-    result = invoke(tlaup_app, "--debug", "tools", "dir")
+def test_the_root_callback_puts_the_context_on_ctx_obj() -> None:
+    app = typer.Typer(cls=TlaupGroup, add_completion=False, pretty_exceptions_enable=False)
+    app.callback()(tlaup_root)
+    seen: list[object] = []
+
+    @app.command()
+    def look(ctx: typer.Context) -> None:
+        seen.append(ctx.find_root().obj)
+
+    result = invoke(app, "--debug", "look")
     assert result.exit_code == 0
-    built = context.get_context()
-    assert built.debug is True
-    assert result.stdout.strip() == str(built.paths.cache / "tools")
+    assert len(seen) == 1
+    assert isinstance(seen[0], AppContext)
+    assert seen[0].debug is True
+    assert seen[0] is context.get_context()
 
 
 # --- writes that fail ---
@@ -316,7 +341,7 @@ class WindowsPipe(TlaupGroup):
 
     @staticmethod
     def closed_pipe(e: OSError) -> bool:
-        return e.errno == errno.EINVAL and e.filename is None
+        return closed_pipe_on_windows(e, os_name="nt", pipe=lambda _fd: True)
 
 
 def _einval() -> OSError:

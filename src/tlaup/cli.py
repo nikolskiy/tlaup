@@ -71,11 +71,11 @@ def _print_notes(ui: Ui, error: BaseException, text: Callable[[str], str]) -> No
 
 
 def _finish(ui: Ui, error: BaseException, debug: bool) -> None:
-    """The notes, then the traceback under debug."""
-    text = _debug_text if debug else _plain
-    _print_notes(ui, error, text)
+    """The notes; under debug the traceback instead, which ends with the notes itself."""
     if debug:
         ui.note(_debug_text(_traceback_of(error)))
+    else:
+        _print_notes(ui, error, _plain)
 
 
 def print_notes(error: BaseException, ctx: typer.Context | None, args: Sequence[str] = ()) -> None:
