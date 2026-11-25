@@ -8,6 +8,7 @@ the per-file properties; package 15 adds the comparison with the expected JSON.
 from __future__ import annotations
 
 import json
+from collections import Counter
 from typing import TYPE_CHECKING
 
 import pytest
@@ -63,8 +64,10 @@ def test_nothing_is_lost_at_the_event_level(path: Path) -> None:
         bool(m.before) + bool(m.after) for m in messages
     )
     assert result.unframed_lines == second_count
-    carried = [getattr(event, "message", None) for event in events]
-    lost = [m.code for m in messages if not any(c is not None and c == m for c in carried)]
+    # Each message is carried at least as many times as it was framed: equal messages are counted, not matched once.
+    carried = Counter(m for event in events if (m := getattr(event, "message", None)) is not None)
+    framed = Counter(messages)
+    lost = [m.code for m, n in framed.items() if carried[m] < n]
     assert lost == []
 
 

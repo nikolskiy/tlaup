@@ -119,9 +119,12 @@ def test_invalid_utf8_parses_with_the_replacement_character_kept() -> None:
     # the SANY parser uses it (class PROGRESS, design 10 P8) and it is no OutputLine; it is counted as used.
     path = SYNTHETIC / "invalid-utf8.out"
     lines = read_lines(path)
-    assert "�" in lines[16]
+    bad = lines[16].rstrip("\n")
+    assert "\ufffd" in bad
     result, events = _drive(path)
-    assert result.sany_lines_used == result.unframed_lines - len(_outputs(events))
+    assert bad not in _outputs(events)
+    assert bad not in result.output
+    assert result.sany_lines_used == result.unframed_lines
     assert result.sany == []
     assert [e.message.code for e in result.errors] == [2110]
 
