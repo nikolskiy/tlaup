@@ -1,6 +1,6 @@
 # 26. Download and verify
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 

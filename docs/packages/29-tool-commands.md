@@ -375,6 +375,8 @@ State of `main` when this starts: packages 01 to 28 merged (the store track comp
 
 ## Risks
 
+- *The download's progress can go back once* (noted while building 26, 2026-11-25). When the size or digest does not match, `fetch_build` downloads once more and its `progress` callback starts again from 0, so the progress display must accept a count that drops once.
+
 - From V3: a script that ran `tool uninstall rolling` expecting one build to go now removes every rolling build; the changelog says so, and an older rolling build cannot be downloaded again (research 5).
 - From V12: older builds of a moving tag pile up; `tool list --installed` shows them and `tool upgrade` or `tool uninstall` removes them.
 - From C1: this is the first of the release's two large user-visible changes, landing in 0.9.0 with the changelog as the upgrade guide.
