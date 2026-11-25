@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
+import responses
 
 from tests.clock import FakeClock
 from tests.github import BASE, RECORDINGS
 from tests.jars import make_tools_jar
 from tlaup.versioning.github import GitHubClient
 from tlaup.versioning.jarinfo import read_jar
+from tlaup.versioning.remote import Remote
 from tlaup.versioning.store import Build, Source, TmpFolder, ToolStore
 
 if TYPE_CHECKING:
@@ -21,6 +24,7 @@ if TYPE_CHECKING:
     import requests
 
     from tests.conftest import Isolated
+    from tests.github import GitHubFake
     from tlaup.errors import TlaupError
     from tlaup.versioning.jarinfo import JarInfo
 
@@ -158,3 +162,95 @@ def recorded_list() -> list[dict[str, object]]:
     data = json.loads((RECORDINGS / "releases" / "list.body").read_bytes())
     assert isinstance(data, list)
     return data
+
+
+# --- what upstream publishes, for install() (design 12 V12) ---
+
+TAGS = f"{BASE}/releases/tags/"
+DOWNLOADS = "https://github.com/tlaplus/tlaplus/releases/download"
+
+
+class Upstream:
+    """The fake GitHub with a client and a ``Remote`` on it, and ways to change what it publishes.
+
+    A changed release is served ahead of the recording for ``times`` requests; the recording answers after.
+    """
+
+    def __init__(self, fake: GitHubFake, client: GitHubClient, remote: Remote, jars: Path) -> None:
+        self.fake = fake
+        self.client = client
+        self.remote = remote
+        self._jars = jars
+
+    def release(self, tag: str) -> dict[str, Any]:
+        """The release object the recording serves for ``tag``, fetched without counting the request."""
+        data, _ = self.client.get_json(f"/releases/tags/{tag}")
+        self.fake.clear()
+        assert isinstance(data, dict)
+        return data
+
+    def publish(self, data: dict[str, Any], *, times: int = 1) -> None:
+        for _ in range(times):
+            response = responses.Response("GET", TAGS + data["tag_name"], json=data, status=200)
+            self.fake.mock.registered().insert(0, response)
+
+    def serve(self, url: str, body: bytes, *, times: int = 1) -> None:
+        """``body`` at ``url``, ahead of what is registered there."""
+        for _ in range(times):
+            response = responses.Response("GET", url, body=body, status=200, content_type="application/octet-stream")
+            self.fake.mock.registered().insert(0, response)
+
+    def jar(self, label: str, *, commit: str | None = None, built_at: str | None = None) -> bytes:
+        """A small tools jar unlike the ones the fixture serves."""
+        path = make_tools_jar(self._jars / label / "tla2tools.jar", manifest(commit, built_at, extra=label), repl=True)
+        return path.read_bytes()
+
+    def publish_jar(self, tag: str, body: bytes, *, times: int = 1, **fields: Any) -> dict[str, Any]:
+        """Publish ``body`` under ``tag`` at a new address, with its size and digest (``digest=None``: none)."""
+        data = self.release(tag)
+        digest = "sha256:" + hashlib.sha256(body).hexdigest()
+        url = f"{DOWNLOADS}/{tag}/{digest[7:19]}/tla2tools.jar"
+        asset = {"size": len(body), "digest": digest, "browser_download_url": url, "id": int(digest[7:13], 16)}
+        changed = with_jar(data, **{**asset, **fields})
+        self.serve(url, body)
+        self.publish(changed, times=times)
+        return changed
+
+    @property
+    def downloads(self) -> int:
+        """Requests to a jar's address: the recording's and those ``serve`` added."""
+        return sum(1 for r in self.fake.requests if (r.url or "").split("?")[0].endswith("/tla2tools.jar"))
+
+    @property
+    def tag_requests(self) -> int:
+        return sum(1 for r in self.fake.requests if (r.url or "").startswith(TAGS))
+
+    @property
+    def list_requests(self) -> int:
+        return sum(1 for r in self.fake.requests if (r.url or "").split("?")[0] == f"{BASE}/releases")
+
+    @property
+    def api_requests(self) -> int:
+        return sum(1 for r in self.fake.requests if (r.url or "").startswith(BASE))
+
+
+def with_jar(data: dict[str, Any], **fields: Any) -> dict[str, Any]:
+    """The release object with the jar asset's fields changed."""
+    changed = dict(data)
+    changed["assets"] = [{**asset, **fields} if asset["name"] == "tla2tools.jar" else asset for asset in data["assets"]]
+    return changed
+
+
+@pytest.fixture
+def upstream(
+    github: Callable[..., GitHubFake], make_client: Callable[..., GitHubClient], clock: FakeClock, tmp_path: Path
+) -> Upstream:
+    client = make_client()
+    remote = Remote(client, tmp_path / "remote-cache", now=clock.now)
+    return Upstream(github(), client, remote, tmp_path / "other-jars")
+
+
+def tmp_entries(store: ToolStore) -> list[str]:
+    """What is under the store's ``.tmp/``: folders and lock files alike."""
+    tmp = store.new_tmp().path.parent  # a TmpFolder object only: nothing is created
+    return sorted(entry.name for entry in tmp.iterdir()) if tmp.is_dir() else []

@@ -1,6 +1,6 @@
 # 27. Install, upgrade, uninstall and pin as steps
 
-Size: L as a whole, delivered as two pull requests of size M each (27a and 27b, see the end of this file). Suggested model: most capable. Status: ready. The uninstall race (question Q8) is answered by the design: re-check under the lock and remove nothing ([12 V3](../design/12-tools-and-downloads.md#v3-uninstall), finding B7).
+Size: L as a whole, delivered as two pull requests of size M each (27a and 27b, see the end of this file). Suggested model: most capable. Status: 27a built, 27b ready. The uninstall race (question Q8) is answered by the design: re-check under the lock and remove nothing ([12 V3](../design/12-tools-and-downloads.md#v3-uninstall), finding B7).
 
 ## Goal
 
