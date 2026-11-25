@@ -37,6 +37,7 @@ FILLED = [
     ("tlc", "v1.7.4", "research 1"),
     ("tlc", "v1.7.4", "research 2"),
     ("tlc", "v1.7.4", "research 13"),
+    ("tlc", "v1.7.4", "research 22"),
     ("tlc", "v1.7.4", "research 28"),
 ]
 
