@@ -10,6 +10,12 @@ from tlaup.ui import warn
 from tlaup.versioning.schema import FetchStatus, RemoteVersion
 
 
+def list_addresses(repository: str) -> tuple[str, str, int]:
+    """The tags address, the releases address and the page size of the old `tools` commands, from `tool.repository`."""
+    base = repository.rstrip("/")
+    return f"{base}/tags", f"{base}/releases", 30
+
+
 def cast_str(value: Any) -> str:
     """Safely cast a value to string, returning an empty string if None."""
     return str(value) if value is not None else ""

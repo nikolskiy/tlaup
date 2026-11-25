@@ -10,6 +10,7 @@ from tlaup.versioning import (
     fetch_remote_versions,
     get_pinned_version_dir,
     get_tools_dir,
+    list_addresses,
     set_pin,
 )
 
@@ -29,7 +30,7 @@ def install(
 ) -> None:
     """Download and install a specific TLC version."""
     config = load_config()
-    versions, status = fetch_remote_versions(config.tla.urls.tags, config.tla.urls.releases, config.tla.urls.per_page)
+    versions, status = fetch_remote_versions(*list_addresses(config.tool.repository))
 
     if not versions:
         typer.echo(f"Error: Could not fetch remote versions (status: {status.value})", err=True)

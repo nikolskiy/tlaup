@@ -9,11 +9,14 @@ from tlaup.config.loader import load_config
 from tlaup.java import validate_java_version
 from tlaup.java.classpath import ClasspathResolver, ResolveMode
 from tlaup.project import find_project_root
+from tlaup.project.core import CLASSES_DIR, MODULES_DIR
 from tlaup.tlc.compiler import get_tlc_jar_path
 from tlaup.tlc.models import CheckState, ModelCheckResult
 from tlaup.tlc.parser import TlcParser
 from tlaup.tlc.run_cache import get_spec_run_dir
 from tlaup.tlc.sany import SanyParser
+
+TLC_MAIN_CLASS = "tlc2.TLC"
 
 
 def resolve_spec_file(spec: str) -> tuple[Path, str]:
@@ -119,9 +122,7 @@ def build_tlc_command(spec: str, cfg: str | None = None) -> list[str]:
         raise FileNotFoundError(msg)
 
     spec_file, _ = resolve_spec_file(spec)
-    project_root = find_project_root(
-        spec_file, modules_dir=config.workspace.modules_dir, classes_dir=config.workspace.classes_dir
-    )
+    project_root = find_project_root(spec_file, modules_dir=MODULES_DIR, classes_dir=CLASSES_DIR)
 
     resolver = ClasspathResolver(config, project_root=project_root, tool_jar=jar_path)
     classpath_resolved = resolver.resolve(ResolveMode.RUNTIME)
@@ -149,7 +150,7 @@ def build_tlc_command(spec: str, cfg: str | None = None) -> list[str]:
         *extra_jvm_opts,
         "-cp",
         classpath,
-        config.tlc.java_class,
+        TLC_MAIN_CLASS,
         "-metadir",
         str(run_dir),
     ]
@@ -185,9 +186,7 @@ def run_tlc(  # noqa: PLR0912, PLR0915
         cmd.insert(-1, "-coverage")
         cmd.insert(-1, "1")
 
-    project_root = find_project_root(
-        spec_file, modules_dir=config.workspace.modules_dir, classes_dir=config.workspace.classes_dir
-    )
+    project_root = find_project_root(spec_file, modules_dir=MODULES_DIR, classes_dir=CLASSES_DIR)
     cwd = project_root if project_root else spec_file.parent
 
     if raw:
@@ -268,12 +267,11 @@ def run_tlc(  # noqa: PLR0912, PLR0915
 
 def get_tlc_version() -> str | None:
     """Return the first line of 'java -cp tla2tools.jar tlc2.TLC -version'."""
-    config = load_config()
     jar_path = get_tlc_jar_path()
     if jar_path is None or not jar_path.exists():
         return None
 
-    cmd = ["java", "-cp", str(jar_path), config.tlc.java_class, "-version"]
+    cmd = ["java", "-cp", str(jar_path), TLC_MAIN_CLASS, "-version"]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         output = result.stdout or result.stderr

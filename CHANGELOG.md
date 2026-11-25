@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Settings are read in layers: built-in defaults, then the user's config file, then environment variables, then command-line options. A config file is no longer created on first run; a file needs to hold only the settings that differ from the defaults.
+- Unknown keys in the config file give a warning.
+
 ### Added
+- Each setting can be given as an environment variable `TLAUP_<SECTION>_<KEY>`.
 - `TLAUP_HOME` moves all of tlaup's folders; `TLAUP_CONFIG_DIR`, `TLAUP_CACHE_DIR` and `TLAUP_DATA_DIR` move one each.
 - `--debug`, and `python -m tlaup`.
 
 ### Breaking
+- Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.
 - Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tools install` and `tlaup modules add` again. The old `tla` folders are not touched and can be deleted.
 
 ### Removed
@@ -19,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Support for old storage layouts (a jar directly in the cache folder, the symlink pin, the `tlc` folder, modules without a `modules/` subfolder). The `tlaup` folders never contained them.
 
 ### Fixed
+- A config file written by an older version, or missing a section, caused a traceback.
 - Several failures printed a Python traceback. tlaup now prints one `error:` line; `tlaup --debug ...` or `TLAUP_DEBUG=1` shows the traceback.
 
 ## [0.8.2] - 2026-11-14

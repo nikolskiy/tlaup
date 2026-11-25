@@ -3,9 +3,14 @@
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
+from functools import cached_property
+from typing import TYPE_CHECKING
 
 from tlaup.paths import AppPaths
 from tlaup.ui import Ui
+
+if TYPE_CHECKING:
+    from tlaup.config.schema import Settings
 
 
 @dataclass(frozen=True)
@@ -14,7 +19,19 @@ class AppContext:
     env: Mapping[str, str]
     debug: bool
     ui: Ui
-    # settings: added by package 19
+
+    @cached_property
+    def settings(self) -> "Settings":
+        """The settings, loaded on first use; each warning is printed once, here (design 14 F1).
+
+        A broken file raises `ConfigInvalid` every time this is asked for, since nothing is cached then.
+        """
+        from tlaup.config.loader import load_settings  # noqa: PLC0415
+
+        loaded = load_settings(self.paths, self.env)
+        for warning in loaded.warnings:
+            self.ui.warning(warning)
+        return loaded.settings
 
 
 _cache: list[AppContext] = []

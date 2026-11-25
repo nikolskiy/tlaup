@@ -2,6 +2,11 @@
 
 from pathlib import Path
 
+SPEC_DIR = "spec"
+MODULES_DIR = "modules"
+CLASSES_DIR = "classes"
+LIB_DIR = "lib"
+
 
 def _is_project_root(directory: Path, modules_dir: Path | str, classes_dir: Path | str, lib_dir: Path | str) -> bool:
     """Return True if directory contains at least one project structure marker."""
@@ -13,7 +18,7 @@ def find_project_root(
     *,
     modules_dir: Path | str,
     classes_dir: Path | str,
-    lib_dir: Path | str = "lib",
+    lib_dir: Path | str = LIB_DIR,
 ) -> Path | None:
     """Resolve the project root relative to a .tla spec file.
 
