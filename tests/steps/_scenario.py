@@ -26,6 +26,7 @@ from typer.testing import CliRunner
 
 import tlaup.cli
 import tlaup.context
+import tlaup.java
 from tests.expected import assert_matches
 from tests.fakes.control import write_launcher
 from tlaup.errors import TlaupError
@@ -57,6 +58,8 @@ PASSTHROUGH = 'this command passes the terminal through; use "as a process"'
 _STARTUP_ONLY_NAMES = frozenset({"LC_ALL", "LC_CTYPE", "LANG"})
 _PLACEHOLDER = re.compile(r"\{(home|work|tools|modules|runs|config|kept)\}")
 _AGENT_PID = re.compile(r"(=pid=)\d+$")
+# The folder of the installed package that holds the lifeline agent's jar, written as <tlaup> (D51).
+TLAUP_JAVA_DIR = Path(tlaup.java.__file__).resolve().parent
 _WRITE_BITS = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
 
 
@@ -574,7 +577,8 @@ class Scenario:
         """The last tool start's arguments, one per line, with the values that change from run to run replaced.
 
         The scenario's folders become their placeholders (longest path first), the lifeline agent's process
-        id ``<pid>``, and the run id of the ``-metadir`` path ``<run-id>`` (T5's note; T8's helper is untouched).
+        id ``<pid>``, the folder of the agent's jar ``<tlaup>``, and the run id of the ``-metadir`` path
+        ``<run-id>`` (T5's note; T8's helper is untouched).
         """
         args = [str(arg) for arg in self.last_tool_start()["args"]]
         folders: list[tuple[str, str]] = [("home", str(self.isolated.home)), ("work", str(self.isolated.work))]
@@ -593,7 +597,7 @@ class Scenario:
                 run_id = metadir.relative_to(paths.runs).parts[0]
         lines = []
         for arg in args:
-            text = arg
+            text = arg.replace(f"{TLAUP_JAVA_DIR}{os.sep}", "<tlaup>/")
             for name, folder in folders:
                 text = text.replace(folder, f"{{{name}}}")
             if run_id is not None:

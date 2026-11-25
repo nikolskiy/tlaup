@@ -20,7 +20,7 @@ import pytest
 import typer
 from pytest_bdd.steps import StepFunctionContext, step_function_context_registry
 
-from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, Outcome
+from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, TLAUP_JAVA_DIR, Outcome
 
 if TYPE_CHECKING:
     from tests.conftest import Isolated
@@ -748,13 +748,17 @@ def test_where_java_ran_from(scenario: Scenario, fakes: Fakes, isolated: Isolate
     then(scenario, 'java was started in the folder "{work}"')
 
 
+def test_the_agent_folder_is_the_installed_packages_java_folder() -> None:
+    assert (TLAUP_JAVA_DIR / "lifeline.jar").is_file()
+
+
 def test_the_java_command_matches_the_expected_file(scenario: Scenario, fakes: Fakes, isolated: Isolated) -> None:
     scenario.expected_dir = UNIT_EXPECTED
     paths = isolated.paths
     given(scenario, "java prints 1 lines")
     run_id = "20261115T100000Z-3fa9c1d2"
     args = [
-        "-javaagent:/opt/lifeline.jar=pid=4242",
+        f"-javaagent:{TLAUP_JAVA_DIR / 'lifeline.jar'}=pid=4242",
         "-cp",
         f"{paths.tools}/v1.7.4/tla2tools.jar",
         "tlc2.TLC",
