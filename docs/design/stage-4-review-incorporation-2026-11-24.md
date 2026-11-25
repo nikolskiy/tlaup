@@ -67,7 +67,7 @@ The faults the review found in the design were gaps (the design did not say what
 
 ## Left open
 
-Readings the review raised that nobody settled stay as the packages wrote them, listed for the next review to confirm in the [packages index](../packages/README.md), under "Readings the packages build on": among them findings A3, A6, A7 and C16 on the parser and `pcal`, and the readings of 14 and 12 that the index lists (for example `ToolStore.leftovers()` and the age of a `.tmp` entry). A relative `module_path` is not among them: it was a low-impact choice (above), not something left open.
+Readings the review raised that nobody settled stay as the packages wrote them, listed for the next review to confirm in the [packages index](../packages/README.md), under "Readings the packages build on": among them findings A3, A6, A7 and C16 on the parser and `pcal`, and the readings of 14 and 12 that the index lists (for example `ToolStore.leftovers()` and the age of a `.tmp` entry). A relative `module_path` is not among them: it was a low-impact choice (above), not something left open. (Stage 4 sign-off, 2026-11-24: none is left open; the maintainer settled the user-visible ones and confirmed the rest, as the index's "Settled since" lists.)
 
 ## After the review of the working-in
 

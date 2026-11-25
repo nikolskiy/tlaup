@@ -1,6 +1,6 @@
 # 42. The `pcal` command
 
-Size: S. Suggested model: mid-tier. Status: ready. One reading of stage 4 stays for the maintainer to confirm (the banner and the two completion lines print nothing, under Interfaces); it is built as written.
+Size: S. Suggested model: mid-tier. Status: ready. One reading of stage 4 (the banner and the two completion lines print nothing, under Interfaces) was confirmed by reviewer H and stands at the stage 4 sign-off, 2026-11-24.
 
 ## Goal
 

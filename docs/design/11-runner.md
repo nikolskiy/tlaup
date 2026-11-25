@@ -328,6 +328,8 @@ The visits of the sweep and of `cache clean` hold their lock only for the instan
   Resume with: tlaup tlc <absolute spec> --cfg <absolute cfg> --keep ... -- ... -fp 58 -seed 8556987057680880581 -recover <TLC's timestamped folder in it>
   ```
 
+  The duration is written by `format_elapsed`, the same function as the result line's ([22 O2](22-reporters.md#o2-delete-dead-display-code)). (Stage 4 sign-off, 2026-11-24: one duration form, settled with the maintainer at the stage 4 sign-off, 2026-11-24.)
+
   The first line names what `tlaup cache list` lists and `tlaup cache clean <run-id>` or `--all` removes, with its size and the reason it was kept, so the cost is seen the moment it is incurred (top-up, D53). "interrupted" is the reason for a signal; "tlaup failed" and "TLC crashed (exit N)" are the other two. The second line names the folder TLC needs, the one under it that holds the `*.chkpt` files.
 
   One function builds the two lines from a `Kept`, and there are two ways they reach the user, neither of which is the runner or a reporter printing:

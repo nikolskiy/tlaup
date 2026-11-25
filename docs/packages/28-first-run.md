@@ -75,7 +75,7 @@ def read_auto_install(option: str | None, env: Mapping[str, str]) -> str | None
 | Nothing installed, `ui.is_interactive()` | `choose_first_build`, then `install` of the answer. |
 | Nothing installed, neither | `CannotAsk` (3): "no TLA+ tools installed" / "run `tlaup tool install stable` or `tlaup tool install rolling`, or set TLAUP_AUTO_INSTALL". |
 
-After an install, `ensure_tools` returns `store.pinned()`: the build just installed, unless another tlaup pinned one first, in which case the pin is what runs ("the choice is installed and pinned, and the command carries on", read so; the pin is the default once something is pinned, V9 Rejected). This is a reading, not confirmed: the index lists it under "Readings the packages build on".
+After an install, `ensure_tools` returns `store.pinned()`: the build just installed, unless another tlaup pinned one first, in which case the pin is what runs ("the choice is installed and pinned, and the command carries on", read so; the pin is the default once something is pinned, V9 Rejected). Settled with the maintainer at the stage 4 sign-off, 2026-11-24 (index, "Settled since").
 
 `choose_first_build`: `auto_install` set returns it with no request and no question. Otherwise, when `ui.is_interactive()`, it fetches the release list fresh (one request), and asks on stderr, through `ui.ask` with the choices `1` and `2` and the default `1`:
 
@@ -138,7 +138,7 @@ Points a worker could miss:
 - **No prompt when builds are installed and none is pinned.** That user needs `tool pin`, not stable-or-rolling (V9, Rejected).
 - **A pin naming a missing build is not "nothing installed".** `ensure_tools` reports it; only `install` repairs it (V12, D50).
 - **Domain code prints only through the `ui` it was given**: the question and the one notice. Nothing else.
-- **No stable release available** (every release a prerelease, which V8 tests): the prompt cannot name one. The error `Remote.resolve` gives for `stable` ("no stable release is available", `VersionNotFound`) comes out before the question; a unit test with a list of prereleases only shows it, and that no question was written (under Tests). This is a reading, not confirmed: the index lists it under "Readings the packages build on".
+- **No stable release available** (every release a prerelease, which V8 tests): the prompt cannot name one. The error `Remote.resolve` gives for `stable` ("no stable release is available", `VersionNotFound`) comes out before the question; a unit test with a list of prereleases only shows it, and that no question was written (under Tests). Settled with the maintainer at the stage 4 sign-off, 2026-11-24 (index, "Settled since").
 - **Two list requests on a first run that picks stable**: one for the prompt's dates, one when `install` resolves `stable` fresh. V9 counts one request for the prompt; nothing counts the install's. Leave it.
 - **A first run downloads 4.5 MB in the middle of a command** (V9, Risks); the notice names what and where, and the caller's progress bar shows the download.
 

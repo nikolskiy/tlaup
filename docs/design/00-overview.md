@@ -32,6 +32,7 @@ src/
     cli.py              the Typer app, the root options, the root group that maps errors     14 F10
     __main__.py         so `python -m tlaup` works; the real-process tests start it this way  14 F10
     stdio.py            reader_gone, is_pipe and other stream helpers; no Typer, no Rich     14 F10
+    durations.py        format_elapsed, the one way a duration is written                    22 O2, 11 R6
     context.py          AppContext: paths, settings, ui; built once                          below
     paths.py            AppPaths: every folder, from the environment                         14 F2
     errors.py           TlaupError and its four families                                     20 G2
@@ -57,7 +58,7 @@ src/
       __init__.py       ENTRY_POINTS only, so tlc/command.py imports it cheaply              21 S4
       invocation.py     ToolInvocation, resolve_tool_invocation, build_tool_command          21 S4
     reporters/          base.py, terminal.py, layout.py, collecting.py                       22
-      text.py           pure text functions: durations, counts, diagnostics, lines           22 O3
+      text.py           pure text functions: counts, diagnostics, lines                      22 O3
     versioning/
       spec.py           VersionSpec                                                          02 X3
       order.py          sort key, stable                                                     02 X4
@@ -77,7 +78,7 @@ src/
       common.py         what the run commands share: the get_build wrapper                   21
 ```
 
-(Stage 4 review, 2026-11-24: the tree lists the modules stage 4 placed, `stdio.py`, `doctor.py`, `project/core.py` and `project/spec.py`, `java/opts.py`, `reporters/text.py`, `versioning/first_run.py` and `cmd/common.py`; index, "Clerical". Then `versioning/redact.py`, finding E11, and `config/editor.py`, `tools/__init__.py` with `ENTRY_POINTS` and `tools/invocation.py`, finding H14.)
+(Stage 4 review, 2026-11-24: the tree lists the modules stage 4 placed, `stdio.py`, `doctor.py`, `project/core.py` and `project/spec.py`, `java/opts.py`, `reporters/text.py`, `versioning/first_run.py` and `cmd/common.py`; index, "Clerical". Then `versioning/redact.py`, finding E11, and `config/editor.py`, `tools/__init__.py` with `ENTRY_POINTS` and `tools/invocation.py`, finding H14. Then `durations.py`, for the one duration form, settled with the maintainer at the stage 4 sign-off, 2026-11-24.)
 
 Rules that hold across the tree, all taken from the roadmap's "Keep" list or its milestone 5 items:
 

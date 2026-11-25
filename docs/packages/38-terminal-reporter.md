@@ -22,7 +22,7 @@ Size: L. Suggested model: most capable. Status: ready.
   - [02 X1](../design/02-cross-cutting.md#x1-exit-codes), "The meaning of a code": printing it in the result line.
   - [22 O6](../design/22-reporters.md#o6-snapshot-tests): the helper, "Plain mode", the colour and width cases, the markup test in plain mode. Everything about layout mode, the two streams and `close` in layout mode is 40's.
   - [22 O7](../design/22-reporters.md#o7-rendering-cost-and-memory): the two plain-mode tests.
-  - [22 O2](../design/22-reporters.md#o2-delete-dead-display-code): the rows marked O3, as replacements built here (`diff_values` and `render_value_diff` rewritten against `Value`, the coverage renderers against `CoverageItem`, and one `format_elapsed`). The old ones are deleted at the switch (39).
+  - [22 O2](../design/22-reporters.md#o2-delete-dead-display-code): the rows marked O3, as replacements built here (`diff_values` and `render_value_diff` rewritten against `Value`, the coverage renderers against `CoverageItem`; the one `format_elapsed` is 35's, imported here). The old ones are deleted at the switch (39).
   - [11 R7](../design/11-runner.md#r7-override-modules-that-do-not-load), part 4: when the reporter shows the hint (the texts are [34](34-override-check.md)'s).
   - [21 S1](../design/21-other-tools.md#s1-sany), step 4: the editor form of a diagnostic and the source excerpt under it (D66, `source_excerpt` with its unit test), as functions [41](41-sany-command.md) reuses. The `tlaup sany` scenarios of the excerpt are 41's.
   - [22 O1](../design/22-reporters.md#o1-reporter-interface), `notice` in plain mode: the waiting line on stderr at once (question Q12).
@@ -38,7 +38,7 @@ Size: L. Suggested model: most capable. Status: ready.
 - [20](20-java-location.md): `JavaRuntime`. [23](23-tool-store.md): `Build` and `format_build`.
 - [34](34-override-check.md): `class_version_hint`, `load_failure_hint`.
 - [36](36-reporter-interface.md): `Reporter` (with `notice`), `RunInfo` (with `cwd`).
-- [37](37-run-tlc.md): `RunOutcome`, which `finish` reads.
+- [37](37-run-tlc.md): `RunOutcome`, which `finish` reads. [35](35-run-folders.md) (through 37): `format_elapsed` in `tlaup/durations.py`.
 
 Change from the draft (36, 13, 16): added 37, because `finish` takes a `RunOutcome` and reads its fields, so 38 cannot be built before it (37 and 38 are therefore not parallel; the report says how they could be); 34, for the two hint texts (34's own Risks named this); 15, for the roadmap's rule; 03, 07, 09, 11, 20 and 23 for what the tests and the header use.
 
@@ -47,7 +47,7 @@ Change from the draft (36, 13, 16): added 37, because `finish` takes a `RunOutco
 Creates:
 
 - `src/tlaup/reporters/terminal.py`: `TerminalReporter` (plain mode), `render_event`, `render_status`, `header_lines`, `render_summary`, the coverage renderers.
-- `src/tlaup/reporters/text.py` (00's tree now lists it): the pure text functions `format_elapsed`, `format_count`, `format_path`, `format_diagnostic`, `source_excerpt`, `progress_line`, `stats_line`, `result_line`, and the value diff (`ValueDiff`, `diff_values`). They take values and return strings or Rich `Text`, read nothing, and are unit-tested one by one. `format_diagnostic` and `source_excerpt` are here rather than in `terminal.py` so that [41](41-sany-command.md) can print SANY's diagnostics in the same form without importing the reporter; S1 puts `source_excerpt` "beside the function that writes the editor-form line".
+- `src/tlaup/reporters/text.py` (00's tree now lists it): the pure text functions `format_count`, `format_path`, `format_diagnostic`, `source_excerpt`, `progress_line`, `stats_line`, `result_line`, and the value diff (`ValueDiff`, `diff_values`). They take values and return strings or Rich `Text`, read nothing, and are unit-tested one by one. `format_diagnostic` and `source_excerpt` are here rather than in `terminal.py` so that [41](41-sany-command.md) can print SANY's diagnostics in the same form without importing the reporter; S1 puts `source_excerpt` "beside the function that writes the editor-form line".
 - `tests/unit/reporters/replay.py`: the replay helper of O6 (below), which [40](40-live-display.md) reuses.
 - `tests/unit/reporters/test_terminal.py`, `tests/unit/reporters/test_text.py`.
 - `tests/unit/reporters/expected/terminal/<build>/<case>.stdout.txt` and `.stderr.txt` for every golden TLC case of both builds (`<build>` is the golden folder's name, `v1.7.4` and `2026.11.15.002146`), and the colour and width files of `violation` (named `violation.color.stdout.txt` and `violation.w40.stdout.txt`; the names are stage 4's).
@@ -78,7 +78,6 @@ def header_lines(run: RunInfo) -> list[Text]                                    
 def render_summary(outcome: RunOutcome, run: RunInfo, elapsed: float) -> list[Text]  # stage 4: statistics, coverage, result line
 
 # tlaup/reporters/text.py (stage 4)
-def format_elapsed(seconds: float) -> str              # "0.7 s", "2 min 13 s", "1 h 02 min"; O2's one function
 def format_count(n: int, *, approximate: bool = False) -> str     # "1,771,600", "about 1,771,600"
 def format_path(path: Path | str, cwd: Path) -> str     # relative to cwd when beneath it, else absolute (S1)
 def format_diagnostic(d: Diagnostic, *, cwd: Path, spec: Path, source_text: str | None) -> list[str]
@@ -171,7 +170,7 @@ Plain pytest, a reporter driven directly with events ([01 T12](../design/01-test
 - `close` before `start`, twice after `finish`, and after a `handle` that raised: returns, writes nothing, `write_error` stays `None`. A `ui.out` whose stream raises `BrokenPipeError` makes `handle` raise it (it passes, O1).
 - **O7, plain mode**: 300,000 numbered lines (`line 1` to `line 300000`, the form T12 rule 3 allows for a spec's own output) fed through a `TlcParser` into a `TerminalReporter` writing to a null stream: the result's `output` has 10,000 entries and `output_dropped` is 290,000. A second test counts the write calls of the stdout stream for 1,000 and for 10,000 lines: the ratio is 10 within a small constant, so the cost is linear. No test measures time.
 
-`tests/unit/reporters/test_text.py`: `format_elapsed` for 0.7, 4.2, 60, 133 and 3720 seconds (`0.7 s`, `4.2 s`, `1 min 00 s`, `2 min 13 s`, `1 h 02 min`); `format_count`; `format_path` beneath and outside the folder; `format_diagnostic` for S1's four examples (a location, a parse error with details, no location, a warning), each with `source_text=None` (the editor-form line, then the details) and the first with the spec's text (the line, the excerpt, then the details: S1's order), and for a module that was not announced (the spec's path); `result_line` for each row of O3's table, the meaning of a code X1 does not document (99: `TLC returned a code it does not document`) and the `not-checked` words after an early exception; `diff_values` on sets, sequences, records, functions and two `raw` values with different text.
+`tests/unit/reporters/test_text.py`: `format_count`; `format_path` beneath and outside the folder; `format_diagnostic` for S1's four examples (a location, a parse error with details, no location, a warning), each with `source_text=None` (the editor-form line, then the details) and the first with the spec's text (the line, the excerpt, then the details: S1's order), and for a module that was not announced (the spec's path); `result_line` for each row of O3's table, the meaning of a code X1 does not document (99: `TLC returned a code it does not document`) and the `not-checked` words after an early exception; `diff_values` on sets, sequences, records, functions and two `raw` values with different text.
 
 `source_excerpt`, S1's unit test on hand-written text: for a location on line 4, lines 2 to 4, the marks, the `Error here` line and lines 5 and 6, exactly as S1's example; on line 1, that line alone before the marks; over two lines, marks to the end of the first and `line 4, col 13 to line 5, col 2`; with no end, one mark and `line 4, col 13`; a tab in front of the column, a tab in the mark line; a location at the last line, no lines after; a line past the end of the text, nothing.
 
@@ -200,7 +199,7 @@ None in this package. O3's Changed entry, P10's and P11's Fixed entries and X2's
 
 **The two places the reporter reads a file.** Coverage: the inline view reads `RunInfo.spec` and shows the rows whose `location.module` is the spec's module, as today's `render_inline_coverage` does; in the helper's tests `RunInfo.spec` must then point at the real golden spec for the `coverage` case. The excerpt: the file of a diagnostic's module, read when the diagnostic completes; a read that fails gives no excerpt and never an error.
 
-**Two duration forms.** The result line writes `2 min 13 s` and `1 h 02 min` (O3); the "Checkpoint kept" note of [35](35-run-folders.md) writes `2 h 13 min`, from R6's example. They are two sections' examples and two functions; O2 asks for one function for the reporter's elapsed time, which is `format_elapsed` here. They stay two; this is a reading, which the index lists for the next review to confirm. Do not change 35's.
+**One duration form.** The result line's duration is written by `format_elapsed` from `tlaup/durations.py`, which [35](35-run-folders.md) creates for its "Checkpoint kept" note; import it, do not write a second one (O2's one function; settled with the maintainer at the stage 4 sign-off, 2026-11-24). Its rule and tests are 35's.
 
 **Traps.**
 
