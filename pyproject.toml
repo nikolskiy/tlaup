@@ -16,6 +16,7 @@ dependencies = [
     "pydantic>=2.12.5,<3.0.0",
     "truststore>=0.9.0,<1.0.0",
     "rich>=13.8.0,<14.0.0",
+    "filelock>=4.2.1",
 ]
 authors = [
     {name = "Denis Nikolskiy", email = "nikolskiy@users.noreply.github.com"}

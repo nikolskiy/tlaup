@@ -1,0 +1,106 @@
+"""A store in the test's folder and small real jars put into it the way a download does (design 12 V1)."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import pytest
+
+from tests.clock import FakeClock
+from tests.jars import make_tools_jar
+from tlaup.versioning.jarinfo import read_jar
+from tlaup.versioning.store import Build, Source, TmpFolder, ToolStore
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from tests.conftest import Isolated
+    from tlaup.versioning.jarinfo import JarInfo
+
+SOURCE = Source(
+    kind="github-release",
+    url="https://example.invalid/rolling/tla2tools.jar",
+    asset_id=1,
+    asset_updated_at="2026-11-15T00:30:00Z",
+    digest_checked=True,
+)
+
+
+def commit(prefix: str) -> str:
+    """A 40-digit commit that starts with ``prefix``."""
+    return prefix.ljust(40, "0")
+
+
+def manifest(commit: str | None = None, built_at: str | None = None, extra: str = "") -> bytes:
+    """A manifest with the entries ``read_jar`` reads; ``extra`` makes otherwise equal jars differ."""
+    lines = ["Manifest-Version: 1.0"]
+    if commit is not None:
+        lines.append(f"X-Git-Revision: {commit}")
+    if built_at is not None:
+        lines.append(f"Build-TimeStamp: {built_at}")
+    if extra:
+        lines.append(f"X-Test: {extra}")
+    return ("\n".join(lines) + "\n").encode()
+
+
+class Downloads:
+    """Jars in temporary folders of the store, as a download leaves them; each folder released at the end."""
+
+    def __init__(self, store: ToolStore) -> None:
+        self.store = store
+        self.held: list[TmpFolder] = []
+
+    def jar(self, data: bytes) -> tuple[Path, JarInfo]:
+        tmp = self.store.new_tmp()
+        tmp.lock()
+        tmp.make()
+        self.held.append(tmp)
+        jar = make_tools_jar(tmp.path / "tla2tools.jar", data)
+        return jar, read_jar(jar)
+
+    def add(self, data: bytes, name: str = "rolling", *, prerelease: bool = True, repair: bool = False) -> Build:
+        """Download ``data`` and add it under the store lock."""
+        jar, info = self.jar(data)
+        with self.store.locked(timeout=0):
+            return self.store.add(jar, info, name=name, prerelease=prerelease, source=SOURCE, repair=repair)
+
+    def release(self) -> None:
+        for tmp in self.held:
+            tmp.release()
+        self.held = []
+
+
+@pytest.fixture
+def clock() -> FakeClock:
+    return FakeClock()
+
+
+@pytest.fixture
+def store(isolated: Isolated, clock: FakeClock) -> ToolStore:
+    return ToolStore(isolated.paths, now=clock.now)
+
+
+@pytest.fixture
+def downloads(store: ToolStore) -> Iterator[Downloads]:
+    made = Downloads(store)
+    yield made
+    made.release()
+
+
+def make_build(name: str, build_id: str | None = None, **fields: object) -> Build:
+    """A ``Build`` value with no folder behind it, for the order and the printed form."""
+    values: dict[str, object] = {
+        "commit": None,
+        "calver": None,
+        "built_at": None,
+        "sha256": "0" * 64,
+        "size": 1,
+        "prerelease": False,
+        "source": SOURCE,
+        "installed_at": "2026-11-15T00:00:00Z",
+        "capabilities": frozenset(),
+    }
+    values.update(fields)
+    build_id = build_id or f"{name}-{str(values['sha256'])[:12]}"
+    return Build(id=build_id, name=name, path=Path("/nowhere") / build_id, **values)
