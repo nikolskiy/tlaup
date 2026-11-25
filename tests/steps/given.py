@@ -10,7 +10,11 @@ from typing import TYPE_CHECKING
 
 from pytest_bdd import given, parsers
 
+from tests.steps import _store
+
 if TYPE_CHECKING:
+    import pytest
+
     from tests.steps._scenario import Scenario
 
 # Given: files
@@ -33,7 +37,9 @@ def the_config_file_contains(scenario: Scenario, docstring: str) -> None:
 
 @given(parsers.re(r'the folder "(?P<path>[^"]+)" is read-only'))
 def the_folder_is_read_only(scenario: Scenario, path: str) -> None:
-    scenario.read_only(path)
+    # "{tools}/<version>" naming one installed build is that build's folder, whose name holds its jar's digest
+    # (package 29a); any other path is the folder as written.
+    scenario.read_only(_store.build_folder(scenario, path) or path)
 
 
 @given(parsers.re(r'I am in the folder "(?P<path>[^"]+)"'))
@@ -182,3 +188,49 @@ def the_editor_exits_with_code(scenario: Scenario, code: int) -> None:
 @given(parsers.re(r'the environment variable "(?P<name>[^"]+)" is "(?P<value>.*)"'))
 def the_environment_variable_is(scenario: Scenario, name: str, value: str) -> None:
     scenario.set_env(name, value)
+
+
+# Given: the store (package 29)
+
+
+@given(parsers.re(r'the build "(?P<spec>[^"]+)" is installed(?P<pinned> and pinned)?'))
+def the_build_is_installed(scenario: Scenario, spec: str, pinned: str | None) -> None:
+    _store.install(scenario, spec, pinned=bool(pinned))
+
+
+@given(parsers.re(r"no build is installed"))
+def no_build_is_installed(scenario: Scenario) -> None:
+    _store.no_build(scenario)
+
+
+@given(
+    parsers.re(r'the release list is cached from "(?P<recording>[^"]+)", (?P<minutes>\d+) minutes? old'),
+    converters={"minutes": int},
+)
+def the_release_list_is_cached(
+    scenario: Scenario, request: pytest.FixtureRequest, recording: str, minutes: int
+) -> None:
+    _store.cache_releases(scenario, request, recording, minutes)
+
+
+@given(parsers.re(r'the jar of the build "(?P<spec>[^"]+)" is truncated'))
+def the_jar_of_the_build_is_truncated(scenario: Scenario, spec: str) -> None:
+    _store.truncate(scenario, spec)
+
+
+# Given: GitHub (package 29; in-process only)
+
+
+@given(parsers.re(r'GitHub answers from "(?P<recording>[^"]+)"'))
+def github_answers_from(scenario: Scenario, request: pytest.FixtureRequest, recording: str) -> None:
+    _store.github(scenario, request, recording)
+
+
+@given(parsers.re(r'GitHub answers (?P<status>\d+) to "(?P<path>[^"]+)"'), converters={"status": int})
+def github_answers_status_to(scenario: Scenario, request: pytest.FixtureRequest, status: int, path: str) -> None:
+    _store.github(scenario, request).answer(status, scenario.expand(path))
+
+
+@given(parsers.re(r"GitHub is unreachable"))
+def github_is_unreachable(scenario: Scenario, request: pytest.FixtureRequest) -> None:
+    _store.github(scenario, request).unreachable()

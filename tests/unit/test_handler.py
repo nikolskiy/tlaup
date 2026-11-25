@@ -1,7 +1,7 @@
 """The root group's handler, in-process (design 14 F10, 02 X1): small apps built with `cls=TlaupGroup`.
 
 No hidden test command is added to tlaup; tlaup's own `app` is called only for the error before the context
-exists (a relative TLAUP_HOME through the old `tools dir`, which 29a renames) and for the no-command cases.
+exists (a relative TLAUP_HOME through `tool dir`) and for the no-command cases.
 """
 
 import errno
@@ -298,7 +298,7 @@ def test_debug_after_the_subcommand_is_a_usage_error() -> None:
 def test_an_error_before_the_context_exists(debug: bool, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("TLAUP_HOME", "relative/path")
     context.reset()
-    args = ["--debug", "tools", "dir"] if debug else ["tools", "dir"]  # 29a changes it to `tool dir`
+    args = ["--debug", "tool", "dir"] if debug else ["tool", "dir"]
     result = invoke(tlaup_app, *args)
     assert result.exit_code == 3
     assert result.stdout == ""

@@ -20,6 +20,7 @@ import pytest
 import typer
 from pytest_bdd.steps import StepFunctionContext, step_function_context_registry
 
+from tests.clock import FakeClock
 from tests.steps._process import closed_pipe, exit_code_of, run_as_process, start, start_and_signal
 from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, TLAUP_JAVA_DIR, Outcome, _process_alive
 from tests.steps._terminal import (
@@ -34,6 +35,7 @@ from tests.steps._terminal import (
     screen_text,
     without_escapes,
 )
+from tlaup.versioning.store import ToolStore
 
 if TYPE_CHECKING:
     from tests.conftest import Isolated
@@ -287,15 +289,76 @@ def test_the_overlapping_pairs_choose_their_own_step() -> None:
     )
 
 
+# The store and GitHub steps of package 29: each form finds exactly one step, with its arguments.
+
+STORE_FORMS = {
+    ("given", 'the build "v1.7.4" is installed'): ("the_build_is_installed", {"spec": "v1.7.4", "pinned": None}),
+    ("given", 'the build "rolling@1a2b3c4" is installed and pinned'): (
+        "the_build_is_installed",
+        {"spec": "rolling@1a2b3c4", "pinned": " and pinned"},
+    ),
+    ("given", "no build is installed"): ("no_build_is_installed", {}),
+    ("given", 'the release list is cached from "releases", 1 minutes old'): (
+        "the_release_list_is_cached",
+        {"recording": "releases", "minutes": "1"},
+    ),
+    ("given", 'the release list is cached from "releases", 1 minute old'): (
+        "the_release_list_is_cached",
+        {"recording": "releases", "minutes": "1"},
+    ),
+    ("given", 'the jar of the build "v1.7.4" is truncated'): ("the_jar_of_the_build_is_truncated", {"spec": "v1.7.4"}),
+    ("given", 'GitHub answers from "releases"'): ("github_answers_from", {"recording": "releases"}),
+    ("given", 'GitHub answers 404 to "/releases/tags/v1.7.4"'): (
+        "github_answers_status_to",
+        {"status": "404", "path": "/releases/tags/v1.7.4"},
+    ),
+    ("given", "GitHub is unreachable"): ("github_is_unreachable", {}),
+    ("then", 'the pinned build is "v1.7.4"'): ("the_pinned_build_is", {"spec": "v1.7.4"}),
+    ("then", "no build is pinned"): ("no_build_is_pinned", {}),
+    ("then", "the installed builds are:"): ("the_installed_builds_are", {}),
+    ("then", "1 request was sent to GitHub"): ("requests_were_sent_to_github", {"count": "1"}),
+    ("then", "2 requests were sent to GitHub"): ("requests_were_sent_to_github", {"count": "2"}),
+    ("then", "1 request(s) were sent to GitHub"): ("requests_were_sent_to_github", {"count": "1"}),
+    ("then", "0 jar downloads were made"): ("jar_downloads_were_made", {"count": "0"}),
+    ("then", "1 jar download was made"): ("jar_downloads_were_made", {"count": "1"}),
+    ("then", "1 jar download(s) were made"): ("jar_downloads_were_made", {"count": "1"}),
+    ("then", 'no request carried a token to "api.github.com"'): (
+        "no_request_carried_a_token_to",
+        {"host": "api.github.com"},
+    ),
+}
+
+
+@pytest.mark.parametrize(("kind", "text"), list(STORE_FORMS))
+def test_each_store_and_github_form_finds_one_step(kind: str, text: str) -> None:
+    name, arguments = STORE_FORMS[(kind, text)]
+    context = find_step(kind, text)
+    assert context.step_func.__name__ == name
+    assert (context.parser.parse_arguments(text) or {}) == arguments
+
+
+def test_the_store_forms_do_not_take_each_others_text() -> None:
+    # The pairs that share words: "installed" and "installed and pinned", the build and its jar, the pin and
+    # "no build", the two GitHub answers.
+    assert find_step("given", 'the build "v1.7.4" is installed and pinned').step_func.__name__ == (
+        "the_build_is_installed"
+    )
+    assert find_step("given", 'the jar of the build "v1.7.4" is truncated').step_func.__name__ == (
+        "the_jar_of_the_build_is_truncated"
+    )
+    assert find_step("then", "no build is pinned").step_func.__name__ == "no_build_is_pinned"
+    assert find_step("given", 'GitHub answers 500 to "https://github.com/x"').step_func.__name__ == (
+        "github_answers_status_to"
+    )
+    for text in ('the build "a" is installed and', 'the build "a" is pinned', "GitHub answers 404"):
+        assert not [c for c in contexts("given") if c.parser.is_matching(text)], text
+
+
 def test_steps_owned_by_later_packages_are_not_here() -> None:
     for kind, text in [
-        ("given", 'the build "v1.7.4" is installed'),
-        ("given", 'GitHub answers from "releases"'),
         ("given", 'javac fails with "error"'),
         ("given", 'a module source "Foo" from the fake sources'),
-        ("then", 'the pinned build is "v1.7.4"'),
         ("then", "the terminal showed the layout"),
-        ("then", "1 request was sent to GitHub"),
         ("then", 'the last layout frame contains "x"'),
         ("then", "the terminal stayed on the main screen"),
         ("then", "java received SIGINT"),
@@ -704,6 +767,20 @@ def test_the_folder_is_read_only_until_the_end(scenario: Scenario, isolated: Iso
     assert not os.access(folder, os.W_OK)
     scenario.cleanup()
     assert os.access(folder, os.W_OK)
+
+
+def test_the_folder_of_an_installed_build_is_found_through_the_store(scenario: Scenario, isolated: Isolated) -> None:
+    if os.geteuid() == 0:
+        pytest.skip("permissions do not bind as root")
+    given(scenario, 'the build "v1.7.4" is installed')
+    (build,) = ToolStore(isolated.paths, now=FakeClock().now).builds()
+    given(scenario, 'the folder "{tools}/v1.7.4@5a47802" is read-only')
+    assert not os.access(build.path, os.W_OK)
+    assert not (isolated.paths.tools / "v1.7.4@5a47802").exists()
+    given(scenario, 'the folder "{tools}/nosuch" is read-only')  # names no build: the folder as written
+    assert not os.access(isolated.paths.tools / "nosuch", os.W_OK)
+    scenario.cleanup()
+    assert os.access(build.path, os.W_OK)
 
 
 def test_i_am_in_the_folder(scenario: Scenario, isolated: Isolated) -> None:

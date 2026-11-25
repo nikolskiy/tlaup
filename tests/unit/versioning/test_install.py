@@ -25,6 +25,7 @@ from tlaup.errors import (
     CannotAsk,
     DownloadVerificationError,
     FileOperationError,
+    InternalError,
     NetworkError,
     NoPinnedBuild,
     NoToolsInstalled,
@@ -1071,6 +1072,22 @@ def test_choose_build_takes_all_when_allowed_and_asks_again_on_an_empty_line(dow
     ui, stdin = make_ui("\nall\n")
     assert choose_build(ui, "Which build should be removed?", builds, allow_all=True, every=builds) == builds
     assert stdin.asked == 2
+
+
+def test_choose_build_takes_its_default_on_an_empty_line(downloads: Downloads) -> None:
+    builds = list(two_rolling(downloads))
+    ui, stdin = make_ui("\n")
+    chosen = choose_build(ui, "Which build should be removed?", builds, allow_all=True, every=builds, default="all")
+    assert chosen == builds
+    assert stdin.asked == 1
+
+
+def test_choose_build_refuses_a_default_that_is_not_a_choice(downloads: Downloads) -> None:
+    builds = list(two_rolling(downloads))
+    ui, stdin = make_ui("\n")
+    with pytest.raises(InternalError):
+        choose_build(ui, "Which build should be pinned?", builds, allow_all=False, every=builds, default="all")
+    assert stdin.asked == 0
 
 
 def test_choose_build_refuses_all_when_not_allowed(downloads: Downloads) -> None:

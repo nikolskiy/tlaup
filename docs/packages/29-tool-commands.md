@@ -1,6 +1,6 @@
 # 29. The `tool` commands: switch to the new store
 
-Size: L as a whole, delivered as two pull requests (29a, L; 29b, M; see the end of this file). Suggested model: most capable. Status: ready. The debug filter is [24](24-github-client.md)'s `redact`, in place before this package (question Q6); the uninstall race is answered by the design (question Q8, [27](27-install-steps.md)).
+Size: L as a whole, delivered as two pull requests (29a, L; 29b, M; see the end of this file). Suggested model: most capable. Status: 29a built, 29b ready. The debug filter is [24](24-github-client.md)'s `redact`, in place before this package (question Q6); the uninstall race is answered by the design (question Q8, [27](27-install-steps.md)).
 
 This is the switch package of the store track.
 
@@ -375,7 +375,7 @@ State of `main` when this starts: packages 01 to 28 merged (the store track comp
 
 ## Risks
 
-- *An upgrade can finish and still fail* (settled while building 27b, 2026-11-25, a low-impact choice by the stage 5 lead). When the old build cannot be removed after the new one is added and the pin moved, `upgrade()` returns its `UpgradeReport` with `failed` set and `removed` None, rather than raising. `tool upgrade` prints what was done (the pin moved) and the failure as notes, and exits 5, as V3 does for a failed removal.
+- *An upgrade can finish and still fail* (settled while building 27b, 2026-11-25, a low-impact choice by the stage 5 lead). When the old build cannot be removed after the new one is added and the pin moved, `upgrade()` returns its `UpgradeReport` with `failed` set and `removed` None, rather than raising. `tool upgrade` prints what was done (the pin moved) as notes and the failure as one `error:` line with its hint (F6's classification, settled at 29a's review), and exits 5, as V3 does for a failed removal.
 - *`choose_build` takes `every=`, required*: pass `store.builds()`, so the printed forms are worked out among every installed build.
 
 - *The download's progress can go back once* (noted while building 26, 2026-11-25). When the size or digest does not match, `fetch_build` downloads once more and its `progress` callback starts again from 0, so the progress display must accept a count that drops once.

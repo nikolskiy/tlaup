@@ -77,7 +77,7 @@ def _fit_jar(release: dict[str, Any], jars: Mapping[str, Path]) -> None:
                 asset["digest"] = "sha256:" + hashlib.sha256(jar.read_bytes()).hexdigest()
 
 
-def _fit_body(body: bytes, jars: Mapping[str, Path]) -> bytes:
+def fit_body(body: bytes, jars: Mapping[str, Path]) -> bytes:
     try:
         data = json.loads(body)
     except ValueError:
@@ -106,7 +106,7 @@ class GitHubFake:
         folder = RECORDINGS / recording
         for entry in _entries(recording):
             answer = _read(folder, entry["file"])
-            body = _fit_body(answer.body, self._jars)
+            body = fit_body(answer.body, self._jars)
             headers = {k: v for k, v in answer.headers.items() if k not in _COMPUTED}
             content_type = headers.pop("content-type", "application/json")
             self._find_downloads(body)
@@ -175,10 +175,12 @@ class GitHubFake:
             registered.append(responses.CallbackResponse(method, re.compile(r"https://.*"), refuse))
 
     def answer(self, status: int, path: str) -> None:
-        """An answer with that status for a path under the base address; it wins over the recording.
+        """An answer with that status for a path under the base address, or for a whole ``https://`` address
+        (a jar's download, another host); it wins over the recording.
 
         The latest registration wins (inserted ahead). Where it overrides a recording it answers one request:
         ``responses`` then takes it out of its list, and the recording answers the next.
         """
-        response = responses.Response("GET", BASE + path, body=b"", status=status)
+        url = path if path.startswith("https://") else BASE + path
+        response = responses.Response("GET", url, body=b"", status=status)
         self.mock.registered().insert(0, response)

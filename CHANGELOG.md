@@ -10,23 +10,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - Settings are read in layers: built-in defaults, then the user's config file, then environment variables, then command-line options. A config file is no longer created on first run; a file needs to hold only the settings that differ from the defaults.
 - Unknown keys in the config file give a warning.
+- `upgrade` compares the installed jar with the published one by SHA-256 where GitHub provides it.
+- The commit shown for a build is read from the jar itself.
+- Unencrypted addresses, and redirects to them, are refused.
+- Installing a newer build of a name that is already installed keeps the older build and leaves the pin where it is; `tlaup tool upgrade` replaces the older build and moves the pin.
 
 ### Added
 - Each setting can be given as an environment variable `TLAUP_<SECTION>_<KEY>`.
 - `TLAUP_HOME` moves all of tlaup's folders; `TLAUP_CONFIG_DIR`, `TLAUP_CACHE_DIR` and `TLAUP_DATA_DIR` move one each.
 - `--debug`, and `python -m tlaup`.
+- `GITHUB_TOKEN` or `GH_TOKEN` is used for GitHub API requests, which raises the rate limit. The token is sent only to `api.github.com`, and to hosts you list in `tool.token_hosts`; it is never printed. Credentials in `.netrc` are not used.
+- Versions can be typed without the `v`, as `stable` or `rolling`, and as `tag@commit` to name one build.
+- `tlaup tool current` shows the pinned build and its jar without starting Java.
+- `tool.token_hosts` lists extra hosts that may receive the GitHub token.
 
 ### Breaking
 - Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.
 - Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tools install` and `tlaup modules add` again. The old `tla` folders are not touched and can be deleted.
+- Installed tools are stored in a new layout with a `build.json` beside each jar. They live in the cache's `tool` folder (was `tools`). Builds installed by earlier versions are not recognised: run `tlaup tool install` again. The old `tools` folder can be deleted.
+- Uninstalling the pinned build clears the pin; it no longer switches to another installed build. Pin one with `tlaup tool pin`.
+- With several installed builds of one name, `tlaup tool uninstall NAME` without a terminal, or with `--yes`, removes all of them; name one build as `NAME@COMMIT`.
+- `tlaup tool install` with no version asks which build to install (stable or rolling), or takes the answer from `TLAUP_AUTO_INSTALL`, and fails without either; it used to install the latest stable release.
+- `tlaup tools dir` is now `tlaup tool dir` and prints only the folder; use `tlaup tool list --installed` for the builds.
+- `tlaup tools install -f` and `tlaup tools uninstall -y` are now `tlaup tool install --force` and `tlaup tool uninstall --yes`.
+- `tlaup tools` and `tlaup modules` are now `tlaup tool` and `tlaup module`; every subcommand keeps its name.
 
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.
 - Support for old storage layouts (a jar directly in the cache folder, the symlink pin, the `tlc` folder, modules without a `modules/` subfolder). The `tlaup` folders never contained them.
+- `tlaup tools meta sync` is removed; metadata is read from the jar at install.
 
 ### Fixed
 - A config file written by an older version, or missing a section, caused a traceback.
 - Several failures printed a Python traceback. tlaup now prints one `error:` line; `tlaup --debug ...` or `TLAUP_DEBUG=1` shows the traceback.
+- `tlaup tool uninstall --all` stopped after removing the pinned version.
+- A failed uninstall now exits 5 and leaves the pin alone.
+- `tlaup tool upgrade` could report 'already up to date' for up to an hour after upstream published a new build.
+- A download that was cut short, or a proxy's error page, could be recorded as an installed build. Downloads are now checked for length, for being a TLA+ tools jar, and against GitHub's SHA-256 where it provides one, before anything is installed.
+- `tool install --force` deleted the installed build before the new download had succeeded.
+- A GitHub rate limit was reported as a generic failure.
+- A non-JSON answer from GitHub (for example from a proxy) caused a traceback.
+- Two `tlaup tool install` commands running at once could leave a damaged install.
+- `tlaup tool install` printed 'Successfully installed' after 'already installed'.
+- `tlaup tool install` could treat a moving tag such as `rolling` as up to date for an hour after upstream published a new build; it now asks GitHub every time and compares the installed jar with the published one.
+- Installing tools without Java present recorded an empty version.
 
 ## [0.8.2] - 2026-11-14
 

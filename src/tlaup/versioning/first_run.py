@@ -59,11 +59,17 @@ def _rolling_line(releases: list[Release]) -> str:
     return text
 
 
-def choose_first_build(remote: Remote, ui: Ui, *, auto_install: str | None) -> VersionSpec:
+FIRST_QUESTION = "No TLA+ tools are installed. Which build should tlaup install?"
+
+
+def choose_first_build(
+    remote: Remote, ui: Ui, *, auto_install: str | None, heading: str = FIRST_QUESTION
+) -> VersionSpec:
     """``stable`` or ``rolling``: the given answer, or the answer to the question on stderr.
 
     Asks only when ``ui`` is interactive, after one fresh fetch of the release list; whatever that raises (the
     network error, no stable release) comes out before any question is written. Otherwise CannotAsk.
+    ``heading`` is the question's first line; ``tool install`` with builds installed gives its own (V12).
     """
     if auto_install is not None:
         return VersionSpec(name=auto_install, commit=None, calver=None, sha256=None)
@@ -74,7 +80,7 @@ def choose_first_build(remote: Remote, ui: Ui, *, auto_install: str | None) -> V
     if stable is None:
         message = "no stable release is available"
         raise VersionNotFound(message, hint="run `tlaup tool list` to see the releases")
-    ui.note("No TLA+ tools are installed. Which build should tlaup install?")
+    ui.note(heading)
     published = _day(stable.published_at or stable.created_at)
     ui.note(f"  1) stable   {stable.tag}, released {published}")
     ui.note(f"  2) rolling  {_rolling_line(releases)}")
