@@ -1,10 +1,12 @@
+import os
+from datetime import UTC, datetime
 from pathlib import Path
 
-from tlaup.versioning import get_pinned_version_dir
+from tlaup.paths import AppPaths
+from tlaup.versioning.store import ToolStore
 
 
 def get_tlc_jar_path() -> Path | None:
-    """Resolve the path to the pinned build's tla2tools.jar, or None when nothing usable is pinned."""
-    pinned_dir = get_pinned_version_dir()
-    pinned_jar = pinned_dir / "tla2tools.jar" if pinned_dir else None
-    return pinned_jar if (pinned_jar and pinned_jar.exists()) else None
+    """The pinned build's tla2tools.jar in the new store, or None when nothing is pinned (until package 39)."""
+    build = ToolStore(AppPaths.from_env(os.environ), now=lambda: datetime.now(UTC)).pinned()
+    return build.jar if build is not None else None  # PinnedBuildMissing passes up to the handler (3)
