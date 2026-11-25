@@ -92,7 +92,7 @@ def add_module(  # noqa: PLR0912, PLR0915
             extra_libs.extend([str(j.absolute()) for j in cached_lib.glob("*.jar")])
 
         tool_jar = get_tlc_jar_path()
-        if not tool_jar.exists():
+        if tool_jar is None or not tool_jar.exists():
             typer.echo("Error: tla2tools.jar not found. Run 'tlaup tools install' first.", err=True)
             shutil.rmtree(target_dir, ignore_errors=True)
             raise typer.Exit(1)

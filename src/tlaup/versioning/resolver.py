@@ -1,29 +1,11 @@
 import re
 from collections.abc import Sequence
-from urllib.parse import urlparse
 
 from tlaup.versioning.metadata import read_version_metadata
 from tlaup.versioning.paths import get_tools_dir
 from tlaup.versioning.schema import LocalVersion
 
 _SEMVER_RE = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)")
-
-
-def is_url(text: str) -> bool:
-    """Return True if *text* looks like an HTTP(S) URL."""
-    return text.lower().startswith(("http://", "https://"))
-
-
-def extract_version_from_url(url: str) -> str | None:
-    """Scan URL path segments for a semver-like segment (e.g. 'v1.8.0').
-
-    Returns the first matching segment, or None if none is found.
-    """
-    path = urlparse(url).path
-    for segment in path.split("/"):
-        if _SEMVER_RE.match(segment):
-            return segment
-    return None
 
 
 def _parse_semver(name: str) -> tuple[int, int, int] | None:

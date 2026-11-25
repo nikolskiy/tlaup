@@ -76,12 +76,6 @@ class ClasspathResolver:
         if path.is_dir():
             return path
 
-        # 3. Try legacy/nested 'lib' inside modules_dir
-        if subdir == SubdirType.LIB:
-            path = self.project_root / self.config.workspace.modules_dir / "lib"
-            if path.is_dir():
-                return path
-
         return None
 
     def _resolve_paths(self, cli_paths: list[str], subdir: SubdirType, config_path: str | None) -> list[str]:  # noqa: PLR0912
@@ -113,12 +107,10 @@ class ClasspathResolver:
                         mod_lib = item / "lib"
                         if mod_lib.is_dir():
                             raw_paths.append(str(mod_lib.absolute()))
-                        raw_paths.append(str(item.absolute()))  # Legacy fallback
                     elif subdir == SubdirType.MODULES:
                         mod_modules = item / "modules"
                         if mod_modules.is_dir():
                             raw_paths.append(str(mod_modules.absolute()))
-                        raw_paths.append(str(item.absolute()))  # Legacy fallback
 
         # Deduplicate while preserving order
         seen = set()

@@ -48,7 +48,7 @@ def show_modules_path() -> None:  # noqa: PLR0912
 
     # 3. Library Paths (JARs)
     libs = resolver.resolve(ResolveMode.RUNTIME)
-    tool_jar_abs = str(tool_jar.absolute()) if tool_jar.exists() else ""
+    tool_jar_abs = str(tool_jar.absolute()) if tool_jar and tool_jar.exists() else ""
 
     # Filter out classes directories and tool_jar to show only external library JARs
     only_libs = []

@@ -6,7 +6,6 @@ from rich.live import Live
 
 from tlaup import ui
 from tlaup.config.loader import load_config
-from tlaup.java.classpath import ClasspathResolver
 from tlaup.project import find_project_root
 from tlaup.tlc.compiler import get_tlc_jar_path
 from tlaup.tlc.components import StatsTableFormatter, StatusFooterRenderable
@@ -25,41 +24,17 @@ from tlaup.tlc.runner import (
 def version_callback(value: bool) -> None:
     if value:
         jar_path = get_tlc_jar_path()
-        typer.echo(f"tla2tools.jar path: {jar_path}")
-
-        if not jar_path.exists():
-            ui.error(f"tla2tools.jar not found at {jar_path}")
+        if jar_path is None or not jar_path.exists():
+            ui.error("tla2tools.jar not found")
             typer.echo("Run 'tlaup tools install' first.", err=True)
             raise typer.Exit(1)
 
+        typer.echo(f"tla2tools.jar path: {jar_path}")
         version_str = get_tlc_version()
         if version_str:
             typer.echo(version_str)
 
         raise typer.Exit(0)
-
-
-def _show_diagnostic_info(spec: str, spec_name: str) -> None:
-    """Show diagnostic info before running TLC."""
-    version_str = get_tlc_version() or "unknown"
-    typer.echo(f"Running TLC ({version_str}) on {spec_name} ...")
-
-    # Check if we have TLA-Library
-    try:
-        config = load_config()
-        spec_file, _ = resolve_spec_file(spec)
-        project_root = find_project_root(
-            spec_file,
-            modules_dir=config.workspace.modules_dir,
-            classes_dir=config.workspace.classes_dir,
-        )
-        jar_path = get_tlc_jar_path()
-        resolver = ClasspathResolver(config, project_root=project_root, tool_jar=jar_path)
-        tla_library = resolver.get_tla_library_property()
-        if tla_library:
-            ui.info(f"TLA-Library: {tla_library}")
-    except Exception:
-        pass  # nosec
 
 
 # PLR0912: This command handler orchestrates multiple output types (errors, warnings, results, progress);

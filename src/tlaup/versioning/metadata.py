@@ -1,17 +1,10 @@
 import json
 import subprocess
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from tlaup.ui import warn
 from tlaup.versioning.schema import RemoteVersion
-
-
-def _utc_now_iso() -> str:
-    """Return the current UTC time in ISO 8601 format, e.g. '2026-04-06T12:51:28Z'."""
-    now = datetime.now(tz=UTC)
-    return now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _extract_tlc_version(version_dir: Path) -> str:
@@ -69,24 +62,3 @@ def read_version_metadata(version_dir: Path) -> dict[str, Any] | None:
             return data
     except (json.JSONDecodeError, OSError):
         return None
-
-
-def write_version_metadata_from_url(
-    version_dir: Path,
-    *,
-    version_name: str,
-    tag: str,
-    url: str,
-) -> None:
-    """Write meta-tla2tools.json for a URL-sourced install."""
-    tlc2_version_string = _extract_tlc_version(version_dir)
-    metadata = {
-        "tag_name": version_name,
-        "sha": "",
-        "published_at": "",
-        "tlc2_version_string": tlc2_version_string,
-        "prerelease": False,
-        "download_url": url,
-        "tag": tag,
-    }
-    _write_metadata(version_dir, metadata)

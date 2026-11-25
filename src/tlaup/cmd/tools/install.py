@@ -7,11 +7,9 @@ from tlaup.cmd.tools import app
 from tlaup.config.loader import load_config
 from tlaup.versioning import (
     download_version,
-    download_version_from_url,
     fetch_remote_versions,
     get_pinned_version_dir,
     get_tools_dir,
-    is_url,
     set_pin,
 )
 
@@ -26,22 +24,10 @@ def _auto_pin_if_needed(version_dir: Path) -> None:
 
 @app.command()
 def install(
-    version: str = typer.Argument(None, help="Version tag (e.g. 'v1.8.0') or a direct URL to tla2tools.jar."),
+    version: str = typer.Argument(None, help="Version tag (e.g. 'v1.8.0')."),
     force: bool = typer.Option(False, "--force", "-f", help="Re-download if already installed."),
 ) -> None:
     """Download and install a specific TLC version."""
-    if version and is_url(version):
-        try:
-            version_dir = download_version_from_url(version)
-        except (requests.RequestException, OSError, ValueError) as e:
-            typer.echo(f"Error: Failed to download: {e}", err=True)
-            raise typer.Exit(1) from e
-        else:
-            typer.echo("Download complete.")
-            typer.echo(f"Successfully installed from URL to {version_dir}")
-            _auto_pin_if_needed(version_dir)
-            return
-
     config = load_config()
     versions, status = fetch_remote_versions(config.tla.urls.tags, config.tla.urls.releases, config.tla.urls.per_page)
 
