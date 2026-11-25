@@ -659,8 +659,8 @@ def upgrade(  # noqa: PLR0913 (install()'s arguments and V4's option)
             continue
 
 
-def _upgrade_name(store: ToolStore, spec: VersionSpec | None) -> str:
-    """The name to upgrade (V4, step 1), before any request."""
+def upgrade_name(store: ToolStore, spec: VersionSpec | None) -> str:
+    """The name to upgrade (V4, step 1), before any request; a command calls it before reading settings."""
     if spec is None:
         pinned = store.pinned()  # PinnedBuildMissing for a pin naming a missing build
         if pinned is not None:
@@ -690,7 +690,7 @@ def _upgrade_once(  # noqa: PLR0913 (upgrade()'s arguments)
     keep_old: bool,
     progress: Progress | None,
 ) -> UpgradeReport:
-    name = _upgrade_name(store, spec)
+    name = upgrade_name(store, spec)
 
     def fetch(release: Release, dest: Path) -> tuple[Path, JarInfo]:
         return fetch_build(client, release, dest, progress)

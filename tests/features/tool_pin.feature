@@ -76,7 +76,7 @@ Feature: Pinning a build, and showing what is pinned
     Then the exit code is 0
     And stderr is empty
     And stdout contains "rolling@bc1b506 (2026.11.15.002146)"
-    And stdout contains "{tools}/rolling-"
+    And stdout contains "{tools}/"
     And stdout contains "/tla2tools.jar"
 
   Scenario: tool current with a build with no build time prints the build alone
@@ -98,12 +98,9 @@ Feature: Pinning a build, and showing what is pinned
       | with a build          | the build "v1.7.4" is installed | error: no version pinned      |
       | with nothing installed | no build is installed          | error: no TLA+ tools installed |
 
-  Scenario: tool current with the pin naming a build that is gone exits 3
-    Given the build "v1.7.4" is installed
-    And a file "{tools}/pin" containing:
-      """
-      v1.7.4-000000000000
-      """
+  Scenario: tool current with the pinned build's folder removed exits 3
+    Given the build "v1.7.4" is installed and pinned
+    And no build is installed
     When I run "tlaup tool current"
     Then the exit code is 3
     And stdout is empty

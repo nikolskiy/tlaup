@@ -35,6 +35,9 @@ def upgrade_command(
 
     store = open_store(app)
     spec = parse_spec(app, store, version) if version is not None else None
+    from tlaup.versioning.install import upgrade_name
+
+    upgrade_name(store, spec)  # a build spec, or nothing pinned, before the settings are loaded
     client, remote = open_remote(app)
     with download_progress(app.ui) as progress:
         code = upgrade_tools(store, remote, client, app.ui, spec, progress=progress)
@@ -66,10 +69,14 @@ def upgrade_tools(  # noqa: PLR0913 (the store, the remote, the client, the Ui a
     if report.up_to_date:
         ui.note(f"{new} is up to date")
         return 0
-    _say_upgraded(store, ui, report, every, beside_stable=spec is not None and spec.name == "stable")
+    # stable moved to a newer tag installed beside the old one (V4, step 1); a same-name upgrade is not that
+    old_build = report.old
+    beside = spec is not None and spec.name == "stable" and old_build is not None
+    beside = beside and old_build is not None and old_build.name != report.build.name
+    _say_upgraded(store, ui, report, every, beside_stable=beside)
     if report.failed is not None:
         old = printed(report.old, [*every, report.old]) if report.old is not None else report.name
-        ui.note(f"{old} was not removed: {report.failed.message}")
+        ui.error(f"{old} was not removed: {report.failed.message}", hint=report.failed.hint)
         return 5
     return 0
 

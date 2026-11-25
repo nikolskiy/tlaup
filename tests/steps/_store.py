@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlsplit
 
 from tests.clock import FakeClock
-from tests.github import JAR_TAGS, MANIFESTS, RECORDINGS, _fit_body
+from tests.github import JAR_TAGS, MANIFESTS, RECORDINGS, fit_body
 from tests.jars import make_tools_jar
 from tests.steps._scenario import fail
 from tlaup.config.loader import load_settings
@@ -78,7 +78,7 @@ def store(scenario: Scenario) -> ToolStore:
 def recorded_releases(recording: str, jars: dict[str, Path]) -> list[dict[str, Any]]:
     """The release list of a recording, its jar assets fitted to the small jars, as the fixture serves it."""
     body = (RECORDINGS / recording / "list.body").read_bytes()
-    data: list[dict[str, Any]] = json.loads(_fit_body(body, jars))
+    data: list[dict[str, Any]] = json.loads(fit_body(body, jars))
     return data
 
 
@@ -183,10 +183,10 @@ def add_build(tools: ToolStore, folder: Path, spec_text: str, *, pinned: bool = 
 
 
 def no_build(scenario: Scenario) -> None:
-    """``no build is installed``: the tools folder holds no build and no pin."""
+    """``no build is installed``: every build's folder is removed; a pin, if any, is left naming a build gone."""
     folder = paths().tools
-    if folder.exists():
-        shutil.rmtree(folder)
+    for build in store(scenario).builds():
+        shutil.rmtree(build.path)
     if store(scenario).builds():
         fail(f"{folder} still holds builds")
 

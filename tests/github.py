@@ -77,7 +77,7 @@ def _fit_jar(release: dict[str, Any], jars: Mapping[str, Path]) -> None:
                 asset["digest"] = "sha256:" + hashlib.sha256(jar.read_bytes()).hexdigest()
 
 
-def _fit_body(body: bytes, jars: Mapping[str, Path]) -> bytes:
+def fit_body(body: bytes, jars: Mapping[str, Path]) -> bytes:
     try:
         data = json.loads(body)
     except ValueError:
@@ -106,7 +106,7 @@ class GitHubFake:
         folder = RECORDINGS / recording
         for entry in _entries(recording):
             answer = _read(folder, entry["file"])
-            body = _fit_body(answer.body, self._jars)
+            body = fit_body(answer.body, self._jars)
             headers = {k: v for k, v in answer.headers.items() if k not in _COMPUTED}
             content_type = headers.pop("content-type", "application/json")
             self._find_downloads(body)

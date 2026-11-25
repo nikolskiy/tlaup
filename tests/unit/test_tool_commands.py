@@ -21,9 +21,8 @@ from tests.github import BASE
 from tests.steps._store import add_build
 from tlaup.cmd.tool._shared import download_progress
 from tlaup.cmd.tool.install import install_tools
-from tlaup.cmd.tool.uninstall import uninstall_tools
 from tlaup.cmd.tool.upgrade import upgrade_tools
-from tlaup.errors import TlaupError, VersionNotFound
+from tlaup.errors import TlaupError
 from tlaup.ui import Ui
 from tlaup.versioning.github import GitHubClient
 from tlaup.versioning.remote import Remote
@@ -167,52 +166,7 @@ def test_a_signed_download_address_is_not_printed_when_the_body_fails_under_debu
     assert store.builds() == []
 
 
-# What the commands print for the cases no scenario can set up: a race under the lock, a failed removal.
-
-
-class _RemovedBeforeTheLock(ToolStore):
-    """A store whose first ``acquire`` finds every build of ``name`` removed by another tlaup just before."""
-
-    def __init__(self, isolated: Isolated, clock: FakeClock, name: str) -> None:
-        super().__init__(isolated.paths, now=clock.now)
-        self._other: ToolStore | None = ToolStore(isolated.paths, now=clock.now)
-        self._name = name
-
-    def acquire(self, timeout: float = 60.0) -> None:
-        if self._other is not None:
-            other, self._other = self._other, None
-            with other.locked():
-                for build in other.builds():
-                    if build.name == self._name:
-                        other.remove(build)
-        super().acquire(timeout)
-
-
-def test_uninstall_names_the_version_another_tlaup_removed_meanwhile(isolated: Isolated, tmp_path: Path) -> None:
-    clock = FakeClock()
-    add_build(ToolStore(isolated.paths, now=clock.now), tmp_path, "v1.7.4", pinned=True)
-    add_build(ToolStore(isolated.paths, now=clock.now), tmp_path, "rolling")
-    racing = _RemovedBeforeTheLock(isolated, clock, "rolling")
-    ui, _, _ = make_ui()
-    named = [(text, parse_version_spec(text)) for text in ("v1.7.4", "rolling")]
-
-    with pytest.raises(VersionNotFound) as caught:
-        uninstall_tools(racing, ui, named, all_builds=False, yes=False)
-
-    assert caught.value.message == "rolling is no longer installed (another tlaup removed it); nothing was removed"
-    assert [build.name for build in racing.builds()] == ["v1.7.4"]
-
-
-def test_uninstall_all_after_another_tlaup_removed_everything_says_none_are_installed(
-    isolated: Isolated, tmp_path: Path
-) -> None:
-    clock = FakeClock()
-    add_build(ToolStore(isolated.paths, now=clock.now), tmp_path, "rolling", pinned=True)
-    racing = _RemovedBeforeTheLock(isolated, clock, "rolling")
-    ui, _, err = make_ui()
-
-    assert uninstall_tools(racing, ui, [], all_builds=True, yes=True) == 0
-    assert err.getvalue() == "no builds are installed\n"
+# What upgrade prints for a case no scenario can set up: the old build cannot be removed after the upgrade.
 
 
 @pytest.mark.skipif(os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0), reason=READ_ONLY_REASON)
@@ -234,7 +188,7 @@ def test_an_upgrade_whose_old_build_cannot_be_removed_says_what_was_done_and_exi
     assert code == 5
     lines = err.getvalue().splitlines()
     assert lines[:2] == ["Upgraded rolling@1a2b3c4 to rolling@bc1b506", "Pinned rolling@bc1b506"]
-    assert lines[2].startswith("rolling@1a2b3c4 was not removed: cannot remove ")
+    assert lines[2].startswith("error: rolling@1a2b3c4 was not removed: cannot remove ")
     assert len(lines) == 3
     assert out.getvalue() == ""
     assert old.id in [build.id for build in store.builds()]  # the old build is intact

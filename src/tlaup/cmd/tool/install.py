@@ -38,6 +38,7 @@ def install_command(
 
     store = open_store(app)
     spec = parse_spec(app, store, version) if version is not None else None
+    check_arguments(store, app.ui, spec, force=force, env=app.env)  # before the settings are loaded
     client, remote = open_remote(app)
     with download_progress(app.ui) as progress:
         code = install_tools(store, remote, client, app.ui, spec, force=force, env=app.env, progress=progress)
@@ -57,15 +58,12 @@ def install_tools(  # noqa: PLR0913 (the store, the remote, the client, the Ui a
     progress: Progress | None,
 ) -> int:
     """Install what ``spec`` names, or with no version the build the question or TLAUP_AUTO_INSTALL chooses."""
-    from tlaup.versioning.first_run import ENV_NAME, choose_first_build, read_auto_install
+    from tlaup.versioning.first_run import choose_first_build, read_auto_install
     from tlaup.versioning.install import install
 
+    check_arguments(store, ui, spec, force=force, env=env)
     if spec is None:
         auto = read_auto_install(None, env)
-        if auto is None and not ui.is_interactive():
-            message = "no version given, and there is no terminal to ask which build to install"
-            hint = f"run `tlaup tool install stable` or `tlaup tool install rolling`, or set {ENV_NAME}"
-            raise UsageError(message, hint=hint)
         if store.builds():
             spec = choose_first_build(remote, ui, auto_install=auto, heading=INSTALLED_HEADING)
         else:
@@ -73,6 +71,24 @@ def install_tools(  # noqa: PLR0913 (the store, the remote, the client, the Ui a
     report = install(store, remote, client, spec, force=force, progress=progress)
     _say(store, ui, report, force=force)
     return 0
+
+
+def check_arguments(store: ToolStore, ui: Ui, spec: VersionSpec | None, *, force: bool, env: Mapping[str, str]) -> None:
+    """The usage errors of the command line alone, raised before any setting is read or request made."""
+    from tlaup.cmd.tool._shared import printed
+    from tlaup.versioning.first_run import ENV_NAME, read_auto_install
+
+    if spec is None:
+        if read_auto_install(None, env) is None and not ui.is_interactive():
+            message = "no version given, and there is no terminal to ask which build to install"
+            hint = f"run `tlaup tool install stable` or `tlaup tool install rolling`, or set {ENV_NAME}"
+            raise UsageError(message, hint=hint)
+    elif force and spec.name is None:
+        every = store.builds()
+        matched = store.find(spec)
+        message = f"--force needs a name to download, and {spec.calver} is a build time"
+        names = ", ".join(printed(build, every) for build in matched)
+        raise UsageError(message, hint=f"name one build: {names}" if matched else "name a release such as `rolling`")
 
 
 def _say(store: ToolStore, ui: Ui, report: InstallReport, *, force: bool) -> None:
@@ -108,6 +124,11 @@ def _say_added(store: ToolStore, ui: Ui, report: InstallReport, every: Sequence[
     if pinned is not None and any(build.id == pinned.id for build in others):
         ui.note(f"{new} installed; {printed(pinned, every)} is still pinned (tlaup tool pin {new})")
     elif others:
-        ui.note(f"{new} installed beside {joined([printed(build, every) for build in others])}")
+        beside = joined([printed(build, every) for build in others])
+        if report.pinned:
+            ui.note(f"{new} installed beside {beside}")  # the "Pinned" line follows
+        else:
+            shown = printed(pinned, every) if pinned is not None else None
+            ui.note(f"{new} installed beside {beside}; " + (f"{shown} is pinned" if shown else "nothing is pinned"))
     else:
         ui.note(f"Installed {new}")

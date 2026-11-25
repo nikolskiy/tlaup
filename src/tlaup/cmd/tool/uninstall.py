@@ -113,7 +113,10 @@ def _not_installed(texts: Sequence[str], *, again: bool = False) -> VersionNotFo
     verb = "is" if len(texts) == 1 else "are"
     message = f"{joined(list(texts))} {verb} not installed"
     if again:
-        message = f"{joined(list(texts))} {verb} no longer installed (another tlaup removed it); nothing was removed"
+        them = "it" if len(texts) == 1 else "them"
+        message = (
+            f"{joined(list(texts))} {verb} no longer installed (another tlaup removed {them}); nothing was removed"
+        )
     return VersionNotFound(message, hint="run `tlaup tool list --installed` to see the installed builds")
 
 
@@ -123,7 +126,7 @@ def _say(store: ToolStore, ui: Ui, report: UninstallReport, every: list[Build]) 
     for build in report.removed:
         ui.note(f"Removed {printed(build, every)}")
     for build, error in report.failed:
-        ui.note(f"{printed(build, every)} was not removed: {error.message}")
+        ui.error(f"{printed(build, every)} was not removed: {error.message}", hint=error.hint)
     if report.unpinned is not None:
         ui.note(f"{printed(report.unpinned, every)} was pinned; nothing is pinned now")
         left = store.builds()

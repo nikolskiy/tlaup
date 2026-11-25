@@ -43,6 +43,15 @@ Feature: Installing TLA+ tools builds
     And the pinned build is "rolling@1a2b3c4"
     And 1 jar download was made
 
+  Scenario: A rebuilt moving tag with the pin on another name names both builds and the pinned one
+    Given the build "v1.7.4" is installed and pinned
+    And the build "rolling@1a2b3c4" is installed
+    And GitHub answers from "releases"
+    When I run "tlaup tool install rolling"
+    Then the exit code is 0
+    And stderr is exactly "rolling@bc1b506 installed beside rolling@1a2b3c4; v1.7.4@5a47802 is pinned"
+    And the pinned build is "v1.7.4"
+
   Scenario: The same file uploaded again is downloaded once, and then recognised
     Given the build "v1.7.4" is installed and pinned
     And GitHub answers from "reuploaded"
@@ -252,6 +261,23 @@ Feature: Installing TLA+ tools builds
     And 0 requests were sent to GitHub
     And the installed builds are:
       | build |
+
+  Scenario Outline: A command-line usage error exits 2 before the settings are read: <command>
+    Given the build "rolling" is installed and pinned
+    And the config file contains:
+      """
+      tool: [this is not a section
+      """
+    When I run "<command>"
+    Then the exit code is 2
+    And stdout is empty
+    And stderr contains "error:" 1 times
+
+    Examples:
+      | command                                   |
+      | tlaup tool install                        |
+      | tlaup tool install --force 2026.11.15.002146 |
+      | tlaup tool upgrade 2026.11.15.002146      |
 
   # What is not a version (02 X3, 23 C2, 12 V6)
 

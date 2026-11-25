@@ -42,7 +42,8 @@ Feature: Uninstalling TLA+ tools builds
     And the folder "{tools}/v1.7.4@5a47802" is read-only
     When I run "tlaup tool uninstall v1.7.4 rolling"
     Then the exit code is 5
-    And stderr contains "v1.7.4@5a47802 was not removed: "
+    And stderr contains "error: v1.7.4@5a47802 was not removed: "
+    And stderr contains "error:" 1 times
     And stderr contains "Removed rolling@bc1b506"
     And the installed builds are:
       | build          |
@@ -77,6 +78,7 @@ Feature: Uninstalling TLA+ tools builds
     And the build "rolling@1a2b3c4" is installed
     When I run "tlaup tool uninstall rolling" in a terminal 100 by 30 and answer "all"
     Then the exit code is 0
+    And the terminal contains "Which build should be removed (a number, or all)? [all]"
     And the installed builds are:
       | build |
 
@@ -85,6 +87,7 @@ Feature: Uninstalling TLA+ tools builds
     And the build "rolling@1a2b3c4" is installed
     When I run "tlaup tool uninstall rolling" in a terminal 100 by 30 and answer ""
     Then the exit code is 0
+    And the terminal contains "Which build should be removed (a number, or all)? [all]"
     And the installed builds are:
       | build |
 
