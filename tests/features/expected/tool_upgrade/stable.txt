@@ -1,0 +1,3 @@
+Installed v1.8.0@bc1b506, the newest stable release
+Pinned v1.8.0@bc1b506
+Still installed: v1.7.4@5a47802

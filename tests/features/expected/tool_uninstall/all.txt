@@ -1,0 +1,4 @@
+Removed rolling@bc1b506
+Removed v1.8.0@bc1b506
+Removed v1.7.4@5a47802
+v1.8.0@bc1b506 was pinned; nothing is pinned now

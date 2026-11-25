@@ -1,0 +1,3 @@
+Removed v1.7.4@5a47802
+v1.7.4@5a47802 was pinned; nothing is pinned now
+run `tlaup tool pin <one of: rolling@bc1b506>` to pin another

@@ -16,7 +16,7 @@ from tlaup.cmd.config import app as config_app
 from tlaup.cmd.fetch_cache import app as fetch_cache_app
 from tlaup.cmd.modules import app as modules_app
 from tlaup.cmd.tlc import tlc as run_tlc_cmd
-from tlaup.cmd.tools import app as tools_app
+from tlaup.cmd.tool import app as tool_app
 from tlaup.context import AppContext, build_context
 from tlaup.errors import CannotAsk, Failed, TlaupError
 from tlaup.stdio import WRITE_ERRNOS, closed_pipe_on_windows, is_null_device, reader_gone, silence
@@ -281,7 +281,7 @@ def root(
 
 
 app.add_typer(modules_app, name="modules")
-app.add_typer(tools_app, name="tools")
+app.add_typer(tool_app, name="tool")
 app.add_typer(fetch_cache_app, name="fetch-cache")
 app.add_typer(config_app, name="config")
 
