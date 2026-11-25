@@ -20,6 +20,7 @@ _MANIFEST = "META-INF/MANIFEST.MF"
 _TLC = "tlc2/TLC.class"
 _REPL = "tlc2/REPL.class"
 _FULL_COMMIT = re.compile(r"[0-9a-f]{40}")
+_CALVER_SHAPE = re.compile(r"[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{6}")
 _CHUNK = 1 << 20
 
 # What `zipfile` and the file system raise for a damaged, truncated or odd file.
@@ -47,11 +48,21 @@ class JarInfo:
     capabilities: frozenset[str]
 
 
-def _refuse(path: Path, reason: str) -> DownloadVerificationError:
-    return DownloadVerificationError(
-        f"{path.name} is not a TLA+ tools jar: {reason}",
-        hint="Download it again; a proxy or a cut connection may have given something else",
-    )
+def _refuse(
+    path: Path, reason: str, hint: str = "Download it again; a proxy or a cut connection may have given something else"
+) -> DownloadVerificationError:
+    return DownloadVerificationError(f"{path.name} is not a TLA+ tools jar: {reason}", hint=hint)
+
+
+def _unreadable(path: Path, error: Exception) -> DownloadVerificationError:
+    if isinstance(error, FileNotFoundError):
+        return _refuse(path, "the file is missing", "Check the path")
+    if isinstance(error, (IsADirectoryError, PermissionError)):
+        what = "it is a folder" if isinstance(error, IsADirectoryError) else "it cannot be read"
+        return _refuse(path, what, "Check the path")
+    if isinstance(error, zipfile.BadZipFile):
+        return _refuse(path, "it is not a zip file, or it was cut short")
+    return _refuse(path, "it is damaged or cannot be read as a zip file")
 
 
 def _hash(path: Path) -> tuple[str, int]:
@@ -90,11 +101,12 @@ def _main_attributes(data: bytes) -> dict[str, str]:
 def _calver(built_at: str) -> str | None:
     try:
         moment = datetime.fromisoformat(built_at.strip())
-    except ValueError:
+        if moment.tzinfo is None:
+            moment = moment.replace(tzinfo=UTC)
+        text = moment.astimezone(UTC).strftime("%Y.%m.%d.%H%M%S")
+    except (ValueError, OverflowError):
         return None
-    if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=UTC)
-    return moment.astimezone(UTC).strftime("%Y.%m.%d.%H%M%S")
+    return text if _CALVER_SHAPE.fullmatch(text) else None
 
 
 def read_jar(path: Path) -> JarInfo:
@@ -112,7 +124,7 @@ def read_jar(path: Path) -> JarInfo:
                 raise _refuse(path, f"no {_MANIFEST}")
             attributes = _main_attributes(jar.read(_MANIFEST))
     except _READ_ERRORS as error:
-        raise _refuse(path, f"it cannot be read as a jar ({type(error).__name__})") from error
+        raise _unreadable(path, error) from error
 
     revision = attributes.get("x-git-revision", "").strip().lower()
     commit = revision if _FULL_COMMIT.fullmatch(revision) else None  # anything else is as good as absent

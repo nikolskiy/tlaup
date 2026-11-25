@@ -13,7 +13,10 @@ _CALVER = re.compile(r"[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{6}")
 _DIGEST = re.compile(r"[0-9a-fA-F]{8,64}")
 _SHA256 = "sha256:"
 
-_FORMS = "A version is a tag such as `v1.7.4`, `stable`, `rolling`, or `name@commit`"
+_FORMS = (
+    "A version is a tag such as `v1.7.4`, `stable` or `rolling`, optionally followed by `@commit`, `@build-time` "
+    "or `@sha256:digest`, or a build time such as `2026.11.15.002146`"
+)
 
 
 @dataclass(frozen=True)

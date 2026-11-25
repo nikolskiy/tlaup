@@ -7,7 +7,7 @@ import pytest
 from tlaup.errors import UsageError
 from tlaup.versioning.spec import VersionSpec, latest_refused, parse_version_spec
 
-SHA40 = "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"  # pragma: allowlist secret
+SHA40 = "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"
 CALVER = "2026.11.15.002146"
 
 

@@ -15,8 +15,8 @@ from tlaup.versioning.jarinfo import read_jar
 MANIFESTS = Path(__file__).resolve().parents[1] / "data" / "manifests"
 ROLLING = MANIFESTS / "rolling.MANIFEST.MF"
 V174 = MANIFESTS / "v1.7.4.MANIFEST.MF"
-ROLLING_COMMIT = "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"  # pragma: allowlist secret
-V174_COMMIT = "5a47802b5c391f59ecdd44117981f4ff8c0656ba"  # pragma: allowlist secret
+ROLLING_COMMIT = "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"
+V174_COMMIT = "5a47802b5c391f59ecdd44117981f4ff8c0656ba"
 
 
 def test_v174(tmp_path: Path) -> None:
@@ -165,3 +165,14 @@ def test_missing_file(tmp_path: Path) -> None:
 def test_a_folder(tmp_path: Path) -> None:
     with pytest.raises(DownloadVerificationError):
         read_jar(tmp_path)
+
+
+@pytest.mark.parametrize(
+    "stamp", ["0001-01-01T00:00:00+02:00", "9999-12-31T23:59:59-05:00", "0999-05-05T00:00:00Z", "2026-13-45T00:00:00Z"]
+)
+def test_out_of_range_build_time_is_no_build_time(tmp_path: Path, stamp: str) -> None:
+    data = f"Manifest-Version: 1.0\nBuild-TimeStamp: {stamp}\n".encode()
+    info = read_jar(make_tools_jar(tmp_path / "a.jar", data))
+    assert info.built_at is None
+    assert info.calver is None
+    assert info.capabilities == frozenset()
