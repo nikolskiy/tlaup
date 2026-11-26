@@ -1,6 +1,6 @@
 # 46. `tlaup doctor`, replacing `check-java`
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

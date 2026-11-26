@@ -266,6 +266,22 @@ class ToolStore:
         found = [build for entry in entries if entry.name != TMP and (build := _read_build(entry)) is not None]
         return sorted(found, key=sort_key)
 
+    def leftovers(self) -> list[Path]:
+        """Every entry directly under the tool folder that is not a build and not the store's own (V1), by name.
+
+        A folder tlaup cannot read as a build may belong to a newer tlaup, so it is reported and never removed.
+        Reads only; no lock.
+        """
+        try:
+            entries = list(self._root.iterdir())
+        except FileNotFoundError:
+            return []
+        except OSError as error:
+            raise _cannot("read", self._root, error) from error
+        own = {TMP, LOCK, self._pin.name}
+        found = [entry for entry in entries if entry.name not in own and _read_build(entry) is None]
+        return sorted(found, key=lambda entry: entry.name)
+
     def find(self, spec: VersionSpec) -> list[Build]:
         """The installed builds a spec names, newest first; empty when none (V2)."""
         builds = self.builds()
