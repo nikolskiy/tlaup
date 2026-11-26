@@ -4,37 +4,168 @@ on:
   push:
     branches:
       - main
+      # A stage build branch runs CI before its pull request is opened.
+      - "build/**"
   pull_request:
+  schedule:
+    - cron: "17 4 * * 1" # Mondays 04:17 UTC: the weekly run (design 30 I1, I3)
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Every action is pinned by commit hash with its release in a comment. The hashes are the ones
+# research 29 found on 2026-11-19; Dependabot (package 56) moves them.
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - run: uv sync --locked
+
+      - run: uv run poe lint
+
+      - run: uv run ruff format --check .
+
+      - run: shellcheck scripts/*.sh
+
+      # The test hook is left out: the unit job runs the suite. Package 57 removes this SKIP
+      # when it moves the test hook to pre-push (design 30 I6).
+      - name: Pre-commit hooks
+        env:
+          SKIP: pytest
+        run: uv run pre-commit run --all-files --hook-stage pre-commit
+
+  unit:
+    name: unit (${{ matrix.os }}, ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    # The suite takes about 5.5 minutes under CI=1 on a desktop machine; the hosted runners and
+    # macOS are slower, so the limit is 25 and not the 15 of the design.
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.15"
+          - os: macos-latest
+            python: "3.15"
+    env:
+      # Every uv command of the job, the sync and each run, uses this Python.
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version-file: "pyproject.toml"
+          persist-credentials: false
 
-      - name: Install dependencies
-        run: uv sync --all-extras --dev
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-      - name: Run linting
-        run: uv run poe lint
+      - run: uv sync --locked
 
-      - name: Check formatting
-        run: uv run ruff format --check .
-
-      - name: Run tests
-        run: uv run poe test
+      - run: uv run poe test
 
       # The tests must leave no tlaup folder in the real home (design 01 T2, 30 I2).
       - name: Check that the home folder stays clean
         run: uv run python scripts/test_clean.py --home "$HOME"
+
+  lifeline:
+    name: lifeline (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up the oldest supported Java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "11"
+
+      - run: uv sync --locked
+
+      - run: uv run poe test-lifeline
+
+  # Not required: it may be red on any day a dependency releases something new (design 30 I3).
+  deps-newest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+
+      # The one sync without --locked: it resolves again to the newest versions the ranges
+      # allow. The changed uv.lock is not committed.
+      - run: uv sync --upgrade
+
+      - run: uv run --no-sync poe test
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - run: uv sync --locked
+
+      - run: uv run poe check-release
+
+  # The one check the ruleset on main requires. `if: always()` keeps it from being skipped
+  # when a job it needs fails (a skipped required check counts as passed); the step fails
+  # unless every needed job succeeded (design 30 I5). deps-newest is not needed on purpose.
+  Test:
+    name: Test
+    needs: [lint, unit, lifeline, build]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for r in $RESULTS; do
+            if [ "$r" != success ]; then echo "a required job ended with: $r"; exit 1; fi
+          done

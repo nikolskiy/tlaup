@@ -17,7 +17,7 @@ uv run poe build-lifeline      # rebuild src/tlaup/java/lifeline.jar from its so
 uv run poe test-lifeline       # tests/lifeline: the agent with a real JVM (needs a JDK; not part of poe test)
 uv run poe docs-cli            # rewrite docs/reference/cli.md from the help strings; run it after changing any help string (the drift test fails otherwise)
 uv run poe check               # all pre-commit hooks on all files
-uv run poe check-release       # hooks, build, twine check
+uv run poe check-release       # clean, build, twine check, then scripts/check_wheel.py (the hooks are `poe check`)
 ```
 
 A single test runs without coverage: `uv run pytest tests/unit/test_fakes.py::test_java_exit_code`. `pytest-randomly` prints the seed of each run; `--randomly-seed=<n>` repeats an order, and `-p no:randomly` switches it off.
@@ -49,7 +49,14 @@ The task refuses to run, with exit 1, when the variable is unset (it then prints
 
 ## CI
 
-`.github/workflows/test.yml` runs lint, the format check (`uv run ruff format --check .`) and the test suite on every push to `main` and on every pull request, without Java and without a jar, and then checks that no tlaup folder or `.tlaplus` was left in the runner's home (`scripts/test_clean.py --home`).
+`.github/workflows/test.yml` runs on every push to `main` and to a `build/**` branch (a stage's build branch runs CI before its pull request), on every pull request, and every Monday at 04:17 UTC. It is read-only (`contents: read`), every job has a timeout, and every action is pinned by commit hash with its release in a comment. The pinned hashes are research 29's values of 2026-11-19; Dependabot moves them.
+
+- `lint`: `uv run poe lint`, `uv run ruff format --check .`, `shellcheck scripts/*.sh`, and the pre-commit hooks (`--hook-stage pre-commit`, with the test hook skipped through `SKIP: pytest` until it moves to `pre-push`).
+- `unit`: `uv run poe test` on Python 3.11 and 3.15 on Linux and on 3.15 on macOS, the Python chosen through `uv` (`UV_PYTHON`), without Java and without a jar; each cell ends by checking that no tlaup folder or `.tlaplus` was left in the runner's home (`scripts/test_clean.py --home`).
+- `lifeline`: `uv run poe test-lifeline` with Temurin 11, on Linux and macOS.
+- `build`: `uv run poe check-release`: build, `twine check`, and `scripts/check_wheel.py`, which checks the files in the wheel and installs it into a new environment to run `tlaup --version`, `--help`, `tool dir` and `import tlaup_parse`.
+- `deps-newest`: `uv sync --upgrade`, then the suite, to see what the newest versions the ranges allow do. It is not required and may be red.
+- `Test`: waits for `lint`, `unit`, `lifeline` and `build` and fails unless all succeeded. It is the one status check the ruleset on `main` requires, so a new required job is added to its `needs`.
 
 ## Code map
 
