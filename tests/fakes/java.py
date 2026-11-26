@@ -30,6 +30,9 @@ POLL_SECONDS = 0.02
 # The signals the fake handles, by name, guarded for systems that lack them (D15).
 SIGNAL_NAMES = ("SIGINT", "SIGTERM", "SIGQUIT", "SIGHUP")
 SIGHUP_EXIT = 129
+# The signals a handler blocks while it writes its log line (none where the system cannot mask, D15).
+HANDLED_SIGNALS = frozenset(getattr(signal, name) for name in SIGNAL_NAMES if hasattr(signal, name))
+CAN_MASK = hasattr(signal, "pthread_sigmask")
 
 
 @dataclass
@@ -100,11 +103,9 @@ def install_signals(run: Mapping[str, Any], log: Log) -> list[str]:
 
 def _handler(name: str, action: Any, log: Log) -> Callable[[int, FrameType | None], None]:
     def handle(_signum: int, _frame: FrameType | None) -> None:
+        previous = signal.pthread_sigmask(signal.SIG_BLOCK, HANDLED_SIGNALS) if CAN_MASK else None
         # The other signals wait while the line is written: a handler that ran inside this one and raised would
         # leave this signal unlogged (seen in package 39b with a terminal's SIGINT and tlaup's SIGTERM together).
-        handled = {getattr(signal, n) for n in SIGNAL_NAMES if hasattr(signal, n)}
-        masked = hasattr(signal, "pthread_sigmask")
-        previous = signal.pthread_sigmask(signal.SIG_BLOCK, handled) if masked else None
         try:
             log.write("signal", name=name)
         finally:
