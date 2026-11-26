@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from tlaup.errors import FileOperationError, InvalidName, ModuleBuildError, PathNotFound, ToolStartError
 from tlaup.modules.classfile import OVERRIDES_INTERFACE, find_override_classes
 from tlaup.modules.registry import RegisteredModule, validate_module_name, write_record
+from tlaup.tlc.overrides import OverrideClass, check_overrides
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -141,6 +142,7 @@ def _overrides(source: Path, classes: Path) -> tuple[tuple[str, ...], tuple[str,
 
 
 def _compile(  # noqa: PLR0913 - build_module's arguments, passed on
+    name: str,
     source: Path,
     folder: Path,
     sources: list[Path],
@@ -159,8 +161,12 @@ def _compile(  # noqa: PLR0913 - build_module's arguments, passed on
     argv += ["-d", str(classes), *(str(path) for path in sources)]
     _run_javac(javac, argv, classpath, timeout)
     override_classes, notes = _overrides(source, classes)
+    # 11 R7: the same check as the preflight's, on the module's own classes against the build it was compiled with.
+    own = [OverrideClass(item, classes, name) for item in override_classes]
+    jars = sorted((path for path in (folder / "lib").glob("*.jar") if path.is_file()), key=lambda path: path.name)
+    checked = check_overrides(own, [classes, *jars, build.jar], build)
     built_against = f"{build.name}@{build.commit}" if build.commit else build.name
-    return _Compiled(javac.version, built_against, override_classes, (*javac.warnings, *notes))
+    return _Compiled(javac.version, built_against, override_classes, (*javac.warnings, *notes, *checked))
 
 
 def build_module(  # noqa: PLR0913 - the signature of design 13 M2
@@ -193,7 +199,14 @@ def build_module(  # noqa: PLR0913 - the signature of design 13 M2
         compiled = None
         if sources:
             compiled = _compile(
-                source, folder, sources, get_build=get_build, get_javac=get_javac, release=release, timeout=timeout
+                name,
+                source,
+                folder,
+                sources,
+                get_build=get_build,
+                get_javac=get_javac,
+                release=release,
+                timeout=timeout,
             )
         module = RegisteredModule(
             name=name,

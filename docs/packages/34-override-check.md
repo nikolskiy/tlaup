@@ -1,6 +1,6 @@
 # 34. Override classes: which are passed, and the check before a run
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

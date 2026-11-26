@@ -596,3 +596,37 @@ def test_a_relative_module_path_is_read_against_cwd_row_c6(world: World) -> None
     classpath = argv[argv.index("-cp") + 1].split(os.pathsep)
     assert str(started / "mods") in classpath
     assert str(started / "jars" / "j.jar") in classpath
+
+
+# --- override classes and their check (11 R7, package 34) ----------------------------------------------------------
+
+
+def queue_and_project_classes(world: World) -> None:
+    """A registered module whose class is QueueOverrides, and a project folder with its own TLCOverrides."""
+    registry = Registry(world.isolated.paths.modules, now=FakeClock(START).now)
+    classes = register(registry, "Queue") / "classes"
+    fake = Path(__file__).resolve().parents[2] / "fakes" / "classes" / "tlc2" / "overrides" / "DirectOverrides.class"
+    for folder, name in ((classes, "QueueOverrides"), (world.cwd / "project" / "classes", "TLCOverrides")):
+        (folder / "tlc2" / "overrides").mkdir(parents=True, exist_ok=True)
+        (folder / "tlc2" / "overrides" / f"{name}.class").write_bytes(fake.read_bytes())
+    (classes / "META-INF" / "services").mkdir(parents=True)
+    (classes / "META-INF" / "services" / "tlc2.overrides.ITLCOverrides").write_text("tlc2.overrides.QueueOverrides\n")
+
+
+def test_a_build_with_the_property_gets_both_classes_and_no_override_warning(world: World) -> None:
+    queue_and_project_classes(world)
+    inv = world.resolve()
+    assert inv.override_classes == ("tlc2.overrides.TLCOverrides", "tlc2.overrides.QueueOverrides")
+    assert inv.warnings == inv.java.warnings
+
+
+def test_a_build_without_the_property_warns_and_the_preflight_returns(world: World) -> None:
+    queue_and_project_classes(world)
+    old = make_build(world.tmp_path / "old-0123456789ab", frozenset())
+    inv = world.resolve(get_build=lambda: old)
+    assert inv.override_classes == ("tlc2.overrides.TLCOverrides", "tlc2.overrides.QueueOverrides")
+    assert [w for w in inv.warnings if w not in inv.java.warnings] == [
+        "TLC rolling loads Java overrides only from a class named tlc2.overrides.TLCOverrides; "
+        "tlc2.overrides.QueueOverrides (module Queue) will not load, and the TLA+ definitions of its operators "
+        "will be used"
+    ]
