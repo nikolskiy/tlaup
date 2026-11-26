@@ -100,7 +100,16 @@ def install_signals(run: Mapping[str, Any], log: Log) -> list[str]:
 
 def _handler(name: str, action: Any, log: Log) -> Callable[[int, FrameType | None], None]:
     def handle(_signum: int, _frame: FrameType | None) -> None:
-        log.write("signal", name=name)
+        # The other signals wait while the line is written: a handler that ran inside this one and raised would
+        # leave this signal unlogged (seen in package 39b with a terminal's SIGINT and tlaup's SIGTERM together).
+        handled = {getattr(signal, n) for n in SIGNAL_NAMES if hasattr(signal, n)}
+        masked = hasattr(signal, "pthread_sigmask")
+        previous = signal.pthread_sigmask(signal.SIG_BLOCK, handled) if masked else None
+        try:
+            log.write("signal", name=name)
+        finally:
+            if previous is not None:
+                signal.pthread_sigmask(signal.SIG_SETMASK, previous)
         if action != "ignore":
             raise FakeExit(int(action))
 

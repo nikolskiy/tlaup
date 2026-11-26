@@ -133,3 +133,18 @@ def i_start_in_a_terminal_and_press_ctrl_c_at_the_checkpoint(
     scenario: Scenario, command: str, width: int, height: int
 ) -> None:
     _terminal.ctrl_c_at_checkpoint(scenario, _process.tlaup_argv(scenario, command), (width, height))
+
+
+@when(
+    parsers.re(
+        rf"I start {COMMAND} {TERMINAL} and press Ctrl-\\ once the terminal has shown "
+        r'"(?P<first>[^"]+)" and then "(?P<second>[^"]+)"'
+    ),
+    converters=SIZE,
+)
+def i_start_in_a_terminal_and_press_ctrl_backslash_once_shown(
+    scenario: Scenario, command: str, width: int, height: int, first: str, second: str
+) -> None:
+    # Package 39's form, outside T5's table: D60's Ctrl-\ reaches tlaup, which passes SIGQUIT to a parsed run's JVM.
+    argv = _process.tlaup_argv(scenario, command)
+    _terminal.quit_once_shown(scenario, argv, (width, height), scenario.expand(first), scenario.expand(second))

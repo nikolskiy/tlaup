@@ -53,6 +53,7 @@ if TYPE_CHECKING:
 ENTER_ALT = b"\x1b[?1049h"
 LEAVE_ALT = b"\x1b[?1049l"
 INTERRUPT = "\x03"  # Ctrl-C, which the terminal turns into SIGINT for its foreground group
+QUIT = "\x1c"  # Ctrl-\, which the terminal turns into SIGQUIT for its foreground group (package 39)
 TERMINAL_TYPE = "xterm-256color"
 FEED_SECONDS = 10.0
 HISTORY_LINES = 100_000
@@ -295,6 +296,22 @@ def ctrl_c_once_shown(
         run.feed_until(first)
         run.feed_until(second)
         run.type(INTERRUPT)
+        scenario.outcome = run.finish()
+    except BaseException:
+        run.kill()
+        run.close()
+        raise
+    return scenario.outcome
+
+
+def quit_once_shown(scenario: Scenario, argv: Sequence[str], size: tuple[int, int], first: str, second: str) -> Outcome:
+    """``... and press Ctrl-\\ once the terminal has shown "<a>" and then "<b>"`` (package 39, D60's SIGQUIT)."""
+    after = prepare(scenario)
+    run = run_on_terminal(argv, size=size).watch(scenario.fakes, after)
+    try:
+        run.feed_until(first)
+        run.feed_until(second)
+        run.type(QUIT)
         scenario.outcome = run.finish()
     except BaseException:
         run.kill()

@@ -32,6 +32,7 @@ from tests.steps._terminal import (
     _shows,
     ctrl_c_at_checkpoint,
     ctrl_c_once_shown,
+    quit_once_shown,
     run_in_terminal,
     run_on_terminal,
     screen_text,
@@ -405,8 +406,6 @@ def test_steps_owned_by_later_packages_are_not_here() -> None:
         ("then", "the terminal showed the layout"),
         ("then", 'the last layout frame contains "x"'),
         ("then", "the terminal stayed on the main screen"),
-        ("then", "java received SIGINT"),
-        ("then", "java ran in its own process group"),
         (
             "when",
             'I start "tlaup tlc Big" in a terminal 100 by 30 and press Ctrl-C once the terminal has shown "Checking" '
@@ -1432,3 +1431,118 @@ def test_javac_fails_with_a_recording_and_refuses_an_unknown_one(scenario: Scena
     assert script(fakes, "javac")["fail_with"] == "syntax-error.txt"
     with pytest.raises(FAILED, match="no recorded javac error"):
         given(scenario, 'javac fails with "nosuch"')
+
+
+# The steps package 39 adds outside T5's table: the signals java received, its process group, and Ctrl-\\.
+
+SIGNAL_FORMS = {
+    ("then", "java received SIGTERM"): ("java_received", {"names": "SIGTERM"}),
+    ("then", "java received SIGINT, then SIGTERM"): ("java_received", {"names": "SIGINT, then SIGTERM"}),
+    ("then", "java received no signal"): ("java_received_no_signal", {}),
+    ("then", "java ran in its own process group"): ("java_ran_in_its_own_process_group", {}),
+    ("then", "java ran in tlaup's process group"): ("java_ran_in_tlaups_process_group", {}),
+    (
+        "when",
+        'I start "tlaup tlc Success" in a terminal 100 by 30 and press Ctrl-\\ once the terminal has shown "a" '
+        'and then "b"',
+    ): (
+        "i_start_in_a_terminal_and_press_ctrl_backslash_once_shown",
+        {"command": "tlaup tlc Success", "width": "100", "height": "30", "first": "a", "second": "b"},
+    ),
+}
+
+
+@pytest.mark.parametrize(("kind", "text"), list(SIGNAL_FORMS))
+def test_each_signal_form_finds_its_own_step(kind: str, text: str) -> None:
+    name, arguments = SIGNAL_FORMS[(kind, text)]
+    context = find_step(kind, text)
+    assert context.step_func.__name__ == name
+    assert (context.parser.parse_arguments(text) or {}) == arguments
+
+
+def test_the_signal_forms_do_not_take_each_others_text() -> None:
+    # The forms that share words: "java ran ..." with a main class or a launcher, the two Ctrl- forms.
+    assert find_step("then", 'java ran "tlc2.TLC" 1 time').step_func.__name__ == "java_ran_times"
+    assert find_step("then", "java ran from PATH").step_func.__name__ == "java_ran_from_path"
+    ctrl_c = 'I start "tlaup x" in a terminal 80 by 24 and press Ctrl-C once the terminal has shown "a" and then "b"'
+    assert find_step("when", ctrl_c).step_func.__name__ == "i_start_in_a_terminal_and_press_ctrl_c_once_shown"
+    for kind, text in (
+        ("then", "java received"),
+        ("then", "java received SIGINT then SIGTERM"),
+        ("then", "java received SIGINT, SIGTERM"),
+        ("then", "java received no signals"),
+        ("then", "java ran in a process group"),
+        ("when", 'I start "tlaup x" in a terminal 80 by 24 and press Ctrl-\\ once java has begun its checkpoint'),
+    ):
+        assert not [c for c in contexts(kind) if c.parser.is_matching(text)], text
+
+
+def java_log(scenario: Scenario, tmp_path: Path, *lines: dict[str, Any]) -> None:
+    """A java log of these lines, read by the steps as the fake's own."""
+    log = tmp_path / "java-log.jsonl"
+    log.write_text("".join(json.dumps(line) + "\n" for line in lines), encoding="utf-8")
+    scenario.fakes.script("java", {"log": str(log)})
+
+
+def tool_start(pid: int, pgid: int) -> dict[str, Any]:
+    return {"event": "start", "pid": pid, "pgid": pgid, "main": "tlc2.TLC", "args": [], "run": 0}
+
+
+def signal_line(pid: int, name: str) -> dict[str, Any]:
+    return {"event": "signal", "pid": pid, "name": name}
+
+
+@POSIX_ONLY
+def test_java_received_is_every_signal_logged_in_order(scenario: Scenario, tmp_path: Path) -> None:
+    java_log(scenario, tmp_path, tool_start(7, 7), signal_line(7, "SIGINT"), signal_line(7, "SIGTERM"))
+    then(scenario, "java received SIGINT, then SIGTERM")
+    with pytest.raises(FAILED, match=r"received \['SIGINT', 'SIGTERM'\], not \['SIGTERM'\]"):
+        then(scenario, "java received SIGTERM")
+    with pytest.raises(FAILED, match="not \\['SIGTERM', 'SIGINT'\\]"):
+        then(scenario, "java received SIGTERM, then SIGINT")
+    with pytest.raises(FAILED, match="not no signal"):
+        then(scenario, "java received no signal")
+
+
+@POSIX_ONLY
+def test_java_received_no_signal_and_an_unknown_name(scenario: Scenario, tmp_path: Path) -> None:
+    java_log(scenario, tmp_path, tool_start(7, 7))
+    then(scenario, "java received no signal")
+    with pytest.raises(FAILED, match="received no signal, not"):
+        then(scenario, "java received SIGTERM")
+    with pytest.raises(FAILED, match="not SIGKILL"):
+        then(scenario, "java received SIGKILL")
+
+
+@POSIX_ONLY
+def test_the_process_group_steps_compare_the_last_tool_start_with_tlaup(scenario: Scenario, tmp_path: Path) -> None:
+    java_log(scenario, tmp_path, tool_start(7, 5), {"event": "start", "pid": 8, "pgid": 8, "main": "-version"})
+    scenario.outcome = Outcome(exit_code=0, stdout="", stderr="", pid=5, pgid=5)
+    then(scenario, "java ran in tlaup's process group")
+    with pytest.raises(FAILED, match="in tlaup's process group 5, not in one of its own"):
+        then(scenario, "java ran in its own process group")
+    java_log(scenario, tmp_path, tool_start(7, 7))
+    then(scenario, "java ran in its own process group")
+    with pytest.raises(FAILED, match="process group 7, not in tlaup's 5"):
+        then(scenario, "java ran in tlaup's process group")
+
+
+@POSIX_ONLY
+def test_the_process_group_steps_need_a_real_process(scenario: Scenario, tmp_path: Path) -> None:
+    java_log(scenario, tmp_path, tool_start(7, 7))
+    outcome(scenario)
+    with pytest.raises(FAILED, match="real process only"):
+        then(scenario, "java ran in its own process group")
+
+
+@PTY_ONLY
+def test_ctrl_backslash_once_the_terminal_has_shown_two_texts(scenario: Scenario) -> None:
+    code = (
+        "import signal, sys, time\n"
+        "signal.signal(signal.SIGQUIT, lambda *_: (print('quit', flush=True), sys.exit(3)))\n"
+        "print('a', flush=True)\nprint('b', flush=True)\nwhile True:\n    time.sleep(0.05)\n"
+    )
+    result = quit_once_shown(scenario, py(code), (80, 24), "a", "b")
+    assert result.exit_code == 3
+    assert result.stdout is not None
+    assert "quit" in result.stdout
