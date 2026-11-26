@@ -112,6 +112,12 @@ jobs:
           distribution: temurin
           java-version: "11"
 
+      # Ubuntu's AppArmor keeps unprivileged user namespaces from processes, so the reused-id test could make no
+      # process-id namespace (it fails on CI rather than skip). The runner is thrown away after the job.
+      - name: Allow unprivileged user namespaces
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - run: uv sync --locked
 
       - run: uv run poe test-lifeline
