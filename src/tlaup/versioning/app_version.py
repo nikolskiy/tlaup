@@ -19,7 +19,7 @@ def is_editable_install(dist: importlib.metadata.Distribution | None = None) -> 
             data = json.loads(raw)
             if isinstance(data, dict) and data.get("dir_info", {}).get("editable") is True:
                 return True
-    except (importlib.metadata.PackageNotFoundError, json.JSONDecodeError, TypeError, KeyError, AttributeError):
+    except (importlib.metadata.PackageNotFoundError, ValueError, TypeError, KeyError, AttributeError):
         pass
     return False
 

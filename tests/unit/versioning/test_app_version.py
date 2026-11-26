@@ -58,3 +58,9 @@ def dist_info(tmp_path: Path, direct_url: object | None) -> importlib.metadata.D
 )
 def test_is_editable_install_reads_direct_url_json(tmp_path: Path, direct_url: object | None, expected: bool) -> None:
     assert is_editable_install(dist_info(tmp_path, direct_url)) is expected
+
+
+def test_a_direct_url_json_that_is_not_utf8_is_not_editable(tmp_path: Path) -> None:
+    dist = dist_info(tmp_path, None)
+    (tmp_path / "tlaup-0.9.0.dist-info" / "direct_url.json").write_bytes(b'{"url": "\xff\xfe"}')
+    assert is_editable_install(dist) is False
