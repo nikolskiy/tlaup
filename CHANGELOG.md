@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The editor of `tlaup config edit` can no longer be given as an argument; set `VISUAL` or `EDITOR`.
 - `tlaup config list` is now `tlaup config show` and prints the settings in effect, not the file.
 - `tlaup fetch-cache clear` and `tlaup tlc --cleanup` are now `tlaup cache clean`; `tlaup cache list` shows the run folders, and `tlaup cache clean RUN_ID` removes one.
+- `tlaup check-java` is now `tlaup doctor`, which also checks the pinned build, the config and the folders.
 
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.

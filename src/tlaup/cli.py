@@ -12,8 +12,9 @@ import typer
 from typer.core import TyperGroup
 
 from tlaup.cmd.cache import app as cache_app
-from tlaup.cmd.check_java import check_java
 from tlaup.cmd.config import app as config_app
+from tlaup.cmd.doctor import HELP as DOCTOR_HELP
+from tlaup.cmd.doctor import doctor as run_doctor_cmd
 from tlaup.cmd.module import app as module_app
 from tlaup.cmd.pcal import pcal as run_pcal_cmd
 from tlaup.cmd.repl import repl as run_repl_cmd
@@ -292,7 +293,7 @@ app.command(name="tlc")(run_tlc_cmd)
 app.command(name="sany")(run_sany_cmd)
 app.command(name="pcal")(run_pcal_cmd)
 app.command(name="repl")(run_repl_cmd)
-app.command(name="check-java")(check_java)
+app.command(name="doctor", help=DOCTOR_HELP)(run_doctor_cmd)
 
 
 def main() -> None:
