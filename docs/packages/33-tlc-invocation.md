@@ -1,6 +1,6 @@
 # 33. The TLC invocation: preflight and command builder
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 

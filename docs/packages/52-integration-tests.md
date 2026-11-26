@@ -208,6 +208,8 @@ The specs are copied from `golden_root() / "specs"` into the test's work folder 
 
 ## Risks
 
+- *The R3 locale warning on macOS* (noted while building 33, 2026-11-25). The preflight warns about a spec path outside ASCII under a non-UTF-8 locale on every system but Windows. On macOS the JVM may read file names as UTF-8 whatever the locale, which would make the warning wrong there; check it with a real JVM on the macOS runner and skip `darwin` if so.
+
 - From T9: whether moving `user.home` and `java.io.tmpdir` is enough for every file the tools write was not tried; the integration job's clean-home check ([54](54-integration-job.md)) is the proof either way.
 - From T3: a rolling build newer than the capture can change its output; then a fact fails on the live run and `main` turns red with no change of ours (accepted, roadmap risks).
 - From the cut: this is the largest test package; it is two pull requests (below), each one review.
