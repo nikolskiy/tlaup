@@ -95,8 +95,12 @@ repos:
         name: No patching of our own code in tests (T12 rule 2)
         # monkeypatch stays for the environment and the working folder; setattr,
         # setitem and delattr patch code. The conftests are covered by review.
+        # One exception, the standard library's fcntl.flock in
+        # tests/unit/tlc/test_rundirs_locks.py: it runs a holder's removal and
+        # release between a waiter's open and its flock, to reach the second
+        # look of the run folders' locks (11 R6, K1-2); it patches no tlaup code.
         language: pygrep
-        entry: 'monkeypatch\.(setattr|setitem|delattr)\b'
+        entry: 'monkeypatch\.(setattr|setitem|delattr)\b(?!\(fcntl, "flock",)'
         files: ^tests/.*\.py$
         exclude: (^|/)conftest\.py$|^tests/fixtures/research/
 
