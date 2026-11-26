@@ -191,3 +191,15 @@ Feature: Errors and exit codes
     Then the exit code is 5
     And stdout is empty
     And stderr contains "error:" 1 times
+
+  Scenario: A run id with an option is one error line and exits 2
+    When I run "tlaup cache clean nosuch --all"
+    Then the exit code is 2
+    And stdout is empty
+    And stderr contains "error:" 1 times
+
+  Scenario: A run id that names no folder is one error line and exits 4
+    When I run "tlaup cache clean nosuch"
+    Then the exit code is 4
+    And stdout is empty
+    And stderr contains "error:" 1 times

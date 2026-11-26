@@ -1061,6 +1061,27 @@ def clean_runs(paths: AppPaths, *, include_kept: bool, run_id: str | None = None
     return CleanReport(tuple(removed), freed, tuple(in_use), tuple(cannot_lock))
 
 
+def clean_lock_files(paths: AppPaths, now: Callable[[], datetime]) -> int:
+    """``cache clean``'s other half (R6): each lock file whose folder is gone and that is more than an hour old
+    by its modification time goes, under its own lock taken with one attempt (a held lock is left alone). This is
+    the rule ``EntryVisit.sweep`` applies to such an entry, which is what runs here. Returns the number removed."""
+    runs = paths.runs
+    removed = 0
+    for entry in list_entries(runs):
+        if (runs / entry).exists() or (runs / entry).is_symlink():
+            continue  # a folder, or anything else of that name: not this function's
+        visit = EntryVisit(runs, entry, now)
+        if not visit.take_lock():
+            continue
+        try:
+            visit.sweep()
+            if not _lock_file(runs, entry).exists():
+                removed += 1
+        finally:
+            visit.release()
+    return removed
+
+
 def _clean_one(runs: Path, run_id: str) -> CleanReport:
     folder = runs / run_id
     if run_id not in list_entries(runs, folders_only=True):

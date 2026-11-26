@@ -491,6 +491,21 @@ def test_kept_is_the_one_kept_run_folder(scenario: Scenario) -> None:
     assert scenario.expand("{kept}/queue.chkpt") == f"{kept}/queue.chkpt"
 
 
+def test_kept_id_is_the_run_id_alone(scenario: Scenario) -> None:
+    make_run_folder(scenario, "20261115T100000Z-00000001", kept=False)
+    make_run_folder(scenario, "20261115T100000Z-00000002", kept=True)
+    assert scenario.expand("tlaup cache clean {kept-id}") == "tlaup cache clean 20261115T100000Z-00000002"
+
+
+@pytest.mark.parametrize("kept", [0, 2])
+def test_kept_id_fails_as_kept_does(scenario: Scenario, kept: int) -> None:
+    make_run_folder(scenario, "20261115T100000Z-00000001", kept=False)
+    for number in range(kept):
+        make_run_folder(scenario, f"20261115T100000Z-0000001{number}", kept=True)
+    with pytest.raises(FAILED, match="exactly one kept run folder"):
+        scenario.expand("{kept-id}")
+
+
 def test_kept_with_no_kept_folder_fails(scenario: Scenario) -> None:
     make_run_folder(scenario, "20261115T100000Z-00000001", kept=False)
     with pytest.raises(FAILED, match=r"exactly one kept run folder.*found 0"):
@@ -505,7 +520,7 @@ def test_kept_with_two_kept_folders_fails(scenario: Scenario) -> None:
 
 
 def test_other_braces_are_left_alone(scenario: Scenario) -> None:
-    assert scenario.expand("{a: 1, b: {kept-id}} {}") == "{a: 1, b: {kept-id}} {}"
+    assert scenario.expand("{a: 1, b: {kept-ids}} {}") == "{a: 1, b: {kept-ids}} {}"
 
 
 def test_a_placeholder_holding_a_space_stays_one_word(scenario: Scenario, tmp_path: Path) -> None:
