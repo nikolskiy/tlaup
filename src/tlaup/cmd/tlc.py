@@ -140,6 +140,7 @@ def read_refresh_interval(option: float | None, app: AppContext) -> float:
     from the environment or the config file is a usage error too, naming where it came from. Typer checks the
     option's range itself, so the option is checked here again only as a guard.
     """
+    from tlaup.config.loader import EDIT_HINT
     from tlaup.errors import UsageError
 
     if option is not None:
@@ -148,7 +149,7 @@ def read_refresh_interval(option: float | None, app: AppContext) -> float:
         source, value, hint = f"the environment variable {REFRESH_VARIABLE}", app.settings.tlc.refresh_interval, None
     else:
         source, value = f"config.yaml: {REFRESH_SETTING}", app.settings.tlc.refresh_interval
-        hint = "run `tlaup config edit` to fix the file"
+        hint = EDIT_HINT
     if not REFRESH_MIN <= value <= REFRESH_MAX:  # false for nan too
         message = f"{source} must be from {REFRESH_MIN:g} to {REFRESH_MAX:g} seconds, not {value:g}"
         raise UsageError(message, hint=hint)

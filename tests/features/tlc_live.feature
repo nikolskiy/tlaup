@@ -31,6 +31,9 @@ Feature: The live view of tlaup tlc on a terminal
     And java replays "tlc/v1.7.4/big-states" with exit code 0
     And java pauses 20 ms between lines
     And java hangs after line 31
+    # The setting says once a minute, so only the option's 0.2 can draw the later frame in time: a command that
+    # dropped the option's value would fail here.
+    And the environment variable "TLAUP_TLC_REFRESH_INTERVAL" is "60"
     When I start "tlaup tlc Big --refresh-interval 0.2" in a terminal 100 by 30 and press Ctrl-C once the terminal has shown "Checking" and then an elapsed time 2 seconds later
     Then the exit code is 130
     And the terminal showed the layout

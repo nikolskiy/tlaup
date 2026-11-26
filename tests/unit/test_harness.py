@@ -1452,7 +1452,9 @@ while True:
 @PTY_ONLY
 def test_ctrl_c_once_an_elapsed_time_later(scenario: Scenario) -> None:
     # The frames come at once: the step compares the values on the screen, not the time it waited.
-    result = ctrl_c_once_elapsed(scenario, py(ELAPSED_CHILD), (60, 10), "Checking", 2)
+    found: list[int | None] = []
+    result = ctrl_c_once_elapsed(scenario, py(ELAPSED_CHILD), (60, 10), "Checking", 2, found=found)
+    assert found == [1, 3]  # from the first Checking frame to 00:00:03; the "Other" frame's 00:00:09 is skipped
     assert result.exit_code == 130
     assert result.terminal is not None
     assert result.terminal.count(b"elapsed") == 5

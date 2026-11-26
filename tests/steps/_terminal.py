@@ -376,14 +376,21 @@ def ctrl_c_once_shown(
 
 
 def ctrl_c_once_elapsed(
-    scenario: Scenario, argv: Sequence[str], size: tuple[int, int], first: str, seconds: int
+    scenario: Scenario,
+    argv: Sequence[str],
+    size: tuple[int, int],
+    first: str,
+    seconds: int,
+    *,
+    found: list[int | None] | None = None,
 ) -> Outcome:
     """``... press Ctrl-C once the terminal has shown "<text>" and then an elapsed time <n> seconds later`` (40).
 
     The second wait is for a screen that still shows the text and whose ``elapsed`` value is at least ``seconds``
     greater than the one on the screen where the text was first seen: two values read from the screen, so the
     step does not depend on how long the process took to get there (01 T5, 22 O4). Each frame's screen is looked
-    at, also of frames read together. Each wait has ``FEED_SECONDS``.
+    at, also of frames read together. Each wait has ``FEED_SECONDS``. ``found``, if given, receives the two
+    elapsed values the step read (for its own test).
     """
     after = prepare(scenario)
     run = run_on_terminal(argv, size=size).watch(scenario.fakes, after)
@@ -407,6 +414,8 @@ def ctrl_c_once_elapsed(
             run.fail_with_screen(f"the screen that first showed {first!r} has no elapsed time")
         what = f"a screen showing {first!r} with an elapsed time {seconds} seconds after {seen[0]} seconds"
         run.pump_until(lambda: bool(later), timeout=FEED_SECONDS, what=what, each_frame=look)
+        if found is not None:
+            found.extend([seen[0], later[0]])
         run.type(INTERRUPT)
         scenario.outcome = run.finish()
     except BaseException:
