@@ -1,0 +1,39 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+Error: Invariant InvA is violated.
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+  2: Next  (MultiError.tla:5:9)
+     * x = 1
+  3: Next  (MultiError.tla:5:9)
+     * x = 2
+Error: Invariant InvB is violated.
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+  2: Next  (MultiError.tla:5:9)
+     * x = 1
+  3: Next  (MultiError.tla:5:9)
+     * x = 2
+  4: Next  (MultiError.tla:5:9)
+     * x = 3
+  5: Next  (MultiError.tla:5:9)
+     * x = 4
+Error: Deadlock reached.
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+  2: Next  (MultiError.tla:5:9)
+     * x = 1
+  3: Next  (MultiError.tla:5:9)
+     * x = 2
+  4: Next  (MultiError.tla:5:9)
+     * x = 3
+  5: Next  (MultiError.tla:5:9)
+     * x = 4
+  6: Next  (MultiError.tla:5:9)
+     * x = 5
+  7: Next  (MultiError.tla:5:9)
+     * x = 6
+7 states generated, 7 distinct, 0 left on queue; depth 7
+Result: errors found (TLC exit code 11: a reachable state has no successor) in 1.0 s

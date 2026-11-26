@@ -1,0 +1,8 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+Error: TLC threw an unexpected exception.
+  This was probably caused by an error in the spec or model.
+  See the User Output or TLC Console for clues to what happened.
+  The exception was a tlc2.tool.ConfigFileException
+  : TLC found an error in the configuration file at line 1
+  The keyword SPECIFICATION was not followed by an identifier.
+Result: not checked: the configuration has errors (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4)

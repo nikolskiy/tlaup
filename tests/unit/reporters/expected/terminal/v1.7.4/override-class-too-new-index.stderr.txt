@@ -1,0 +1,3 @@
+TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+spec.tla
+hint: the override class tlc2.overrides.TLCOverrides was compiled for Java 25 (class file 69) and TLC runs on Java 11 (up to 55); rebuild the module with `tlaup module add`, which compiles with `--release 11`, or run TLC on a newer Java

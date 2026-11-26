@@ -1,0 +1,3 @@
+TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+MissMod.tla  cfg: MissMod.cfg
+File does not exist: <tmp>/q22/work/v1.7.4/tool-missing-module/NoSuchModule.tla while looking in these directories: jar:file:<tmp>/jars/v1.7.4/tla2tools.jar!/tla2sany/StandardModules/

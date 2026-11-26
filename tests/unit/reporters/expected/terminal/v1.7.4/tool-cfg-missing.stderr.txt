@@ -1,0 +1,2 @@
+TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+Ok.tla

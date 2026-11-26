@@ -1,0 +1,4 @@
+TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+Stut.tla  cfg: Stut.cfg
+3 states generated, 3 distinct, 0 on queue, diameter 3
+3 states generated, 3 distinct, 0 on queue, diameter 3

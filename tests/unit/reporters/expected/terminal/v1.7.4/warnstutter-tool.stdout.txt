@@ -1,0 +1,18 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+WarnStutter.tla:7:9: error: [] followed by action not of form [A]_v.
+     5 | Next == x < 2 /\ x' = x + 1
+     6 | Spec == Init /\ [][Next]_x
+     7 | Prop == [](x' = x + 1)
+       |         ^^^^^^^^^^^^^^
+       | Error here: line 7, col 9 to 22
+     8 | Prop2 == <>(x' = 5)
+     9 | ====
+WarnStutter.tla:8:10: error: <> followed by action not of form <<A>>_v.
+     6 | Spec == Init /\ [][Next]_x
+     7 | Prop == [](x' = x + 1)
+     8 | Prop2 == <>(x' = 5)
+       |          ^^^^^^^^^^
+       | Error here: line 8, col 10 to 19
+     9 | ====
+Error: Parsing or semantic analysis failed.
+Result: not checked: the spec has errors (TLC exit code 150: the spec does not parse, or fails SANY's semantic checks)
