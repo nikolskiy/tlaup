@@ -12,7 +12,6 @@ from tlaup.java.classpath import ClasspathResolver, ResolveMode
 from tlaup.modules.registry import Registry
 from tlaup.paths import AppPaths
 from tlaup.project import find_project_root
-from tlaup.project.core import CLASSES_DIR, MODULES_DIR
 from tlaup.tlc.compiler import get_tlc_jar_path
 from tlaup.tlc.models import CheckState, ModelCheckResult
 from tlaup.tlc.parser import TlcParser
@@ -125,7 +124,7 @@ def build_tlc_command(spec: str, cfg: str | None = None) -> list[str]:
         raise FileNotFoundError(msg)
 
     spec_file, _ = resolve_spec_file(spec)
-    project_root = find_project_root(spec_file, modules_dir=MODULES_DIR, classes_dir=CLASSES_DIR)
+    project_root = find_project_root(spec_file, Path.home())
 
     modules = Registry(AppPaths.from_env(os.environ).modules, now=lambda: datetime.now(UTC)).list()
     resolver = ClasspathResolver(
@@ -192,7 +191,7 @@ def run_tlc(  # noqa: PLR0912, PLR0915
         cmd.insert(-1, "-coverage")
         cmd.insert(-1, "1")
 
-    project_root = find_project_root(spec_file, modules_dir=MODULES_DIR, classes_dir=CLASSES_DIR)
+    project_root = find_project_root(spec_file, Path.home())
     cwd = project_root if project_root else spec_file.parent
 
     if raw:

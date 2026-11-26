@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 import typer
 from rich.console import Console
@@ -6,7 +7,6 @@ from rich.live import Live
 
 from tlaup import ui
 from tlaup.project import find_project_root
-from tlaup.project.core import CLASSES_DIR, MODULES_DIR
 from tlaup.tlc.compiler import get_tlc_jar_path
 from tlaup.tlc.components import StatsTableFormatter, StatusFooterRenderable
 from tlaup.tlc.formatter import TlcFormatter
@@ -84,7 +84,7 @@ def tlc(  # noqa: PLR0912, PLR0913, PLR0915, PLR0917
     try:
         spec_file, _spec_name = resolve_spec_file(spec)
         if cfg:
-            project_root = find_project_root(spec_file, modules_dir=MODULES_DIR, classes_dir=CLASSES_DIR)
+            project_root = find_project_root(spec_file, Path.home())
             resolve_cfg_file(cfg, spec_file, project_root=project_root)
     except FileNotFoundError as e:
         ui.error(str(e))
