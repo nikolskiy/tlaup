@@ -10,14 +10,11 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
-from tlaup.cmd.sany import PrintingSink
+from tlaup.cmd.sany import AUTO_INSTALL_HELP, JAVA_OPT_HELP, PrintingSink
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from tlaup.context import AppContext
     from tlaup.tools.pcal import PcalOutcome
-    from tlaup.ui import Ui
     from tlaup_parse import Diagnostic
 
 HELP = "Translate the PlusCal algorithm of a spec to TLA+ with the PlusCal translator."
@@ -27,8 +24,6 @@ SPEC_HELP = (
     "The translator reads the spec from the spec's own folder."
 )
 PCAL_ARGS_HELP = "The translator's own arguments, after `--`: tlaup pcal Spec -- -nocfg."
-JAVA_OPT_HELP = "An option for the JVM, repeatable: --java-opt=-Xmx8g."
-AUTO_INSTALL_HELP = "With no tools installed, install this build without asking: stable or rolling."
 
 
 def pcal(
@@ -44,11 +39,7 @@ def pcal(
         None, "--auto-install", metavar="stable|rolling", help=AUTO_INSTALL_HELP, show_default=False
     ),
 ) -> None:
-    """Translate the PlusCal algorithm of a spec to TLA+ with the PlusCal translator.
-
-    The spec is rewritten in place and the previous version kept as SPEC.old. SPEC.cfg is written, or rewritten with
-    no backup; `-- -nocfg` leaves it alone. The translator reads the spec from the spec's own folder.
-    """
+    """Translate the PlusCal algorithm of a spec to TLA+ with the PlusCal translator."""
     from pathlib import Path
 
     from tlaup.cmd.common import run_build
@@ -93,18 +84,13 @@ def pcal(
 class PcalPrintingSink(PrintingSink):
     """`sany`'s sink with the label line added; a diagnostic has no excerpt (S2 step 4)."""
 
-    def __init__(self, ui: Ui, *, cwd: Path, spec: Path) -> None:
-        super().__init__(ui, cwd=cwd, spec=spec)
-        self._folder = cwd
-        self._spec_path = spec
-
     def label(self, name: str, line: int, column: int) -> None:
         from tlaup.tools.pcal import label_line
 
-        self._write(self._ui.out, label_line(name, line, column, self._spec_path, self._folder))
+        self._write(self._ui.out, label_line(name, line, column, self._spec or self._cwd, self._cwd))
 
     def diagnostic(self, diagnostic: Diagnostic) -> None:
         from tlaup.reporters.text import format_diagnostic
 
-        for line in format_diagnostic(diagnostic, cwd=self._folder, spec=self._spec_path, source_text=None):
+        for line in format_diagnostic(diagnostic, cwd=self._cwd, spec=self._spec or self._cwd, source_text=None):
             self._write(self._ui.out, line)
