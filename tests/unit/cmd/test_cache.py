@@ -328,3 +328,18 @@ def test_the_rendering_of_cache_list(request: pytest.FixtureRequest) -> None:
 
 def test_no_records_render_to_nothing() -> None:
     assert render_runs([]) == []
+
+
+def test_a_java_check_that_is_a_folder_is_an_error_and_is_left_intact(isolated: Isolated) -> None:
+    folder = isolated.paths.java_cache
+    folder.mkdir(parents=True)
+    (folder / "inner.txt").write_text("keep", encoding="utf-8")
+    code, stderr = clean("--all")
+    assert code == 5
+    assert stderr.count("error:") == 1
+    assert (folder / "inner.txt").read_text(encoding="utf-8") == "keep"
+
+
+def test_the_total_counts_what_the_list_shows_as_kept() -> None:
+    lines = render_runs([record("a", reason="unsettled after a kill", size=2000), record("b", size=500)])
+    assert lines[-1] == "1 kept run folder holds 2.0 kB"

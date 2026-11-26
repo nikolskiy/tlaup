@@ -3,4 +3,4 @@
 20261120T090500Z-aaaaaaaa  Spec.tla Spec.cfg  v1.7.4@5a47802  started 2026-11-20 09:05 UTC  changed 2026-11-20 09:30 UTC   1.2 MB  kept: TLC crashed (exit 255), checkpoint complete
 20261121T080000Z-bbbbbbbb  Spec.tla Spec.cfg  v1.7.4@5a47802  started 2026-11-21 08:00 UTC  changed 2026-11-20 09:30 UTC    900 B  in use, not kept, checkpoint incomplete
 20261122T000000Z-eeeeeeee  Spec.tla           v1.7.4@5a47802  started 2026-11-22 00:00 UTC  changed 2026-11-20 09:30 UTC   3.0 GB  kept: interrupted, checkpoint complete
-2 kept run folders hold 3.0 GB
+3 kept run folders hold 3.1 GB

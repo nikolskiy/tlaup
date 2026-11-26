@@ -65,6 +65,11 @@ def _time(moment: datetime | None) -> str:
     return "-" if moment is None else f"{moment.astimezone(UTC):%Y-%m-%d %H:%M} UTC"
 
 
+def _shown_kept(record: RunRecord) -> bool:
+    """What the list shows as kept: a kept folder, and an unsettled resumable one; the total counts the same."""
+    return record.kept or record.reason is not None
+
+
 def _state(record: RunRecord) -> str:
     """`in use`, whether it is kept and why, and the checkpoint, in words."""
     parts: list[str] = []
@@ -75,7 +80,7 @@ def _state(record: RunRecord) -> str:
     if not record.has_run_json:
         parts.append("no run.json")
         return ", ".join(parts)
-    if record.kept or record.reason is not None:
+    if _shown_kept(record):
         parts.append(f"kept: {record.reason}" if record.reason else "kept")
     else:
         parts.append("not kept")
@@ -113,7 +118,7 @@ def render_runs(records: Sequence[RunRecord]) -> list[str]:
         cells = [row[0].ljust(widths[0]), row[1].ljust(widths[1]), row[2].ljust(widths[2])]
         cells += [row[3].ljust(widths[3]), row[4].ljust(widths[4]), row[5].rjust(widths[5]), row[6]]
         lines.append("  ".join(cells).rstrip())
-    kept = [record for record in records if record.kept]
+    kept = [record for record in records if _shown_kept(record)]
     total = format_size(sum(record.size for record in kept))
     noun = "folder holds" if len(kept) == 1 else "folders hold"
     lines.append(f"{len(kept)} kept run {noun} {total}")
