@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import typer
 
+from tlaup.cmd.completion import complete_install
 from tlaup.errors import PinnedBuildMissing, UsageError
 
 if TYPE_CHECKING:
@@ -30,7 +31,9 @@ INSTALLED_HEADING = "Which build should tlaup install?"
 
 def install_command(
     ctx: typer.Context,
-    version: str | None = typer.Argument(None, metavar="VERSION", help=VERSION_HELP, show_default=False),
+    version: str | None = typer.Argument(
+        None, metavar="VERSION", help=VERSION_HELP, show_default=False, autocompletion=complete_install
+    ),
     force: bool = typer.Option(False, "--force", help=FORCE_HELP),
 ) -> None:
     app: AppContext = ctx.find_root().obj

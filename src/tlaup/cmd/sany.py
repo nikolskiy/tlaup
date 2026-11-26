@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from tlaup.cmd.completion import complete_spec
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -36,7 +38,7 @@ AUTO_INSTALL_HELP = "With no tools installed, install this build without asking:
 
 def sany(
     ctx: typer.Context,
-    spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False),
+    spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False, autocompletion=complete_spec),
     sany_args: Annotated[
         list[str] | None, typer.Argument(metavar="-- SANY ARGS", help=SANY_ARGS_HELP, show_default=False)
     ] = None,

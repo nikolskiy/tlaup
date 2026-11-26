@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from tlaup.cmd.completion import complete_spec
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -51,7 +53,7 @@ AUTO_INSTALL_HELP = "With no tools installed, install this build without asking:
 
 def tlc(  # noqa: PLR0913, PLR0917 - a command with twelve options takes them as parameters
     ctx: typer.Context,
-    spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False),
+    spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False, autocompletion=complete_spec),
     tlc_args: Annotated[
         list[str] | None, typer.Argument(metavar="-- TLC ARGS", help=TLC_ARGS_HELP, show_default=False)
     ] = None,

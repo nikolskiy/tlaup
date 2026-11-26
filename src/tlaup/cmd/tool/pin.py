@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 import typer
 
+from tlaup.cmd.completion import complete_installed
+
 if TYPE_CHECKING:
     from tlaup.context import AppContext
     from tlaup.ui import Ui
@@ -18,7 +20,9 @@ VERSION_HELP = "An installed build: a tag such as v1.7.4 or 1.7.4, stable, rolli
 
 def pin_command(
     ctx: typer.Context,
-    version: str = typer.Argument(..., metavar="VERSION", help=VERSION_HELP, show_default=False),
+    version: str = typer.Argument(
+        ..., metavar="VERSION", help=VERSION_HELP, show_default=False, autocompletion=complete_installed
+    ),
 ) -> None:
     app: AppContext = ctx.find_root().obj
     from tlaup.cmd.tool._shared import open_store, parse_spec

@@ -12,10 +12,10 @@ from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 from tlaup.errors import NetworkError, RateLimited, RemoteDataError, VersionNotFound
-from tlaup.versioning.order import stable_of
+from tlaup.versioning.order import name_key, stable_of
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -133,6 +133,31 @@ def _read_cache(cache_dir: Path, url: str) -> tuple[list[Release], datetime] | N
         return [parse_release(item, url=url) for item in data], fetched_at
     except (OSError, ValueError, KeyError, TypeError, RemoteDataError):
         return None
+
+
+def cached_tags(cache_dir: Path) -> list[str]:
+    """The tags of the remembered release lists' releases that have the jar, in X4's order, without duplicates.
+
+    Every lookup cache file under ``cache_dir`` whose ``url`` is a release list (a path ending in ``/releases``,
+    any query) is read with this module's reader. Age is ignored: shell completion offers what is remembered. A
+    file that cannot be read is skipped, as ``_read_cache`` treats it as absent (V8). No request, no settings.
+    """
+    try:
+        files = sorted(cache_dir.glob("*.json"))
+    except OSError:
+        return []
+    tags: set[str] = set()
+    for file in files:
+        try:
+            url = json.loads(file.read_text(encoding="utf-8"))["url"]
+            if not isinstance(url, str) or not urlsplit(url).path.endswith("/releases"):
+                continue
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+        cached = _read_cache(cache_dir, url) if _cache_file(cache_dir, url) == file else None
+        if cached is not None:
+            tags.update(release.tag for release in cached[0] if release.asset is not None)
+    return sorted(tags, key=name_key)
 
 
 class Remote:

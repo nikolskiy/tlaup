@@ -12,6 +12,9 @@ import typer
 from typer.core import TyperGroup
 
 from tlaup.cmd.cache import app as cache_app
+from tlaup.cmd.completion import HELP as COMPLETION_HELP
+from tlaup.cmd.completion import completion as run_completion_cmd
+from tlaup.cmd.completion import init_completion
 from tlaup.cmd.config import app as config_app
 from tlaup.cmd.doctor import HELP as DOCTOR_HELP
 from tlaup.cmd.doctor import doctor as run_doctor_cmd
@@ -294,8 +297,11 @@ app.command(name="sany")(run_sany_cmd)
 app.command(name="pcal")(run_pcal_cmd)
 app.command(name="repl")(run_repl_cmd)
 app.command(name="doctor", help=DOCTOR_HELP)(run_doctor_cmd)
+app.command(name="completion", help=COMPLETION_HELP)(run_completion_cmd)
 
 
 def main() -> None:
     """Entry point for [project.scripts] and `python -m tlaup`."""
+    if "_TLAUP_COMPLETE" in os.environ:  # a shell is asking for words: fill Typer's registry of shells (C3)
+        init_completion()
     run_app(app)

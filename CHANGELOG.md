@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup repl` starts the TLA+ REPL of the pinned build (rolling builds only).
 - `tlaup config set KEY VALUE` changes one setting. It rewrites the config file and does not keep comments.
 - `tlaup config path` prints the config file's path; `tlaup config get KEY` prints one setting.
+- `tlaup completion bash|zsh|fish` prints a shell completion script. Installed versions, module names and config keys are completed. In bash, a build is completed up to its name; the part after `@` is typed.
 
 ### Breaking
 - Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.

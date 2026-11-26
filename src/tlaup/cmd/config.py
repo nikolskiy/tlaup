@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 import typer
 
+from tlaup.cmd.completion import complete_config_key
 from tlaup.errors import UsageError
 
 if TYPE_CHECKING:
@@ -86,7 +87,10 @@ def show_command(ctx: typer.Context) -> None:
     app_context.ui.result("\n".join(lines))
 
 
-def get_command(ctx: typer.Context, key: str = typer.Argument(..., metavar="KEY", help=KEY_HELP)) -> None:
+def get_command(
+    ctx: typer.Context,
+    key: str = typer.Argument(..., metavar="KEY", help=KEY_HELP, autocompletion=complete_config_key),
+) -> None:
     app_context: AppContext = ctx.find_root().obj
     _require_key(key)
     app_context.ui.result(format_value(_value_of(app_context.settings, key)))
@@ -94,7 +98,7 @@ def get_command(ctx: typer.Context, key: str = typer.Argument(..., metavar="KEY"
 
 def set_command(
     ctx: typer.Context,
-    key: str = typer.Argument(..., metavar="KEY", help=KEY_HELP),
+    key: str = typer.Argument(..., metavar="KEY", help=KEY_HELP, autocompletion=complete_config_key),
     value: str = typer.Argument(..., metavar="VALUE", help=VALUE_HELP),
 ) -> None:
     app_context: AppContext = ctx.find_root().obj

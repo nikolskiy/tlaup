@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import typer
 
+from tlaup.cmd.completion import complete_installed
 from tlaup.errors import AmbiguousVersion
 
 if TYPE_CHECKING:
@@ -22,7 +23,9 @@ VERSION_HELP = (
 
 def path_command(
     ctx: typer.Context,
-    version: str | None = typer.Argument(None, metavar="VERSION", help=VERSION_HELP, show_default=False),
+    version: str | None = typer.Argument(
+        None, metavar="VERSION", help=VERSION_HELP, show_default=False, autocompletion=complete_installed
+    ),
 ) -> None:
     app: AppContext = ctx.find_root().obj
     from tlaup.cmd.tool._shared import open_store, parse_spec
