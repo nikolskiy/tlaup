@@ -366,6 +366,24 @@ def test_resolve_tries_foo_then_vfoo_and_the_error_names_foo(github: GitHub, rem
     assert [r.url.split("/")[-1] for r in fake.requests] == ["foo", "vfoo"]
 
 
+def test_the_closest_tag_hint_falls_back_to_the_old_one_with_no_request(github: GitHub, remote: Remote) -> None:
+    old_hint = "run `tlaup tool list` to see the releases"
+    fake = github()
+    fake.answer(404, "/releases/tags/v9.9.9")
+    with pytest.raises(VersionNotFound) as nothing_cached:  # no cached list
+        remote.resolve(parse_version_spec("v9.9.9"))
+    assert nothing_cached.value.hint == old_hint
+    assert len(fake.requests) == 1
+    remote.releases()  # now a list is cached
+    fake.clear()
+    fake.answer(404, "/releases/tags/zzzzzzzz")
+    fake.answer(404, "/releases/tags/vzzzzzzzz")
+    with pytest.raises(VersionNotFound) as nothing_close:
+        remote.resolve(parse_version_spec("zzzzzzzz"))
+    assert nothing_close.value.hint == old_hint
+    assert [r.url.split("/")[-1] for r in fake.requests] == ["zzzzzzzz", "vzzzzzzzz"]
+
+
 def test_resolve_a_tag_nobody_published_is_version_not_found_with_one_request(github: GitHub, remote: Remote) -> None:
     """A name that starts with ``v`` is not tried again with another ``v`` in front (package 27, install step 3)."""
     fake = github()

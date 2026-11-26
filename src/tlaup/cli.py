@@ -318,7 +318,7 @@ SANY_EXAMPLES = """Examples:
 
 tlaup sany Spec
 
-tlaup sany Spec -- -nopcal"""
+tlaup sany Spec -- -stat"""
 INSTALL_EXAMPLES = """Examples:
 
 tlaup tool install stable

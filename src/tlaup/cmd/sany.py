@@ -30,7 +30,7 @@ SPEC_HELP = (
     "then the library folders, then the standard modules, then the classpath."
 )
 SANY_ARGS_HELP = (
-    "SANY's own arguments, after `--`: tlaup sany Spec -- -nopcal. `-d` is refused: it starts an explorer that "
+    "SANY's own arguments, after `--`: tlaup sany Spec -- -stat. `-d` is refused: it starts an explorer that "
     "waits for input; run it with Java directly on the jar that `tlaup tool path` prints."
 )
 JAVA_OPT_HELP = "An option for the JVM, repeatable: --java-opt=-Xmx8g."

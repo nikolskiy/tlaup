@@ -283,7 +283,7 @@ Feature: Errors and exit codes
     When I run "tlaup tlc Success --cfg nope.cfg"
     Then the exit code is 4
     And stdout is empty
-    And stderr contains "nope.cfg"
+    And stderr contains "{work}/nope.cfg"
 
   Scenario: A version that matches nothing is named, with the closest tag
     Given GitHub answers from "releases"
@@ -323,6 +323,7 @@ Feature: Errors and exit codes
     And GitHub answers from "releases"
     When I run "tlaup tool install v1.7.4"
     Then the exit code is 0
+    And stdout is empty
     And stderr contains "--force"
     And stderr does not contain "Successfully"
 
