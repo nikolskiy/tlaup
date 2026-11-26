@@ -169,13 +169,14 @@ test-lifeline = "pytest tests/lifeline --no-cov -p no:randomly"
 clean = "rm -rf dist"
 
 twine-check = "twine check dist/*.whl dist/*.tar.gz"
+check-wheel = "python scripts/check_wheel.py"
 
 [tool.poe.tasks.check-release]
 sequence = [
-    "check",
     "clean",
     "build",
     "twine-check",
+    "check-wheel",
 ]
 
 [tool.mypy]
