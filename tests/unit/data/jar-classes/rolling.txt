@@ -1,4 +1,4 @@
-# rolling 2026.11.15.002146 (X-Git-Tag), build time 2026-11-19, commit bc1b506bdcad80bb518bf3776a9161c34ff0fc4c, jar SHA-256 fdffef247f563ef6edbfd44958d2a82db79e7564e07cb673262d896353fa6713
+# rolling 2026.11.15.002146 (X-Git-Tag), same commit as the golden folder but not its jar (different bytes), build time 2026-11-19, commit bc1b506bdcad80bb518bf3776a9161c34ff0fc4c, jar SHA-256 fdffef247f563ef6edbfd44958d2a82db79e7564e07cb673262d896353fa6713
 META-INF/versions/9/module-info.class
 com/google/gson/ExclusionStrategy.class
 com/google/gson/FieldAttributes.class
