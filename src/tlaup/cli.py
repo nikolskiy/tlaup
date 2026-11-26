@@ -13,7 +13,7 @@ from typer.core import TyperGroup
 
 from tlaup.cmd.check_java import check_java
 from tlaup.cmd.config import app as config_app
-from tlaup.cmd.modules import app as modules_app
+from tlaup.cmd.module import app as module_app
 from tlaup.cmd.tlc import tlc as run_tlc_cmd
 from tlaup.cmd.tool import app as tool_app
 from tlaup.context import AppContext, build_context
@@ -279,7 +279,7 @@ def root(
 # --- Subcommands ---
 
 
-app.add_typer(modules_app, name="modules")
+app.add_typer(module_app, name="module")
 app.add_typer(tool_app, name="tool")
 app.add_typer(config_app, name="config")
 

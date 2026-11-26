@@ -5,14 +5,12 @@ from pathlib import Path
 
 from tlaup.config.schema import Settings
 from tlaup.project.core import CLASSES_DIR, LIB_DIR, MODULES_DIR
-from tlaup.versioning.paths import get_modules_dir
 
 
 class ResolveMode(Enum):
     """Modes for classpath resolution."""
 
     RUNTIME = auto()  # For 'java -cp ... tlc2.TLC' (classes first)
-    COMPILE = auto()  # For 'javac -cp ...' (tool jar first, no output classes)
 
 
 class SubdirType(Enum):
@@ -37,7 +35,7 @@ class ClasspathResolver:
         extra_libs: list[str] | None = None,
         extra_modules: list[str] | None = None,
         *,
-        module_dirs: Sequence[Path] | None = None,
+        module_dirs: Sequence[Path],
     ):
         """
         Initialize the resolver.
@@ -49,7 +47,6 @@ class ClasspathResolver:
             extra_libs: Explicit library paths from CLI.
             extra_modules: Explicit module paths from CLI.
             module_dirs: The folders of the registered modules, in the order Registry.list() gives them.
-                None: walk <cache>/modules as release 0.8.x does; only the old callers pass None.
         """
         self.config = config
         self.project_root = project_root
@@ -57,15 +54,6 @@ class ClasspathResolver:
         self.extra_libs = extra_libs or []
         self.extra_modules = extra_modules or []
         self.module_dirs = module_dirs
-
-    def _managed_module_dirs(self) -> list[Path]:
-        """The registered modules' folders as given, or the subfolders of the old cache when none were given."""
-        if self.module_dirs is not None:
-            return list(self.module_dirs)
-        managed_dir = get_modules_dir()
-        if not managed_dir.is_dir():
-            return []
-        return [item for item in sorted(managed_dir.iterdir()) if item.is_dir()]
 
     def get_project_path(self, subdir: SubdirType) -> Path | None:
         """Helper to find a project-local directory."""
@@ -102,8 +90,8 @@ class ClasspathResolver:
         if config_path:
             raw_paths.append(str(Path(config_path).absolute()))
 
-        # 4. Managed Modules: the registered modules' folders, or the old cache's subfolders
-        for item in self._managed_module_dirs():
+        # 4. Managed Modules: the registered modules' folders
+        for item in self.module_dirs:
             if subdir == SubdirType.LIB:
                 mod_lib = item / "lib"
                 if mod_lib.is_dir():
@@ -152,8 +140,8 @@ class ClasspathResolver:
             modules = self._resolve_paths(self.extra_modules, SubdirType.MODULES, self.config.module_path)
             classpath.extend(modules)
 
-        # Cached module classes are included as dependencies in all modes (RUNTIME & COMPILE)
-        for item in self._managed_module_dirs():
+        # Registered modules' classes
+        for item in self.module_dirs:
             mod_classes = item / "classes"
             if mod_classes.is_dir():
                 classpath.append(str(mod_classes.absolute()))

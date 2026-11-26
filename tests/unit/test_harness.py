@@ -21,6 +21,7 @@ import typer
 from pytest_bdd.steps import StepFunctionContext, step_function_context_registry
 
 from tests.clock import FakeClock
+from tests.steps import _modules
 from tests.steps._process import closed_pipe, exit_code_of, run_as_process, start, start_and_signal
 from tests.steps._scenario import GOLDEN_DIR, PASSTHROUGH, STARTUP_ONLY, TLAUP_JAVA_DIR, Outcome, _process_alive
 from tests.steps._terminal import (
@@ -35,6 +36,7 @@ from tests.steps._terminal import (
     screen_text,
     without_escapes,
 )
+from tlaup.modules.registry import read_record
 from tlaup.versioning.store import ToolStore
 
 if TYPE_CHECKING:
@@ -354,10 +356,51 @@ def test_the_store_forms_do_not_take_each_others_text() -> None:
         assert not [c for c in contexts("given") if c.parser.is_matching(text)], text
 
 
+# The module steps of package 31, tried against the forms that share their words.
+
+MODULE_FORMS = {
+    ("given", 'the module "Queue" is registered'): ("the_module_is_registered", {"name": "Queue"}),
+    ("given", 'a module source "Queue" from the fake sources'): (
+        "a_module_source_from_the_fake_sources",
+        {"name": "Queue"},
+    ),
+    ("given", 'javac fails with "syntax-error"'): ("javac_fails_with", {"recording": "syntax-error"}),
+    ("then", "the registered modules are:"): ("the_registered_modules_are", {}),
+}
+
+
+@pytest.mark.parametrize(("kind", "text"), list(MODULE_FORMS))
+def test_each_module_form_finds_one_step(kind: str, text: str) -> None:
+    name, arguments = MODULE_FORMS[(kind, text)]
+    context = find_step(kind, text)
+    assert context.step_func.__name__ == name
+    assert (context.parser.parse_arguments(text) or {}) == arguments
+
+
+def test_the_module_forms_do_not_take_each_others_text() -> None:
+    # The pairs that share words: "a ... from the ..." forms, "the ... is ..." forms, the two javac forms and
+    # the two tables.
+    assert find_step("given", 'javac is version "25.0.5"').step_func.__name__ == "javac_is_version"
+    assert find_step("given", "javac is not installed").step_func.__name__ == "javac_is_not_installed"
+    assert find_step("given", 'a spec "Queue" from the golden specs').step_func.__name__ == (
+        "a_spec_from_the_golden_specs"
+    )
+    assert find_step("given", 'the build "v1.7.4" is installed and pinned').step_func.__name__ == (
+        "the_build_is_installed"
+    )
+    assert find_step("then", "the installed builds are:").step_func.__name__ == "the_installed_builds_are"
+    for text in (
+        'the module "Queue" is installed',
+        'a module source "Queue" from the golden specs',
+        'a spec "Queue" from the fake sources',
+        'javac fails with ""',
+        "the registered modules are",
+    ):
+        assert not [c for c in contexts("given") + contexts("then") if c.parser.is_matching(text)], text
+
+
 def test_steps_owned_by_later_packages_are_not_here() -> None:
     for kind, text in [
-        ("given", 'javac fails with "error"'),
-        ("given", 'a module source "Foo" from the fake sources'),
         ("then", "the terminal showed the layout"),
         ("then", 'the last layout frame contains "x"'),
         ("then", "the terminal stayed on the main screen"),
@@ -1346,3 +1389,44 @@ def test_a_text_is_found_across_a_wrap_but_not_across_two_lines(scenario: Scenar
     run.stream.feed(b"abcdef\r\ngh\r\nij")
     assert _shows(run.screen, "cdef")  # "abcd" filled the line and wrapped
     assert not _shows(run.screen, "ghij")
+
+
+# The module steps of package 31
+
+
+def test_a_module_source_is_copied_and_the_fake_javac_is_scripted(scenario: Scenario, isolated: Isolated) -> None:
+    given(scenario, 'a module source "Queue" from the fake sources')
+    assert (isolated.work / "Queue" / "modules" / "Queue.tla").is_file()
+    assert (isolated.work / "Queue" / "lib" / "a.jar").is_file()
+    assert "log" in script(scenario.fakes, "javac")
+    with pytest.raises(FAILED, match="no fake module source"):
+        given(scenario, 'a module source "Nosuch" from the fake sources')
+
+
+def test_a_registered_module_is_what_a_real_add_leaves_and_the_table_reads_it(
+    scenario: Scenario, isolated: Isolated
+) -> None:
+    given(scenario, 'the module "Queue" is registered')
+    given(scenario, 'the module "Alpha" is registered')
+    folder = isolated.paths.modules / "Queue"
+    assert (folder / "module.json").is_file()
+    assert (folder / "modules" / "Queue.tla").is_file()
+    assert [path.name for path in (isolated.paths.modules / ".tmp").iterdir()] == []
+    _modules.check_registered(scenario, [["module"], ["Alpha"], ["Queue"]])
+    with pytest.raises(FAILED, match="the registered modules are"):
+        _modules.check_registered(scenario, [["module"], ["Queue"], ["Alpha"]])
+    with pytest.raises(FAILED, match="one column headed"):
+        _modules.check_registered(scenario, [["name"], ["Queue"]])
+    # The two modules were registered a minute apart on the scenario's clock.
+    records = [read_record(isolated.paths.modules / name) for name in ("Queue", "Alpha")]
+    assert [record.built_at for record in records if record is not None] == [
+        "2026-11-15T00:00:00Z",
+        "2026-11-15T00:01:00Z",
+    ]
+
+
+def test_javac_fails_with_a_recording_and_refuses_an_unknown_one(scenario: Scenario, fakes: Fakes) -> None:
+    given(scenario, 'javac fails with "syntax-error"')
+    assert script(fakes, "javac")["fail_with"] == "syntax-error.txt"
+    with pytest.raises(FAILED, match="no recorded javac error"):
+        given(scenario, 'javac fails with "nosuch"')

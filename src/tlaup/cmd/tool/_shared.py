@@ -15,6 +15,8 @@ from tlaup.errors import ConfigInvalid, NoPinnedBuild, NoToolsInstalled, Version
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
 
+    from rich.table import Table
+
     from tlaup.context import AppContext
     from tlaup.ui import Ui
     from tlaup.versioning.github import GitHubClient, Progress
@@ -122,6 +124,21 @@ def not_installed(text: str, spec: VersionSpec) -> VersionNotFound:
         else "run `tlaup tool list --installed` to see the installed builds"
     )
     return VersionNotFound(f"{text} is not installed", hint=hint)
+
+
+_UNLIMITED = 10_000  # columns: more than any table of rows needs
+
+
+def print_table(ui: Ui, table: Table) -> None:
+    """The table on stdout. Not on a terminal it is laid out at its natural width, so that no row breaks over two
+    lines at the 80 columns a pipe gets (a decision of the stage 5 lead, 29b's review)."""
+    if ui.out.is_terminal:
+        ui.result(table)
+        return
+    console = ui.out
+    width = console.measure(table, options=console.options.update(max_width=_UNLIMITED)).maximum
+    lines = console.render_lines(table, console.options.update(width=width), pad=False)
+    ui.result("\n".join("".join(segment.text for segment in line).rstrip() for line in lines))
 
 
 def joined(names: Sequence[str]) -> str:

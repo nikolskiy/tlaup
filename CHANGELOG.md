@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tool list` keeps installed builds next to their upstream release and marks one that has a newer build available.
 - `tool list` marks an installed build whose release upstream no longer lists as `installed, not upstream` (was `local only`).
 - `rolling` is listed first in `tlaup tool list`, then versions by number.
+- `module add` says when it replaced a module of the same name; it no longer copies a `test` folder.
+- `module list` shows build times in UTC.
 
 ### Added
 - Each setting can be given as an environment variable `TLAUP_<SECTION>_<KEY>`.
@@ -30,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Breaking
 - Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.
-- Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tools install` and `tlaup modules add` again. The old `tla` folders are not touched and can be deleted.
+- Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tool install` and `tlaup module add` again. The old `tla` folders are not touched and can be deleted.
 - Installed tools are stored in a new layout with a `build.json` beside each jar. They live in the cache's `tool` folder (was `tools`). Builds installed by earlier versions are not recognised: run `tlaup tool install` again. The old `tools` folder can be deleted.
 - Uninstalling the pinned build clears the pin; it no longer switches to another installed build. Pin one with `tlaup tool pin`.
 - With several installed builds of one name, `tlaup tool uninstall NAME` without a terminal, or with `--yes`, removes all of them; name one build as `NAME@COMMIT`.
@@ -39,11 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup tools dir` is now `tlaup tool dir` and prints only the folder; use `tlaup tool list --installed` for the builds.
 - `tlaup tools install -f` and `tlaup tools uninstall -y` are now `tlaup tool install --force` and `tlaup tool uninstall --yes`.
 - `tlaup tools` and `tlaup modules` are now `tlaup tool` and `tlaup module`; every subcommand keeps its name.
+- A module name must start with a letter or digit and hold only letters, digits, `.`, `_` and `-`, at most 64 characters. `module add` refuses a folder whose name does not fit (for example one with a space); rename the folder.
+- Modules are stored in the cache's `module` folder (was `modules`), each with a `module.json`. Modules added by earlier versions are not found: run `tlaup module add` again. The old `modules` folder can be deleted.
+- `module add` compiles a module's Java sources against the TLA+ tools jar and the module's own `lib/*.jar` only. Other registered modules and the jars of `module_lib_path` are no longer on the compile classpath (they still take part in runs); a module that needs a jar to compile puts a copy in its own `lib/`.
+- Override classes are compiled with `-encoding UTF-8 --release 11`. A module whose sources use language features or library classes newer than Java 11 no longer compiles; set `java.min_version` higher to raise the release. `javac` must be version 11 or newer.
 
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.
 - Support for old storage layouts (a jar directly in the cache folder, the symlink pin, the `tlc` folder, modules without a `modules/` subfolder). The `tlaup` folders never contained them.
 - `tlaup tools meta sync` is removed; metadata is read from the jar at install.
+- `tlaup modules path` is removed; `tlaup tlc SPEC --show-command` shows the classpath in use and `tlaup module dir` the folder.
 
 ### Fixed
 - A config file written by an older version, or missing a section, caused a traceback.
@@ -63,6 +70,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The 'Tag/SHA' column of `tool list` is now 'Build'.
 - `tlaup tool install` could offer a prerelease as the stable version when no stable release was in the first page of results.
 - A warning from `tool list` went to stdout.
+- `tlaup modules remove ../tools` deleted the tools folder. Module names are now checked.
+- A compile error in `tlaup module add` deleted the module's previous, working build.
+- `module add` could misread which classes provide overrides when a source file had `//` inside a string.
 
 ## [0.8.2] - 2026-11-14
 

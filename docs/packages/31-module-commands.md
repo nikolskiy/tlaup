@@ -1,6 +1,6 @@
 # 31. The `module` commands: switch to the new module build
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

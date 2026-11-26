@@ -24,10 +24,11 @@ Command-line tool for working with TLA+ specifications and the TLC model checker
 * `tlaup tlc <spec>`: Execute TLC model checker on a specification.
 * `tlaup tlc <spec> --show-command`: Inspect exact JVM command before execution.
 
-### 3. Custom Java Modules (`tlaup modules`)
-* `tlaup modules add <path>`: Compile Java operator overrides and register module in CLI cache.
-* `tlaup modules list`: Display cached custom modules.
-* `tlaup modules remove <name>`: Remove custom module from cache.
+### 3. Custom Java Modules (`tlaup module`)
+* `tlaup module add <path>`: Compile Java operator overrides and register the module under the folder's name.
+* `tlaup module list`: Display the registered modules and when each was built (UTC).
+* `tlaup module remove <name>`: Remove a registered module.
+* `tlaup module dir`: Print the folder that holds the registered modules.
 
 For complete, runnable specifications and Java module examples, see [docs/examples](docs/examples/).
 

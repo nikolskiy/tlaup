@@ -52,7 +52,14 @@ def _cannot(action: str, path: Path, error: OSError) -> FileOperationError:
     return FileOperationError(f"cannot {action} {path}: {error.strerror or error}")
 
 
-def _module_name(source: Path) -> str:
+def source_name(source: Path) -> str:
+    """The module name of a source folder: its resolved folder's name, checked (M1); the command asks this first.
+
+    ``PathNotFound`` for something that is not a folder, ``InvalidName`` with the hint to rename the folder.
+    """
+    source = source.resolve()
+    if not source.is_dir():
+        raise PathNotFound(f"{source} is not a folder")  # noqa: TRY003
     try:
         return validate_module_name(source.name)
     except InvalidName as error:
@@ -172,9 +179,7 @@ def build_module(  # noqa: PLR0913 - the signature of design 13 M2
     the temporary folder is removed and the registered module, if any, is untouched.
     """
     source = source.resolve()
-    if not source.is_dir():
-        raise PathNotFound(f"{source} is not a folder")  # noqa: TRY003
-    name = _module_name(source)
+    name = source_name(source)
     registry.path_of(name)
     registry.clean_tmp(now())
     folder = registry.tmp_path(now())
