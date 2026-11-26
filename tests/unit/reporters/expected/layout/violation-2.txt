@@ -5,7 +5,7 @@
 
  Ctrl-C to interrupt
  ── State space progress ──────────────────────────────────────────────────────────────────────────
- Time                           Diameter            Generated            Distinct            Queue
+ Time                          Diameter          Generated           Distinct              Queue
 
 
 

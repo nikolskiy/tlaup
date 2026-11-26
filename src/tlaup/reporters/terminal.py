@@ -501,8 +501,25 @@ class TerminalReporter:
             redirect_stdout=False,
             redirect_stderr=False,
         )
-        live.start(refresh=True)
+        try:
+            live.start(refresh=True)
+        except BaseException:
+            self._leave_after_failed_start()
+            raise
         self.live = live  # recorded only once it is up: close never stops a display that did not start
+
+    def _leave_after_failed_start(self) -> None:
+        """A `Live.start` that raised after the enter sequence (hiding the cursor failed, say) leaves the terminal
+        on the alternate screen: leave it here, through ``ui.err``'s own calls, before the error goes on (not with
+        `Live.stop`, which undoes steps the failed start never took). Nothing is written when the enter sequence
+        never got out."""
+        console = self._ui.err
+        if not console.is_alt_screen:
+            return
+        with contextlib.suppress(OSError):
+            console.show_cursor(True)
+        with contextlib.suppress(OSError):
+            console.set_alt_screen(False)
 
     def _spooled(self) -> tuple[Console, Console]:
         """The stdout and stderr spools, which `start` made once it chose layout mode."""

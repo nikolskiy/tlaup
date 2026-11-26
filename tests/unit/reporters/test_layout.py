@@ -31,7 +31,7 @@ from tlaup.reporters.layout import LayoutView, format_clock, render_layout
 from tlaup.reporters.terminal import TerminalReporter
 from tlaup.tlc.command import build_tlc_command
 from tlaup.tlc.runner import run_tlc, waiting_line
-from tlaup_parse import OutputLine, ProgressMade, RunResult, TlcParser
+from tlaup_parse import OutputLine, Phase, Progress, ProgressMade, RunResult, TlcParser
 
 if TYPE_CHECKING:
     from tests.conftest import Isolated
@@ -46,6 +46,7 @@ PLAIN = EXPECTED / "terminal" / BUILD
 FRAMES = EXPECTED / "layout"
 ENTER = "\x1b[?1049h"  # the alternate screen
 LEAVE = "\x1b[?1049l"
+HIDE_CURSOR = "\x1b[?25l"
 ESCAPE = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 TITLES = ("── Status ", "── State space progress ", "── Output ")
 FRAME_START = TITLES[0]  # one Status title per frame drawn
@@ -128,6 +129,26 @@ def test_the_smallest_frame(request: pytest.FixtureRequest) -> None:
 def test_every_frame_file_has_its_test() -> None:
     names = {f"{name}-{number}.txt" for name in CASES for number in (1, 2, 3)} | {"violation-60x15.txt"}
     assert {path.name for path in FRAMES.glob("*.txt")} == names
+
+
+@pytest.mark.parametrize("width", [60, 80, 100, 200])
+def test_the_progress_columns_do_not_move_as_the_counts_grow(width: int) -> None:
+    run = make_run(load_case(BUILD, "violation"))
+    small = Progress(diameter=4, generated=44, distinct=44, queue=35, at="2026-11-14 22:25:56")
+    large = Progress(diameter=4_000, generated=9_876_543_210, distinct=1_234_567_890, queue=35_000_000, at=small.at)
+
+    def columns(*rows: Progress) -> list[str]:
+        view = LayoutView(run, Phase.CHECKING, 0.0, 0, 0, rows, ())
+        lines = frame_text(view, 0, width, 30).splitlines()
+        first = next(number for number, line in enumerate(lines) if line.startswith(" " + TITLES[1])) + 1
+        return lines[first : first + 1 + len(rows)]
+
+    empty, with_small, with_large = columns(), columns(small), columns(small, large)
+    assert empty[0] == with_small[0] == with_large[0]  # the headings
+    assert with_small[1] == with_large[1]
+    if width >= 100:
+        ends = [line.rstrip() for line in with_large[1:]]
+        assert len({len(line) for line in ends}) == 1  # right-aligned to the same column
 
 
 def test_format_clock() -> None:
@@ -288,6 +309,38 @@ def test_the_spools_on_disk_are_copied_and_deleted(tmp_path: Path) -> None:
     assert out.getvalue() == "kept on disk\n"
     assert list((tmp_path / "spools").iterdir()) == []
     assert descriptors is None or _open_descriptors() == descriptors
+
+
+class _FailsOnHide(io.StringIO):
+    """A stderr stream whose first write of the hide-cursor sequence raises: `Live.start` fails after the enter
+    sequence is out."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.raised = False
+
+    def write(self, text: str) -> int:
+        if HIDE_CURSOR in text and not self.raised:
+            self.raised = True
+            message = "the terminal went away"
+            raise OSError(message)
+        return super().write(text)
+
+
+def test_a_start_that_fails_after_the_enter_sequence_leaves_the_alternate_screen() -> None:
+    err = _FailsOnHide()
+    ui, out, _ = make_ui(terminal=True, stderr=err)
+    reporter = TerminalReporter(ui, mode="layout", clock=EventClock(), refresh_thread=False)
+    with pytest.raises(OSError, match="went away"):
+        reporter.start(make_run(load_case(BUILD, "violation")))
+    assert err.raised
+    written = err.getvalue()
+    assert written.count(ENTER) == 1
+    assert written.count(LEAVE) == 1
+    assert written.index(ENTER) < written.index(LEAVE)
+    reporter.close()
+    assert err.getvalue().count(LEAVE) == 1  # close does not stop a display that never started
+    assert out.getvalue() == ""
 
 
 class _ClosedPipe(io.StringIO):

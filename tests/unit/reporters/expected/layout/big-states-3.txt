@@ -5,9 +5,9 @@
  6,692,791 states generated, 2,248,091 distinct, 0 on queue, diameter 391
  Ctrl-C to interrupt
  ── State space progress ──────────────────────────────────────────────────────────────────────────
- Time                          Diameter           Generated            Distinct            Queue
- 2026-11-14 22:26:35                188           3,010,185           1,017,832           12,837
- 2026-11-14 22:26:38                391           6,692,791           2,248,091                0
+ Time                          Diameter          Generated           Distinct              Queue
+ 2026-11-14 22:26:35                188          3,010,185          1,017,832             12,837
+ 2026-11-14 22:26:38                391          6,692,791          2,248,091                  0
 
 
 

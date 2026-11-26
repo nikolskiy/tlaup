@@ -9,6 +9,7 @@ cut the same way only on a terminal too narrow for them (the header is in the sc
 
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -47,6 +48,7 @@ _INTERRUPTED = "Interrupted"
 _RULE = "─"
 _PROGRESS_COLUMNS = ("Time", "Diameter", "Generated", "Distinct", "Queue")
 _TIME_WIDTH = len("2026-11-14 22:26:59")  # TLC's progress time
+_NUMBER_WIDTH = len("1,234,567,890,123")  # 13 digits with their separators
 _MARGIN = " "  # one column at each side, as in O4's mock-up
 
 
@@ -124,6 +126,24 @@ def _count(value: int) -> str:
     return format_count(value) if value >= 0 else ""  # TLC gives -1 for a count it does not know (simulation)
 
 
+@functools.cache
+def progress_widths(inner: int) -> tuple[tuple[int, ...], int]:
+    """The widths of the progress columns and the gap between them, from the screen's width alone, so that the
+    headings and the numbers stay where they are as counts grow. A number column holds 13 digits with their
+    separators where the screen has room, less on a narrow one; the gap is at least 2 columns, or 1 when that
+    leaves the numbers more room."""
+    headings = _PROGRESS_COLUMNS[1:]
+    room = 0  # the most a number column gets
+    for gap in (2, 1):
+        for candidate in range(_NUMBER_WIDTH, room, -1):
+            if _TIME_WIDTH + gap * len(headings) + sum(max(len(name), candidate) for name in headings) <= inner:
+                room = candidate
+                break
+    widths = (_TIME_WIDTH, *(max(len(name), room) for name in headings))
+    spare = inner - sum(widths)
+    return widths, max(1, spare // len(headings))
+
+
 def _progress(view: LayoutView, inner: int, height: int) -> Group:
     """The title, the column headings and the newest rows that fit; the numbers right-aligned, the spare width
     shared between the columns."""
@@ -133,9 +153,7 @@ def _progress(view: LayoutView, inner: int, height: int) -> Group:
         (item.at, _count(item.diameter), _count(item.generated), _count(item.distinct), _count(item.queue))
         for item in shown
     ]
-    widths = [max(len(row[column]) for row in rows) for column in range(len(_PROGRESS_COLUMNS))]
-    widths[0] = max(widths[0], _TIME_WIDTH)  # the headings do not move when the first row arrives
-    gap = max(2, (inner - sum(widths)) // (len(widths) - 1))
+    widths, gap = progress_widths(inner)
     lines = [_title("State space progress", inner)]
     for row in rows:
         cells = [row[0].ljust(widths[0])] + [cell.rjust(width) for cell, width in zip(row[1:], widths[1:], strict=True)]
