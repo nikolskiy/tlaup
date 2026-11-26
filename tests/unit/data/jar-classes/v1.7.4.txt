@@ -1,4 +1,4 @@
-# v1.7.0 (NOT v1.7.4: the v1.7.4 jar was not on the machine; regenerate from it), commit eb3ff99d167cc3216b4e9f6f822c112aba9597c5, jar SHA-256 8cce75caa1e59d0b0483bb8fb881ba33825edce8b2d98aba59d66ce685dd3d1a
+# v1.7.4, commit 5a47802b5c391f59ecdd44117981f4ff8c0656ba, jar SHA-256 936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
 com/sun/mail/auth/MD4.class
 com/sun/mail/auth/Ntlm.class
 com/sun/mail/auth/OAuth2SaslClient.class
@@ -274,6 +274,9 @@ pcal/Test.class
 pcal/Tokenize.class
 pcal/Translator$Error.class
 pcal/Translator.class
+pcal/ValidationCallBack$Generate.class
+pcal/ValidationCallBack$Noop.class
+pcal/ValidationCallBack.class
 pcal/Validator$ValidationResult.class
 pcal/Validator.class
 pcal/exception/FileToStringVectorException.class
@@ -317,7 +320,6 @@ tla2sany/modanalyzer/ModuleRelatives.class
 tla2sany/modanalyzer/ParseUnit.class
 tla2sany/modanalyzer/ParseUnitRelatives.class
 tla2sany/modanalyzer/ParseUnitsTable.class
-tla2sany/modanalyzer/SpecObj$1.class
 tla2sany/modanalyzer/SpecObj.class
 tla2sany/modanalyzer/SyntaxTreePrinter.class
 tla2sany/parser/BracketStack.class
