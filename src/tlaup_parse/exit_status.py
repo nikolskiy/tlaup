@@ -24,7 +24,7 @@ _TABLE: dict[int, tuple[str, str]] = {
     1: (
         "usage error",
         "TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main "
-        "class it cannot find (rule 1).",
+        "class it cannot find.",
     ),
     10: ("assumption failure", "An assumption of the spec is false; on rolling also a postcondition."),
     11: ("deadlock failure", "A reachable state has no successor."),

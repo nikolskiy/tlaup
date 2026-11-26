@@ -1,0 +1,3 @@
+TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+Params.tla  cfg: Params.cfg
+14 states generated, 10 distinct, 5 on queue, diameter 3

@@ -97,6 +97,14 @@ class SanyResult:
     module_files: dict[str, str]
     other: tuple[str, ...]  # the lines of class OTHER, in order (P8)
     lines_used: int  # how many input lines had another class; `RunResult.sany_lines_used` repeats it (P4)
+
+
+# Added while building 38a (2026-11-25, a low-impact choice by the stage 5 lead): the reporter's override hint
+# asks the code table for a code's kind, so the table is public, read-only.
+CODES: Mapping[int, CodeInfo]  # MappingProxyType over the code table (P5)
+
+
+class CodeInfo: ...  # name, kind
 ```
 
 `Unframed` is the framer's name for a line outside every message. It is not called `Text`, because the reporters use Rich's `Text` for something else ([22 O3](22-reporters.md#o3-terminal-reporter)).

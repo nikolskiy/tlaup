@@ -1,0 +1,2 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+Result: no error found in a bounded search (simulation) (TLC exit code 0) in 0.4 s

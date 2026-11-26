@@ -1,0 +1,4 @@
+Warning: Failed to match Add2 operator override from tlc2.overrides.TLCOverrides with signature: <Java Method: public static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue)>.
+<<"Inv sees", 1003, 1030>>
+2 states generated, 1 distinct, 0 left on queue; depth 1
+Result: no error found, every state checked (TLC exit code 0) in 0.9 s

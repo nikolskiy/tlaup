@@ -44,7 +44,7 @@ Rules:
 | Code | Word | Meaning | Known |
 | --- | --- | --- | --- |
 | 0 | success | TLC checked the spec and found nothing wrong. | yes |
-| 1 | usage error | TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find (rule 1). | yes |
+| 1 | usage error | TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find. (Rule 1 above; the meaning printed in the result line carries no cross-reference, corrected while building 38a.) | yes |
 | 10 | assumption failure | An assumption of the spec is false; on rolling also a postcondition. | yes |
 | 11 | deadlock failure | A reachable state has no successor. | yes |
 | 12 | safety failure | An invariant was violated. | yes |

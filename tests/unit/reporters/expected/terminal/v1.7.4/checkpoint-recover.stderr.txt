@@ -1,0 +1,7 @@
+TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+Slow.tla  cfg: Slow.cfg
+936 states generated, 936 distinct, 0 on queue, diameter 936
+1,813 states generated, 1,813 distinct, 0 on queue, diameter 1,813
+2,769 states generated, 2,769 distinct, 0 on queue, diameter 2,769
+3,913 states generated, 3,913 distinct, 0 on queue, diameter 3,913
+4,001 states generated, 4,001 distinct, 0 on queue, diameter 4,001

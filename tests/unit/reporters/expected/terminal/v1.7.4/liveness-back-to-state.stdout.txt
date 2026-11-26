@@ -1,0 +1,14 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+Error: Temporal properties were violated.
+
+  The following behavior constitutes a counter-example:
+
+  1: Initial predicate
+       x = 0
+  2: Next  (LiveBack.tla:5:9)
+     * x = 1
+  3: Next  (LiveBack.tla:5:9)
+     * x = 2
+  Back to state 1
+4 states generated, 3 distinct, 0 left on queue
+Result: errors found (TLC exit code 13: a temporal property or an action property was violated) in 0.9 s

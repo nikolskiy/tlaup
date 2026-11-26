@@ -1,0 +1,11 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+Error: The second argument of \div is 0.
+  The error occurred when TLC was evaluating the nested
+  expressions at the following positions:
+  0. Line 4, column 9 to line 4, column 13 in Eval
+  1. Line 7, column 8 to line 7, column 19 in Eval
+  2. Line 7, column 8 to line 7, column 15 in Eval
+
+
+1 states generated, 1 distinct, 1 left on queue
+Result: errors found (TLC exit code 75: evaluating the spec failed, for example while computing the initial states, or Java ran out of memory) in 0.9 s
