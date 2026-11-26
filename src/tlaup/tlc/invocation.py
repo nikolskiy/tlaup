@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 from tlaup.errors import ConflictingOptions, UsageError
 from tlaup.java.classpath import run_paths
 from tlaup.java.locate import require_java
-from tlaup.java.opts import jvm_options
+from tlaup.java.opts import env_options, jvm_options
 from tlaup.project.core import find_project_root
 from tlaup.project.spec import config_arg, resolve_cfg, resolve_spec
 from tlaup.tlc.overrides import check_overrides, collect_override_classes
@@ -147,6 +147,18 @@ def _path_warnings(spec: Path, cfg: Path | None, env: Mapping[str, str], platfor
     )
 
 
+def check_command_line(request: TlcRequest, env: Mapping[str, str]) -> str | None:
+    """Step 0 of 11 R11: what needs only the command line and the environment; reads nothing from the disk.
+
+    The command calls it before it loads the settings, so a broken config file (3) never hides a conflict typed on
+    the command line (2). Returns the checked ``--workers`` text, or None.
+    """
+    _check_passthrough(request)
+    workers = None if request.workers is None else _check_workers(request.workers)
+    env_options(env)  # only the quoting of TLAUP_JAVA_OPTS; the setting java.opts is read after this step
+    return workers
+
+
 def resolve_tlc_invocation(  # noqa: PLR0913 - the pieces the preflight needs, not the whole context (G1)
     request: TlcRequest,
     *,
@@ -165,8 +177,7 @@ def resolve_tlc_invocation(  # noqa: PLR0913 - the pieces the preflight needs, n
     extra = request.extra_args
 
     # 0. What needs only the command line and the environment.
-    _check_passthrough(request)
-    requested_workers = None if request.workers is None else _check_workers(request.workers)
+    requested_workers = check_command_line(request, env)
     options = jvm_options(settings.java.opts, env, request.java_opts)
 
     # 1. The spec, and 1b. the project root found from it.

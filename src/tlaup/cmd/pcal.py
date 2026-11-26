@@ -46,12 +46,13 @@ def pcal(
     from tlaup.cmd.common import run_build
     from tlaup.cmd.tool._shared import utc_now
     from tlaup.errors import InternalError
-    from tlaup.tools.invocation import build_tool_command, resolve_tool_invocation
+    from tlaup.tools.invocation import build_tool_command, check_command_line, resolve_tool_invocation
     from tlaup.tools.pcal import run_pcal, written_notes
     from tlaup.versioning.first_run import read_auto_install
 
     app: AppContext = ctx.find_root().obj
     auto = read_auto_install(auto_install, app.env)  # a usage error, before the preflight (02 X1, rule 5)
+    check_command_line("pcal", tuple(pcal_args or ()), app.env)  # step 0, before the settings load (11 R11)
     cwd = Path.cwd()
     inv = resolve_tool_invocation(
         "pcal",

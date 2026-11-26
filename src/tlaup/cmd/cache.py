@@ -278,8 +278,3 @@ def clean_command(
     else:
         freed, removed_any = _clean_kinds(app_context, runs=runs, remote=remote, all_kinds=all_kinds)
     app_context.ui.note(f"freed {format_size(freed)}" if removed_any else NOTHING_REMOVED)
-
-
-app.command(name="dir", help=DIR_HELP)(dir_command)
-app.command(name="list", help=LIST_HELP)(list_command)
-app.command(name="clean", help=CLEAN_HELP)(clean_command)

@@ -90,14 +90,13 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with twelve options takes them as
     from tlaup.cmd.tool._shared import utc_now
     from tlaup.reporters import ReporterOptions, make_reporter
     from tlaup.tlc.command import build_tlc_command
-    from tlaup.tlc.invocation import TlcRequest, resolve_tlc_invocation
+    from tlaup.tlc.invocation import TlcRequest, check_command_line, resolve_tlc_invocation
     from tlaup.tlc.runner import run_tlc, run_tlc_raw
     from tlaup.versioning.first_run import read_auto_install
 
     app: AppContext = ctx.find_root().obj
     ui = app.ui
     auto = read_auto_install(auto_install, app.env)  # a usage error, before the preflight (02 X1, rule 5)
-    interval = read_refresh_interval(refresh_interval, app)  # the same (22 O5, 11 R11 step 0)
     request = TlcRequest(
         spec=spec,
         cfg=cfg,
@@ -108,6 +107,8 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with twelve options takes them as
         java_opts=tuple(java_opt or ()),
         extra_args=tuple(tlc_args or ()),
     )
+    check_command_line(request, app.env)  # 11 R11 step 0: reads nothing from the disk, so no settings yet
+    interval = read_refresh_interval(refresh_interval, app)  # the first read of the settings (22 O5)
     inv = resolve_tlc_invocation(
         request,
         paths=app.paths,

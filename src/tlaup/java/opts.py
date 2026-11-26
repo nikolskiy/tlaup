@@ -12,15 +12,22 @@ from tlaup.errors import UsageError
 ENV_VARIABLE = "TLAUP_JAVA_OPTS"
 
 
+def env_options(env: Mapping[str, str]) -> list[str]:
+    """`TLAUP_JAVA_OPTS` split as a shell would; reads only the environment, so it is a step-0 check (11 R11).
+
+    Raises UsageError, naming the variable, for an unbalanced quote in it.
+    """
+    try:
+        return shlex.split(env.get(ENV_VARIABLE, ""))
+    except ValueError as error:  # shlex's "No closing quotation" and "No escaped character"
+        message = f"{ENV_VARIABLE} cannot be split into options: {error}"
+        raise UsageError(message, hint=f"check the quotes in {ENV_VARIABLE}") from error
+
+
 def jvm_options(setting: Sequence[str], env: Mapping[str, str], flags: Sequence[str]) -> tuple[str, ...]:
     """The setting `java.opts`, then `TLAUP_JAVA_OPTS` split as a shell would, then each flag as given.
 
     Nothing is de-duplicated: for a repeated option the JVM decides, and the later one usually wins.
     Raises UsageError, naming the variable, for an unbalanced quote in it.
     """
-    try:
-        from_env = shlex.split(env.get(ENV_VARIABLE, ""))
-    except ValueError as error:  # shlex's "No closing quotation" and "No escaped character"
-        message = f"{ENV_VARIABLE} cannot be split into options: {error}"
-        raise UsageError(message, hint=f"check the quotes in {ENV_VARIABLE}") from error
-    return (*setting, *from_env, *flags)
+    return (*setting, *env_options(env), *flags)

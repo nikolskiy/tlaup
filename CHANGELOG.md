@@ -79,6 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup config list` is now `tlaup config show` and prints the settings in effect, not the file.
 - `tlaup fetch-cache clear` and `tlaup tlc --cleanup` are now `tlaup cache clean`; `tlaup cache list` shows the run folders, and `tlaup cache clean RUN_ID` removes one.
 - `tlaup check-java` is now `tlaup doctor`, which also checks the pinned build, the config and the folders.
+- The version flag is `-V` (was `-v`). `-v` is reserved for `--verbose`.
+- Exit codes changed. tlaup's own errors now return 2 (usage), 3 (not set up), 4 (not found) or 5 (failed) instead of 1; Ctrl-C returns 130 (was 143 or 130); a closed output pipe returns 141 (was 1); `tlaup tool uninstall` returns 5 when a build could not be removed (was 0).
 
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.

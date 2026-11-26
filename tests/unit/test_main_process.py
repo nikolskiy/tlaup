@@ -226,4 +226,4 @@ def test_version_is_the_same_from_python_m_and_the_console_script_row_p1() -> No
     by_script = run([str(script), "--version"])
     assert by_module.code == by_script.code == 0
     assert by_module.stdout == by_script.stdout
-    assert (by_module.stdout or "").startswith("tlaup v")
+    assert (by_module.stdout or "").startswith("tlaup ")
