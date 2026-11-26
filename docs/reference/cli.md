@@ -493,7 +493,7 @@ Rewrites the config file. Comments in it are not kept; use `tlaup config edit` t
 Arguments:
 
 - `KEY`: A setting, as section.name (tlc.workers); `config show` lists them. (required)
-- `VALUE`: The new value, read as YAML: 4, auto, true, or '\[ghe.example.com]' for a list. Quote it
+- `VALUE`: The new value, read as YAML: 4, auto, true, or '["ghe.example.com"]' for a list. Quote it
   for the shell. (required)
 
 Options:

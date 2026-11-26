@@ -82,6 +82,8 @@ def _command(command: Any, path: list[str], parent: Any, depth: int) -> list[str
         panels: dict[str, list[str]] = {}
         for name in command.list_commands(ctx):
             sub = command.commands[name]
+            if getattr(sub, "hidden", False):
+                continue
             panels.setdefault(getattr(sub, "rich_help_panel", None) or "Commands", []).append(name)
         for panel, names in panels.items():
             out += [f"{panel}:", ""]
