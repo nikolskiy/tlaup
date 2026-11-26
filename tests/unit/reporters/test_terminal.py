@@ -131,6 +131,15 @@ def test_tlcs_version_line_is_shown_only_when_it_differs_from_the_store() -> Non
         for event in parser.feed(text):
             reporter.handle(event, parser.result)
     assert err.getvalue().splitlines()[-1] == "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+    no_commit = dataclasses.replace(run, build=dataclasses.replace(run.build, commit=None))
+    ui, _, err = make_ui()
+    reporter = TerminalReporter(ui, clock=SecondClock())
+    reporter.start(no_commit)
+    parser = TlcParser()
+    for text in case.lines[:3]:
+        for event in parser.feed(text):
+            reporter.handle(event, parser.result)
+    assert len(err.getvalue().splitlines()) == 2  # the header alone: a build with no commit is not compared
 
 
 def test_an_action_that_generated_no_state_is_marked_never_reached_r9() -> None:
@@ -141,6 +150,11 @@ def test_an_action_that_generated_no_state_is_marked_never_reached_r9() -> None:
     lines = [line.plain for line in render_inline_coverage([reached, unreached], run)]
     assert lines[6] == "  3    6 | Next == \\/ x < 3 /\\ x' = x + 1 /\\ y' = y"
     assert lines[8] == "  0    8 |         \\/ x = 3 /\\ y = 3 /\\ UNCHANGED <<x, y>>  <-- never reached"
+
+
+def test_a_message_that_already_says_error_gets_no_second_prefix() -> None:
+    lines = replay("v1.7.4", "generate-deadlock").stdout.splitlines()
+    assert lines[:2] == ["Error: unrecognized option: -generate", "  Usage: java tlc2.TLC [-option] inputfile"]
 
 
 # --- P10, streams, P11 -------------------------------------------------------------------------------------------

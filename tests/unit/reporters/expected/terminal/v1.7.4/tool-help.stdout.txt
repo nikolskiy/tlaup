@@ -132,4 +132,4 @@
         creation. Try re-running TLC adding the 'nomonolith' option to the '-generateSpecTE'
         parameter.
 
-Result: incomplete, TLC stopped without finishing (TLC exit code 1: TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find (rule 1))
+Result: incomplete, TLC stopped without finishing (TLC exit code 1: TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find)

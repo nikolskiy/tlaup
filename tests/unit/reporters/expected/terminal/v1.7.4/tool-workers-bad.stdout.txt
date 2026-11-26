@@ -1,3 +1,3 @@
-Error: Error: worker number or 'auto' required. But encountered abc
+Error: worker number or 'auto' required. But encountered abc
   Usage: java tlc2.TLC [-option] inputfile
-Result: not checked: TLC refused its arguments (TLC exit code 1: TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find (rule 1))
+Result: not checked: TLC refused its arguments (TLC exit code 1: TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find)

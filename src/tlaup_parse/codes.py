@@ -9,8 +9,13 @@ upstream's source (P4, Rejected); a test lists every code the golden files frame
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from tlaup_parse.model import ErrorKind
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 @dataclass(frozen=True)
@@ -19,7 +24,7 @@ class CodeInfo:
     kind: ErrorKind | None = None  # the kind of the error a message of this code opens (P5); None: "other"
 
 
-CODES: dict[int, CodeInfo] = {
+_TABLE: dict[int, CodeInfo] = {
     0: CodeInfo("NO_ERROR"),
     # Check and CheckImpl
     3000: CodeInfo("CHECK_FAILED_TO_CHECK"),
@@ -272,3 +277,6 @@ CODES: dict[int, CodeInfo] = {
     2501: CodeInfo("TLC_TE_SPEC_GENERATION_COMPLETE"),
     2502: CodeInfo("TLC_TE_SPEC_GENERATION_ERROR"),
 }
+
+# Read-only: the table is public (reporters read it, D8), and nothing outside this module may change it.
+CODES: Mapping[int, CodeInfo] = MappingProxyType(_TABLE)

@@ -88,6 +88,9 @@ def _message_lines(lines: Sequence[str], *, prefix: str, style: str, indent: str
     """``prefix`` and the first line, the further lines indented; a line TLC left empty stays empty (P10)."""
     if not lines:
         return [_text("", prefix=prefix.rstrip(), style=style)]
+    word = prefix.split(" ", 1)[0]  # "Error:" or "Warning:"
+    if prefix == f"{word} " and lines[0].startswith(word):  # not with "TLC message <code>: " after it
+        prefix, style = "", ""  # TLC's text already says it (1102: "Error: unrecognized option ..."); once is enough
     out = [_text(lines[0], prefix=prefix, style=style)]
     out.extend(_text(indent + line if line else "") for line in lines[1:])
     return out
@@ -216,9 +219,10 @@ def render_event(event: Event, result: RunResult, run: RunInfo) -> list[Text]:  
 
 
 def _differs(tool: ToolInfo, run: RunInfo) -> bool:
-    """TLC's version line says something the store's build does not (O3)."""
+    """TLC's version line says something the store's build does not (O3); a build with no commit is not compared
+    by revision, so its version line is not printed on every run."""
     build = run.build
-    if tool.revision is not None and not (build.commit or "").startswith(tool.revision):
+    if tool.revision is not None and build.commit is not None and not build.commit.startswith(tool.revision):
         return True
     return build.calver is not None and tool.version != build.calver
 

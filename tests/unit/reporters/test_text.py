@@ -329,7 +329,7 @@ def test_result_line_falls_back_to_the_reporters_clock() -> None:
             ErrorKind.USAGE,
             1,
             "TLC refused its arguments (TLC exit code 1: TLC rejected its command line, or the JVM "
-            "could not start it for an option it does not accept or a main class it cannot find (rule 1))",
+            "could not start it for an option it does not accept or a main class it cannot find)",
         ),
         (
             ErrorKind.EXCEPTION,
