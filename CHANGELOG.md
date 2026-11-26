@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Modules are stored in the cache's `module` folder (was `modules`), each with a `module.json`. Modules added by earlier versions are not found: run `tlaup module add` again. The old `modules` folder can be deleted.
 - `module add` compiles a module's Java sources against the TLA+ tools jar and the module's own `lib/*.jar` only. Other registered modules and the jars of `module_lib_path` are no longer on the compile classpath (they still take part in runs); a module that needs a jar to compile puts a copy in its own `lib/`.
 - Override classes are compiled with `-encoding UTF-8 --release 11`. A module whose sources use language features or library classes newer than Java 11 no longer compiles; set `java.min_version` higher to raise the release. `javac` must be version 11 or newer.
+- A folder is treated as the project root of a spec only if it is the spec's own folder, or its parent when the spec is in a folder named `spec`, `specs`, `test` or `tests`. The home folder is never a project root. A project that keeps specs in a differently named subfolder must move `modules/`, `classes/` or `lib/` beside the specs or rename the subfolder.
 
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.

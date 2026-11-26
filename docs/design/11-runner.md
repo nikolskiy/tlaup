@@ -180,6 +180,7 @@ Roadmap: "A dot in the name is mangled by `with_suffix` (`Foo.v2` becomes `Foo.t
 **Design.** `resolve_spec(text: str, cwd: Path) -> Path`:
 
 1. Empty, `.` or `..`: `UsageError` ("SPEC must be a TLA+ file or its name").
+   A trailing path separator is dropped first, so `Foo/` is read as `Foo` (settled while building 32, 2026-11-25, a low-impact choice by the stage 5 lead: a shell completes a folder name with one).
 2. If `text` ends in `.tla`: that path must be a file.
 3. Otherwise try, in order, `text + ".tla"` (appended, never replacing a suffix, so `Foo.v2` looks for `Foo.v2.tla`) and `<parent>/spec/<name>.tla` (the documented `spec/` layout).
 4. A path that exists but does not end in `.tla` is never accepted: `tlaup tlc Spec.cfg` is `SpecNotFound` with the hint "did you mean Spec.tla?" when that exists. A folder is refused only here, when no candidate of step 3 exists: with both a folder `Foo/` and a file `Foo.tla`, `tlaup tlc Foo` runs `Foo.tla`; with only the folder it is a `UsageError` saying SPEC is a folder.
