@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 import tlaup.context
-from tests.integration.discovery import VARIABLE, TestJar, find_test_jars, install, missing
+from tests.integration.discovery import REMOVED_VARIABLES, VARIABLE, TestJar, find_test_jars, install, missing
 from tlaup.paths import AppPaths
 
 if TYPE_CHECKING:
@@ -39,29 +39,6 @@ def _discover() -> tuple[str | None, list[TestJar], str | None]:
 
 # Read once, before any fixture runs: the isolation fixture removes every TLAUP_* variable.
 _REASON, JARS, _NO_MATCH = _discover()
-
-
-# Removed before every test, besides every TLAUP_* variable: the root fixture's list without JAVA_HOME (T2).
-_REMOVED = (
-    "JAVA_OPTS",
-    "JDK_JAVA_OPTIONS",
-    "JAVA_TOOL_OPTIONS",
-    "GITHUB_TOKEN",
-    "GH_TOKEN",
-    "EDITOR",
-    "VISUAL",
-    "XDG_CONFIG_HOME",
-    "XDG_CACHE_HOME",
-    "XDG_DATA_HOME",
-    "FORCE_COLOR",
-    "CLICOLOR_FORCE",
-    "HTTP_PROXY",
-    "HTTPS_PROXY",
-    "ALL_PROXY",
-    "http_proxy",
-    "https_proxy",
-    "all_proxy",
-)
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
@@ -113,7 +90,7 @@ def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Isolated:
     for name in list(os.environ):
         if name.startswith("TLAUP_"):
             monkeypatch.delenv(name)
-    for name in _REMOVED:
+    for name in REMOVED_VARIABLES:
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("TLAUP_HOME", str(home / "tlaup"))  # moves config, cache and data (D25)
     monkeypatch.setenv("HOME", str(home))

@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.integration.discovery import VARIABLE, find_test_jars, install, missing
+from tests.integration.discovery import REMOVED_VARIABLES, VARIABLE, find_test_jars, install, missing
 from tests.steps._terminal import TerminalRun, run_on_terminal
 from tlaup.paths import AppPaths
 
@@ -36,10 +36,12 @@ def test_repl_reads_the_terminal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     for name in list(os.environ):
         if name.startswith("TLAUP_"):
             monkeypatch.delenv(name)
+    for name in REMOVED_VARIABLES:
+        monkeypatch.delenv(name, raising=False)
     home, jvm = tmp_path / "home", tmp_path / "jvm"
     for folder in (home, jvm / "home", jvm / "tmp"):
         folder.mkdir(parents=True)
-    monkeypatch.setenv("TLAUP_HOME", str(home / "tlaup"))
+    monkeypatch.setenv("TLAUP_HOME", str(tmp_path / "tlaup"))  # apart from HOME, so HOME must stay empty
     monkeypatch.setenv("HOME", str(home))
     monkeypatch.setenv("NO_COLOR", "1")
     monkeypatch.setenv("TLAUP_TOOL_REPOSITORY", "https://127.0.0.1:9/repos/tlaplus/tlaplus")  # no network
@@ -60,6 +62,7 @@ def test_repl_reads_the_terminal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
         run.close()
         raise
     assert outcome.exit_code == 0, outcome.stdout
+    assert not any(home.iterdir()), sorted(home.rglob("*"))  # user.home is moved (01 T9)
 
 
 def _end_input(run: TerminalRun) -> None:

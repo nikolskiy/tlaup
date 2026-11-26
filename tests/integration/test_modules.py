@@ -6,7 +6,7 @@ on copies in the work folder, so that what TLC writes beside a spec never lands 
 
 from __future__ import annotations
 
-import shutil
+import os
 import subprocess
 from typing import TYPE_CHECKING
 
@@ -14,6 +14,7 @@ from typer.testing import CliRunner
 
 import tlaup.cli
 from tests.integration.live import EXAMPLES, SPECS, copy_folder, run_live_tlc, utc_now
+from tlaup.java.locate import locate
 from tlaup.modules.registry import Registry
 from tlaup_parse import ErrorKind, Verdict
 
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
     from tests.integration.live import Live
     from tlaup.versioning.store import Build
 
+ASSERTION_FAILED = 14  # TLC's code for a failed Assert, as in the assertion-failure capture (D63)
 MODULE_BUILD_FAILED = 5  # ModuleBuildError (13 M2, 02 X1)
 OVERRIDES_PROPERTY = "overrides_property"  # a build that loads the classes the property names (00, research 13)
 
@@ -56,16 +58,17 @@ def test_queue_module(live_build: Build, isolated: Isolated, monkeypatch: pytest
     else:  # v1.7.4: R7's warning names the class, and the TLA+ definition's Assert fails (research 13)
         assert any("QueueOverrides" in text for text in live.outcome.warnings), live.outcome.warnings
         assert [error.kind for error in result.errors] == [ErrorKind.ASSERTION], result.errors
+        assert live.outcome.exit_code == ASSERTION_FAILED
 
 
 def test_project_override_class(live_build: Build, isolated: Isolated, monkeypatch: pytest.MonkeyPatch) -> None:
     """R33: the project's own TLCOverrides in its classes/, compiled here with the real javac, is the one TLC loads."""
     project = copy_folder(SPECS / "naming_fixed", isolated.work / "naming_fixed")
-    javac = shutil.which("javac")
-    assert javac is not None, "javac is not on PATH"
+    javac = locate("javac", os.environ).tool  # as tlaup finds it: JAVA_HOME/bin first, then PATH (13 J2)
+    assert javac is not None, "javac was found neither in JAVA_HOME/bin nor on PATH"
     source = project / "modules" / "tlc2" / "overrides" / "TLCOverrides.java"
     classes = project / "classes"
-    command = [javac, "--release", "11", "-cp", str(live_build.jar), "-d", str(classes), str(source)]
+    command = [str(javac.path), "--release", "11", "-cp", str(live_build.jar), "-d", str(classes), str(source)]
     compiled = subprocess.run(command, capture_output=True, text=True, check=False)
     assert compiled.returncode == 0, compiled.stderr
     spec = project / "spec" / "test_spec.tla"
@@ -96,6 +99,9 @@ def test_sequences_ext(
         assert "KSubsetValue" in result.stderr, result.stderr
         assert "Traceback" not in result.output, result.output
         assert not Registry(isolated.paths.modules, now=utc_now).list()
+        modules = isolated.paths.modules
+        left = sorted(modules.rglob("*")) if modules.exists() else []
+        assert left in ([], [modules / ".tmp"]), left  # the build's temporary folder is gone; .tmp/ itself may stay
         return
     module_add(source)
     live = run_example(isolated, live_build, "SequencesExtTest", monkeypatch)

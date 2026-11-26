@@ -56,7 +56,9 @@ def test_sany_streams_and_modules(live_build: Build, test_jar: TestJar, isolated
     assert outcome.exit_code == SANY_ERROR
     assert any("NoSuchModule" in d.message for d in sink.diagnostics), sink.diagnostics
     if test_jar.line == "stable":
-        assert any("NoSuchModule.tla" in line for line in outcome.result.other), outcome.result.other
+        # The line v1.7.4 writes to stderr, kept by the one pipe of S1 (package 52 names it).
+        found = [line for line in outcome.result.other if line.startswith("File does not exist")]
+        assert any("NoSuchModule.tla" in line for line in found), outcome.result.other
 
     # A registered module is found (research 27).
     module = copy_folder(EXAMPLES / "QueueModule", isolated.work / "QueueModule")
@@ -157,4 +159,5 @@ def test_repl_piped(live_build: Build, isolated: Isolated) -> None:
     assert any(text.split()[-1:] == ["2"] for text in done.stdout.splitlines()), done.stdout  # after the prompt
     # The REPL's history (~/.tlaplus/history.repl, research 12) went to the JVM's moved user.home, not HOME (T9).
     assert (isolated.user_home / ".tlaplus").is_dir()
+    assert any(isolated.tmp.iterdir()), "nothing in the moved java.io.tmpdir"
     assert sorted(path.name for path in isolated.home.iterdir()) == home_before

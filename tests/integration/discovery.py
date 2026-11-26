@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from tests.parse.drive import build_folders, line_of
+from tlaup.java.locate import locate
 from tlaup.versioning.jarinfo import read_jar
 from tlaup.versioning.store import Source, ToolStore
 
@@ -34,6 +35,30 @@ if TYPE_CHECKING:
 VARIABLE = "TLAUP_TEST_JARS"
 JAR = "tla2tools.jar"
 RECORD = "build.json"  # a store's build folder (12 V1)
+
+# Removed before every test, besides every TLAUP_* variable: the root isolation fixture's list without JAVA_HOME,
+# and the JVM's own option variables, which would reach every real JVM (T2). Used by this folder's fixture and by
+# the REPL case of tests/lifeline/.
+REMOVED_VARIABLES = (
+    "JAVA_OPTS",
+    "JDK_JAVA_OPTIONS",
+    "JAVA_TOOL_OPTIONS",
+    "GITHUB_TOKEN",
+    "GH_TOKEN",
+    "EDITOR",
+    "VISUAL",
+    "XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME",
+    "XDG_DATA_HOME",
+    "FORCE_COLOR",
+    "CLICOLOR_FORCE",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    "http_proxy",
+    "https_proxy",
+    "all_proxy",
+)
 
 HOW_TO_SET = f"""\
 {VARIABLE} is not set: the integration tests need real jars and a JDK.
@@ -106,14 +131,9 @@ def find_test_jars(root: Path) -> list[TestJar]:
 
 
 def find_java(env: Mapping[str, str]) -> str | None:
-    """``java`` as tlaup finds it: ``JAVA_HOME/bin`` first, then ``PATH`` (13 J2)."""
-    name = "java.exe" if sys.platform == "win32" else "java"
-    java_home = env.get("JAVA_HOME")
-    if java_home:
-        candidate = Path(java_home) / "bin" / name
-        if candidate.is_file() and os.access(candidate, os.X_OK):
-            return str(candidate)
-    return shutil.which("java", path=env.get("PATH", ""))
+    """``java`` as tlaup finds it, by tlaup's own ``locate``: ``JAVA_HOME/bin`` first, then ``PATH`` (13 J2)."""
+    tool = locate("java", env).tool
+    return None if tool is None else str(tool.path)
 
 
 def missing(env: Mapping[str, str]) -> str | None:
