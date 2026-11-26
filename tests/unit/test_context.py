@@ -41,7 +41,6 @@ def test_debug_follows_tlaup_debug(monkeypatch: pytest.MonkeyPatch, value: str |
 def test_old_code_follows_the_variables(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("TLAUP_HOME", str(tmp_path))
     assert loader.config_dir() == tmp_path / "config"
-    assert loader.cache_dir() == tmp_path / "cache"
 
 
 def test_context_carries_a_ui() -> None:

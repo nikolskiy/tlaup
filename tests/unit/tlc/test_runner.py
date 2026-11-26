@@ -33,8 +33,8 @@ from tlaup.java.locate import JavaRuntime, JavaTool
 from tlaup.reporters.collecting import CollectingReporter
 from tlaup.tlc.command import build_tlc_command
 from tlaup.tlc.invocation import TlcRequest
-from tlaup.tlc.run import RunOutcome, run_tlc, run_tlc_raw, waiting_line
 from tlaup.tlc.rundirs import Kept, RunStart, complete_checkpoint, kept_note, list_entries, reminder, sweep
+from tlaup.tlc.runner import RunOutcome, run_tlc, run_tlc_raw, waiting_line
 from tlaup_parse import CheckpointStarted, CheckpointWritten, RunResult, Status, TlcParser, Verdict
 
 if TYPE_CHECKING:

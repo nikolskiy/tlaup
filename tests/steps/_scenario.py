@@ -27,10 +27,13 @@ from typer.testing import CliRunner
 import tlaup.cli
 import tlaup.context
 import tlaup.java
+from tests.clock import FakeClock
 from tests.expected import assert_matches
 from tests.fakes.control import write_launcher
 from tlaup.errors import TlaupError
 from tlaup.paths import AppPaths
+from tlaup.versioning.spec import format_build
+from tlaup.versioning.store import ToolStore
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -39,6 +42,7 @@ if TYPE_CHECKING:
 
     from tests.conftest import Isolated
     from tests.fakes.control import Fakes, Tool
+    from tlaup.versioning.store import Build
 
 TESTS_DIR = Path(__file__).resolve().parent.parent
 GOLDEN_DIR = TESTS_DIR / "parse" / "golden"
@@ -46,7 +50,8 @@ SPECS_DIR = GOLDEN_DIR / "specs"
 EXPECTED_DIR = TESTS_DIR / "features" / "expected"
 
 # The main class of a golden case, from the tool its folder names (package 18, "Declaring runs").
-TOOL_MAINS = {"tlc": "tlc2.TLC", "sany": "tla2sany.SANY", "pcal": "pcal.trans"}
+# The synthetic cases are TLC output (07), so their folder names TLC's class too (package 39).
+TOOL_MAINS = {"tlc": "tlc2.TLC", "synthetic": "tlc2.TLC", "sany": "tla2sany.SANY", "pcal": "pcal.trans"}
 # The fake java's script fields for the signals it can be told about (T4).
 SIGNAL_FIELDS = {"SIGINT": "on_sigint", "SIGTERM": "on_sigterm"}
 VERSION_START = "-version"
@@ -115,6 +120,11 @@ def _is_kept(folder: Path) -> bool:
     except (OSError, ValueError):
         return False
     return isinstance(data, dict) and data.get("kept") is True
+
+
+def _installed_builds(paths: AppPaths) -> list[Build]:
+    """The installed builds, read through the store with a fixed clock (nothing is written)."""
+    return ToolStore(paths, now=FakeClock().now).builds()
 
 
 def _process_alive(pid: int) -> bool:
@@ -314,7 +324,7 @@ class Scenario:
             fail(f"no golden case {case}: {out} does not exist")
         tool = case.split("/", 1)[0]
         if tool not in TOOL_MAINS:
-            fail(f"golden case {case} is not under tlc/, sany/ or pcal/, so no main class is known for it")
+            fail(f"golden case {case} is not under tlc/, synthetic/, sany/ or pcal/, so no main class is known for it")
         self.declare(TOOL_MAINS[tool], stdout=f"{case}.out", stderr=self._golden_stderr(case), exit=exit_code)
 
     @staticmethod
@@ -578,8 +588,10 @@ class Scenario:
         """The last tool start's arguments, one per line, with the values that change from run to run replaced.
 
         The scenario's folders become their placeholders (longest path first), the lifeline agent's process
-        id ``<pid>``, the folder of the agent's jar ``<tlaup>``, and the run id of the ``-metadir`` path
-        ``<run-id>`` (T5's note; T8's helper is untouched).
+        id ``<pid>``, the folder of the agent's jar ``<tlaup>``, the run id of the ``-metadir`` path
+        ``<run-id>`` (T5's note; T8's helper is untouched), and an installed build's folder ``{tools}/<version>``,
+        the form ``the folder ... is read-only`` and ``stdout is exactly`` read (package 39), so no expected file
+        holds a build id.
         """
         args = [str(arg) for arg in self.last_tool_start()["args"]]
         folders: list[tuple[str, str]] = [("home", str(self.isolated.home)), ("work", str(self.isolated.work))]
@@ -596,9 +608,13 @@ class Scenario:
             metadir = Path(args[args.index("-metadir") + 1])
             if metadir.is_relative_to(paths.runs) and metadir != paths.runs:
                 run_id = metadir.relative_to(paths.runs).parts[0]
+        builds = _installed_builds(paths) if paths is not None else []
         lines = []
         for arg in args:
             text = arg.replace(f"{TLAUP_JAVA_DIR}{os.sep}", "<tlaup>/")
+            for build in builds:
+                assert paths is not None
+                text = text.replace(str(build.path), str(paths.tools / format_build(build, builds)))
             for name, folder in folders:
                 text = text.replace(folder, f"{{{name}}}")
             if run_id is not None:

@@ -1,0 +1,22 @@
+-javaagent:<tlaup>/lifeline.jar=pid=<pid>
+-Dfile.encoding=UTF-8
+-Dstdout.encoding=UTF-8
+-Dstderr.encoding=UTF-8
+-XX:+IgnoreUnrecognizedVMOptions
+-XX:+UseParallelGC
+-Xmx2g
+-Dx=a b
+-Xss8m
+-cp
+{tools}/v1.7.4@5a47802/tla2tools.jar
+tlc2.TLC
+-tool
+-metadir
+{runs}/<run-id>
+-workers
+auto
+-fp
+3
+-seed
+7
+{work}/Success.tla

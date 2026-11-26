@@ -19,7 +19,7 @@ from tests.parse.drive import cases_of, golden_root, read_lines
 from tlaup.java.locate import JavaRuntime, JavaTool
 from tlaup.reporters.base import RunInfo
 from tlaup.reporters.terminal import TerminalReporter
-from tlaup.tlc.run import RunOutcome
+from tlaup.tlc.runner import RunOutcome
 from tlaup.ui import Ui
 from tlaup.versioning.store import Build, Source
 from tlaup_parse import RunResult, TlcParser

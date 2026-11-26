@@ -30,7 +30,7 @@ from tests.unit.reporters.replay import (
     replay,
 )
 from tlaup.reporters.terminal import TerminalReporter, header_lines, render_inline_coverage
-from tlaup.tlc.run import waiting_line
+from tlaup.tlc.runner import waiting_line
 from tlaup_parse import (
     CoverageItem,
     ErrorKind,

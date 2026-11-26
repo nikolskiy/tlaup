@@ -1,16 +1,9 @@
-import os
 from collections.abc import Sequence
 from enum import Enum, auto
 from pathlib import Path
 
 from tlaup.config.schema import Settings
 from tlaup.project.core import CLASSES_DIR, LIB_DIR, MODULES_DIR
-
-
-class ResolveMode(Enum):
-    """Modes for classpath resolution."""
-
-    RUNTIME = auto()  # For 'java -cp ... tlc2.TLC' (classes first)
 
 
 class SubdirType(Enum):
@@ -144,20 +137,6 @@ class ClasspathResolver:
     def tla_library(self, cwd: Path) -> list[Path]:
         """The folders of TLA+ modules, for -DTLA-Library: step 2 of the classpath, in the same order."""
         return self._layer_paths(self.extra_modules, SubdirType.MODULES, self.config.module_path, cwd)
-
-    # The string forms the old runner uses; package 39 deletes them with it.
-
-    def resolve(self, mode: ResolveMode) -> list[str]:
-        """The runtime classpath as strings, relative settings read against the process's working folder."""
-        del mode  # RUNTIME is the only mode
-        return [str(entry) for entry in self.runtime_classpath(Path.cwd())]
-
-    def get_tla_library_property(self) -> str | None:
-        """The -DTLA-Library value, joined with os.pathsep; None when there is no folder."""
-        modules = self.tla_library(Path.cwd())
-        if not modules:
-            return None
-        return os.pathsep.join(str(entry) for entry in modules)
 
 
 def _first_places(paths: list[Path]) -> list[Path]:
