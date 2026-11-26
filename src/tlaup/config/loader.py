@@ -279,16 +279,6 @@ def load_config() -> Settings:
     return get_context().settings
 
 
-def config_dir() -> Path:
-    """OS-standard user config directory for this app."""
-    return get_context().paths.config
-
-
-def config_path() -> Path:
-    """Path to the user's config.yaml."""
-    return config_dir() / "config.yaml"
-
-
 __all__ = [
     "CONFIG_HEADER",
     "EDIT_HINT",

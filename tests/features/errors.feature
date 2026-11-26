@@ -150,3 +150,44 @@ Feature: Errors and exit codes
     And stdout is empty
     And stderr contains "error: javac failed with exit code 1"
     And stderr does not contain "Traceback"
+
+  # The config group (package 44): one scenario for each exit code its errors give
+
+  Scenario: A value that does not fit its key is one error line and exits 2
+    When I run "tlaup config set tlc.workers many"
+    Then the exit code is 2
+    And stdout is empty
+    And stderr contains "error:" 1 times
+
+  Scenario Outline: A broken config file is one error line and exits 3, with the traceback only under debug
+    Given the config file contains:
+      """
+      tlc:
+        refresh_interval: fast
+      """
+    And the environment variable "TLAUP_DEBUG" is "<debug>"
+    When I run "<command>"
+    Then the exit code is 3
+    And stdout is empty
+    And stderr contains "error:" 1 times
+    And stderr <traceback> "Traceback"
+
+    Examples:
+      | command                   | debug | traceback        |
+      | tlaup config show         | 0     | does not contain |
+      | tlaup --debug config show | 0     | contains         |
+      | tlaup config show         | 1     | contains         |
+
+  Scenario: A key that does not exist is one error line and exits 4
+    When I run "tlaup config get no.such.key"
+    Then the exit code is 4
+    And stdout is empty
+    And stderr contains "error:" 1 times
+
+  Scenario: An editor that fails is one error line and exits 5
+    Given the environment variable "EDITOR" is "editor"
+    And the editor exits with code 1
+    When I run "tlaup config edit"
+    Then the exit code is 5
+    And stdout is empty
+    And stderr contains "error:" 1 times

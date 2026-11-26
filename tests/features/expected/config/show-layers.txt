@@ -1,0 +1,13 @@
+tool:
+  repository: https://127.0.0.1:9/repos/tlaplus/tlaplus  # TLAUP_TOOL_REPOSITORY
+  token_hosts: []  # default
+java:
+  min_version: 17  # TLAUP_JAVA_MIN_VERSION
+  opts: ['-XX:+IgnoreUnrecognizedVMOptions', '-XX:+UseParallelGC']  # default
+tlc:
+  workers: 4  # user file
+  refresh_interval: 1.0  # default
+  plain: false  # default
+  keep: false  # default
+module_path: null  # default
+module_lib_path: null  # default

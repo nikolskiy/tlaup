@@ -1,6 +1,6 @@
 # 44. The `config` commands
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
@@ -107,7 +107,7 @@ F1 and C1:
 - `config set tlc.workers many` exits 2 and `the file "{config}/config.yaml" does not exist` afterwards.
 - `config set no.such.key 1` exits 4; `config get no.such.key` exits 4; `config get tlc.worker` exits 4 and stderr contains `tlc.workers`; `config get tlc` (a section) exits 4 and stderr names the keys of `tlc`.
 - `config path` on a fresh home prints `{config}/config.yaml` and leaves `the file "{config}/config.yaml" does not exist` (the same property F1 states for `tlaup tool path`, whose scenario is 29b's, with the command).
-- `config set tlc.refresh_interval 0` exits 0 and `config get tlc.refresh_interval` prints `0`: the schema checks the type only, and the range is `tlc`'s, which gives 2 wherever the value came from ([14 F1](../design/14-config-and-cli.md#f1-layered-configuration), [22 O5](../design/22-reporters.md#o5-refresh-interval)).
+- `config set tlc.refresh_interval 0` exits 0 and `config get tlc.refresh_interval` prints `0.0` (the schema's float, read back as `set` reads it, F1): the schema checks the type only, and the range is `tlc`'s, which gives 2 wherever the value came from ([14 F1](../design/14-config-and-cli.md#f1-layered-configuration), [22 O5](../design/22-reporters.md#o5-refresh-interval)).
 - `config show` on a fresh home matches the expected file `config/show-defaults.txt`; with a file holding `tlc.workers: 4` and `TLAUP_JAVA_MIN_VERSION` set to `17`, it matches `config/show-layers.txt`, which shows `user file` and `TLAUP_JAVA_MIN_VERSION` as sources.
 - `config get tlc.workers` prints `auto`; after `config set tlc.workers 4`, `config get tlc.workers` prints `4` and the file contains `workers: 4`.
 - `config set tool.token_hosts '[GHE.example.com]'`, then `config get tool.token_hosts` prints `[ghe.example.com]`; `config set tool.token_hosts 'https://ghe.example.com'` exits 2.
