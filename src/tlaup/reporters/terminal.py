@@ -19,7 +19,6 @@ from typing import IO, TYPE_CHECKING, Any, Literal, assert_never
 
 from rich.console import Console
 from rich.live import Live
-from rich.segment import Segment
 from rich.text import Text
 
 from tlaup.reporters.layout import (
@@ -32,6 +31,7 @@ from tlaup.reporters.layout import (
     render_layout,
 )
 from tlaup.reporters.text import (
+    AsPrinted,
     diff_values,
     format_count,
     format_diagnostic,
@@ -72,7 +72,7 @@ from tlaup_parse import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
-    from rich.console import ConsoleOptions, RenderableType, RenderResult
+    from rich.console import RenderableType
 
     from tlaup.reporters.base import RunInfo
     from tlaup.tlc.runner import RunOutcome
@@ -379,18 +379,6 @@ def render_summary(outcome: RunOutcome, run: RunInfo, elapsed: float) -> list[Te
     return out
 
 
-class _AsPrinted:
-    """One line as it stands: Rich's own printing of a `Text` expands each tab to spaces, which would change TLC's
-    lines (O3: "exactly as TLC printed it"); rendering the segments directly keeps a tab a tab, and the styles."""
-
-    def __init__(self, line: Text) -> None:
-        self.line = line
-
-    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
-        yield from self.line.render(console)
-        yield Segment.line()
-
-
 _SPOOL_MAX = 1 << 20  # a spool is held in memory up to 1 MiB, then on disk (O4)
 _COPY_CHUNK = 1 << 16
 
@@ -462,7 +450,7 @@ class TerminalReporter:
     @staticmethod
     def _write(console: Console, lines: Iterable[Text]) -> None:
         for line in lines:
-            console.print(_AsPrinted(line), soft_wrap=True, markup=False, highlight=False, emoji=False)
+            console.print(AsPrinted(line), soft_wrap=True, markup=False, highlight=False, emoji=False)
 
     # --- start ----------------------------------------------------------------------------------------------------
 

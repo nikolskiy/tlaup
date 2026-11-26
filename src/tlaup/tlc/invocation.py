@@ -15,10 +15,9 @@ from datetime import UTC
 from typing import TYPE_CHECKING
 
 from tlaup.errors import ConflictingOptions, UsageError
-from tlaup.java.classpath import ClasspathResolver
+from tlaup.java.classpath import run_paths
 from tlaup.java.locate import require_java
 from tlaup.java.opts import jvm_options
-from tlaup.modules.registry import Registry
 from tlaup.project.core import find_project_root
 from tlaup.project.spec import config_arg, resolve_cfg, resolve_spec
 from tlaup.tlc.overrides import check_overrides, collect_override_classes
@@ -185,14 +184,9 @@ def resolve_tlc_invocation(  # noqa: PLR0913 - the pieces the preflight needs, n
     java = require_java(env, min_version=settings.java.min_version, cache_file=paths.java_cache)
 
     # After: nothing here fails for a reason the user caused.
-    resolver = ClasspathResolver(
-        settings,
-        project_root=project_root,
-        tool_jar=build.jar,
-        module_dirs=[module.path for module in Registry(paths.modules, now=now).list()],
+    classpath, tla_library = run_paths(
+        settings, project_root=project_root, tool_jar=build.jar, modules=paths.modules, now=now, cwd=cwd
     )
-    classpath = tuple(resolver.runtime_classpath(cwd))
-    tla_library = tuple(resolver.tla_library(cwd))
 
     # The override classes TLC is passed, and the warnings for those the pinned build will not load (11 R7).
     classes = collect_override_classes(classpath)

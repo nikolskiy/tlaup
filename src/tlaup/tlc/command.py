@@ -15,12 +15,11 @@ import os
 from typing import TYPE_CHECKING
 
 from tlaup.java.launcher import JavaInvocation
+from tlaup.tools import ENTRY_POINTS
 
 if TYPE_CHECKING:
     from tlaup.tlc.invocation import TlcInvocation
 
-# Until package 41 creates tlaup.tools.ENTRY_POINTS and replaces it (21 S4).
-TLC_MAIN_CLASS = "tlc2.TLC"
 TLA_LIBRARY_PROPERTY = "TLA-Library"
 OVERRIDES_PROPERTY = "tlc2.overrides.TLCOverrides"
 
@@ -58,6 +57,6 @@ def build_tlc_command(inv: TlcInvocation) -> JavaInvocation:
         jvm_options=inv.jvm_options,
         system_properties=tuple(properties),
         classpath=inv.classpath,
-        main_class=TLC_MAIN_CLASS,
+        main_class=ENTRY_POINTS["tlc"],
         args=tuple(args),
     )
