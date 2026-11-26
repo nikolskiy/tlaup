@@ -19,7 +19,8 @@ if TYPE_CHECKING:
     from tlaup.versioning.store import Build, ToolStore
 
 HELP = (
-    "Remove installed TLA+ tools builds. A VERSION that matches several builds asks which on a terminal, "
+    "Remove installed TLA+ tools builds.\n\n"
+    "A VERSION that matches several builds asks which on a terminal, "
     "and removes all of them with --yes or without a terminal."
 )
 VERSIONS_HELP = "The builds to remove: a tag, stable, rolling, or tag@commit for one build."

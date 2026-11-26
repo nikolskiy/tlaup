@@ -1,6 +1,6 @@
 # 50. Help text, wording and error messages
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

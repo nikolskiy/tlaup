@@ -21,7 +21,8 @@ if TYPE_CHECKING:
     from tlaup.versioning.store import Build, ToolStore
 
 HELP = (
-    "Replace an installed version with the newest build of the same name. Rolling builds are rebuilt often; "
+    "Replace an installed version with the newest build of the same name.\n\n"
+    "Rolling builds are rebuilt often; "
     "this fetches the current one. It does not move to a different version: use `install` for that."
 )
 VERSION_HELP = "The name to upgrade, such as rolling, stable or v1.8.0; with none, the pinned build's name."

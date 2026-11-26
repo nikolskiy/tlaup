@@ -2,4 +2,6 @@
 
 import typer
 
-app = typer.Typer(name="module", help="Add, list and remove Java operator-override modules.", no_args_is_help=True)
+app = typer.Typer(
+    name="module", help="Manage your own TLA+ modules, with optional Java operator overrides.", no_args_is_help=True
+)

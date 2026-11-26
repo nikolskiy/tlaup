@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import difflib
 import hashlib
 import json
 import os
@@ -206,6 +207,18 @@ class Remote:
             raise
         return parse_release(data, url=f"{self._client.base_url}{path}")
 
+    def _with_closest_tag(self, error: VersionNotFound, name: str) -> VersionNotFound:
+        """The same error with the closest tag of the cached release list in its hint (F11); no request is made for it.
+
+        Unchanged when no list is cached or no tag is close."""
+        tags = [release.tag for release in self.cached() or [] if release.asset is not None]
+        close = difflib.get_close_matches(name, tags, n=1)
+        if not close:
+            return error
+        return VersionNotFound(
+            error.message, hint=f"did you mean {close[0]}? run `tlaup tool list` to see the releases"
+        )
+
     def resolve(self, spec: VersionSpec) -> Release:
         """``stable`` is the stable release of a fresh list; any other name is looked up by tag (then with ``v``)."""
         name = spec.name
@@ -222,11 +235,11 @@ class Remote:
             found = self.release(name)
         except VersionNotFound as first:
             if name.startswith("v"):
-                raise
+                raise self._with_closest_tag(first, name) from None
             try:
                 found = self.release(f"v{name}")
             except VersionNotFound:
-                raise first from None  # names the name as the user typed it
+                raise self._with_closest_tag(first, name) from None  # names the name as the user typed it
         if found.asset is None:
             message = f"the release {found.tag!r} has no {JAR_NAME} to install"
             raise VersionNotFound(message, hint="run `tlaup tool list` to see the releases that have one")

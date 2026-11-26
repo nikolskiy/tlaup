@@ -266,3 +266,72 @@ Feature: Errors and exit codes
     Then the exit code is 3
     And stdout is empty
     And stderr contains "error:" 1 times
+
+  # The checklist of design 14 F11 (package 50): one scenario for the fact each message must carry
+
+  Scenario: A spec that is not found names the paths that were tried
+    Given the build "v1.7.4" is installed and pinned
+    When I run "tlaup tlc Nope"
+    Then the exit code is 4
+    And stdout is empty
+    And stderr contains "{work}/Nope.tla"
+    And stderr contains "{work}/spec/Nope.tla"
+
+  Scenario: A cfg that is not found names a path that was tried
+    Given the build "v1.7.4" is installed and pinned
+    And a spec "Success" from the golden specs
+    When I run "tlaup tlc Success --cfg nope.cfg"
+    Then the exit code is 4
+    And stdout is empty
+    And stderr contains "{work}/nope.cfg"
+
+  Scenario: A version that matches nothing is named, with the closest tag
+    Given GitHub answers from "releases"
+    And the release list is cached from "releases", 1 minutes old
+    And GitHub answers 404 to "/releases/tags/v1.7.5"
+    When I run "tlaup tool install v1.7.5"
+    Then the exit code is 4
+    And stdout is empty
+    And stderr contains "v1.7.5"
+    And stderr contains "v1.7.4"
+
+  Scenario: A rate-limited GitHub says how to give a token
+    Given GitHub answers from "rate-limited"
+    When I run "tlaup tool install stable"
+    Then the exit code is 5
+    And stdout is empty
+    And stderr contains "GITHUB_TOKEN"
+
+  Scenario: No pinned version names the command that pins one
+    Given the build "v1.7.4" is installed
+    And a spec "Success" from the golden specs
+    When I run "tlaup tlc Success"
+    Then the exit code is 3
+    And stdout is empty
+    And stderr contains "tlaup tool pin"
+
+  Scenario: No build at all names the command that installs one
+    Given no build is installed
+    And a spec "Success" from the golden specs
+    When I run "tlaup tlc Success --show-command"
+    Then the exit code is 3
+    And stdout is empty
+    And stderr contains "tlaup tool install"
+
+  Scenario: Installing what is already installed mentions --force and does not claim success
+    Given the build "v1.7.4" is installed
+    And GitHub answers from "releases"
+    When I run "tlaup tool install v1.7.4"
+    Then the exit code is 0
+    And stdout is empty
+    And stderr contains "--force"
+    And stderr does not contain "Successfully"
+
+  Scenario: A javac failure shows the classpath in its details
+    Given the build "v1.7.4" is installed and pinned
+    And a module source "Queue" from the fake sources
+    And javac fails with "syntax-error"
+    When I run "tlaup module add Queue"
+    Then the exit code is 5
+    And stdout is empty
+    And stderr contains "tla2tools.jar"

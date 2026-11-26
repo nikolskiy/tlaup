@@ -21,7 +21,8 @@ if TYPE_CHECKING:
     from tlaup.versioning.store import Build, ToolStore
 
 HELP = (
-    "Download and install a TLA+ tools build. With no VERSION, asks whether to install `stable` or `rolling`. "
+    "Download and install a TLA+ tools build.\n\n"
+    "With no VERSION, asks whether to install `stable` or `rolling`. "
     "The first build installed is pinned."
 )
 VERSION_HELP = "A tag such as v1.7.4 or 1.7.4, stable, rolling, or tag@commit for one build."

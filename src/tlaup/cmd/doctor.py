@@ -10,8 +10,9 @@ if TYPE_CHECKING:
     from tlaup.context import AppContext
 
 HELP = (
-    "Check Java, javac, the pinned build, the config file and the folders tlaup uses, and print one line per check "
-    "with ok, warning or error. It re-runs the Java version checks and rewrites the remembered answers. "
+    "Check the setup tlaup relies on, one line per check.\n\n"
+    "It checks Java, javac, the pinned build, the config file and the folders tlaup uses, and prints ok, warning or "
+    "error for each. It re-runs the Java version checks and rewrites the remembered answers. "
     "Exits 3 when a check is an error. It makes no request and changes nothing else."
 )
 

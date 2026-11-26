@@ -17,8 +17,8 @@ if TYPE_CHECKING:
     from tlaup.versioning.store import Build, ToolStore
 
 HELP = (
-    "List the TLA+ tools releases that have a jar, newest first with rolling at the top, each followed by "
-    "its installed builds."
+    "List the TLA+ tools releases that have a jar.\n\n"
+    "Newest first with rolling at the top, each followed by its installed builds."
 )
 INSTALLED_HELP = "List the installed builds only, without asking GitHub."
 

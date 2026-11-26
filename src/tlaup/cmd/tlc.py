@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from tlaup.cmd.common import SPEC_HELP
 from tlaup.cmd.completion import complete_spec
 
 if TYPE_CHECKING:
@@ -22,7 +23,6 @@ if TYPE_CHECKING:
     from tlaup.versioning.store import Build
 
 HELP = "Run the TLC model checker on a TLA+ specification."
-SPEC_HELP = "The spec: a name such as Spec or a path to Spec.tla."
 TLC_ARGS_HELP = (
     "TLC's own arguments, after `--`: tlaup tlc Spec -- -deadlock. Relative paths after `--` are read from the "
     "folder you run tlaup in, -config from the spec's folder; absolute paths are advised."
@@ -30,7 +30,10 @@ TLC_ARGS_HELP = (
 CFG_HELP = "The model's .cfg file, a name or a path (default: TLC's own, Spec.cfg beside the spec)."
 WORKERS_HELP = "The number of TLC workers, or auto for one per core (default: the setting tlc.workers)."
 COVERAGE_HELP = "Report how often each action and expression was evaluated."
-RAW_HELP = "Print TLC's own output unchanged. On Windows a closed output pipe does not stop TLC."
+RAW_HELP = (
+    "Print TLC's own output unchanged, with no parsing or formatting. "
+    "On Windows a closed output pipe does not stop TLC."
+)
 KEEP_HELP = "Keep the run folder when the run is interrupted or crashes after a complete checkpoint."
 SHOW_COMMAND_HELP = (
     "Print the command that would run, and run nothing. The printed command does not stop TLC when the terminal "

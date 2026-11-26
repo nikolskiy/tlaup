@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from tlaup.cmd.common import SPEC_HELP as COMMON_SPEC_HELP
 from tlaup.cmd.completion import complete_spec
 
 if TYPE_CHECKING:
@@ -25,11 +26,11 @@ if TYPE_CHECKING:
 
 HELP = "Parse a TLA+ specification with SANY and print its errors."
 SPEC_HELP = (
-    "The spec: a name such as Spec or a path to Spec.tla. SANY reads it from the spec's own folder, and looks for "
-    "modules in the spec's folder, then the library folders, then the standard modules, then the classpath."
+    f"{COMMON_SPEC_HELP} SANY reads it from the spec's own folder, and looks for modules in the spec's folder, "
+    "then the library folders, then the standard modules, then the classpath."
 )
 SANY_ARGS_HELP = (
-    "SANY's own arguments, after `--`: tlaup sany Spec -- -nopcal. `-d` is refused: it starts an explorer that "
+    "SANY's own arguments, after `--`: tlaup sany Spec -- -stat. `-d` is refused: it starts an explorer that "
     "waits for input; run it with Java directly on the jar that `tlaup tool path` prints."
 )
 JAVA_OPT_HELP = "An option for the JVM, repeatable: --java-opt=-Xmx8g."
