@@ -72,3 +72,20 @@ def test_zsh_gives_an_arguments_call_that_names_each_installed_word(isolated: Is
     assert out.startswith("_arguments ")
     for word in complete_installed(""):
         assert f'"{word}"' in out
+
+
+def test_a_malformed_config_file_does_not_disturb_completion(isolated: Isolated, tmp_path: Path) -> None:
+    prepare_store(isolated, tmp_path)
+    isolated.paths.config_file.parent.mkdir(parents=True, exist_ok=True)
+    isolated.paths.config_file.write_text("tlc: [unclosed\n  : : :\n", encoding="utf-8")
+    process = start(
+        [sys.executable, "-m", "tlaup"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env={**os.environ, "_TLAUP_COMPLETE": "complete_bash", "COMP_WORDS": "tlaup tool pin ", "COMP_CWORD": "3"},
+    )
+    out, err = process.communicate(timeout=TIMEOUT)
+    assert process.returncode == 0
+    assert err == b""
+    assert out.decode().splitlines() == complete_installed("")

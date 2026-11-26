@@ -10,6 +10,7 @@ import pytest
 from tests.clock import FakeClock
 from tests.steps._store import add_build, published_jars, recorded_releases
 from tlaup.cmd.completion import (
+    _guarded,
     complete_config_key,
     complete_install,
     complete_installed,
@@ -165,3 +166,7 @@ def test_spec_gives_tla_files_and_folders_that_start_with_the_text(
     assert complete_spec("S") == ["Spec.tla", "spec/"]
     assert complete_spec("spec/I") == ["spec/Inner.tla"]
     assert complete_spec("n") == []
+
+
+def test_the_guard_turns_any_failure_into_no_words() -> None:
+    assert _guarded(lambda _: 1 // 0)("") == []

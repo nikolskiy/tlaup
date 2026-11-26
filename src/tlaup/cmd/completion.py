@@ -47,7 +47,8 @@ def completion(shell: Annotated[Shell, typer.Argument(metavar="SHELL", help=SHEL
 
     from tlaup.ui import Ui
 
-    script = get_completion_script(prog_name=PROG_NAME, complete_var=COMPLETE_VAR, shell=shell.value)  # nosec B604 - a shell's name, not subprocess shell=True
+    # `shell` is the name of a shell to write a script for, not subprocess's shell=True.
+    script = get_completion_script(prog_name=PROG_NAME, complete_var=COMPLETE_VAR, shell=shell.value)  # nosec B604
     Ui.for_process().result(script)
 
 
@@ -136,8 +137,8 @@ def complete_spec(incomplete: str) -> list[str]:
     """The `*.tla` files and the folders that start with ``incomplete``, a relative path looked up in its folder.
 
     Typer's own copy of Click drops the file type of a `Path` argument when it prints the words, so a `Path`
-    type asks no shell for files; with no word at all each shell falls back to every file. These words work in all
-    three shells and leave that fallback to a prefix that matches nothing.
+    type asks no shell for files. With no word at all bash and zsh fall back to every file; fish does not (its
+    script uses --no-files), so it completes nothing. These words work in all three shells.
     """
     from pathlib import Path
 
