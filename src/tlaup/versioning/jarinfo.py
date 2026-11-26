@@ -103,9 +103,14 @@ def _calver(built_at: str) -> str | None:
         moment = datetime.fromisoformat(built_at.strip())
         if moment.tzinfo is None:
             moment = moment.replace(tzinfo=UTC)
-        text = moment.astimezone(UTC).strftime("%Y.%m.%d.%H%M%S")
+        moment = moment.astimezone(UTC)
     except (ValueError, OverflowError):
         return None
+    # The year is checked here, not left to the shape: strftime pads a year below 1000 to four digits on some
+    # Pythons (3.15) and not on others, so the shape alone would let year 999 through there.
+    if moment.year < 1000:  # the first four-digit year
+        return None
+    text = moment.strftime("%Y.%m.%d.%H%M%S")
     return text if _CALVER_SHAPE.fullmatch(text) else None
 
 
