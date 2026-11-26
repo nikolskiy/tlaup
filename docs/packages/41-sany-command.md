@@ -1,6 +1,6 @@
 # 41. The `sany` command and the shared shape of the other tools
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

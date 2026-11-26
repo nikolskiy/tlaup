@@ -1,0 +1,15 @@
+SemErr.tla:4:13: error: Unknown operator: `y'.
+     2 | EXTENDS Naturals
+     3 | VARIABLE x
+     4 | Init == x = y
+       |             ^
+       | Error here: line 4, col 13 to 13
+     5 | Next == x' = x + 1 + Foo(2)
+     6 | ====
+SemErr.tla:5:22: error: Unknown operator: `Foo'.
+     3 | VARIABLE x
+     4 | Init == x = y
+     5 | Next == x' = x + 1 + Foo(2)
+       |                      ^^^
+       | Error here: line 5, col 22 to 24
+     6 | ====

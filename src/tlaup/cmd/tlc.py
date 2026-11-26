@@ -84,6 +84,7 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with twelve options takes them as
     from dataclasses import replace
     from pathlib import Path
 
+    from tlaup.cmd.common import run_build
     from tlaup.cmd.tool._shared import utc_now
     from tlaup.reporters import ReporterOptions, make_reporter
     from tlaup.tlc.command import build_tlc_command
@@ -112,7 +113,7 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with twelve options takes them as
         env=app.env,
         cwd=Path.cwd(),
         home=Path.home(),
-        get_build=_pinned_build(app) if show_command else _run_build(app, auto),
+        get_build=_pinned_build(app) if show_command else run_build(app, auto),
         now=utc_now,
         rng=random.SystemRandom(),
     )
@@ -165,24 +166,6 @@ def _join(argv: list[str], *, windows: bool) -> str:
     import shlex
 
     return shlex.join(argv)
-
-
-def _run_build(app: AppContext, auto_install: str | None) -> Callable[[], Build]:
-    """``get_build`` for a run: the pin, or the first-run question or install (12 V9). The GitHub client, and so
-    ``requests``, is built only when nothing is installed and ``ensure_tools`` may install or ask (14 F9)."""
-
-    def get_build() -> Build:
-        from tlaup.cmd.tool._shared import download_progress, open_remote, open_store, pinned_build
-        from tlaup.versioning.first_run import ensure_tools
-
-        store = open_store(app)
-        if store.pinned() is not None or store.builds():
-            return pinned_build(store)  # the pin, or NoPinnedBuild naming the builds to pin
-        client, remote = open_remote(app)
-        with download_progress(app.ui) as progress:
-            return ensure_tools(store, remote, client, app.ui, auto_install=auto_install, progress=progress)
-
-    return get_build
 
 
 def _pinned_build(app: AppContext) -> Callable[[], Build]:

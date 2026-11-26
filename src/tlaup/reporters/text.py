@@ -11,12 +11,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from rich.segment import Segment
 from rich.text import Text
 
 from tlaup.durations import format_elapsed
 from tlaup_parse import ErrorKind, Verdict, describe_exit_status
 
 if TYPE_CHECKING:
+    from rich.console import Console, ConsoleOptions, RenderResult
+
     from tlaup.tlc.runner import RunOutcome
     from tlaup_parse import Diagnostic, FinalStats, Location, Progress, RunResult, Value
 
@@ -65,6 +68,18 @@ def stats_line(s: FinalStats, *, approximate: bool) -> str:
         return counts
     depth = f"depth {format_count(s.state_depth)}"
     return f"{counts}; {depth}" if counts else depth
+
+
+class AsPrinted:
+    """One line as it stands: Rich's own printing of a `Text` expands each tab to spaces, which would change TLC's
+    lines (O3: "exactly as TLC printed it"); rendering the segments directly keeps a tab a tab, and the styles."""
+
+    def __init__(self, line: Text) -> None:
+        self.line = line
+
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        yield from self.line.render(console)
+        yield Segment.line()
 
 
 # --- Diagnostics: the editor form and the source excerpt (21 S1, D22, D66) ---------------------------------------

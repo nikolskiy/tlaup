@@ -1,8 +1,10 @@
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
 
 from tlaup.config.schema import Settings
+from tlaup.modules.registry import Registry
 from tlaup.project.core import CLASSES_DIR, LIB_DIR, MODULES_DIR
 
 
@@ -148,3 +150,24 @@ def _first_places(paths: list[Path]) -> list[Path]:
             seen.add(path)
             kept.append(path)
     return kept
+
+
+def run_paths(  # noqa: PLR0913 - the pieces a run's paths come from
+    settings: Settings,
+    *,
+    project_root: Path | None,
+    tool_jar: Path,
+    modules: Path,
+    now: Callable[[], datetime],
+    cwd: Path,
+) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+    """The classpath and the TLA-Library folders of a run (13 M2): the one place a TLC run and the other tools
+    that read a spec get them from. ``modules`` is ``AppPaths.modules``, whose registered modules are listed in
+    name order; ``cwd`` is the folder tlaup was started in, which a relative setting is read against."""
+    resolver = ClasspathResolver(
+        settings,
+        project_root=project_root,
+        tool_jar=tool_jar,
+        module_dirs=[module.path for module in Registry(modules, now=now).list()],
+    )
+    return tuple(resolver.runtime_classpath(cwd)), tuple(resolver.tla_library(cwd))

@@ -14,6 +14,7 @@ from typer.core import TyperGroup
 from tlaup.cmd.check_java import check_java
 from tlaup.cmd.config import app as config_app
 from tlaup.cmd.module import app as module_app
+from tlaup.cmd.sany import sany as run_sany_cmd
 from tlaup.cmd.tlc import tlc as run_tlc_cmd
 from tlaup.cmd.tool import app as tool_app
 from tlaup.context import AppContext, build_context
@@ -284,6 +285,7 @@ app.add_typer(tool_app, name="tool")
 app.add_typer(config_app, name="config")
 
 app.command(name="tlc")(run_tlc_cmd)
+app.command(name="sany")(run_sany_cmd)
 app.command(name="check-java")(check_java)
 
 
