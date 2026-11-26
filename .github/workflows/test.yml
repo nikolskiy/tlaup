@@ -125,7 +125,7 @@ jobs:
   # Not required: it may be red on any day a dependency releases something new (design 30 I3).
   deps-newest:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25 # the whole unit suite, as the unit cells: 9 to 11 minutes on the first runs
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
