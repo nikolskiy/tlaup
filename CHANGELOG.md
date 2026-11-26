@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Ctrl-C exits with 130.
 - `JAVA_HOME` is used to find `java` and `javac` when it is set; `PATH` is the fallback.
 - A run starts Java once instead of three times; the Java version check is remembered until the Java installation changes.
+- `tlaup config edit` reads `$VISUAL` before `$EDITOR` and checks the file after editing.
 
 ### Added
 - Each setting can be given as an environment variable `TLAUP_<SECTION>_<KEY>`.
@@ -49,6 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup sany SPEC` runs the SANY parser and prints its findings as `path:line:col: severity: message`, each followed by the lines of the spec around it with `^` under the columns. It exits 150 when the spec has errors.
 - `tlaup pcal SPEC` runs the PlusCal translator. It rewrites the spec in place and keeps the previous version as `SPEC.old`, as the translator does. It also writes `SPEC.cfg`, replacing an existing one without a backup; pass `-- -nocfg` to keep yours. With `-- -label -reportLabels` it prints each label the translator added as `Spec.tla:7:3: label Lbl_1 added`.
 - `tlaup repl` starts the TLA+ REPL of the pinned build (rolling builds only).
+- `tlaup config set KEY VALUE` changes one setting. It rewrites the config file and does not keep comments.
+- `tlaup config path` prints the config file's path; `tlaup config get KEY` prints one setting.
 
 ### Breaking
 - Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.
@@ -70,6 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - TLC now runs in the folder where `tlaup` was started (was the project root, or the spec's folder). TLA+ modules in the project root but outside `modules/` are no longer found; move them beside the spec or into `modules/`. A relative `-config` given after `--` is read relative to the spec's folder, as TLC does with an absolute spec path; use `--cfg` instead. Every other relative path after `--` (`-dump`, `-userFile`, `-dumpTrace` and the rest) is read from the folder you run tlaup in. `--cfg NAME` looks only for a file ending in `.cfg`.
 - TLC now runs with `-workers auto` by default (was TLC's default of one worker). Set `tlc.workers: 1` or pass `--workers 1` for the old behaviour.
 - `JAVA_OPTS` is no longer read. Use `TLAUP_JAVA_OPTS` or `--java-opt`; both add to the configured options instead of replacing them.
+- The editor of `tlaup config edit` can no longer be given as an argument; set `VISUAL` or `EDITOR`.
+- `tlaup config list` is now `tlaup config show` and prints the settings in effect, not the file.
 
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.
@@ -120,6 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - On a terminal, TLC output containing square brackets (every TLA+ record) was printed as an empty line or made tlaup fail.
 - Runs with a lot of printed output became slower and slower and used more and more memory.
 - `--refresh-interval` and `tlc.refresh_interval` had no effect. They now set how often the live view is redrawn.
+- With a broken config file every command, including `tlaup config edit`, failed with a traceback. `config path` and `config edit` now work with a broken file; other commands stop with the file, the line and the reason.
+- `tlaup config edit` failed for an editor given with arguments (`EDITOR='code --wait'`) and on machines without vim.
 
 ## [0.8.2] - 2026-11-14
 

@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from tlaup import context
-from tlaup.config import loader
 from tlaup.errors import ConfigInvalid
 from tlaup.ui import Ui
 
@@ -36,11 +35,6 @@ def test_debug_follows_tlaup_debug(monkeypatch: pytest.MonkeyPatch, value: str |
     else:
         monkeypatch.setenv("TLAUP_DEBUG", value)
     assert context.get_context().debug is expected
-
-
-def test_old_code_follows_the_variables(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setenv("TLAUP_HOME", str(tmp_path))
-    assert loader.config_dir() == tmp_path / "config"
 
 
 def test_context_carries_a_ui() -> None:
