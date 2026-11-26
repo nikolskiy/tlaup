@@ -48,6 +48,7 @@ Level = Literal["ok", "warning", "error"]
 
 TOKEN_VARIABLES = ("GH_TOKEN", "GITHUB_TOKEN")
 CHUNK = 1 << 20
+DOCTOR_SUFFIX = ", or run `tlaup doctor`"  # 20's hint for a version check that timed out; pointless here
 NOT_WRITABLE_HINT = "make the folder writable, or point TLAUP_HOME (or the folder's own variable) elsewhere"
 
 
@@ -123,7 +124,8 @@ def _java_check(  # noqa: PLR0913, PLR0917
     try:
         runtime = require(env, min_version=minimum, cache_file=paths.java_cache, ask_version=ask, refresh=True)
     except (JavaNotFound, JavacNotFound, JavaTooOld, Failed) as error:
-        return Check(name, failure, _failure(error) + note, error.hint)
+        hint = None if error.hint is None else error.hint.removesuffix(DOCTOR_SUFFIX)
+        return Check(name, failure, _failure(error) + note, hint)
     level: Level = "warning" if runtime.warnings else "ok"
     hint = "check JAVA_HOME and PATH, then run `tlaup doctor` again" if level == "warning" else None
     return Check(name, level, _runtime_detail(runtime) + note, hint)
@@ -271,7 +273,7 @@ def run_checks(
     config, settings = _config_check(paths, env)
     if settings is None:
         minimum = _packaged_settings().java.min_version
-        note = f" (minimum {minimum}, the packaged default: the config file is invalid)"
+        note = f" (minimum {minimum}, the packaged default: the settings are invalid)"
     else:
         minimum, note = settings.java.min_version, ""
     store = ToolStore(paths, now=now)

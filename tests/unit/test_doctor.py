@@ -13,6 +13,7 @@ import pytest
 from tests.clock import FakeClock
 from tests.unit.versioning.conftest import Downloads, commit, manifest
 from tlaup.doctor import Check, run_checks
+from tlaup.errors import Failed
 from tlaup.java.locate import VersionAnswer, require_java
 from tlaup.modules.registry import RegisteredModule, write_record
 from tlaup.paths import AppPaths
@@ -227,11 +228,11 @@ def test_run_checks_never_raises_and_gives_the_levels_of_the_table(isolated: Iso
     assert levels["GitHub token"] == "ok"
     java = by_name(checks)["java"]
     assert "minimum 11" in java.detail
-    assert "config file is invalid" in java.detail
+    assert "settings are invalid" in java.detail
 
 
 def test_no_detail_or_hint_holds_the_tokens_value(isolated: Isolated, pinned: Path) -> None:
-    secret = "doctor-secret-value"  # pragma: allowlist secret
+    secret = "doctor-secret-value"
     checks = run_checks(isolated.paths, {"GITHUB_TOKEN": secret, "PATH": ""})
     token = by_name(checks)["GitHub token"]
     assert token.level == "ok"
@@ -250,3 +251,15 @@ def test_the_levels_of_the_folders(isolated: Isolated) -> None:
     for name in ("config folder", "cache folder", "data folder", "run folder"):
         assert checks[name].level == "ok"
         assert "not there yet" in checks[name].detail
+
+
+def test_a_version_check_that_fails_does_not_send_the_user_to_doctor(isolated: Isolated) -> None:
+    env = env_with_java(isolated)
+
+    def timing_out(tool: Path) -> VersionAnswer:
+        message = f"{tool} -version did not answer within 10 seconds"
+        raise Failed(message, hint="check that this Java starts, or run `tlaup doctor`")
+
+    java = by_name(run_checks(isolated.paths, env, ask_version=timing_out))["java"]
+    assert java.level == "error"
+    assert java.hint == "check that this Java starts"
