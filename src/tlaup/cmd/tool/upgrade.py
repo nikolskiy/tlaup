@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import typer
 
+from tlaup.cmd.completion import complete_upgrade
 from tlaup.errors import PinnedBuildMissing
 
 if TYPE_CHECKING:
@@ -28,7 +29,9 @@ VERSION_HELP = "The name to upgrade, such as rolling, stable or v1.8.0; with non
 
 def upgrade_command(
     ctx: typer.Context,
-    version: str | None = typer.Argument(None, metavar="VERSION", help=VERSION_HELP, show_default=False),
+    version: str | None = typer.Argument(
+        None, metavar="VERSION", help=VERSION_HELP, show_default=False, autocompletion=complete_upgrade
+    ),
 ) -> None:
     app: AppContext = ctx.find_root().obj
     from tlaup.cmd.tool._shared import download_progress, open_remote, open_store, parse_spec

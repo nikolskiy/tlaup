@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from tlaup.cmd.completion import complete_installed
 from tlaup.errors import ConflictingOptions, UsageError, VersionNotFound
 
 if TYPE_CHECKING:
@@ -30,7 +31,8 @@ WHICH = "Which build should be removed (a number, or all)?"
 def uninstall_command(
     ctx: typer.Context,
     versions: Annotated[
-        list[str] | None, typer.Argument(metavar="VERSION", help=VERSIONS_HELP, show_default=False)
+        list[str] | None,
+        typer.Argument(metavar="VERSION", help=VERSIONS_HELP, show_default=False, autocompletion=complete_installed),
     ] = None,
     all_builds: bool = typer.Option(False, "--all", help=ALL_HELP),
     yes: bool = typer.Option(False, "--yes", help=YES_HELP),

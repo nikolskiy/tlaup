@@ -8,7 +8,7 @@ import ast
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "tlaup"
-EXCEPTIONS: frozenset[str] = frozenset()
+EXCEPTIONS: frozenset[str] = frozenset({"tlaup/cmd/completion.py"})  # C3: the one module of the completion protocol
 
 
 def _forbidden(module: str) -> bool:
@@ -52,3 +52,17 @@ def test_no_private_imports() -> None:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         offending.extend(f"{relative}:{line}: {name}" for line, name in _imports(tree) if _forbidden(name))
     assert offending == [], "imports of click or private Typer modules:\n" + "\n".join(offending)
+
+
+def test_the_exception_is_the_one_module_that_imports_typers_completion() -> None:
+    """Every private Typer import is in `tlaup/cmd/completion.py`, and `cli.py` reaches completion through it only."""
+    private = {
+        path.relative_to(SRC.parent).as_posix()
+        for path in SRC.rglob("*.py")
+        if any(_forbidden(name) for _, name in _imports(ast.parse(path.read_text(encoding="utf-8"))))
+    }
+    assert private == EXCEPTIONS, f"modules that import a private Typer module: {sorted(private)}"
+    cli = ast.parse((SRC / "cli.py").read_text(encoding="utf-8"))
+    completion = [name for _, name in _imports(cli) if "completion" in name]
+    assert completion
+    assert all(name.startswith("tlaup.cmd.completion") for name in completion), f"cli.py imports {completion}"

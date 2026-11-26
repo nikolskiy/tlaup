@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from tlaup.cmd.completion import complete_spec
 from tlaup.cmd.sany import AUTO_INSTALL_HELP, JAVA_OPT_HELP, PrintingSink
 
 if TYPE_CHECKING:
@@ -28,7 +29,7 @@ PCAL_ARGS_HELP = "The translator's own arguments, after `--`: tlaup pcal Spec --
 
 def pcal(
     ctx: typer.Context,
-    spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False),
+    spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False, autocompletion=complete_spec),
     pcal_args: Annotated[
         list[str] | None, typer.Argument(metavar="-- TRANSLATOR ARGS", help=PCAL_ARGS_HELP, show_default=False)
     ] = None,
