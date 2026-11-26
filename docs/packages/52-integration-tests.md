@@ -1,6 +1,6 @@
 # 52. Integration tests
 
-Size: L, as two pull requests of size M (52a, 52b; see the last section). Suggested model: most capable. Status: ready. One row of T9's table, the examples manifest, waits on the documentation track (`docs/examples/examples.toml` does not exist and has no design) and is not built here.
+Size: L, as two pull requests of size M (52a, 52b; see the last section). Suggested model: most capable. Status: built in part (52a). One row of T9's table, the examples manifest, waits on the documentation track (`docs/examples/examples.toml` does not exist and has no design) and is not built here.
 
 ## Goal
 
@@ -89,7 +89,7 @@ def live_build(request, isolated) -> Build            # parametrised over the fo
 
 **Jar discovery** (T9). `TLAUP_TEST_JARS` names a folder; every direct subfolder whose name does not start with a dot and which holds `tla2tools.jar` is one build. That shape covers both a hand-made folder (`<root>/v1.7.4/tla2tools.jar`) and the store's own tool folder, which the integration job passes ([54](54-integration-job.md); there the subfolders are build ids such as `v1.7.4-<12 hex digits>` beside `pin`, `.lock` and `.tmp/`, which are skipped). Each jar is matched to a folder of `tests/parse/golden/tlc/` through `build.toml`: a jar whose `JarInfo.built_at` is set takes the one folder whose `line` is `rolling`, whatever its CalVer; a jar without one takes the stable folder whose `tag` equals the jar's name (`TestJar.build`: the `name` in the folder's `build.json` when there is one, as in a store, else the folder's name, T9). A jar that matches no folder fails collection with a message naming the jar and the folders there are, so a third build cannot run silently against the wrong expectations. The variable is read at collection time, before any fixture runs (the `isolated` fixture removes every `TLAUP_*` variable).
 
-**Skip guards.** When `TLAUP_TEST_JARS` is unset, or `java` is not found (through `JAVA_HOME`, then `PATH`, as tlaup finds it), the conftest calls `pytest.skip(reason, allow_module_level=True)` and the whole folder is skipped with the reason. The guard tests the real condition, not a fixture value. The task refuses that case itself (Context).
+**Skip guards.** When `TLAUP_TEST_JARS` is unset, or `java` is not found (through `JAVA_HOME`, then `PATH`, as tlaup finds it), the conftest adds a skip marker with the reason to every item, so the whole folder is skipped with the reason (as built in 52a: pytest 9 stops with an internal error when the conftest of a folder named on the command line calls `pytest.skip(reason, allow_module_level=True)`). The guard tests the real condition, not a fixture value. The task refuses that case itself (Context).
 
 **The `isolated` fixture of this folder** does what the root fixture does (03, T2), with these differences:
 
@@ -163,7 +163,7 @@ None. Tests only.
 
 The rest run with `args` as TLC's extra arguments (`TlcRequest.extra_args`), `jvm_options` as `TlcRequest.java_opts`, and `cwd` where given. A case with no `exit` (research 2's three) has its facts checked and no exit code compared.
 
-Beside the rules, one table in `test_golden_live.py`, `LIVE_SKIP: dict[str, str]`, names the cases a live run cannot reproduce for a reason the keys do not carry, each with that reason: `tool-oom` (exhausting a 64 MB heap depends on the JVM and the machine), and any case whose facts hold only for the random seed of the capture (simulation and `-generate` runs, since tlaup passes a seed of its own). A case enters the table only for such a reason. A fact that fails on a live run for any other reason is a finding: upstream changed its output and the answer is a new capture, never a weaker fact or a skip (T3, Risks). The pull request lists every entry of the table and why.
+Beside the rules, one table in `test_golden_live.py`, `LIVE_SKIP: dict[tuple[str, str], str]`, keyed by golden folder (or `*` for every build) and case, names the cases a live run cannot reproduce for a reason the keys do not carry, each with that reason: `tool-oom` (exhausting a 64 MB heap depends on the JVM and the machine), and any case whose facts hold only for the random seed of the capture (simulation and `-generate` runs, since tlaup passes a seed of its own), and an upstream defect of one build that plain `java` reproduces without tlaup (52a: v1.7.4's `big-states`, a race that stops it with message 1000 on some JVMs). A case enters the table only for such a reason. A fact that fails on a live run for any other reason is a finding: upstream changed its output and the answer is a new capture, never a weaker fact or a skip (T3, Risks). The pull request lists every entry of the table and why.
 
 The specs are copied from `golden_root() / "specs"` into the test's work folder before the run, so that what TLC writes beside a spec (v1.7.4 writes `_TTrace_` files, R6) never lands in the repository. `docs/examples/` is copied the same way for `test_modules.py`.
 
