@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Changed
+- `tlaup --help` and other commands that need neither the network nor the config start faster.
 - Settings are read in layers: built-in defaults, then the user's config file, then environment variables, then command-line options. A config file is no longer created on first run; a file needs to hold only the settings that differ from the defaults.
 - Unknown keys in the config file give a warning.
 - `upgrade` compares the installed jar with the published one by SHA-256 where GitHub provides it.
@@ -90,6 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup tlc --version`; use `tlaup tool current`.
 
 ### Fixed
+- `tlaup --version` started `git` on every call.
 - A config file written by an older version, or missing a section, caused a traceback.
 - Several failures printed a Python traceback. tlaup now prints one `error:` line; `tlaup --debug ...` or `TLAUP_DEBUG=1` shows the traceback.
 - `tlaup tool uninstall --all` stopped after removing the pinned version.
