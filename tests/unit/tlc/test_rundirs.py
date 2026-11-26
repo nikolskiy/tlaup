@@ -1,12 +1,14 @@
-"""Settle, the sweep and the visits of the run folders (design 11 R6, "Unit (rundirs)"; package 35a).
+"""Settle, the sweep, the visits, run_folder, list_runs and clean_runs (design 11 R6, "Unit (rundirs)"; 35a, 35b).
 
 Real files under the test's folder, the injected clock of ``tests.clock`` and ages set with ``os.utime``.
 """
 
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
+import shlex
 import subprocess
 import sys
 from datetime import UTC, datetime, timedelta
@@ -15,16 +17,22 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.clock import FakeClock
-from tlaup.errors import FileOperationError
+from tests.unit.tlc.invocations import make_invocation
+from tlaup.errors import FileOperationError, PathNotFound
 from tlaup.java.launcher import ProcessOutcome
 from tlaup.paths import AppPaths
+from tlaup.tlc.invocation import TlcRequest
 from tlaup.tlc.rundirs import (
+    CleanReport,
     EntryVisit,
     KeptSummary,
     RunFolder,
     RunStart,
+    clean_runs,
     complete_checkpoint,
     list_entries,
+    list_runs,
+    run_folder,
     sweep,
 )
 
@@ -33,6 +41,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tlaup.java.launcher import SignalName
+    from tlaup.tlc.invocation import TlcInvocation
 
 STATES = "20261115-100000"  # stands for TLC's timestamped folder
 START = datetime(2026, 11, 15, 10, 0, tzinfo=UTC)
@@ -627,3 +636,404 @@ def test_a_start_that_failed_at_its_own_lock_leaves_its_lock_file(runs: Path, cl
     end(folder)
     assert (runs / "run0").is_dir()  # the other holder's folder is untouched
     assert (runs / "run0.lock").exists()
+
+
+# ---------------------------------------------------------------------- run_folder (package 35b)
+
+
+@pytest.fixture
+def project(tmp_path: Path) -> Path:
+    folder = tmp_path / "project"
+    folder.mkdir()
+    (folder / "Spec.tla").write_text("---- MODULE Spec ----\n====\n", encoding="utf-8")
+    return folder
+
+
+def invocation_for(project: Path, paths: AppPaths, *extra: str, keep: bool = False, **changes: object) -> TlcInvocation:
+    request = TlcRequest(spec="Spec.tla", keep=keep, extra_args=extra)
+    return make_invocation(project, paths.runs, request=request, extra_args=extra, **changes)
+
+
+def everything_under(folder: Path) -> list[Path]:
+    return sorted(folder.rglob("*"))
+
+
+def test_run_folder_makes_its_folder_under_the_cache_and_nothing_beside_the_spec(
+    project: Path, paths: AppPaths, clock: FakeClock
+) -> None:
+    """Inventory row R7: TLC's -metadir is under tlaup's cache, so its state never lands in the project."""
+    before = everything_under(project)
+    inv = invocation_for(project, paths)
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.path == paths.runs / "run0"
+        assert inv.metadir == folder.path
+        assert (paths.runs / "run0.lock").is_file()
+        data = record(folder.path)
+        assert list(data) == [
+            "schema", "spec", "cfg", "build", "pid", "started", "tlaup", "keep", "fp", "seed", "ended", "kept", "size",
+        ]  # fmt: skip
+        assert data["spec"] == str(project / "Spec.tla")
+        assert data["cfg"] is None
+        assert data["build"] == "rolling@bc1b506"
+        assert data["pid"] == os.getpid()
+        assert isinstance(data["tlaup"], str)
+        assert data["tlaup"]
+        assert (data["keep"], data["fp"], data["seed"]) == (False, 58, 8556987057680880581)
+        assert data["started"] == "2026-11-15T10:00:00Z"
+        assert everything_under(project) == before
+        folder.settle(outcome(0))
+    assert everything_under(project) == before
+    assert list_entries(paths.runs) == []
+
+
+def test_run_json_records_the_users_own_fp_and_seed(project: Path, paths: AppPaths, clock: FakeClock) -> None:
+    inv = invocation_for(project, paths, "-fp", "3", "-seed", "oops")
+    assert (inv.fp, inv.seed) == (None, None)
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.path is not None
+        assert (record(folder.path)["fp"], record(folder.path)["seed"]) == (3, None)
+
+
+def test_a_kept_run_carries_its_resume_command(project: Path, paths: AppPaths, clock: FakeClock) -> None:
+    inv = invocation_for(project, paths, "-deadlock", keep=True)
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.path is not None
+        states = write_checkpoint(folder.path)
+        settled = folder.settle(outcome(130, stopped_by="int"), workers_reported=4)
+    assert settled.kept is not None
+    assert settled.kept.ended == START
+    assert settled.kept.resume_command == shlex.join(
+        [
+            "tlaup", "tlc", str(project / "Spec.tla"), "--keep", "--workers", "4", "--",
+            "-deadlock", "-fp", "58", "-seed", "8556987057680880581", "-recover", str(states),
+        ]
+    )  # fmt: skip
+    assert states.is_dir()
+
+
+def held_old_folder(runs: Path, clock: FakeClock) -> RunStart:
+    """A run folder whose lock the test holds, as another tlaup's run."""
+    return started(runs, clock, "old")
+
+
+def test_recover_into_a_held_folder_is_refused_after_the_wait(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = held_old_folder(runs, clock)
+    write_checkpoint(old.path)
+    inv = invocation_for(project, paths, "-recover", str(old.path / STATES))
+    with pytest.raises(FileOperationError, match=r"the run folder .* is in use by another tlaup run"):  # noqa: SIM117
+        with run_folder(inv, paths, clock.now, wait=0):
+            pytest.fail("the block ran")
+    assert list_entries(runs) == ["old"]  # its own folder and lock file are gone
+    assert complete_checkpoint(old.path) is not None
+
+
+def test_recover_into_a_held_folder_whose_states_are_missing_is_refused_too(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    """Question Q9: the lock is taken whether or not the path itself exists."""
+    old = held_old_folder(runs, clock)
+    inv = invocation_for(project, paths, "-recover", str(old.path / "states"))
+    with pytest.raises(FileOperationError, match="in use"), run_folder(inv, paths, clock.now, wait=0):
+        pytest.fail("the block ran")
+    assert list_entries(runs) == ["old"]
+
+
+def test_a_relative_recover_is_read_against_the_working_folder(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    held_old_folder(runs, clock)
+    relative = os.path.relpath(runs / "old" / STATES, project)
+    inv = invocation_for(project, paths, "-recover", relative)
+    with pytest.raises(FileOperationError, match="in use"), run_folder(inv, paths, clock.now, wait=0):
+        pytest.fail("the block ran")
+
+
+def test_recover_into_no_folder_takes_no_second_lock(project: Path, paths: AppPaths, clock: FakeClock) -> None:
+    inv = invocation_for(project, paths, "-recover", str(paths.runs / "gone" / STATES))
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        fds = folder.lock_fds
+        for fd in fds:
+            os.close(fd)
+        assert len(fds) == (0 if os.name == "nt" else 1)
+        assert not (paths.runs / "gone.lock").exists()
+        assert not folder.resumes_exactly
+        folder.settle(outcome(0))
+
+
+def test_a_users_metadir_makes_no_folder_and_no_lock(project: Path, paths: AppPaths, clock: FakeClock) -> None:
+    mine = project / "meta"
+    inv = invocation_for(project, paths, "-metadir", str(mine))
+    assert inv.metadir is None
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.path is None
+        assert list_entries(paths.runs) == []
+        assert folder.lock_fds == ()
+        assert folder.settle(outcome(255)) == folder.settle(None)
+    assert list_entries(paths.runs) == []
+
+
+def test_a_users_metadir_still_holds_and_settles_the_recovered_folder(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = kept(runs, clock, "old")
+    inv = invocation_for(project, paths, "-metadir", str(project / "meta"), "-recover", str(old / STATES))
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.path is None
+        assert not EntryVisit(runs, "old", clock.now).take_lock()  # held for the run
+        assert list_entries(runs) == ["old"]
+        folder.settle(outcome(0))
+    assert list_entries(runs) == []  # the resume finished: the recovered folder is deleted
+
+
+def test_a_resume_with_the_recorded_fp_and_seed_is_exact(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = kept(runs, clock, "old")
+    data = record(old)
+    data.update(fp=58, seed=8556987057680880581)
+    (old / "run.json").write_text(json.dumps(data), encoding="utf-8")
+    inv = invocation_for(project, paths, "-recover", str(old / STATES))
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.resumes_exactly
+        folder.settle(outcome(130, stopped_by="int"))
+    other = dataclasses.replace(invocation_for(project, paths, "-recover", str(old / STATES), run_id="run1"), fp=3)
+    with run_folder(other, paths, clock.now, wait=0) as folder:
+        assert not folder.resumes_exactly
+        folder.settle(outcome(130, stopped_by="int"))
+
+
+def test_a_run_without_recover_is_not_exact(project: Path, paths: AppPaths, clock: FakeClock) -> None:
+    with run_folder(invocation_for(project, paths), paths, clock.now, wait=0) as folder:
+        assert not folder.resumes_exactly
+
+
+def test_an_error_in_the_block_runs_the_end_steps(project: Path, paths: AppPaths, clock: FakeClock) -> None:
+    inv = invocation_for(project, paths)
+    with pytest.raises(RuntimeError), run_folder(inv, paths, clock.now, wait=0):
+        raise RuntimeError
+    assert list_entries(paths.runs) == []
+
+
+def test_the_start_sweeps(project: Path, paths: AppPaths, clock: FakeClock, runs: Path) -> None:
+    kept(runs, clock, "a", size=1000)
+    folder_of_a_killed_run = unsettled(runs, clock, "dead", keep=False, checkpoint=True)
+    with run_folder(invocation_for(project, paths), paths, clock.now, wait=0) as folder:
+        assert folder.kept_summary == KeptSummary(1, 1000)
+        assert not folder_of_a_killed_run.exists()
+
+
+# ---------------------------------------------------------------------- list_runs
+
+
+def test_list_runs_gives_one_record_per_folder(runs: Path, clock: FakeClock, paths: AppPaths) -> None:
+    kept_folder = kept(runs, clock, "a", size=1000)
+    unsettled(runs, clock, "b", keep=True, checkpoint=True)
+    live = started(runs, clock, "c", keep=True)
+    write_checkpoint(live.path)
+    pasted = runs / "d"
+    write_checkpoint(pasted)
+    for path in (pasted, *pasted.rglob("*")):
+        age(path, START - timedelta(days=3))
+    (runs / "orphan.lock").touch()
+
+    records = {item.run_id: item for item in list_runs(paths)}
+
+    assert sorted(records) == ["a", "b", "c", "d"]
+    a = records["a"]
+    assert (a.kept, a.keep, a.reason, a.size, a.in_use) == (True, True, "TLC crashed (exit 255)", 1000, False)
+    assert a.path == kept_folder
+    assert a.checkpoint_complete
+    assert a.started == START
+    assert a.ended == START
+    b = records["b"]
+    assert (b.kept, b.keep, b.reason, b.in_use, b.ended) == (False, True, "unsettled after a kill", False, None)
+    c = records["c"]
+    assert (c.in_use, c.reason) == (True, None)  # a live run is not unsettled
+    d = records["d"]
+    assert not d.has_run_json
+    assert (d.spec, d.cfg, d.build, d.started, d.reason) == (None, None, None, None, None)
+    assert d.size == 2 * len(b"checkpoint")
+    assert d.last_change == START - timedelta(days=3)
+
+
+def test_list_runs_reads_run_json_fields(project: Path, paths: AppPaths, clock: FakeClock) -> None:
+    with run_folder(invocation_for(project, paths), paths, clock.now, wait=0):
+        (only,) = list_runs(paths)
+    assert only.spec == str(project / "Spec.tla")
+    assert only.build == "rolling@bc1b506"
+    assert only.in_use
+
+
+def test_list_runs_with_no_runs_folder(paths: AppPaths) -> None:
+    assert list_runs(paths) == []
+
+
+def test_list_runs_sees_a_lock_another_process_holds(
+    runs: Path, clock: FakeClock, paths: AppPaths, holder: list[subprocess.Popen[str]]
+) -> None:
+    unsettled(runs, clock, "old", keep=False, checkpoint=False)
+    hold_in_another_process(holder, runs / "old.lock")
+    (only,) = list_runs(paths)
+    assert only.in_use
+
+
+# ---------------------------------------------------------------------- clean_runs
+
+
+def test_clean_runs_leaves_what_can_be_resumed_and_removes_the_rest(
+    runs: Path, clock: FakeClock, paths: AppPaths
+) -> None:
+    spared = resumable_kept_and_pasted(runs, clock)
+    dead = unsettled(runs, clock, "dead", keep=False, checkpoint=True)
+    size = sum(path.stat().st_size for path in dead.rglob("*") if path.is_file())
+    report = clean_runs(paths, include_kept=False)
+    assert report == CleanReport(("dead",), size, ())
+    assert all(folder.is_dir() for folder in spared)
+    assert not (runs / "dead.lock").exists()
+
+
+def test_clean_runs_with_include_kept_removes_them_all(runs: Path, clock: FakeClock, paths: AppPaths) -> None:
+    spared = resumable_kept_and_pasted(runs, clock)
+    report = clean_runs(paths, include_kept=True)
+    assert sorted(report.removed) == sorted(folder.name for folder in spared)
+    assert report.freed > 0
+    assert list_entries(runs) == []
+
+
+@pytest.mark.parametrize("name", ["resumable", "kept", "pasted"])
+def test_clean_runs_with_an_id_removes_that_folder_whatever_it_is(
+    runs: Path, clock: FakeClock, paths: AppPaths, name: str
+) -> None:
+    resumable_kept_and_pasted(runs, clock)
+    size = sum(path.stat().st_size for path in (runs / name).rglob("*") if path.is_file())
+    assert clean_runs(paths, include_kept=False, run_id=name) == CleanReport((name,), size, ())
+    assert sorted(list_entries(runs, folders_only=True)) == sorted({"resumable", "kept", "pasted"} - {name})
+    assert not (runs / f"{name}.lock").exists()
+
+
+@pytest.mark.parametrize("run_id", ["nosuch", "../runs", "", "a.lock"])
+def test_clean_runs_with_an_unknown_id_is_not_found(runs: Path, clock: FakeClock, paths: AppPaths, run_id: str) -> None:
+    (runs / "a.lock").touch()
+    with pytest.raises(PathNotFound) as raised:
+        clean_runs(paths, include_kept=False, run_id=run_id)
+    assert raised.value.exit_code == 4
+
+
+def test_clean_runs_with_the_id_of_a_held_folder_says_it_is_in_use(
+    runs: Path, clock: FakeClock, paths: AppPaths
+) -> None:
+    started(runs, clock)
+    with pytest.raises(FileOperationError, match="is in use by another tlaup run") as raised:
+        clean_runs(paths, include_kept=True, run_id="run0")
+    assert raised.value.exit_code == 5
+    assert (runs / "run0").is_dir()
+
+
+def test_clean_runs_leaves_a_folder_held_by_this_process(runs: Path, clock: FakeClock, paths: AppPaths) -> None:
+    folder = unsettled(runs, clock, "old", keep=False, checkpoint=False)
+    visit = EntryVisit(runs, "old", clock.now)
+    assert visit.take_lock()
+    try:
+        assert clean_runs(paths, include_kept=True) == CleanReport((), 0, ("old",))
+    finally:
+        visit.release()
+    assert folder.is_dir()
+
+
+def test_clean_runs_leaves_a_folder_held_by_another_process(
+    runs: Path, clock: FakeClock, paths: AppPaths, holder: list[subprocess.Popen[str]]
+) -> None:
+    folder = unsettled(runs, clock, "old", keep=False, checkpoint=False)
+    hold_in_another_process(holder, runs / "old.lock")
+    assert clean_runs(paths, include_kept=True) == CleanReport((), 0, ("old",))
+    assert folder.is_dir()
+
+
+@pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="file modes: POSIX, and root ignores them")
+def test_a_folder_whose_lock_file_cannot_be_opened_is_not_in_use(runs: Path, clock: FakeClock, paths: AppPaths) -> None:
+    folder = unsettled(runs, clock, "old", keep=False, checkpoint=False)
+    (runs / "old.lock").chmod(0)
+    try:
+        assert clean_runs(paths, include_kept=True) == CleanReport((), 0, (), ("old",))
+        with pytest.raises(FileOperationError) as raised:
+            clean_runs(paths, include_kept=True, run_id="old")
+        assert "in use" not in raised.value.message
+        assert "cannot lock" in raised.value.message
+    finally:
+        (runs / "old.lock").chmod(0o644)
+    assert folder.is_dir()
+
+
+def test_clean_runs_with_no_runs_folder_removes_nothing(paths: AppPaths) -> None:
+    assert clean_runs(paths, include_kept=True) == CleanReport((), 0, ())
+
+
+def test_a_folder_without_run_json_survives_a_sweep_and_a_plain_clean(
+    runs: Path, clock: FakeClock, paths: AppPaths
+) -> None:
+    """R9: a folder a pasted --show-command made has no run.json and is left by both."""
+    folder = runs / "pasted"
+    write_checkpoint(folder)
+    sweep(paths, clock.now)
+    assert clean_runs(paths, include_kept=False) == CleanReport((), 0, ())
+    assert folder.is_dir()
+
+
+def resumed_and_kept_again(project: Path, paths: AppPaths, clock: FakeClock, runs: Path, *extra: str) -> Path:
+    old = kept(runs, clock, "old")
+    data = record(old)
+    data.update(fp=58, seed=8556987057680880581)
+    (old / "run.json").write_text(json.dumps(data), encoding="utf-8")
+    inv = invocation_for(project, paths, *extra, "-recover", str(old / STATES), run_id="run1")
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.settle(outcome(130, stopped_by="int")).kept is not None
+    return old
+
+
+def test_a_resume_kept_again_with_other_values_records_none(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    """D54: the checkpoint now holds the work of two -fp and -seed values, so no later resume is exact."""
+    old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "3", "-seed", "11")
+    assert (record(old)["fp"], record(old)["seed"]) == (None, None)
+    third = invocation_for(project, paths, "-fp", "3", "-seed", "11", "-recover", str(old / STATES), run_id="run2")
+    with run_folder(third, paths, clock.now, wait=0) as folder:  # the note's command passes 3 and 11 again
+        assert not folder.resumes_exactly
+        folder.settle(outcome(130, stopped_by="int"))
+    assert (record(old)["fp"], record(old)["seed"]) == (None, None)
+
+
+def test_a_resume_kept_again_with_one_value_changed_nulls_only_that_one(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "58", "-seed", "11")
+    assert (record(old)["fp"], record(old)["seed"]) == (58, None)
+
+
+def test_a_resume_kept_again_with_the_same_values_keeps_them(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = resumed_and_kept_again(project, paths, clock, runs)
+    assert (record(old)["fp"], record(old)["seed"]) == (58, 8556987057680880581)
+
+
+def test_a_resume_that_recorded_no_values_leaves_the_recorded_ones(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "oops", "-seed", "bad")
+    assert (record(old)["fp"], record(old)["seed"]) == (58, 8556987057680880581)
+
+
+@pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="file modes: POSIX, and root ignores them")
+def test_list_runs_does_not_call_an_unopenable_lock_in_use(runs: Path, clock: FakeClock, paths: AppPaths) -> None:
+    unsettled(runs, clock, "old", keep=True, checkpoint=True)
+    (runs / "old.lock").chmod(0)
+    try:
+        (only,) = list_runs(paths)
+    finally:
+        (runs / "old.lock").chmod(0o644)
+    assert (only.in_use, only.cannot_lock, only.reason) == (False, True, None)
+    (again,) = list_runs(paths)
+    assert (again.in_use, again.cannot_lock, again.reason) == (False, False, "unsettled after a kill")

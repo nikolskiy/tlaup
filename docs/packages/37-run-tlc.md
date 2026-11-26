@@ -183,6 +183,8 @@ None in this package: no command reaches the code. [39](39-tlc-command.md) write
 
 ## Context for the worker
 
+**From 35b** (noted at its merge, 2026-11-25). `Kept` has a required `ended` field; `resume_command`, `kept_note(kept, *, zone=None)`, `reminder` and `format_size` live in `tlaup/tlc/rundirs.py` (the package 35 code block that heads them `durations.py` is a slip); `format_elapsed` and `half_up` are in `tlaup/durations.py`. `ProcessOutcome.stopped_for_closed_pipe` (21) is true whenever a closed pipe was seen, even after a signal came first: not the reason for the exit.
+
 Read the frame at the top of [11](../design/11-runner.md) and its three rules, then R1, R2 and R3, then [22 O1](../design/22-reporters.md#o1-reporter-interface) for the reporter's side of the same order, then [20 G3](../design/20-groundwork.md#g3-java-launcher)'s signal table. [21](21-java-launcher.md)'s "Where the launcher ends and the runner begins" is the line from the other side.
 
 ### The decisions, with the reason for each

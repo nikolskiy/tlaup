@@ -151,6 +151,8 @@ R6's Changed entry, which names `cache clean <run-id>` and `--all`, is 39's.
 
 ## Context for the worker
 
+**From 35b** (noted at its merge, 2026-11-25). `CleanReport.cannot_lock` lists the folders whose lock file could not be opened in a full clean (report them; they are not "in use"), and one id that cannot be locked is a `FileOperationError` (5); `RunRecord.cannot_lock` marks such a folder in `list_runs`, whose `in_use` is then false.
+
 **Decisions this rests on.** D49 and D53: nothing that can be resumed is removed without `--all` or its id, and a kept folder is never removed silently; `cache clean` uses the sweep's rule. D51: a held lock means a live run, or the TLC of a killed tlaup on Linux and macOS; it is never removed. D14: no `fetch-cache` alias. D29: 2 for a run id with an option, 4 for an id that names nothing, 5 for one in use. D30: the listing on stdout, notes on stderr. Review finding TU6: a run id excludes the other options.
 
 **What the functions already do** ([35](35-run-folders.md)): `clean_runs` takes each lock with one attempt before it looks, removes a lock file with its folder (the removal is the last thing under the lock, finding K1-1), visits folders only, and raises for a run id that names nothing or is in use. `list_runs` reads each lock with one attempt to set `in_use`, takes the newest modification time of anything under a folder as its last change (research 34: the timestamped folder's own time does not move while files grow), and uses the size `run.json` recorded at the keep. Do not reimplement any of it in the command.

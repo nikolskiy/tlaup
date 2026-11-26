@@ -332,6 +332,8 @@ Notes on the list. The design's duplicate entries are gone (index "Clerical", se
 
 ## Context for the worker
 
+**From 35b** (noted at its merge, 2026-11-25). The kept note, the reminder and the resume command come from `tlaup/tlc/rundirs.py` (`kept_note`, `reminder`, `resume_command`); `Kept` has a required `ended` field.
+
 **State of `main` when this starts.** Everything new exists and is tested from below: `tlaup_parse`, the launcher, the store and the `tool` commands, the module build and the `module` commands, `tlc/invocation.py`, `tlc/command.py`, `tlc/overrides.py`, `tlc/rundirs.py`, the run functions, the reporter interface and the plain terminal reporter. `tlaup tlc` is the last command on the old code: `cmd/tlc.py` calls the old `tlc/runner.py`, which uses the old parser, `run_cache.py`, `compiler.py` (edited by [04](04-delete-dead-code.md) and [29](29-tool-commands.md) so that it finds the pinned jar in the new store), `java/inspector.py` and the old formatter. Check what really imports what before deleting: `uv run mypy` and `ruff` name every dangling import.
 
 **What `main` looks like after this package, before 40 to 48.** Nothing is released in between (D6), and each of these is intended:

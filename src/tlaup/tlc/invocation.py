@@ -8,7 +8,6 @@ project root, the cfg, the tool build, Java, then what needs the build. It creat
 
 from __future__ import annotations
 
-import json
 import re
 import sys
 from dataclasses import dataclass
@@ -23,10 +22,11 @@ from tlaup.modules.registry import Registry
 from tlaup.project.core import find_project_root
 from tlaup.project.spec import config_arg, resolve_cfg, resolve_spec
 from tlaup.tlc.overrides import check_overrides, collect_override_classes
+from tlaup.tlc.rundirs import find_recovered_run
 
 if TYPE_CHECKING:
     import random
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Mapping
     from datetime import datetime
     from pathlib import Path
 
@@ -106,62 +106,9 @@ class TlcInvocation:
     metadir: Path | None  # None when the user passed -metadir
 
 
-@dataclass(frozen=True)
-class RecoveredRun:
-    """The run folder a `-recover PATH` among TLC's arguments points into (11 R6)."""
-
-    run_id: str
-    folder: Path  # paths.runs / run_id
-    keep: bool  # its run.json says "keep": true or "kept": true
-    fp: int | None  # from its run.json, when it has them
-    seed: int | None
-
-
 def new_run_id(now: Callable[[], datetime], rng: random.Random) -> str:
     """ "20261115T100000Z-3fa9c1d2": the UTC start time and eight random hex digits (11 R6)."""
     return f"{now().astimezone(UTC):%Y%m%dT%H%M%SZ}-{rng.getrandbits(32):08x}"
-
-
-def _int_or_none(value: object) -> int | None:
-    return value if isinstance(value, int) and not isinstance(value, bool) else None
-
-
-def _read_run_json(folder: Path) -> tuple[bool, int | None, int | None]:
-    try:
-        data = json.loads((folder / "run.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return False, None, None
-    if not isinstance(data, dict):
-        return False, None, None
-    keep = data.get("keep") is True or data.get("kept") is True  # review finding FC1
-    return keep, _int_or_none(data.get("fp")), _int_or_none(data.get("seed"))
-
-
-def find_recovered_run(extra_args: Sequence[str], cwd: Path, runs: Path) -> RecoveredRun | None:
-    """The run under `runs` that the word after `-recover` lies in, whether or not that path exists; else None.
-
-    A relative path is read against `cwd`, as TLC reads it, and links are resolved as far as the path exists. A
-    run.json that is missing or cannot be read gives keep=False and no values; the run is still returned. Reads
-    only; takes no lock.
-    """
-    args = list(extra_args)
-    if "-recover" not in args:
-        return None
-    index = args.index("-recover")
-    if index + 1 >= len(args):
-        return None  # TLC reports the missing value
-    target = (cwd / args[index + 1]).resolve()  # not strict: resolves what exists, keeps the rest
-    try:
-        parts = target.relative_to(runs.resolve()).parts
-    except ValueError:
-        return None
-    if not parts:
-        return None  # the runs folder itself
-    folder = runs / parts[0]
-    if not folder.is_dir():
-        return None
-    keep, fp, seed = _read_run_json(folder)
-    return RecoveredRun(parts[0], folder, keep, fp, seed)
 
 
 def _check_passthrough(request: TlcRequest) -> None:
