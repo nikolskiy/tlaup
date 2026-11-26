@@ -214,6 +214,23 @@ def test_a_held_recovered_lock_says_the_folder_is_in_use(runs: Path, clock: Fake
         second.take_recover_lock()
 
 
+@pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="file modes: POSIX, and root ignores them")
+def test_a_recovered_lock_that_cannot_be_opened_is_not_in_use(runs: Path, clock: FakeClock) -> None:
+    first = started(runs, clock)
+    first.entered().release_own()
+    (runs / "run0.lock").chmod(0)
+    second = RunStart(runs, clock.now, run_id="run1", recover=first.path / STATES, wait=0)
+    second.create_lock_file()
+    second.take_lock()
+    try:
+        with pytest.raises(FileOperationError) as raised:
+            second.take_recover_lock()
+        assert "in use" not in raised.value.message
+        assert "cannot open" in raised.value.message
+    finally:
+        (runs / "run0.lock").chmod(0o644)
+
+
 def test_a_recover_path_under_no_existing_folder_takes_no_lock(runs: Path, clock: FakeClock) -> None:
     folder = started(runs, clock, recover=runs / "gone" / STATES).entered()
     assert not (runs / "gone.lock").exists()
@@ -274,6 +291,22 @@ def test_a_run_that_did_not_finish_and_asked_keeps_its_complete_checkpoint(
     end(folder)
     assert start.path.is_dir()
     assert visit_sweep(runs, clock, "run0")  # released
+
+
+def test_a_kept_folder_whose_run_json_cannot_be_written_is_still_kept(runs: Path, clock: FakeClock) -> None:
+    start = started(runs, clock, keep=True)
+    states = write_checkpoint(start.path)
+    (start.path / "run.json").unlink()
+    (start.path / "run.json").mkdir()  # a non-empty folder in its place: no write replaces it, also as root
+    (start.path / "run.json" / "inside").write_bytes(b"x")
+    folder = start.entered()
+    with pytest.raises(FileOperationError):
+        folder.settle(outcome(255))
+    settled = folder.settle(None)
+    assert settled.kept is not None
+    assert settled.kept.path == start.path
+    end(folder)
+    assert complete_checkpoint(start.path) == states  # the checkpoint the user asked to keep survives the end
 
 
 def test_a_kept_folder_records_kept_keep_ended_size_and_reason(runs: Path, clock: FakeClock) -> None:

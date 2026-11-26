@@ -205,13 +205,13 @@ Each file also has a plain test with a second Python process. For the two that u
 
 **The machines were tried on broken models.** A machine that cannot fail proves nothing, so each throwaway model was broken on purpose in several ways, one at a time, and the machine run with 200 examples: twenty-two broken models in all, each tried twice, with shrinking switched off. The signals machine caught all seven of its own both times. The run-folder machine caught six of seven, then four of seven: it always finds a lock that is not held or not taken, and it missed at least once a kept folder removed too early by the sweep, by `cache clean` or at the end of a resumed run, each of which is a rule of one step that R6's unit tests cover with an injected clock. The store machine caught four of eight both times: it finds a cleanup that ignores locks, a removal that is not a rename, and an upgrade that moves the pin or removes a build it should not; both times it missed the four mistakes of reading before the lock (K2-1 and K2-5), although earlier runs of the same machine had caught two of them, and one such run is how K2-5 was found. The four replay tests catch those four every time (tried). The broken models and these runs were scratch work and are not in the repository. The first version of the machines caught under half of the broken models. What changed that: a start-up phase that leaves earlier runs or installs behind, made with the same step functions; one kill per example, as in the specs' models; a stubborn child that notes the SIGTERM it gets; and, for the signals, drawing the phase before which no signal arrives. What it shows about the limits: a race that needs one command to wait while another takes four steps is found by chance or not at all. That is why the counterexamples of K2-1 and K2-5 are also plain tests that replay their steps. After decision D49 the run-folder machine and its throwaway model were changed to the new `cache clean` rule and run again: it passes with the 200 examples of the CI profile (77 seconds). With the old rule put back in the throwaway model, the new check caught it in one of two runs of 50 examples; it was not tried with 200.
 
-**How to run them today.** `hypothesis` is not a development dependency yet; the first testing work package adds it ([01 T10](../docs/design/01-testing.md#t10-coverage-policy-and-pytest-settings)). Until then `uv run poe test` skips the three files, and this runs them without changing the project:
+**How to run them.** `hypothesis` is a development dependency ([01 T10](../docs/design/01-testing.md#t10-coverage-policy-and-pytest-settings)), and `uv run poe test` runs the three files with the rest; this runs them alone:
 
 ```bash
-uv run --with hypothesis pytest tests/stateful --no-cov
+uv run pytest tests/stateful --no-cov
 ```
 
-Adding `-m pending` runs the tests for the real code that is not built yet, which fail at the import until it is; the signals tests run against `tlaup.java.launcher` without it.
+`CI=1` gives the 200 examples of the CI profile. No stateful test is `pending` any more.
 
 ## What was not checked
 

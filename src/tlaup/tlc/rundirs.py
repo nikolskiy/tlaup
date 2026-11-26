@@ -217,16 +217,29 @@ class RunLock:
         return self._fd is not None
 
     def acquire(self) -> None:
-        """One attempt every 50 ms until ``wait`` is over, then FileOperationError; ``wait=0`` makes one."""
+        """``try_acquire``, with FileOperationError when the lock stayed held for the whole wait."""
+        if not self.try_acquire():
+            raise FileOperationError(f"{self.path} is held by another tlaup run")  # noqa: TRY003
+
+    def try_acquire(self) -> bool:
+        """One attempt every 50 ms until ``wait`` is over; False if the lock stayed held. ``wait=0`` makes one.
+
+        A second look that finds the file gone or replaced is not a failed try: the attempt starts over at once,
+        on the file now at the name. An open or lock that fails for another reason is FileOperationError.
+        """
         deadline = time.monotonic() + self.wait
         while True:
-            if self._attempt():
-                return
+            got = self._attempt()
+            if got is None:
+                continue  # the file lost its name under the lock: look again at once
+            if got:
+                return True
             if time.monotonic() >= deadline:
-                raise FileOperationError(f"{self.path} is held by another tlaup run")  # noqa: TRY003
+                return False
             time.sleep(POLL)
 
-    def _attempt(self) -> bool:
+    def _attempt(self) -> bool | None:
+        """True: locked; False: held by another; None: the second look failed."""
         try:
             fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o644)  # never O_TRUNC: the file's age stays
         except OSError as error:
@@ -237,6 +250,8 @@ class RunLock:
                     self._fd = fd
                     return True
                 filelock.unlock_descriptor(fd)  # the second look: the file was removed under the lock (K1-2)
+                os.close(fd)
+                return None
         except OSError as error:
             os.close(fd)
             raise _cannot("lock", self.path, error) from error
@@ -349,10 +364,8 @@ class RunStart:
             return
         folder = self.runs / run_id
         lock = RunLock(_lock_file(self.runs, run_id), wait=self.wait)
-        try:
-            lock.acquire()
-        except FileOperationError as error:
-            raise FileOperationError(f"the run folder {folder} is in use by another tlaup run") from error  # noqa: TRY003
+        if not lock.try_acquire():  # only a wait that ran out; an open or lock error passes as it is
+            raise FileOperationError(f"the run folder {folder} is in use by another tlaup run")  # noqa: TRY003
         self._recovered, self._recovered_path = lock, folder
         record = _read_run_json(folder) or {}
         if record.get("keep") or record.get("kept"):
@@ -455,8 +468,12 @@ class RunFolder:
         if folder is not None and not finished:
             checkpoint = complete_checkpoint(folder) if self._keep else None
             if checkpoint is not None:
-                kept = self._keep_folder(folder, checkpoint, _reason(process))
-            elif _any_checkpoint(folder):
+                ended = self._now()
+                kept = self._kept(folder, checkpoint, _reason(process), ended)
+                self._settled = Settled(kept, None)  # decided before run.json is written: a failed write keeps it
+                _record_kept(kept, ended)
+                return self._settled
+            if _any_checkpoint(folder):
                 if not self._keep:
                     dropped = "not-asked"
                 elif "-dfid" in self._tlc_args:
@@ -466,16 +483,11 @@ class RunFolder:
         self._settled = Settled(kept, dropped)
         return self._settled
 
-    def _keep_folder(self, folder: Path, checkpoint: Path, reason: str) -> Kept:
-        ended = self._now()
-        size = _size(folder)
-        record = _read_run_json(folder) or {"schema": SCHEMA}
-        record.update(ended=_utc(ended), kept=True, keep=True, size=size, reason=reason)  # FC1: keep with kept
-        _write_run_json(folder, record)
+    def _kept(self, folder: Path, checkpoint: Path, reason: str, ended: datetime) -> Kept:
         return Kept(
             path=folder,
             checkpoint_dir=checkpoint,
-            size=size,
+            size=_size(folder),
             stopped_after=ended - self._started,
             checkpoint_at=_checkpoint_at(checkpoint),
             reason=reason,
@@ -513,6 +525,14 @@ class RunFolder:
         self._own.abandon()
         if self._recovered is not None:
             self._recovered.abandon()
+
+
+def _record_kept(kept: Kept, ended: datetime) -> None:
+    """Write ended, kept, keep (FC1), size and reason into the kept folder's run.json. A write that fails passes
+    on; the decision is already made, so the end steps still leave the folder the user asked to keep (D53)."""
+    record = _read_run_json(kept.path) or {"schema": SCHEMA}
+    record.update(ended=_utc(ended), kept=True, keep=True, size=kept.size, reason=kept.reason)
+    _write_run_json(kept.path, record)
 
 
 def _finished(process: ProcessOutcome | None) -> bool:

@@ -1,12 +1,13 @@
 """The lock rules the run folders rest on (design 11 R6, formal check and D51; package 35a).
 
 The second look is reached by running the holder's removal and release inside the waiter's lock attempt, just
-before its ``flock`` (the ``before_the_next_flock`` fixture of this folder's conftest): the waiter has opened the
+before its ``flock`` (the ``before_the_next_flock`` fixture): the waiter has opened the
 old file and then locks a file that no longer has the name.
 """
 
 from __future__ import annotations
 
+import fcntl
 import os
 import subprocess
 import sys
@@ -50,6 +51,28 @@ def held_identity(lock: RunLock) -> tuple[int, int]:
     finally:
         os.close(fd)
     return info.st_dev, info.st_ino
+
+
+@pytest.fixture
+def before_the_next_flock(monkeypatch: pytest.MonkeyPatch) -> Callable[[Callable[[], None]], None]:
+    """``before_the_next_flock(action)``: run ``action`` once, just before the next exclusive flock.
+
+    It wraps the standard library's ``flock``, not tlaup's code (T12 rule 2; the hook names this one exception).
+    """
+
+    def arm(action: Callable[[], None]) -> None:
+        real = fcntl.flock
+        armed = [True]
+
+        def flock(fd: int, operation: int) -> None:
+            if armed[0] and operation & fcntl.LOCK_EX:
+                armed[0] = False
+                action()
+            real(fd, operation)
+
+        monkeypatch.setattr(fcntl, "flock", flock)
+
+    return arm
 
 
 # ---------------------------------------------------------------------- RunLock
@@ -251,3 +274,18 @@ def test_the_jvm_keeps_the_run_lock(tmp_path: Path, parent_ends: str) -> None:
         os.close(gate_write)
         parent.communicate("\n" if parent.poll() is None else None, timeout=30)
     assert wait_until(lambda: probe(path)), "the lock stayed held after the child ended"
+
+
+# ---------------------------------------------------------------------- a failed second look is not a failed try
+
+
+def test_a_file_gone_under_a_free_lock_is_taken_again_at_once(
+    tmp_path: Path, before_the_next_flock: Callable[[Callable[[], None]], None]
+) -> None:
+    path = tmp_path / "run0.lock"
+    path.touch()
+    before_the_next_flock(path.unlink)  # the opened file loses its name; nobody holds a lock
+    lock = RunLock(path, wait=0)
+    lock.acquire()  # not "held by another tlaup run": the second look starts over on the new file
+    assert held_identity(lock) == identity(path)
+    lock.release()
