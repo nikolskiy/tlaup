@@ -59,9 +59,7 @@ NO_GENERATE_SPEC_TE = "no_generate_spec_te"  # the build capability of decision 
 _WORKERS = re.compile(r"[0-9]+")
 _LOCALE_VARIABLES = ("LC_ALL", "LC_CTYPE", "LANG")
 _UTF8 = re.compile(r"utf-?8", re.IGNORECASE)
-NON_ASCII_HINT = (
-    "hint: TLC cannot open a file whose name has non-ASCII characters under the C locale; run with LC_ALL=C.UTF-8"
-)
+NON_ASCII_HINT = "TLC cannot open it under the C locale: run with LC_ALL=C.UTF-8"
 
 
 @dataclass(frozen=True)
@@ -196,7 +194,7 @@ def _path_warnings(spec: Path, cfg: Path | None, env: Mapping[str, str], platfor
         return ()  # on Windows the locale variables do not say what the JVM does
     named = [("spec", spec), ("cfg", cfg)]
     return tuple(
-        f"the {kind} path {path} has characters outside ASCII and the locale is not UTF-8\n{NON_ASCII_HINT}"
+        f"the {kind} path {path} has characters outside ASCII and the locale is not UTF-8; {NON_ASCII_HINT}"
         for kind, path in named
         if path is not None and not str(path).isascii()
     )

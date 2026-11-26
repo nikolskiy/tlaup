@@ -95,6 +95,7 @@ class World:
         cwd: Path | None = None,
         settings: Settings | None = None,
         seed: int = 1,
+        platform: str = "linux",
         **request_fields: object,
     ) -> TlcInvocation:
         if request is None:
@@ -109,6 +110,7 @@ class World:
             get_build=get_build or (lambda: self.build),
             now=FakeClock(START).now,
             rng=random.Random(seed),
+            platform=platform,
         )
 
 
@@ -292,9 +294,17 @@ def test_a_non_ascii_spec_path_under_the_c_locale_gives_the_warning(world: World
     world.env["LC_ALL"] = "C"
     (warning,) = world.resolve(spec=spec).warnings
     assert "café" in warning
+    assert "\n" not in warning
     assert warning.endswith(
-        "hint: TLC cannot open a file whose name has non-ASCII characters under the C locale; run with LC_ALL=C.UTF-8"
+        "has characters outside ASCII and the locale is not UTF-8; "
+        "TLC cannot open it under the C locale: run with LC_ALL=C.UTF-8"
     )
+
+
+def test_no_path_warning_on_windows(world: World) -> None:
+    spec = make_spec(world, "café")
+    world.env["LC_ALL"] = "C"
+    assert world.resolve(spec=spec, platform="win32").warnings == ()
 
 
 @pytest.mark.parametrize("locale", ["C.UTF-8", "en_US.utf8", "de_DE.UTF8"])
