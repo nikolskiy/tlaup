@@ -15,6 +15,9 @@ if TYPE_CHECKING:
     from tlaup.versioning.store import Build
 
 
+SPEC_HELP = "A TLA+ spec: a name (`Spec`), a file (`Spec.tla`) or a path. `spec/Spec.tla` is tried too."
+
+
 def run_build(app: AppContext, auto_install: str | None) -> Callable[[], Build]:
     """``get_build`` for a run: the pin, or the first-run question or install (12 V9). The GitHub client, and so
     ``requests``, is built only when nothing is installed and ``ensure_tools`` may install or ask (14 F9)."""

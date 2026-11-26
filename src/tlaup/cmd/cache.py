@@ -22,15 +22,20 @@ if TYPE_CHECKING:
     from tlaup.paths import AppPaths
     from tlaup.tlc.rundirs import RunRecord
 
-GROUP_HELP = "Show and clean what tlaup keeps in its cache folder: run folders, remembered lookups, the Java check."
+GROUP_HELP = (
+    "Show and clean what tlaup keeps in its cache folder.\n\n"
+    "The folder holds run folders, remembered lookups and the Java check."
+)
 DIR_HELP = "Print the cache folder, whether or not it exists."
 LIST_HELP = (
-    "List the run folders: id, spec, build, when it started and last changed, size, whether it is in use, "
-    "whether it is kept and why, and whether its checkpoint is complete; then the total of the kept ones."
+    "List the run folders, then the total of the kept ones.\n\n"
+    "A row has the id, spec, build, when the run started and last changed, size, whether it is in use, "
+    "whether it is kept and why, and whether its checkpoint is complete."
 )
 CLEAN_HELP = (
-    "Remove what nothing will use again: run folders that no run holds and that are not kept, and the "
-    "remembered GitHub lookups. A kept run folder, and one that asked to be kept and holds a complete checkpoint, "
+    "Remove what nothing will use again.\n\n"
+    "That is run folders that no run holds and that are not kept, and the remembered GitHub lookups. "
+    "A kept run folder, and one that asked to be kept and holds a complete checkpoint, "
     "stay unless --all or its RUN_ID says so. A run folder in use is never removed. "
     "It never touches installed tools or modules."
 )

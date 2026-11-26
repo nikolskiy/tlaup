@@ -26,7 +26,8 @@ COMPLETE_VAR = "_TLAUP_COMPLETE"
 PROG_NAME = "tlaup"
 
 HELP = (
-    "Print the completion script of a shell. Put one line in the shell's start-up file: "
+    "Print the completion script of a shell.\n\n"
+    "Put one line in the shell's start-up file: "
     'eval "$(tlaup completion bash)" in ~/.bashrc, '
     'eval "$(tlaup completion zsh)" in ~/.zshrc (after compinit), '
     "tlaup completion fish | source in ~/.config/fish/config.fish. "

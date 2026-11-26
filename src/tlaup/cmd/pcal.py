@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Annotated
 
 import typer
 
+from tlaup.cmd.common import SPEC_HELP as COMMON_SPEC_HELP
 from tlaup.cmd.completion import complete_spec
 from tlaup.cmd.sany import AUTO_INSTALL_HELP, JAVA_OPT_HELP, PrintingSink
 
@@ -20,8 +21,8 @@ if TYPE_CHECKING:
 
 HELP = "Translate the PlusCal algorithm of a spec to TLA+ with the PlusCal translator."
 SPEC_HELP = (
-    "The spec: a name such as Spec or a path to Spec.tla. The spec is rewritten in place and the previous version "
-    "is kept as SPEC.old; SPEC.cfg is written, or rewritten with no backup (pass `-- -nocfg` to leave it alone). "
+    f"{COMMON_SPEC_HELP} The spec is rewritten in place and the previous version is kept as SPEC.old; "
+    "SPEC.cfg is written, or rewritten with no backup (pass `-- -nocfg` to leave it alone). "
     "The translator reads the spec from the spec's own folder."
 )
 PCAL_ARGS_HELP = "The translator's own arguments, after `--`: tlaup pcal Spec -- -nocfg."

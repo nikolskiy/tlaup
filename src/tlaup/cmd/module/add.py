@@ -17,8 +17,13 @@ if TYPE_CHECKING:
     from tlaup.ui import Ui
     from tlaup.versioning.store import Build
 
-HELP = "Build a module folder and register it under the folder's name, replacing a module of that name."
-PATH_HELP = "A module folder: modules/*.tla, tlc2/overrides/*.java or modules/tlc2/overrides/*.java, lib/*.jar."
+HELP = (
+    "Build a module folder and register it under the folder's name.\n\n"
+    "The folder holds the module's TLA+ files in `modules/*.tla`, its Java operator overrides in "
+    "`modules/tlc2/overrides/*.java` or `tlc2/overrides/*.java`, and its jars in `lib/*.jar`. "
+    "The folder's name becomes the module's name. An existing module of that name is replaced."
+)
+PATH_HELP = "The module's folder, laid out as above."
 
 
 def add_command(

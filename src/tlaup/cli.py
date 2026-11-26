@@ -189,8 +189,19 @@ def mapped(
         raise typer.Exit(reported(5, report_internal_error, e, ctx, args)) from None
 
 
+RUN, MANAGE, MAINTENANCE = "Run", "Manage", "Maintenance"  # the root help's three panels, in this order (F7)
+
+
 class TlaupGroup(TyperGroup):
     """The root group: the mapping wraps both steps Typer takes here, parsing the root options and running."""
+
+    def list_commands(self, ctx: Any) -> list[str]:
+        """Typer lists commands before groups; the panels follow the order of F7 instead: Run, Manage, Maintenance."""
+        panels = (RUN, MANAGE, MAINTENANCE)
+        return sorted(
+            super().list_commands(ctx),
+            key=lambda name: panels.index(getattr(self.commands[name], "rich_help_panel", None)),
+        )
 
     @staticmethod
     def closed_pipe(e: OSError) -> bool:
@@ -251,10 +262,15 @@ def run_app(app: typer.Typer) -> NoReturn:
     sys.exit(code)
 
 
+def _summary() -> str:
+    """The package's one-line summary: the field `--version` prints, so the root help has no second copy (F7)."""
+    return importlib.metadata.metadata("tlaup")["Summary"]
+
+
 app = typer.Typer(
     cls=TlaupGroup,
     name="tlaup",
-    help="TLA+ tools: download TLA+ toolset distribution, compile custom modules, run model checker.",
+    help=_summary(),
     no_args_is_help=True,
     add_completion=False,
     pretty_exceptions_enable=False,
@@ -291,14 +307,39 @@ def root(
 # --- The command tree (design 23 C1), registered here and nowhere else: Run, Manage, Maintenance ---
 # Every command is registered by name with its HELP constant; every group with add_typer.
 
-app.command(name="tlc")(tlc.tlc)
-app.command(name="sany")(sany.sany)
-app.command(name="pcal")(pcal.pcal)
-app.command(name="repl")(repl.repl)
+TLC_EXAMPLES = """Examples:
 
-app.add_typer(tool_app, name="tool")
+tlaup tlc Spec
+
+tlaup tlc Spec --workers auto --cfg Spec.cfg
+
+tlaup tlc Spec -- -deadlock"""
+SANY_EXAMPLES = """Examples:
+
+tlaup sany Spec
+
+tlaup sany Spec -- -nopcal"""
+INSTALL_EXAMPLES = """Examples:
+
+tlaup tool install stable
+
+tlaup tool install v1.7.4
+
+tlaup tool install rolling --force"""
+MODULE_ADD_EXAMPLES = """Examples:
+
+tlaup module add Queue
+
+tlaup module add path/to/Queue"""
+
+app.command(name="tlc", rich_help_panel=RUN, epilog=TLC_EXAMPLES)(tlc.tlc)
+app.command(name="sany", rich_help_panel=RUN, epilog=SANY_EXAMPLES)(sany.sany)
+app.command(name="pcal", rich_help_panel=RUN)(pcal.pcal)
+app.command(name="repl", rich_help_panel=RUN)(repl.repl)
+
+app.add_typer(tool_app, name="tool", rich_help_panel=MANAGE)
 tool_app.command(name="list", help=tool_list.HELP)(tool_list.list_command)
-tool_app.command(name="install", help=tool_install.HELP)(tool_install.install_command)
+tool_app.command(name="install", help=tool_install.HELP, epilog=INSTALL_EXAMPLES)(tool_install.install_command)
 tool_app.command(name="upgrade", help=tool_upgrade.HELP)(tool_upgrade.upgrade_command)
 tool_app.command(name="uninstall", help=tool_uninstall.HELP)(tool_uninstall.uninstall_command)
 tool_app.command(name="pin", help=tool_pin.HELP)(tool_pin.pin_command)
@@ -306,26 +347,26 @@ tool_app.command(name="current", help=tool_current.HELP)(tool_current.current_co
 tool_app.command(name="path", help=tool_path.HELP)(tool_path.path_command)
 tool_app.command(name="dir", help=tool_dir.HELP)(tool_dir.dir_command)
 
-app.add_typer(module_app, name="module")
-module_app.command(name="add", help=module_add.HELP)(module_add.add_command)
+app.add_typer(module_app, name="module", rich_help_panel=MANAGE)
+module_app.command(name="add", help=module_add.HELP, epilog=MODULE_ADD_EXAMPLES)(module_add.add_command)
 module_app.command(name="list", help=module_list.HELP)(module_list.list_command)
 module_app.command(name="remove", help=module_remove.HELP)(module_remove.remove_command)
 module_app.command(name="dir", help=module_dir.HELP)(module_dir.dir_command)
 
-app.add_typer(config_app, name="config")
+app.add_typer(config_app, name="config", rich_help_panel=MANAGE)
 config_app.command(name="path", help=config.PATH_HELP)(config.path_command)
 config_app.command(name="show", help=config.SHOW_HELP)(config.show_command)
 config_app.command(name="get", help=config.GET_HELP)(config.get_command)
 config_app.command(name="set", help=config.SET_HELP)(config.set_command)
 config_app.command(name="edit", help=config.EDIT_HELP)(config.edit_command)
 
-app.add_typer(cache_app, name="cache")
+app.add_typer(cache_app, name="cache", rich_help_panel=MANAGE)
 cache_app.command(name="dir", help=cache.DIR_HELP)(cache.dir_command)
 cache_app.command(name="list", help=cache.LIST_HELP)(cache.list_command)
 cache_app.command(name="clean", help=cache.CLEAN_HELP)(cache.clean_command)
 
-app.command(name="doctor", help=doctor.HELP)(doctor.doctor)
-app.command(name="completion", help=completion.HELP)(completion.completion)
+app.command(name="doctor", help=doctor.HELP, rich_help_panel=MAINTENANCE)(doctor.doctor)
+app.command(name="completion", help=completion.HELP, rich_help_panel=MAINTENANCE)(completion.completion)
 
 
 def main() -> None:

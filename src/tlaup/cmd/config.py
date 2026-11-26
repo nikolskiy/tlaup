@@ -18,18 +18,23 @@ if TYPE_CHECKING:
 
 GROUP_HELP = "Show and change tlaup's settings."
 PATH_HELP = "Print the path of the config file, whether or not it exists."
-SHOW_HELP = "Print the settings in effect as YAML, each with the layer it came from: default, user file or environment."
+SHOW_HELP = (
+    "Print the settings in effect as YAML.\n\n"
+    "Each setting comes with the layer it came from: default, user file or environment."
+)
 GET_HELP = "Print one setting, in the form `config set` reads it."
 SET_HELP = (
-    "Set one setting in the config file. Rewrites the config file. "
+    "Set one setting in the config file.\n\n"
+    "Rewrites the config file. "
     "Comments in it are not kept; use `tlaup config edit` to keep them."
 )
 EDIT_HELP = (
-    "Open the config file in $VISUAL or $EDITOR, then check it. Give the editor's wait flag, as in "
+    "Open the config file in $VISUAL or $EDITOR, then check it.\n\n"
+    "Give the editor's wait flag, as in "
     "EDITOR='code --wait'; an editor that returns at once leaves nothing to check."
 )
 KEY_HELP = "A setting, as section.name (tlc.workers); `config show` lists them."
-VALUE_HELP = "The new value, read as YAML: 4, auto, true, or '[ghe.example.com]' for a list. Quote it for the shell."
+VALUE_HELP = "The new value, read as YAML: 4, auto, true, or '\\[ghe.example.com]' for a list. Quote it for the shell."
 
 app = typer.Typer(name="config", help=GROUP_HELP, no_args_is_help=True)
 

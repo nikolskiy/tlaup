@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tlaup"
 version = "0.8.2"
-description = "TLA+ tools: download TLC, compile custom modules, run model checker"
+description = "Install and pin TLA+ tools builds, compile Java operator overrides, and run TLC with readable output"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

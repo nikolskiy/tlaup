@@ -15,7 +15,10 @@ if TYPE_CHECKING:
     from tlaup.versioning.spec import VersionSpec
     from tlaup.versioning.store import ToolStore
 
-HELP = "Print the path of a TLA+ tools build's jar: the pinned build's, or the one VERSION names. It never asks."
+HELP = (
+    "Print the path of a TLA+ tools build's jar.\n\n"
+    "It prints the pinned build's, or the one VERSION names. It never asks."
+)
 VERSION_HELP = (
     "An installed build: a tag such as v1.7.4 or 1.7.4, stable, rolling, or tag@commit. Without it, the pinned build."
 )

@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - A first Ctrl-C while TLC is writing a checkpoint waits for the checkpoint to finish, also one typed at the terminal (Linux and macOS, not with `--raw`); a second stops at once.
 - On rolling builds tlaup passes `-noGenerateSpecTE`, so TLC no longer writes `_TTrace_` files next to the spec. Pass `-generateSpecTE` after `--` to get them.
 - Ctrl-C exits with 130.
+- Help text rewritten for `tool`, `module` and `tlc`; root help is grouped.
+- A run stopped with Ctrl-C is called 'interrupted' everywhere.
+- Error messages name what was searched and the command to run next.
+- Messages have the form `error: ...`, `warning: ...`, `hint: ...` on stderr, without symbols.
 - `JAVA_HOME` is used to find `java` and `javac` when it is set; `PATH` is the fallback.
 - A run starts Java once instead of three times; the Java version check is remembered until the Java installation changes.
 - `tlaup config edit` reads `$VISUAL` before `$EDITOR` and checks the file after editing.
@@ -91,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup tlc --version`; use `tlaup tool current`.
 
 ### Fixed
+- `NO_COLOR` is honoured everywhere.
 - `tlaup --version` started `git` on every call.
 - A config file written by an older version, or missing a section, caused a traceback.
 - Several failures printed a Python traceback. tlaup now prints one `error:` line; `tlaup --debug ...` or `TLAUP_DEBUG=1` shows the traceback.
@@ -169,7 +174,7 @@ The project is renamed from `tlaplus-cli` to `tlaup` and moves to a new reposito
 ## [0.7.0] - 2026-06-17
 
 ### Added
-- `tla modules add <PATH>` — compiles Java overrides and copy subfolders (`lib/`, `modules/`, `test/` or `tests/`) into a global user cache directory per module.
+- `tla modules add <PATH>` — compiles Java overrides and copies subfolders (`lib/`, `modules/`, `test/` or `tests/`) into a global user cache directory per module.
 - `tla modules list` — displays a formatted table of all added modules and their built/modified times.
 - `tla modules remove <NAME>` — deletes a module and its compiled assets from the cache.
 - Automatic cleanup of the cached module directory if the Java compilation fails.
@@ -214,7 +219,7 @@ The project is renamed from `tlaplus-cli` to `tlaup` and moves to a new reposito
 - Centralized `ClasspathResolver` component for unified path management across compilation and execution.
 
 #### Experimental
-- The TLC output now parsed for errors and warnings.
+- The TLC output is now parsed for errors and warnings.
 - Model checking progress statistics are now displayed.
 
 ### Changed

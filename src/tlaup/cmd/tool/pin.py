@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from tlaup.versioning.spec import VersionSpec
     from tlaup.versioning.store import ToolStore
 
-HELP = "Pin the TLA+ tools build that runs use. A VERSION that matches several builds asks which on a terminal."
+HELP = "Pin the TLA+ tools build that runs use.\n\nA VERSION that matches several builds asks which on a terminal."
 VERSION_HELP = "An installed build: a tag such as v1.7.4 or 1.7.4, stable, rolling, or tag@commit."
 
 
