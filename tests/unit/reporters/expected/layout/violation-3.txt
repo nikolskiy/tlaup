@@ -1,0 +1,30 @@
+ TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+ Violation.tla  cfg: Violation.cfg
+ ── Status ────────────────────────────────────────────────────────────────────────────────────────
+ Finished                                 elapsed 00:00:20                    errors 1   warnings 1
+ 44 states generated, 44 distinct, 35 on queue, diameter 4
+ Ctrl-C to interrupt
+ ── State space progress ──────────────────────────────────────────────────────────────────────────
+ Time                           Diameter            Generated            Distinct            Queue
+ 2026-11-14 22:25:56                   4                   44                  44               35
+
+
+
+
+
+
+
+ ── Output ────────────────────────────────────────────────────────────────────────────────────────
+                   val |-> 1,
+                   note |->
+                       "a deliberately long note to force the value to wrap across several lines" …
+                 [ op |-> "add",
+                   key |-> "alpha",
+                   val |-> 1,
+                   note |->
+                       "a deliberately long note to force the value to wrap across several lines" …
+                 [ op |-> "add",
+                   key |-> "alpha",
+                   val |-> 1,
+                   note |->
+                       "a deliberately long note to force the value to wrap across several lines" …

@@ -1,0 +1,30 @@
+ TLC v1.7.4@5a47802, Java 25.0.5
+ Big.tla  cfg: Big.cfg
+ ── Status ────────────────────────────────────────────────────────────────────────────────────────
+ Computing initial states                 elapsed 00:00:07                    errors 0   warnings 1
+
+ Ctrl-C to interrupt
+ ── State space progress ──────────────────────────────────────────────────────────────────────────
+ Time                           Diameter            Generated            Distinct            Queue
+
+
+
+
+
+
+
+
+ ── Output ────────────────────────────────────────────────────────────────────────────────────────
+ Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector …
+
+
+
+
+
+
+
+
+
+
+
+
