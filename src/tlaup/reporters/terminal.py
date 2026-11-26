@@ -1,19 +1,36 @@
-"""The terminal reporter in plain mode (design 22 O3): the result text on stdout, the rest on stderr (02 X2).
+"""The terminal reporter (design 22 O3, O4): the result text on stdout, the rest on stderr (02 X2).
 
-`render_event` is the one renderer of the result text; the layout mode (O4, package 40) writes the same lines to
-its stdout spool. Every line built from text tlaup did not write itself (TLC's, SANY's, a value, a path, a class
-name) is a `Text` made from a `str` by `_text`, and is printed with markup and highlighting off (10 P11). Nothing
-is wrapped or cut by tlaup (O3, "Widths").
+`render_event` is the one renderer of the result text; the layout mode (O4) writes the same lines to its stdout
+spool and copies them to stdout when the layout closes. Every line built from text tlaup did not write itself (TLC's,
+SANY's, a value, a path, a class name) is a `Text` made from a `str` by `_text`, and is printed with markup and
+highlighting off (10 P11). Nothing is wrapped or cut by tlaup (O3, "Widths"), apart from the Output panel of the
+layout (O4).
 """
 
 from __future__ import annotations
 
+import atexit
+import contextlib
+import tempfile
+from collections import deque
+from dataclasses import replace
 from pathlib import Path
-from typing import TYPE_CHECKING, assert_never
+from typing import IO, TYPE_CHECKING, Any, Literal, assert_never
 
+from rich.console import Console
+from rich.live import Live
 from rich.segment import Segment
 from rich.text import Text
 
+from tlaup.reporters.layout import (
+    MIN_HEIGHT,
+    MIN_WIDTH,
+    PROGRESS_KEPT,
+    STDERR_MARK,
+    TAIL_KEPT,
+    LayoutView,
+    render_layout,
+)
 from tlaup.reporters.text import (
     diff_values,
     format_count,
@@ -55,12 +72,12 @@ from tlaup_parse import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
-    from rich.console import Console, ConsoleOptions, RenderResult
+    from rich.console import ConsoleOptions, RenderableType, RenderResult
 
     from tlaup.reporters.base import RunInfo
     from tlaup.tlc.runner import RunOutcome
     from tlaup.ui import Ui
-    from tlaup_parse import CoverageItem, Event, RunResult, TlcError, TlcMessage, ToolInfo, TraceState
+    from tlaup_parse import CoverageItem, Event, Progress, RunResult, TlcError, TlcMessage, ToolInfo, TraceState
 
 # tlaup's own literals are the only text with style (P11).
 _ERROR_STYLE = "bold red"
@@ -374,19 +391,66 @@ class _AsPrinted:
         yield Segment.line()
 
 
-class TerminalReporter:
-    """A `Reporter` (22 O1) that writes as things arrive: the result text to ``ui.out``, the rest to ``ui.err``.
+_SPOOL_MAX = 1 << 20  # a spool is held in memory up to 1 MiB, then on disk (O4)
+_COPY_CHUNK = 1 << 16
 
-    Plain mode only; the layout mode is package 40's. In plain mode everything is written when it arrives, so
-    `close` has nothing to release.
+
+def _spool_console(like: Console, spool: IO[str]) -> Console:
+    """A console on a spool that writes what ``like`` would write: its width, terminal-ness and colours (O4).
+
+    Not one of `Ui`'s: it writes to a temporary file, where a closed pipe cannot happen (O1)."""
+    return Console(
+        file=spool,
+        width=like.width,
+        height=like.height,  # a fixed size: Rich does not look for a terminal on every line
+        force_terminal=like.is_terminal,
+        color_system=like.color_system,  # type: ignore[arg-type]
+        no_color=like.no_color,
+        markup=False,
+        emoji=False,
+        highlight=False,
+        legacy_windows=False,
+    )
+
+
+class TerminalReporter:
+    """A `Reporter` (22 O1) in one of two modes.
+
+    Plain mode (O3) writes as things arrive: the result text to ``ui.out``, the rest to ``ui.err``; `close` has
+    nothing to release. Layout mode (O4) draws the full-screen layout on ``ui.err`` while the run lasts and keeps
+    the result text and the stderr lines in two spools, which `close` copies to the real streams once the layout is
+    gone. A layout-mode reporter whose stderr console is smaller than 60 by 15 at `start` runs in plain mode.
     """
 
-    def __init__(self, ui: Ui, *, clock: Callable[[], float]) -> None:
+    def __init__(  # noqa: PLR0913 - the design's signature (O4), and one argument for the spool test
+        self,
+        ui: Ui,
+        *,
+        mode: Literal["plain", "layout"] = "plain",
+        interval: float = 1.0,
+        clock: Callable[[], float],
+        refresh_thread: bool = True,
+        spool_dir: Path | None = None,
+    ) -> None:
         self._ui = ui
         self._clock = clock
+        self._mode = mode
+        self._interval = interval
+        self._refresh_thread = refresh_thread
+        self._spool_dir = spool_dir  # a test's: the spools on disk at once, in this folder; production passes none
         self._run: RunInfo | None = None
         self._started_at: float | None = None
         self._closed = False
+        self._layout = False  # layout mode, decided at start
+        self._size = (0, 0)
+        self._spools: list[IO[str]] = []  # what start took, in order, released by close
+        self._out_spool: Console | None = None
+        self._err_spool: Console | None = None
+        self._hooked = False
+        self._tail: deque[Text] = deque(maxlen=TAIL_KEPT)
+        self._progress: deque[Progress] = deque(maxlen=PROGRESS_KEPT)
+        self.view: LayoutView | None = None
+        self.live: Live | None = None
         self.write_error: OSError | None = None
 
     def _require_run(self) -> RunInfo:
@@ -400,31 +464,205 @@ class TerminalReporter:
         for line in lines:
             console.print(_AsPrinted(line), soft_wrap=True, markup=False, highlight=False, emoji=False)
 
+    # --- start ----------------------------------------------------------------------------------------------------
+
     def start(self, run: RunInfo) -> None:
         self._run = run
         self._started_at = self._clock()
-        self._write(self._ui.err, header_lines(run))
+        header = header_lines(run)
+        self._write(self._ui.err, header)
+        if self._mode != "layout":
+            return
+        width, height = self._ui.err.size  # read once (O4)
+        if width < MIN_WIDTH or height < MIN_HEIGHT:
+            return  # too small: plain output for the whole run
+        self._layout = True
+        self._size = (width, height)
+        self._out_spool = _spool_console(self._ui.out, self._spool())
+        self._err_spool = _spool_console(self._ui.err, self._spool())
+        self.view = LayoutView(
+            run=run,
+            phase=Phase.NOT_STARTED,
+            started_at=self._started_at,
+            errors=0,
+            warnings=0,
+            progress=(),
+            tail=(),
+            header=tuple(header),
+        )
+        atexit.register(self._at_exit)
+        self._hooked = True
+        live = Live(
+            console=self._ui.err,
+            screen=True,
+            get_renderable=self._frame,
+            auto_refresh=self._refresh_thread,
+            refresh_per_second=1 / self._interval,
+            redirect_stdout=False,
+            redirect_stderr=False,
+        )
+        try:
+            live.start(refresh=True)
+        except BaseException:
+            self._leave_after_failed_start()
+            raise
+        self.live = live  # recorded only once it is up: close never stops a display that did not start
+
+    def _leave_after_failed_start(self) -> None:
+        """A `Live.start` that raised after the enter sequence (hiding the cursor failed, say) leaves the terminal
+        on the alternate screen: leave it here, through ``ui.err``'s own calls, before the error goes on (not with
+        `Live.stop`, which undoes steps the failed start never took). Nothing is written when the enter sequence
+        never got out."""
+        console = self._ui.err
+        if not console.is_alt_screen:
+            return
+        with contextlib.suppress(OSError):
+            console.show_cursor(True)
+        with contextlib.suppress(OSError):
+            console.set_alt_screen(False)
+
+    def _spooled(self) -> tuple[Console, Console]:
+        """The stdout and stderr spools, which `start` made once it chose layout mode."""
+        if self._out_spool is None or self._err_spool is None:
+            msg = "layout mode without its spools"
+            raise RuntimeError(msg)
+        return self._out_spool, self._err_spool
+
+    def _spool(self) -> IO[str]:
+        """In memory up to 1 MiB, then a temporary file (O4); recorded as soon as it exists, for `close`."""
+        folder = None if self._spool_dir is None else str(self._spool_dir)
+        spool = tempfile.SpooledTemporaryFile(  # noqa: SIM115 - closed by close(), on every way out
+            max_size=_SPOOL_MAX, mode="w+", encoding="utf-8", newline="", dir=folder
+        )
+        self._spools.append(spool)
+        if folder is not None:
+            spool.rollover()
+        return spool
+
+    def _frame(self) -> RenderableType:
+        """What the refresh thread draws: it reads the current view and the clock, nothing else."""
+        view = self.view
+        if view is None:
+            return ""
+        width, height = self._size
+        return render_layout(view, self._clock(), width, height)
+
+    def _update(self, **changes: Any) -> None:
+        """A new view replaces the old one whole; a view is never changed in place (the thread reads it)."""
+        if self.view is not None:
+            self.view = replace(self.view, **changes)
+
+    def refresh(self) -> None:
+        """Draw one frame now; tests that pass ``refresh_thread=False`` call it themselves."""
+        if self.live is not None:
+            self.live.refresh()
+
+    # --- the run --------------------------------------------------------------------------------------------------
 
     def handle(self, event: Event, result: RunResult) -> None:
         run = self._require_run()
+        if not self._layout:
+            if isinstance(event, ProgressMade):
+                self._write(self._ui.err, [_text(progress_line(event.progress))])
+            self._write(self._ui.err, render_status(event, result, run))
+            self._write(self._ui.out, render_event(event, result, run))
+            return
+        out_spool, err_spool = self._spooled()
+        status = render_status(event, result, run)
+        lines = render_event(event, result, run)
+        self._write(err_spool, status)
+        self._write(out_spool, lines)
+        self._tail.extend(lines)
+        changes: dict[str, Any] = {}
         if isinstance(event, ProgressMade):
-            self._write(self._ui.err, [_text(progress_line(event.progress))])
-        self._write(self._ui.err, render_status(event, result, run))
-        self._write(self._ui.out, render_event(event, result, run))
+            self._progress.append(event.progress)
+            changes["progress"] = tuple(self._progress)
+        if isinstance(event, VersionSeen) and status and self.view is not None:
+            changes["header"] = (*self.view.header, *status)
+        if lines:
+            changes["tail"] = tuple(self._tail)
+        self._update(phase=result.phase, errors=len(result.errors), warnings=len(result.warnings), **changes)
 
     def stderr_line(self, line: str) -> None:
-        self._write(self._ui.err, [_text(line)])
+        if not self._layout:
+            self._write(self._ui.err, [_text(line)])
+            return
+        self._write(self._spooled()[1], [_text(line)])
+        self._tail.append(_text(line, prefix=STDERR_MARK))
+        self._update(tail=tuple(self._tail))
 
     def notice(self, line: str) -> None:
-        self._write(self._ui.err, [_text(line)])
+        if not self._layout:
+            self._write(self._ui.err, [_text(line)])
+            return
+        self._write(self._spooled()[1], [_text(line)])  # in arrival order with the stderr lines (O4)
+        self._update(notice=line)
 
     def finish(self, outcome: RunOutcome) -> None:
         run = self._require_run()
         now = self._clock()
         elapsed = 0.0 if self._started_at is None else now - self._started_at
-        self._write(self._ui.out, render_summary(outcome, run, elapsed))
+        summary = render_summary(outcome, run, elapsed)
+        if not self._layout:
+            self._write(self._ui.out, summary)
+            self.close()
+            return
+        self._write(self._spooled()[0], summary)
+        self._tail.extend(summary)
+        self._update(phase=Phase.FINISHED, interrupted=outcome.stopped_by is not None, tail=tuple(self._tail))
+        self.refresh()  # Rich does not refresh on stop on the alternate screen: this draws the last frame
         self.close()
 
+    # --- close ----------------------------------------------------------------------------------------------------
+
+    def _at_exit(self) -> None:
+        """The second line of defence (O4): leave the alternate screen if a caller forgot `close`."""
+        live = self.live
+        if live is not None:
+            self.live = None
+            with contextlib.suppress(OSError, ValueError):
+                live.stop()
+
+    def _keep(self, error: OSError) -> None:
+        if self.write_error is None:
+            self.write_error = error
+
+    def _copy(self, spool: Console | None, stream: IO[str]) -> None:
+        """The spool's text, unchanged, to the real stream; a failed write stops this stream and is kept."""
+        if spool is None:
+            return
+        source = spool.file
+        try:
+            source.seek(0)
+            while chunk := source.read(_COPY_CHUNK):
+                stream.write(chunk)
+            stream.flush()
+        except OSError as error:
+            self._keep(error)
+
     def close(self) -> None:
-        """Plain mode: nothing to release; idempotent, safe before `start`, never raises (O1)."""
+        """Idempotent, safe before `start` and after a `start` that raised half way, never raises (O1).
+
+        Layout mode: stop the display (which leaves the alternate screen), copy the stderr spool to stderr and the
+        stdout spool to stdout, delete the spools and remove the `atexit` hook, releasing only what `start` took.
+        Plain mode: nothing to release.
+        """
+        if self._closed:
+            return
         self._closed = True
+        live, self.live = self.live, None
+        if live is not None:
+            try:
+                live.stop()
+            except OSError as error:
+                self._keep(error)
+        if self._spools:
+            self._copy(self._err_spool, self._ui.err.file)
+            self._copy(self._out_spool, self._ui.out.file)
+        for spool in self._spools:
+            with contextlib.suppress(OSError):
+                spool.close()
+        self._spools.clear()
+        if self._hooked:
+            atexit.unregister(self._at_exit)
+            self._hooked = False

@@ -1,0 +1,30 @@
+ TLC v1.7.4@5a47802, Java 25.0.5, workers auto
+ Success.tla  cfg: Success.cfg
+ ── Status ────────────────────────────────────────────────────────────────────────────────────────
+ Finished                                 elapsed 00:00:14                    errors 0   warnings 1
+ 26 states generated, 16 distinct, 0 on queue, diameter 7
+ Ctrl-C to interrupt
+ ── State space progress ──────────────────────────────────────────────────────────────────────────
+ Time                          Diameter          Generated           Distinct              Queue
+ 2026-11-14 22:25:54                  7                 26                 16                  0
+
+
+
+
+
+
+
+ ── Output ────────────────────────────────────────────────────────────────────────────────────────
+ Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector …
+
+
+
+
+
+
+
+
+
+
+
+

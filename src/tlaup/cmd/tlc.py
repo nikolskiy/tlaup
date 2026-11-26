@@ -35,10 +35,14 @@ SHOW_COMMAND_HELP = (
     "that pasted it is killed; for a long run pasted by hand, replace the -metadir value with a folder of your own."
 )
 JAVA_OPT_HELP = "An option for the JVM, repeatable: --java-opt=-Xmx8g."
+PLAIN_HELP = (
+    "Plain output on a terminal too: each line as it arrives, no live view (default: the setting tlc.plain). "
+    "No effect with --raw."
+)
 AUTO_INSTALL_HELP = "With no tools installed, install this build without asking: stable or rolling."
 
 
-def tlc(  # noqa: PLR0913, PLR0917 - a command with ten options takes them as parameters
+def tlc(  # noqa: PLR0913, PLR0917 - a command with eleven options takes them as parameters
     ctx: typer.Context,
     spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False),
     tlc_args: Annotated[
@@ -48,6 +52,7 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with ten options takes them as pa
     workers: str | None = typer.Option(None, "--workers", metavar="N|auto", help=WORKERS_HELP, show_default=False),
     coverage: bool = typer.Option(False, "--coverage", help=COVERAGE_HELP),
     raw: bool = typer.Option(False, "--raw", help=RAW_HELP),
+    plain: bool = typer.Option(False, "--plain", help=PLAIN_HELP),
     keep: bool = typer.Option(False, "--keep", help=KEEP_HELP),
     show_command: bool = typer.Option(False, "--show-command", help=SHOW_COMMAND_HELP),
     java_opt: Annotated[
@@ -64,7 +69,7 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with ten options takes them as pa
     from pathlib import Path
 
     from tlaup.cmd.tool._shared import utc_now
-    from tlaup.reporters import make_reporter
+    from tlaup.reporters import ReporterOptions, make_reporter
     from tlaup.tlc.command import build_tlc_command
     from tlaup.tlc.invocation import TlcRequest, resolve_tlc_invocation
     from tlaup.tlc.runner import run_tlc, run_tlc_raw
@@ -105,7 +110,8 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with ten options takes them as pa
     if request.raw:
         outcome = run_tlc_raw(inv, java_inv, paths=app.paths, now=utc_now, notice=ui.note)
     else:
-        outcome = run_tlc(inv, java_inv, make_reporter(app), paths=app.paths, now=utc_now, notice=ui.note)
+        reporter = make_reporter(app, ReporterOptions(plain=plain))
+        outcome = run_tlc(inv, java_inv, reporter, paths=app.paths, now=utc_now, notice=ui.note)
     print_run_notes(outcome, ui)
     raise typer.Exit(outcome.exit_code)
 

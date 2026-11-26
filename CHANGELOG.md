@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - tlaup passes `-fp` and `-seed` to TLC when you do not, and repeats them when you resume, so a resumed run warns less and counts correctly.
 - A hint when a spec or cfg name has non-ASCII characters and the locale is not UTF-8, which TLC cannot open.
 - With no tools installed, `tlaup tlc` (and `sany`, `pcal`, `repl`) asks whether to install the stable release or the rolling build, installs it and carries on. `--auto-install stable|rolling` or `TLAUP_AUTO_INSTALL` answers the question for scripts. The spec is checked first, and `--show-command` never asks or installs.
+- On a terminal `tlaup tlc` shows a full-screen live view while TLC runs: the build and spec, the current phase and elapsed time, the state-space progress table and the newest output. When the run ends the view closes and the complete result is printed, so it stays in the scrollback. When output is redirected or piped, output is plain as before; `--plain`, or the setting `tlc.plain`, gives plain output on a terminal too.
 
 ### Breaking
 - Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.
@@ -114,6 +115,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - A SANY error was reported twice, and TLC messages printed after it were shown as part of it.
 - The message of a violated invariant or property was hidden when a trace was shown.
 - On a terminal, TLC output containing square brackets (every TLA+ record) was printed as an empty line or made tlaup fail.
+- Runs with a lot of printed output became slower and slower and used more and more memory.
 
 ## [0.8.2] - 2026-11-14
 

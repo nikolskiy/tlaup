@@ -4,7 +4,8 @@ The case is read as the runner reads it (``tests/parse/drive.py``: binary, lines
 launcher decodes). The folder SANY named in the capture's ``Parsing file`` lines is mapped to the case's folder
 under ``golden/specs/``, so the reporter reads the spec for the source excerpt and the coverage view as in a real
 run; ``map_folder=False`` leaves the lines as captured. Nothing in the output is normalised (01 T8): the fixed
-`RunInfo` and the clock, one second per call, are what keep it stable. Package 40 reuses this helper.
+`RunInfo` and the clock, one second per call, are what keep it stable. Package 40 reuses this helper for the
+layout mode.
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ import io
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from tests.parse.drive import cases_of, golden_root, read_lines
 from tlaup.java.locate import JavaRuntime, JavaTool
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
 
 JAVA_VERSION = "25.0.5"
 WIDTH = 100
+HEIGHT = 30
 _PARSING = "Parsing file "
 
 
@@ -54,17 +56,33 @@ class SecondClock:
         return float(self.calls)
 
 
+class EventClock:
+    """A clock that advances one second per event the replay hands over, whoever reads it (O6, layout mode): the
+    frames a test draws do not move it."""
+
+    def __init__(self) -> None:
+        self.now = 0.0
+
+    def __call__(self) -> float:
+        return self.now
+
+    def tick(self) -> None:
+        self.now += 1.0
+
+
 def make_ui(
     *,
     width: int = WIDTH,
+    height: int = HEIGHT,
     color: bool = False,
     terminal: bool | None = None,
     stdout: Any = None,
+    stderr: Any = None,
 ) -> tuple[Ui, io.StringIO, io.StringIO]:
-    """A `Ui` on two `StringIO` streams (O6); ``stdout`` replaces the first stream when given."""
+    """A `Ui` on two `StringIO` streams (O6); ``stdout`` and ``stderr`` replace them when given."""
     out = io.StringIO() if stdout is None else stdout
-    err = io.StringIO()
-    ui = Ui(out, err, io.StringIO(), color=color, env={}, terminal=terminal, size=(width, 30))
+    err = io.StringIO() if stderr is None else stderr
+    ui = Ui(out, err, io.StringIO(), color=color, env={}, terminal=terminal, size=(width, height))
     return ui, out, err
 
 
@@ -200,25 +218,39 @@ def replay(
     map_folder: bool = True,
     override_classes: tuple[str, ...] = (),
     width: int = WIDTH,
+    height: int = HEIGHT,
     color: bool = False,
     terminal: bool | None = None,
+    mode: Literal["plain", "layout"] = "plain",
+    stdout: Any = None,
     before_finish: Callable[[RunResult], None] | None = None,
+    after_start: Callable[[TerminalReporter], None] | None = None,
     after_event: Callable[[TerminalReporter, Event], None] | None = None,
     **outcome: Any,
 ) -> Replay:
     """Feed the case to a parser and its events to a reporter, then ``close()``'s events, the captured stderr,
-    ``finish`` and ``close``; ``outcome`` changes fields of the `RunOutcome`."""
+    ``finish`` and ``close``; ``outcome`` changes fields of the `RunOutcome`.
+
+    Plain mode reads a `SecondClock`. Layout mode (package 40) draws no frame by itself (``refresh_thread=False``)
+    and reads an `EventClock`, ticked after each event; a layout test also sets ``TERM`` and passes
+    ``terminal=True`` (O6, "Drawing without a terminal")."""
     case = load_case(build, name, map_folder=map_folder)
-    ui, out, err = make_ui(width=width, color=color, terminal=terminal)
-    reporter = TerminalReporter(ui, clock=SecondClock())
+    ui, out, err = make_ui(width=width, height=height, color=color, terminal=terminal, stdout=stdout)
+    event_clock = EventClock() if mode == "layout" else None
+    clock: Callable[[], float] = SecondClock() if event_clock is None else event_clock
+    reporter = TerminalReporter(ui, mode=mode, clock=clock, refresh_thread=False)
     parser = TlcParser()
     events: list[Event] = []
     reporter.start(make_run(case, override_classes=override_classes))
+    if after_start is not None:
+        after_start(reporter)
 
     def hand(batch: list[Event]) -> None:
         for event in batch:
             events.append(event)
             reporter.handle(event, parser.result)
+            if event_clock is not None:
+                event_clock.tick()
             if after_event is not None:
                 after_event(reporter, event)
 
