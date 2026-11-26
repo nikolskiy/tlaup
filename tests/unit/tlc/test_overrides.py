@@ -233,6 +233,39 @@ def test_a_build_without_the_property_loads_only_the_default_name(tmp_path: Path
     assert check(["tlc2.overrides.TLCOverrides"], [folder, old.jar], old) == []
 
 
+def test_a_class_that_will_not_load_is_not_also_called_a_non_override(tmp_path: Path) -> None:
+    old = make_build(tmp_path / "tools" / "v1.7.4-abc", capable=False, name="v1.7.4")
+    folder = tmp_path / "classes"
+    put_class(folder, "tlc2.overrides.Plain", "NotAnOverride")
+    warnings = check(["tlc2.overrides.Plain"], [folder, old.jar], old)
+    assert len(warnings) == 1
+    assert "will not load" in warnings[0]
+
+
+def test_an_interface_that_cannot_be_ruled_out_says_nothing(tmp_path: Path, build: Build) -> None:
+    folder = tmp_path / "classes"
+    put_class(folder, "tlc2.overrides.WithMarker", "WithMarker")  # Marker.class is nowhere
+    assert check(["tlc2.overrides.WithMarker"], [folder, build.jar], build) == []
+
+
+def test_an_interface_that_is_found_and_does_not_extend_the_interface_is_ruled_out(
+    tmp_path: Path, build: Build
+) -> None:
+    folder = tmp_path / "classes"
+    put_class(folder, "tlc2.overrides.WithMarker", "WithMarker")
+    put_class(folder, "tlc2.overrides.Marker", "Marker")
+    assert len(check(["tlc2.overrides.WithMarker"], [folder, build.jar], build)) == 1
+
+
+def test_an_interface_that_extends_the_interface_makes_the_class_an_override_class(
+    tmp_path: Path, build: Build
+) -> None:
+    folder = tmp_path / "classes"
+    put_class(folder, "tlc2.overrides.ViaSubInterface", "ViaSubInterface")
+    put_class(folder, "tlc2.overrides.SubInterface", "SubInterface")
+    assert check(["tlc2.overrides.ViaSubInterface"], [folder, build.jar], build) == []
+
+
 def test_a_build_with_the_property_loads_any_name(tmp_path: Path, build: Build) -> None:
     folder = tmp_path / "classes"
     put_class(folder, "tlc2.overrides.QueueOverrides")
@@ -245,9 +278,7 @@ def test_two_entries_holding_the_default_class_warn_that_only_the_first_is_used(
     put_class(first, "tlc2.overrides.TLCOverrides")
     jar = make_jar(second / "own.jar", {"tlc2/overrides/TLCOverrides.class": class_bytes()})
     warnings = check(["tlc2.overrides.TLCOverrides"], [first, jar, build.jar], build)
-    assert warnings == [
-        f"2 classpath entries hold a class named tlc2.overrides.TLCOverrides; only the first is used ({first})"
-    ]
+    assert warnings == ["2 classpath entries hold a class named tlc2.overrides.TLCOverrides; only the first is used"]
 
 
 def test_one_default_class_is_no_duplicate(tmp_path: Path, build: Build) -> None:

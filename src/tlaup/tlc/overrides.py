@@ -17,7 +17,7 @@ from tlaup.modules.registry import read_record
 from tlaup.versioning.spec import format_build
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Sequence
     from pathlib import Path
 
     from tlaup.versioning.store import Build
@@ -115,27 +115,53 @@ def _read_info(data: bytes) -> ClassInfo | None:
         return None
 
 
-def _is_override(data: bytes, readable: Iterable[_Entry]) -> bool | None:
-    """Whether the class implements ``ITLCOverrides``, directly or through superclasses found on the classpath.
+def _find(name: str, entries: Sequence[_Entry]) -> ClassInfo | None:
+    data = next((found for entry in entries if (found := entry.read(_class_file(name))) is not None), None)
+    return None if data is None else _read_info(data)
 
-    None when the chain leaves what can be read: a file that is not a class file, or a superclass that is nowhere
-    in ``readable`` (the entries outside the tools jar). ``java.lang.Object`` ends the chain with False.
+
+def _extends_interface(name: str, entries: Sequence[_Entry], seen: set[str]) -> bool | None:
+    """Whether the interface ``name`` is or extends ``ITLCOverrides``; None when it cannot be ruled out."""
+    if name == OVERRIDES_INTERFACE:
+        return True
+    if name.startswith("java.") or name in seen:
+        return False  # the JDK's interfaces do not extend TLC's
+    seen.add(name)
+    info = _find(name, entries)
+    if info is None:
+        return None
+    unsure = False
+    for parent in info.interfaces:
+        result = _extends_interface(parent, entries, seen)
+        if result:
+            return True
+        unsure = unsure or result is None
+    return None if unsure else False
+
+
+def _is_override(data: bytes, readable: Sequence[_Entry]) -> bool | None:
+    """Whether the class implements ``ITLCOverrides``, directly or through superclasses and interfaces found on the
+    classpath.
+
+    None (nothing is said) when the chain leaves what can be read: a file that is not a class file, a superclass or
+    an interface that is nowhere in ``readable`` (the entries outside the tools jar). ``java.lang.Object`` ends the
+    chain; with every interface ruled out the answer is then False.
     """
-    entries = list(readable)
     info = _read_info(data)
     seen: set[str] = set()
+    unsure = False
     while info is not None:
-        if OVERRIDES_INTERFACE in info.interfaces:
-            return True
+        for interface in info.interfaces:
+            result = _extends_interface(interface, readable, set())
+            if result:
+                return True
+            unsure = unsure or result is None
         if info.super_name is None or info.super_name == _JAVA_OBJECT:
-            return False
+            return None if unsure else False
         if info.super_name in seen:
             return None
         seen.add(info.super_name)
-        parent = next(
-            (found for entry in entries if (found := entry.read(_class_file(info.super_name))) is not None), None
-        )
-        info = None if parent is None else _read_info(parent)
+        info = _find(info.super_name, readable)
     return None
 
 
@@ -147,10 +173,7 @@ def check_overrides(classes: Sequence[OverrideClass], classpath: Sequence[Path],
 
     holders = [entry for entry in entries if entry.has(_class_file(DEFAULT_CLASS))]
     if len(holders) > 1:
-        warnings.append(
-            f"{len(holders)} classpath entries hold a class named {DEFAULT_CLASS}; only the first is used"
-            f" ({holders[0].path})"
-        )
+        warnings.append(f"{len(holders)} classpath entries hold a class named {DEFAULT_CLASS}; only the first is used")
 
     for item in classes:
         data = next((found for entry in entries if (found := entry.read(_class_file(item.name))) is not None), None)
@@ -162,6 +185,7 @@ def check_overrides(classes: Sequence[OverrideClass], classpath: Sequence[Path],
                 f"TLC {format_build(build)} loads Java overrides only from a class named {DEFAULT_CLASS}; "
                 f"{_label(item)} will not load, and the TLA+ definitions of its operators will be used"
             )
+            continue
         if _is_override(data, outside_tools) is False:
             warnings.append(
                 f"{_label(item)} is not an override class (it does not implement {OVERRIDES_INTERFACE}) "
