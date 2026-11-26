@@ -10,7 +10,7 @@ Use `uv` for everything; do not call `pip` or a global Python.
 uv sync --all-extras --dev     # set up the environment
 uv run poe test                # the test suite with branch coverage, in random order
 uv run poe test-clean          # the suite under an empty temporary home, then fail if tlaup wrote there
-uv run poe test-integration    # tests/integration; fails until package 52 writes the folder
+uv run poe test-integration    # tests/integration: real Java and real jars (needs TLAUP_TEST_JARS and a JDK)
 uv run poe lint                # ruff check, bandit, mypy (strict)
 uv run poe format              # ruff format, Python files and Python blocks in Markdown
 uv run poe build-lifeline      # rebuild src/tlaup/java/lifeline.jar from its source (needs a JDK)
@@ -20,9 +20,28 @@ uv run poe check               # all pre-commit hooks on all files
 uv run poe check-release       # hooks, build, twine check
 ```
 
-`tests/integration/` does not exist until work package 52 writes it, so until then `poe test-integration` fails with pytest's exit 4 and "file or directory not found"; 52 also adds the `TLAUP_TEST_JARS` variable that names the real jars it needs. A single test runs without coverage: `uv run pytest tests/unit/test_fakes.py::test_java_exit_code`. `pytest-randomly` prints the seed of each run; `--randomly-seed=<n>` repeats an order, and `-p no:randomly` switches it off.
+A single test runs without coverage: `uv run pytest tests/unit/test_fakes.py::test_java_exit_code`. `pytest-randomly` prints the seed of each run; `--randomly-seed=<n>` repeats an order, and `-p no:randomly` switches it off.
 
 Run `uv run poe lint` and `uv run poe test` before committing.
+
+## The integration tests
+
+`tests/integration/` runs real TLC, SANY, the PlusCal translator and the REPL ([design 01 T9](../design/01-testing.md#t9-integration-tests)). It needs a JDK (`java` and `javac`, found through `JAVA_HOME`, then `PATH`) and the variable `TLAUP_TEST_JARS`, which names a folder holding one subfolder per build, each with its `tla2tools.jar`:
+
+```
+<folder>/v1.7.4/tla2tools.jar     the stable release; a jar without a build time is named by its folder, which must be its tag
+<folder>/rolling/tla2tools.jar    a rolling build; any folder name, its build time picks the rolling expectations
+```
+
+A store's own tool folder (the one `tlaup tool dir` prints) has that shape too: there the name is read from each build's `build.json`, and `pin`, `.lock` and `.tmp/` are skipped. Each jar is checked against the golden folder of its release line under `tests/parse/golden/tlc/`; a jar that matches none stops the run, naming it. Every test that takes a build runs once per jar, each in its own temporary `TLAUP_HOME` with the jar copied into its store; no test uses the network.
+
+```bash
+TLAUP_TEST_JARS=<folder> uv run poe test-integration
+```
+
+The task refuses to run, with exit 1, when the variable is unset (it then prints how to set it), names no jar, or no `java` is found, so that nothing passes with nothing run; a plain `uv run pytest tests/integration` skips every test with the reason instead. Both builds together take about three minutes on a desktop machine. Each test's temporary folder, where TLC writes its states, is under pytest's base folder, which follows `TMPDIR`: where `/tmp` is small, point `TMPDIR` at a folder on a real disk.
+
+`uv run poe test-lifeline` also runs the REPL on a pseudo-terminal (`tests/lifeline/test_repl_terminal.py`), and only when `TLAUP_TEST_JARS` holds a build with the REPL (a rolling build); otherwise that test is skipped with the reason.
 
 ## The lifeline agent
 
@@ -37,10 +56,10 @@ Run `uv run poe lint` and `uv run poe test` before committing.
 - `src/tlaup/`: the package. `cli.py` builds the Typer app; `cmd/` holds one module per command or command group; `tlc/` resolves and runs TLC (its output is parsed by `src/tlaup_parse/`); `tools/` holds the table of main classes and what `sany`, `pcal` and `repl` share (the invocation, SANY's run); `reporters/` shows a run; `versioning/` downloads and tracks jar builds; `java/` finds Java and builds classpaths; `config/` loads settings.
 - `src/tlaup_parse/`: the second import package in the same wheel: the TLC output parsers and the result model ([design 10 P2](../design/10-parser.md#p2-the-tlaup_parse-package)). Standard library only; it imports nothing from `tlaup` and does no I/O.
 - `src/tlaup/resources/default_config.yaml`: packaged defaults. Its top-level `tla:` key holds upstream TLA+ download URLs; it is not the application name.
-- `tests/`: `conftest.py` (the isolation fixture, the `fakes` fixture, the Hypothesis profiles), `test_isolation.py`, `expected.py` (`assert_matches`) and `clock.py` (`FakeClock`). `tests/unit/`: plain pytest tests. `tests/stateful/`: the stateful tests of the formal check, with their throwaway `reference_*.py` models. `tests/fakes/`: the fake `java`, `javac`, `git` and editor, their launchers, the prepared classes and the module sources of the `module` scenarios (`module-src/`). `tests/fixtures/`: `naming_fixed/` (until package 52 moves it) and `research/`, captured evidence from the investigations, each folder with its own README.
+- `tests/`: `conftest.py` (the isolation fixture, the `fakes` fixture, the Hypothesis profiles), `test_isolation.py`, `expected.py` (`assert_matches`) and `clock.py` (`FakeClock`). `tests/unit/`: plain pytest tests. `tests/stateful/`: the stateful tests of the formal check, with their throwaway `reference_*.py` models. `tests/fakes/`: the fake `java`, `javac`, `git` and editor, their launchers, the prepared classes and the module sources of the `module` scenarios (`module-src/`). `tests/fixtures/research/`: captured evidence from the investigations, each folder with its own README. `tests/integration/`: the integration tests ([above](#the-integration-tests)); `discovery.py` finds the jars, `live.py` runs the tools through the API or as a process, and `specs/` holds the inputs no golden spec provides, among them `naming_fixed/`, a project with its own `TLCOverrides`.
 - `tests/parse/golden/`: the golden files, real TLC, SANY and PlusCal output filed by tool and by build, each build folder with `cases.toml` and `build.toml`, the specs they ran in `specs/` and the hand-made framing cases in `synthetic/` ([design 01 T3](../design/01-testing.md#t3-golden-files)); `tests/parse/test_golden_files.py` checks they agree. `tests/parse/drive.py` reads and feeds a golden file as the runner does, `tests/parse/facts.py` holds the hand-written facts about the TLC captures and `tests/parse/test_facts.py` runs them, pending until the parser exists (package 08).
 - `scripts/capture_golden.py`: captures a build's golden files again with a given jar; a developer tool that needs Java and is not run in CI.
-- Test folders that arrive later: the rest of the parser's tests in `tests/parse/`, `tests/recordings/` with the GitHub recordings (package 05), `tests/integration/` with package 52, `tests/lifeline/` with package 06.
+- Test folders that arrive later: the rest of the parser's tests in `tests/parse/`, `tests/recordings/` with the GitHub recordings (package 05), `tests/lifeline/` with package 06.
 - `docs/examples/`: example specs, some with custom Java modules.
 
 ## Writing tests
