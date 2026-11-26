@@ -1,0 +1,21 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+26 states generated, 16 distinct, 0 left on queue; depth 7
+Coverage of actions:
+  Action  Location          Distinct  Generated
+  Init    Success.tla:5:1          1          1
+  Next    Success.tla:6:12         3         12
+  Next    Success.tla:7:12        12         12
+  Next    Success.tla:8:12         0          1
+Distinct states by line of Success.tla:
+        1 | ---- MODULE Success ----
+        2 | EXTENDS Naturals
+        3 | VARIABLES x, y
+        4 | TypeOK == x \in 0..3 /\ y \in 0..3
+   1    5 | Init == x = 0 /\ y = 0
+   3    6 | Next == \/ x < 3 /\ x' = x + 1 /\ y' = y
+  12    7 |         \/ y < 3 /\ y' = y + 1 /\ x' = x
+   0    8 |         \/ x = 3 /\ y = 3 /\ UNCHANGED <<x, y>>
+        9 | Spec == Init /\ [][Next]_<<x, y>>
+       10 | Inv == x + y <= 6
+       11 | ====
+Result: no error found, every state checked (TLC exit code 0) in 0.7 s

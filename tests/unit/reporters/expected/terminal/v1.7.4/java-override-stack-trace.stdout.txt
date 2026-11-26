@@ -7,20 +7,20 @@ Error: TLC threw an unexpected exception.
   public static tlc2.value.impl.Value tlc2.module.BoomTrace.BoomTrace(tlc2.value.impl.Value),
   but it produced the following error:
   java.lang.StackOverflowError
-        at tlc2.module.BoomTrace.BoomTrace(BoomTrace.java:9)
-        at tlc2.value.impl.MethodValue.apply(MethodValue.java:153)
-        at tlc2.value.impl.OpValue.eval(OpValue.java:25)
-        at tlc2.tool.impl.Tool.evalApplImpl(Tool.java:1657)
-        at tlc2.tool.impl.FastTool.evalAppl(FastTool.java:90)
-        at tlc2.tool.impl.Tool.evalImpl(Tool.java:1419)
-        at tlc2.tool.impl.FastTool.eval(FastTool.java:83)
-        at tlc2.tool.impl.Tool.getNextStatesApplSwitch(Tool.java:1172)
-        at tlc2.tool.impl.Tool.getNextStatesApplImpl(Tool.java:987)
-        at tlc2.tool.impl.FastTool.getNextStatesAppl(FastTool.java:69)
-        at tlc2.tool.impl.Tool.getNextStatesImpl(Tool.java:787)
-        at tlc2.tool.impl.FastTool.getNextStates(FastTool.java:62)
-        at tlc2.tool.impl.Tool.getNextStates(Tool.java:771)
-        at tlc2.tool.Worker.run(Worker.java:100)
+  	at tlc2.module.BoomTrace.BoomTrace(BoomTrace.java:9)
+  	at tlc2.value.impl.MethodValue.apply(MethodValue.java:153)
+  	at tlc2.value.impl.OpValue.eval(OpValue.java:25)
+  	at tlc2.tool.impl.Tool.evalApplImpl(Tool.java:1657)
+  	at tlc2.tool.impl.FastTool.evalAppl(FastTool.java:90)
+  	at tlc2.tool.impl.Tool.evalImpl(Tool.java:1419)
+  	at tlc2.tool.impl.FastTool.eval(FastTool.java:83)
+  	at tlc2.tool.impl.Tool.getNextStatesApplSwitch(Tool.java:1172)
+  	at tlc2.tool.impl.Tool.getNextStatesApplImpl(Tool.java:987)
+  	at tlc2.tool.impl.FastTool.getNextStatesAppl(FastTool.java:69)
+  	at tlc2.tool.impl.Tool.getNextStatesImpl(Tool.java:787)
+  	at tlc2.tool.impl.FastTool.getNextStates(FastTool.java:62)
+  	at tlc2.tool.impl.Tool.getNextStates(Tool.java:771)
+  	at tlc2.tool.Worker.run(Worker.java:100)
 
   The behavior up to this point is:
   1: Initial predicate

@@ -1,0 +1,10 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: This was a Java StackOverflowError. It was probably the result
+  of an incorrect recursive function definition that caused TLC to enter
+  an infinite loop when trying to compute the function or its application
+  to an element in its putative domain.
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+1 states generated, 1 distinct, 0 left on queue; depth 1
+Result: errors found (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4) in 1.1 s

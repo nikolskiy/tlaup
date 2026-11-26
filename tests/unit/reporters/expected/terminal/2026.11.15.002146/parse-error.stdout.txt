@@ -1,0 +1,15 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+ParseError.tla:6:1: error: Encountered "Beginning of definition" at line 6, column 1 and token "1"
+     4 | Init == x = 0
+     5 | Next == x' = (x + 1
+     6 | Spec == Init /\ [][Next]_x
+       | ^
+       | Error here: line 6, col 1
+     7 | ====
+  ExtendableExpr starting at line 5, column 14.
+  ExtendableExpr starting at line 5, column 9.
+  Expression starting at line 5, column 9.
+  Definition starting at line 5, column 1.
+  Module body starting at line 3, column 1.
+Error: Parsing or semantic analysis failed.
+Result: not checked: the spec has errors (TLC exit code 150: the spec does not parse, or fails SANY's semantic checks)

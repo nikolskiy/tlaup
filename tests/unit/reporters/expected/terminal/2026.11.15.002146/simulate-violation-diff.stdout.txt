@@ -1,0 +1,25 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: Invariant Inv is violated.
+  The behavior up to this point is:
+  1: Init  (Diff.tla:4:9)
+       a = 0
+       b = 0
+       c = <<0, 0, 0>>
+  2: Next  (Diff.tla:5:12)
+     * a = 1
+       b = 0
+       c = <<0, 0, 0>>
+  3: Next  (Diff.tla:6:12)
+       a = 1
+     * b = 1
+     * c = <<0, 1, 0>>
+  4: Next  (Diff.tla:6:12)
+       a = 1
+     * b = 2
+     * c = <<0, 2, 0>>
+  5: Next  (Diff.tla:6:12)
+       a = 1
+     * b = 3
+     * c = <<0, 3, 0>>
+21 states generated
+Result: errors found (TLC exit code 12: an invariant was violated) in 1.1 s

@@ -135,13 +135,16 @@ def load_case(build: str, name: str, *, map_folder: bool = True) -> Case:
 
 
 def make_run(case: Case, *, override_classes: tuple[str, ...] = ()) -> RunInfo:
+    """A fixed `RunInfo`; a case whose arguments carry ``-workers`` passed them after ``--``, so tlaup does not know
+    the workers and the header leaves them out (O3)."""
+    args = [str(arg) for arg in case.table.get("args", [])]
     return RunInfo(
         tool="tlc",
         spec=case.spec,
         cfg=case.cfg,
         build=make_build(case.build),
         java=JavaRuntime(JavaTool(Path("/usr/bin/java"), "PATH"), JAVA_VERSION, 25, ()),
-        workers="auto",
+        workers=None if "-workers" in args else "auto",
         project_root=None,
         override_classes=override_classes,
         command=("java", "tlc2.TLC"),

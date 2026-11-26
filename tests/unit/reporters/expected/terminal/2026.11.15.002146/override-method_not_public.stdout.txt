@@ -1,0 +1,8 @@
+Error: Attempted to apply the operator overridden by the Java method
+  Attempted to apply the operator overridden by the Java method
+  static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue),
+  but it produced the following error:
+  member is private to package: tlc2.overrides.TLCOverrides.Add2[Ljava.lang.Object;@2781e022/invokeStatic, from public Lookup,
+  but it produced the following error:
+  %2%
+Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4)

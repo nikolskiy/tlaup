@@ -1,0 +1,20 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: Temporal property Reach was violated.
+
+  The following behavior constitutes a counter-example:
+
+  1: Initial predicate
+       p = 0
+       q = "idle"
+  2: Next  (DiffLive.tla:5:9)
+     * p = 1
+       q = "idle"
+  3: Next  (DiffLive.tla:5:9)
+     * p = 2
+       q = "idle"
+  4: Next  (DiffLive.tla:5:9)
+     * p = 0
+     * q = "busy"
+  Back to state 2
+5 states generated, 4 distinct, 0 left on queue; depth 4
+Result: errors found (TLC exit code 13: a temporal property or an action property was violated) in 1.5 s

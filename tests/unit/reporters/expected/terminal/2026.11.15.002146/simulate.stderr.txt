@@ -1,0 +1,4 @@
+TLC rolling@bc1b506 (2026.11.15.002146), Java 25.0.5, workers auto
+Success.tla  cfg: Success.cfg
+61 states generated, diameter 3
+61 states generated, diameter 3

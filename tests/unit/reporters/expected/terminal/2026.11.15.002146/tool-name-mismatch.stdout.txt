@@ -1,0 +1,4 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Mismatch.tla: error: File name 'Mismatch' does not match the name 'Other' of the top level module it contains.
+Error: Parsing or semantic analysis failed.
+Result: not checked: the spec has errors (TLC exit code 150: the spec does not parse, or fails SANY's semantic checks)

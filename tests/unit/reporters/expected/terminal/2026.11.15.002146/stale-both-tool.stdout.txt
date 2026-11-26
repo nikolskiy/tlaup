@@ -1,0 +1,4 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+PcalStaleBoth.tla: warning: Both the PlusCal algorithm and its TLA+ translation in module PcalStaleBoth have changed since the last translation.
+4 states generated, 3 distinct, 0 left on queue; depth 3
+Result: no error found, every state checked (TLC exit code 0) in 0.8 s

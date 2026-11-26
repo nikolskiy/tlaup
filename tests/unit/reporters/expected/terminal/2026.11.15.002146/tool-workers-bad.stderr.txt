@@ -1,0 +1,2 @@
+TLC rolling@bc1b506 (2026.11.15.002146), Java 25.0.5
+Ok.tla  cfg: Ok.cfg
