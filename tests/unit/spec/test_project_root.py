@@ -109,3 +109,22 @@ def test_the_root_returned_is_built_from_the_path_as_given(tmp_path: Path, home:
     (tmp_path / "proj" / "lib").mkdir()
     assert find_project_root(spec, home) == tmp_path / "proj"
     assert find_project_root(spec, home).is_absolute()  # type: ignore[union-attr]
+
+
+def test_a_relative_spec_is_read_against_the_working_folder(
+    tmp_path: Path, home: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    folder = tmp_path / "proj"
+    _spec(folder)
+    (folder / "lib").mkdir()
+    monkeypatch.chdir(folder)
+    assert find_project_root(Path("Spec.tla"), home) == folder
+    monkeypatch.chdir(tmp_path)
+    assert find_project_root(Path("proj/Spec.tla"), home) == folder
+    (tmp_path / "work" / "Spec.tla").write_text("x")
+    (tmp_path / "work" / "lib").mkdir(exist_ok=True)
+    monkeypatch.chdir(tmp_path / "work")
+    assert find_project_root(Path("Spec.tla"), home) == tmp_path / "work"
+    monkeypatch.chdir(home)
+    (home / "lib").mkdir()
+    assert find_project_root(Path("Spec.tla"), home) is None

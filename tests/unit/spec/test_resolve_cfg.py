@@ -3,7 +3,6 @@
 Every cfg holds its own path under the temporary folder, so a test tells files apart by reading them.
 """
 
-import os
 from pathlib import Path
 
 import pytest
@@ -23,7 +22,7 @@ def _make(root: Path, *names: str) -> None:
 def _link(root: Path, link: str, target: str) -> None:
     (root / link).parent.mkdir(parents=True, exist_ok=True)
     try:
-        os.symlink(target, root / link, target_is_directory=not target.endswith(".tla"))
+        (root / link).symlink_to(target, target_is_directory=not target.endswith(".tla"))
     except OSError:
         pytest.skip("links cannot be made")
 
@@ -89,7 +88,7 @@ def test_the_cfg_validated_is_the_cfg_tlc_gets_f_rows(
     spec, cfg = _run(tree, work, spec_text, cfg_text)
     assert cfg.read_text() == validated, row
     arg = config_arg(cfg, spec)
-    assert os.path.samefile(spec.parent / arg, tree / validated)
+    assert (spec.parent / arg).samefile(tree / validated)
     assert arg == value
     # no link is involved, so the lexical form of the Windows rule gives the same text
     assert config_arg(cfg, spec, platform="win32") == value
@@ -157,7 +156,7 @@ def test_the_cfg_validated_is_the_cfg_tlc_gets_through_links_r_rows(
     assert cfg.read_text() == validated, row
     arg = config_arg(cfg, spec)
     # TLC joins the value to the spec's folder and lets the operating system walk it
-    assert os.path.samefile(os.path.join(spec.parent, arg), links / validated)
+    assert (spec.parent / arg).samefile(links / validated)
     assert arg == value
     assert config_arg(cfg, spec, platform="win32") == lexical
 

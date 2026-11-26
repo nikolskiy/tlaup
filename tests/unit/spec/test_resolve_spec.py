@@ -1,6 +1,5 @@
 """resolve_spec (design 11 R5 and R4 step 3; inventory rows S1 to S4)."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -138,7 +137,7 @@ def dotdot_after_link(tmp_path: Path) -> Path:
 
 def test_dotdot_after_a_link_stays_in_place(dotdot_after_link: Path) -> None:
     got = resolve_spec("L/lnk/../proj/Spec.tla", dotdot_after_link)
-    assert got == Path(os.path.join(dotdot_after_link, "L/lnk/../proj/Spec.tla"))
+    assert got == dotdot_after_link / "L/lnk/../proj/Spec.tla"
     assert got.is_file()
 
 

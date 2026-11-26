@@ -1,6 +1,5 @@
 """Project root discovery (design 11 R10) and the folder names it uses."""
 
-import os
 from pathlib import Path
 
 SPEC_DIR = "spec"
@@ -21,7 +20,7 @@ def _is_home_or_filesystem_root(directory: Path, home: Path) -> bool:
     if directory.parent == directory or directory.resolve().parent == directory.resolve():
         return True
     try:
-        return os.path.samefile(directory, home)
+        return directory.samefile(home)
     except OSError:
         return directory == home
 
@@ -33,9 +32,9 @@ def find_project_root(spec: Path, home: Path) -> Path | None:
     2. Otherwise its parent folder, if that holds one of them and the spec's folder is named `spec`, `specs`,
        `test` or `tests`.
     3. Never the home folder or a filesystem root.
-    The folder returned is built from the path as given; no link is resolved.
+    The folder returned is the absolute form of the path as given; no link is resolved.
     """
-    folder = spec.parent
+    folder = spec.absolute().parent  # a relative spec is read against the working folder; no link is resolved
     candidates = [folder]
     if folder.name in SPEC_FOLDER_NAMES:
         candidates.append(folder.parent)

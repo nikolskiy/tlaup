@@ -144,10 +144,6 @@ ignore = [
 # Design 14 F9 (startup cost): command modules and the root import their heavy modules inside functions.
 "src/tlaup/cmd/**" = ["PLC0415"]
 "src/tlaup/cli.py" = ["PLC0415"]
-# Design 11 R4 steps 3 and 4: these files need os.path.abspath (collapses `..` as text, never touches the disk) and
-# os.path.realpath (follows links) apart; Path.resolve and Path normalisation cannot express both.
-"src/tlaup/project/*.py" = ["PTH"]
-"tests/unit/spec/*.py" = ["PTH"]
 
 [tool.bandit]
 skips = ["B404", "B603", "B607"]
