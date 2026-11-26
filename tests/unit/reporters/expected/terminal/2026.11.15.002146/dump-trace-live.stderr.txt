@@ -1,0 +1,4 @@
+TLC rolling@bc1b506 (2026.11.15.002146), Java 25.0.5, workers auto
+Live.tla  cfg: Live.cfg
+4 states generated, 3 distinct, 0 on queue, diameter 3
+4 states generated, 3 distinct, 0 on queue, diameter 3

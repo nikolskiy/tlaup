@@ -1,0 +1,11 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Warn4802.tla:4:16: error: Non-unique fields in constructor.
+     2 | EXTENDS Naturals
+     3 | VARIABLE x
+     4 | R == [a |-> 1, a |-> 2]
+       |                ^
+       | Error here: line 4, col 16 to 16
+     5 | Init == x = 0
+     6 | Next == x < 2 /\ x' = x + 1
+Error: Parsing or semantic analysis failed.
+Result: not checked: the spec has errors (TLC exit code 150: the spec does not parse, or fails SANY's semantic checks)

@@ -1,0 +1,17 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: Invariant Inv is violated.
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+       y = 0
+       z = 0
+  2: Viaz  (Params.tla:8:9)
+       x = 0
+       y = 0
+     * z = 2
+  3: Viaz  (Params.tla:8:9)
+       x = 0
+       y = 0
+     * z = 4
+14 states generated, 10 distinct, 5 left on queue; depth 3
+Result: errors found (TLC exit code 12: an invariant was violated) in 0.9 s

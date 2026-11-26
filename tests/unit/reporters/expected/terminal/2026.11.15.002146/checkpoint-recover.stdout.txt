@@ -1,0 +1,9 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Warning: Recovering this checkpoint with different settings can produce inconsistent state counts and counterexamples with missing or incorrect states. Results may be unreliable.
+  The checkpoint was created with -seed -7244776098106280918 -fp 49 -workers 1 (fingerprint -1738321455462685282).
+  This run is using -seed -5903437160982531213 -fp 18 -workers 1 (fingerprint -5219208432626862671).
+  Changed: seed, fingerprint.
+  To match the checkpoint, rerun with -seed -7244776098106280918 -fp 49 -workers 1.
+  Recovery will continue with the current settings at your own risk.
+4,001 states generated, 4,001 distinct, 0 left on queue; depth 4,001
+Result: no error found, every state checked (TLC exit code 0) in 3 min 05 s; resumed from a checkpoint

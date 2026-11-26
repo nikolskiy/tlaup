@@ -1,0 +1,7 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: TLC threw an unexpected exception.
+  This was probably caused by an error in the spec or model.
+  See the User Output or TLC Console for clues to what happened.
+  The exception was a java.io.FileNotFoundException
+  : <tmp>/q22/meta/v1.8.0/checkpoint-recover-missing/nope/vars.chkpt (No such file or directory)
+Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4)

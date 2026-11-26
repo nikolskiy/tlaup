@@ -53,8 +53,8 @@ if TYPE_CHECKING:
     from tlaup.reporters.base import Reporter
     from tlaup_parse import Event
 
-# The builds whose expected files exist. Package 38b adds "2026.11.15.002146" with its files.
-BUILDS = ("v1.7.4",)
+# The builds whose expected files exist: the release and the rolling build (packages 38a and 38b).
+BUILDS = ("v1.7.4", "2026.11.15.002146")
 EXPECTED = Path(__file__).resolve().parent / "expected" / "terminal"
 CASES = [(build, name) for build in BUILDS for name in case_names(build)]
 ESCAPE = re.compile(r"\x1b\[[0-9;]*m")

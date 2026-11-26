@@ -1,0 +1,48 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: Invariant Small is violated.
+  The behavior up to this point is:
+  1: Init  (Violation.tla:4:9)
+       store = [alpha |-> {}, beta |-> {}, gamma |-> {}]
+       n = 0
+       log = <<>>
+  2: Next  (Violation.tla:10:59)
+     * store = [alpha |-> {}, beta |-> {1}, gamma |-> {}]
+     * n = 1
+     * log = << [ op |-> "add",
+                  key |-> "beta",
+                  val |-> 1,
+                  note |->
+                      "a deliberately long note to force the value to wrap across several lines" ] >>
+  3: Next  (Violation.tla:10:59)
+     * store = [alpha |-> {2}, beta |-> {1}, gamma |-> {}]
+     * n = 2
+     * log = << [ op |-> "add",
+                  key |-> "beta",
+                  val |-> 1,
+                  note |->
+                      "a deliberately long note to force the value to wrap across several lines" ],
+                [ op |-> "add",
+                  key |-> "alpha",
+                  val |-> 2,
+                  note |->
+                      "a deliberately long note to force the value to wrap across several lines" ] >>
+  4: Next  (Violation.tla:10:59)
+     * store = [alpha |-> {2}, beta |-> {1, 2}, gamma |-> {}]
+     * n = 3
+     * log = << [ op |-> "add",
+                  key |-> "beta",
+                  val |-> 1,
+                  note |->
+                      "a deliberately long note to force the value to wrap across several lines" ],
+                [ op |-> "add",
+                  key |-> "alpha",
+                  val |-> 2,
+                  note |->
+                      "a deliberately long note to force the value to wrap across several lines" ],
+                [ op |-> "add",
+                  key |-> "beta",
+                  val |-> 2,
+                  note |->
+                      "a deliberately long note to force the value to wrap across several lines" ] >>
+10 states generated
+Result: errors found (TLC exit code 12: an invariant was violated) in 1.2 s

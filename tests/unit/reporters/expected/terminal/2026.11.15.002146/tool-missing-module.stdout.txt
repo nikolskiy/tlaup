@@ -1,0 +1,4 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+MissMod.tla: error: Cannot find source file for module NoSuchModule imported in module MissMod.
+Error: Parsing or semantic analysis failed.
+Result: not checked: the spec has errors (TLC exit code 150: the spec does not parse, or fails SANY's semantic checks)

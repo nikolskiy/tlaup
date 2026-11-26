@@ -1,0 +1,13 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: The second argument of \div is 0.
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+  The error occurred when TLC was evaluating the nested
+  expressions at the following positions:
+  0. Line 5, column 9 to line 5, column 21 in NextEval
+  1. Line 5, column 14 to line 5, column 21 in NextEval
+
+
+1 states generated, 1 distinct, 0 left on queue; depth 1
+Result: errors found (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4) in 0.9 s

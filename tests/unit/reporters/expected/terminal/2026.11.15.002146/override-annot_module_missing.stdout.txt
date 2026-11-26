@@ -1,0 +1,4 @@
+Warning: Failed to match Add2 operator override from NoSuchModule with signature: public static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue) (no such module).
+<<"Inv sees", 1003, 1030>>
+2 states generated, 1 distinct, 0 left on queue; depth 1
+Result: no error found, every state checked (TLC exit code 0) in 1.0 s

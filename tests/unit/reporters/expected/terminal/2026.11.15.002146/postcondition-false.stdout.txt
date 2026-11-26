@@ -1,0 +1,4 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: Postcondition Post at line 8, col 9 to line 8, col 31 of module Post is false.
+3 states generated, 3 distinct, 0 left on queue; depth 3
+Result: errors found (TLC exit code 10: a postcondition was false) in 0.8 s
