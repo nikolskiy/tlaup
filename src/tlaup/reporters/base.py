@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tlaup.java.locate import JavaRuntime
-    from tlaup.tlc.run import RunOutcome
+    from tlaup.tlc.runner import RunOutcome
     from tlaup.versioning.store import Build
     from tlaup_parse import Event, RunResult
 

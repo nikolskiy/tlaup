@@ -17,7 +17,7 @@ from tlaup.durations import format_elapsed
 from tlaup_parse import ErrorKind, Verdict, describe_exit_status
 
 if TYPE_CHECKING:
-    from tlaup.tlc.run import RunOutcome
+    from tlaup.tlc.runner import RunOutcome
     from tlaup_parse import Diagnostic, FinalStats, Location, Progress, RunResult, Value
 
 # --- Counts, paths, progress and statistics ------------------------------------------------------------------------
@@ -128,7 +128,7 @@ def format_diagnostic(d: Diagnostic, *, cwd: Path, spec: Path, source_text: str 
 
 # --- The result line (22 O3's table, decisions D54 and D63) -------------------------------------------------------
 
-_DROPPED = {
+DROPPED_CHECKPOINT = {
     "not-asked": "a checkpoint was not kept (use --keep to keep one)",
     "incomplete": "the checkpoint was incomplete, nothing to resume",
     "depth-first": "a -dfid run cannot be resumed",
@@ -203,8 +203,8 @@ def result_line(outcome: RunOutcome, result: RunResult, elapsed: float) -> str:
         line += "; resumed from a checkpoint"
         if result.counts_approximate:
             line += ", state counts approximate"
-    if outcome.dropped_checkpoint in _DROPPED:
-        line += f"; {_DROPPED[outcome.dropped_checkpoint]}"
+    if outcome.dropped_checkpoint in DROPPED_CHECKPOINT:
+        line += f"; {DROPPED_CHECKPOINT[outcome.dropped_checkpoint]}"
     return f"Result: {line}"
 
 

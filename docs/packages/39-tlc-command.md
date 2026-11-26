@@ -1,6 +1,6 @@
 # 39. The `tlc` command: switch to the new runner
 
-Size: L. Suggested model: most capable. Status: ready.
+Size: L. Suggested model: most capable. Status: 39a built, 39b ready.
 
 ## Goal
 

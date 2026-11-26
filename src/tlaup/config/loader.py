@@ -289,11 +289,6 @@ def config_path() -> Path:
     return config_dir() / "config.yaml"
 
 
-def cache_dir() -> Path:
-    """OS-standard cache directory (stores tla2tools.jar)."""
-    return get_context().paths.cache
-
-
 __all__ = [
     "CONFIG_HEADER",
     "Layer",

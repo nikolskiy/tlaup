@@ -1,4 +1,4 @@
-"""A child Python process for the closed-pipe tests of ``test_run.py`` (package 37, D58).
+"""A child Python process for the closed-pipe tests of ``test_runner.py`` (package 37, D58).
 
 The test starts it with its stdout on a pipe whose read end is already closed, which the test process's own stdout
 under pytest's capture is not. It runs ``run_tlc`` (with a ``CollectingReporter``) or ``run_tlc_raw`` with the fake
@@ -24,7 +24,7 @@ from tlaup.paths import AppPaths
 from tlaup.reporters.collecting import CollectingReporter
 from tlaup.tlc.command import build_tlc_command
 from tlaup.tlc.invocation import TlcRequest
-from tlaup.tlc.run import run_tlc, run_tlc_raw
+from tlaup.tlc.runner import run_tlc, run_tlc_raw
 
 
 def main(argument: str) -> int:

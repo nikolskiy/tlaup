@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from tlaup.reporters.base import RunInfo
-    from tlaup.tlc.run import RunOutcome
+    from tlaup.tlc.runner import RunOutcome
     from tlaup_parse import Event, RunResult
 
 

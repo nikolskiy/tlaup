@@ -58,7 +58,7 @@ if TYPE_CHECKING:
     from rich.console import Console, ConsoleOptions, RenderResult
 
     from tlaup.reporters.base import RunInfo
-    from tlaup.tlc.run import RunOutcome
+    from tlaup.tlc.runner import RunOutcome
     from tlaup.ui import Ui
     from tlaup_parse import CoverageItem, Event, RunResult, TlcError, TlcMessage, ToolInfo, TraceState
 

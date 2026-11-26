@@ -18,7 +18,7 @@ from tlaup.reporters.text import (
     source_excerpt,
     stats_line,
 )
-from tlaup.tlc.run import RunOutcome
+from tlaup.tlc.runner import RunOutcome
 from tlaup_parse import (
     Diagnostic,
     ErrorKind,

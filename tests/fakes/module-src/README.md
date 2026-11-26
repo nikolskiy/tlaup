@@ -10,3 +10,4 @@ reads them.
 | `Queue/` | A `.tla` module, `DirectOverrides.java` under `modules/tlc2/overrides/`, `sub/Constants.java` under a top-level `tlc2/overrides/`, and `lib/a.jar` and `lib/b.jar`. |
 | `TlaOnly/` | One `.tla` module and no Java. |
 | `NoIndex/` | One `.tla` module and `NotAnOverride.java`, a class that implements nothing. |
+| `Stack/` | One `.tla` module, and `InheritedOverrides.java` with its superclass `AbstractOverrides.java` under a top-level `tlc2/overrides/`: a second module with an override class of its own (39). |

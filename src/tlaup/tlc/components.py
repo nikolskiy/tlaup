@@ -5,7 +5,7 @@ from rich.console import Group
 from rich.table import Table
 from rich.text import Text
 
-from tlaup.tlc.models import CheckState, InitialStateStatItem, ModelCheckResult
+from tlaup.tlc.models import CheckState, ModelCheckResult
 
 
 class LogDeduplicator:
@@ -125,91 +125,3 @@ class StatsTableComponent:
                 f"{item.queue_size:,}",
             )
         return table
-
-
-class StatsTableFormatter:
-    """Formats sequential progress table output with 14-char value columns."""
-
-    def __init__(self, value_col_width: int = 14) -> None:
-        self.w = value_col_width
-
-    def get_header(self) -> str:
-        h_diam = "Diameter".center(10)
-        h_found = "Found".center(self.w)
-        h_distinct = "Distinct".center(self.w)
-        h_queue = "Queue".center(self.w)
-        h_date = "Date".center(10)
-        h_time = "Time".center(10)
-        return f" {h_diam} {h_found} {h_distinct} {h_queue}  {h_date} {h_time} "
-
-    def get_border(self) -> str:
-        b_diam = "─" * 10
-        b_found = "─" * self.w
-        b_distinct = "─" * self.w
-        b_queue = "─" * self.w
-        b_date = "─" * 10
-        b_time = "─" * 10
-        return f" {b_diam} {b_found} {b_distinct} {b_queue}  {b_date} {b_time} "
-
-    def format_row(self, item: InitialStateStatItem) -> str:
-        parts = item.timestamp.split(" ")
-        date_str = parts[0] if len(parts) > 0 else ""
-        time_str = parts[1] if len(parts) > 1 else ""
-
-        found_str = f"{item.total:,}"
-        distinct_str = f"{item.distinct:,}"
-        queue_str = f"{item.queue_size:,}"
-
-        return (
-            f" {item.diameter!s:>10} "
-            f"{found_str:>{self.w}} "
-            f"{distinct_str:>{self.w}} "
-            f"{queue_str:>{self.w}}  "
-            f"{date_str:<10} "
-            f"{time_str:<10} "
-        )
-
-
-class StatusFooterRenderable:
-    """Renders a 3-line live ticking status bar footer at the bottom."""
-
-    def __init__(self, result: ModelCheckResult) -> None:
-        self.result = result
-
-    def __rich__(self) -> Text:
-        status_text = self.result.status.name
-        if self.result.state == CheckState.Stopped:
-            status_text = "canceled"
-        elif self.result.state == CheckState.Success:
-            status_text = "success"
-        elif self.result.state == CheckState.Error:
-            status_text = "failed"
-
-        if not self.result.start_date_time:
-            elapsed_str = "00:00:00"
-            elapsed_style = "dim"
-        else:
-            if self.result.state == CheckState.Running:
-                elapsed = datetime.now() - self.result.start_date_time
-            else:
-                elapsed = (self.result.end_date_time or datetime.now()) - self.result.start_date_time
-            seconds = int(elapsed.total_seconds())
-            hours, remainder = divmod(seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-            elapsed_str = f"{hours:02}:{minutes:02}:{seconds:02}"
-            elapsed_style = "bold cyan"
-
-        footer = Text()
-        footer.append("\n")
-        footer.append("TLC Status: ", style="bold")
-        footer.append(status_text, style="cyan")
-        footer.append("\n")
-        footer.append("Elapsed:  ", style="bold")
-        footer.append(elapsed_str, style=elapsed_style)
-        footer.append("\n")
-
-        if self.result.state == CheckState.Running:
-            footer.append("\n")
-            footer.append("Stop with Ctrl + C", style="yellow")
-
-        return footer

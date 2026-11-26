@@ -84,6 +84,7 @@ if show_command:
         shlex.join(replace(java_inv, lifeline=False).argv()),  # 11 R9: no lifeline; one line,
         markup=False,
         highlight=False,
+        emoji=False,  # added while building 39a: a path holding ":x:" must not become an emoji
         soft_wrap=True,
     )
     return 0  # never wrapped or read as markup (10 P11)
