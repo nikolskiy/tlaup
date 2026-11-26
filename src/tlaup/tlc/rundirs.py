@@ -566,7 +566,7 @@ class RunFolder:
                 ended = self._now()
                 kept = self._kept(folder, checkpoint, _reason(process), ended, workers_reported)
                 self._settled = Settled(kept, None)  # decided before run.json is written: a failed write keeps it
-                _record_kept(kept, ended)
+                _record_kept(kept, ended, self._values)
                 return self._settled
             if _any_checkpoint(folder):
                 if not self._keep:
@@ -628,11 +628,16 @@ class RunFolder:
             self._recovered.abandon()
 
 
-def _record_kept(kept: Kept, ended: datetime) -> None:
-    """Write ended, kept, keep (FC1), size and reason into the kept folder's run.json. A write that fails passes
-    on; the decision is already made, so the end steps still leave the folder the user asked to keep (D53)."""
+def _record_kept(kept: Kept, ended: datetime, values: tuple[int | None, int | None]) -> None:
+    """Write ended, kept, keep (FC1), size and reason into the kept folder's run.json, and the fp and seed this run
+    passed, so that a later -recover of a resumed folder reads the values its checkpoint now continues with; a value
+    this run did not record leaves the one there. A write that fails passes on; the decision is already made, so
+    the end steps still leave the folder the user asked to keep (D53)."""
     record = _read_run_json(kept.path) or {"schema": SCHEMA}
     record.update(ended=_utc(ended), kept=True, keep=True, size=kept.size, reason=kept.reason)
+    for key, value in zip(("fp", "seed"), values, strict=True):
+        if value is not None:
+            record[key] = value
     _write_run_json(kept.path, record)
 
 

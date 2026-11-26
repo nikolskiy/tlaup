@@ -30,6 +30,7 @@ from tlaup.tlc.rundirs import (
     RunStart,
     clean_runs,
     complete_checkpoint,
+    find_recovered_run,
     list_entries,
     list_runs,
     run_folder,
@@ -979,3 +980,31 @@ def test_a_folder_without_run_json_survives_a_sweep_and_a_plain_clean(
     sweep(paths, clock.now)
     assert clean_runs(paths, include_kept=False) == CleanReport((), 0, ())
     assert folder.is_dir()
+
+
+def resumed_and_kept_again(project: Path, paths: AppPaths, clock: FakeClock, runs: Path, *extra: str) -> Path:
+    old = kept(runs, clock, "old")
+    data = record(old)
+    data.update(fp=58, seed=8556987057680880581)
+    (old / "run.json").write_text(json.dumps(data), encoding="utf-8")
+    inv = invocation_for(project, paths, *extra, "-recover", str(old / STATES), run_id="run1")
+    with run_folder(inv, paths, clock.now, wait=0) as folder:
+        assert folder.settle(outcome(130, stopped_by="int")).kept is not None
+    return old
+
+
+def test_a_resume_kept_again_records_the_fp_and_seed_it_passed(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "3", "-seed", "11")
+    assert (record(old)["fp"], record(old)["seed"]) == (3, 11)
+    recovered = find_recovered_run(["-recover", str(old / STATES)], project, runs)
+    assert recovered is not None
+    assert (recovered.fp, recovered.seed) == (3, 11)
+
+
+def test_a_resume_that_recorded_no_values_leaves_the_recorded_ones(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "oops", "-seed", "bad")
+    assert (record(old)["fp"], record(old)["seed"]) == (58, 8556987057680880581)
