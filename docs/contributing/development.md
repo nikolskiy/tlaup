@@ -49,7 +49,7 @@ The task refuses to run, with exit 1, when the variable is unset (it then prints
 
 ## CI
 
-`.github/workflows/test.yml` runs on every push to `main` and to a `build/**` branch (a stage's build branch runs CI before its pull request), on every pull request, and every Monday at 04:17 UTC. It is read-only (`contents: read`), every job has a timeout, and every action is pinned by commit hash with its release in a comment. The pinned hashes were looked up on 2026-11-19 and are looked up again on the day the pull request is opened.
+`.github/workflows/test.yml` runs on every push to `main` and to a `build/**` branch (a stage's build branch runs CI before its pull request), on every pull request, and every Monday at 04:17 UTC. It is read-only (`contents: read`), every job has a timeout, and every action is pinned by commit hash with its release in a comment. The pinned hashes are research 29's values of 2026-11-19; Dependabot moves them.
 
 - `lint`: `uv run poe lint`, `uv run ruff format --check .`, `shellcheck scripts/*.sh`, and the pre-commit hooks (`--hook-stage pre-commit`, with the test hook skipped through `SKIP: pytest` until it moves to `pre-push`).
 - `unit`: `uv run poe test` on Python 3.11 and 3.15 on Linux and on 3.15 on macOS, the Python chosen through `uv` (`UV_PYTHON`), without Java and without a jar; each cell ends by checking that no tlaup folder or `.tlaplus` was left in the runner's home (`scripts/test_clean.py --home`).

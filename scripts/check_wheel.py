@@ -71,9 +71,11 @@ def content_problems(names: list[str], src: Path) -> list[str]:
 
 
 def smoke_env(tmp: Path) -> dict[str, str]:
-    env = dict(os.environ)
-    for name in ("PYTHONPATH", "VIRTUAL_ENV", "UV_PYTHON"):
-        env.pop(name, None)
+    env = {
+        name: value
+        for name, value in os.environ.items()
+        if not name.startswith(("XDG_", "TLAUP_")) and name not in {"PYTHONPATH", "VIRTUAL_ENV", "UV_PYTHON"}
+    }
     home = tmp / "home"
     home.mkdir()
     env.update(
@@ -92,10 +94,18 @@ def install_and_run(wheel: Path) -> list[str]:
         tmp = Path(name)
         env = smoke_env(tmp)
         venv = tmp / "venv"
-        subprocess.run(["uv", "venv", str(venv)], check=True, env=env)
         bin_dir = venv / ("Scripts" if os.name == "nt" else "bin")
         suffix = ".exe" if os.name == "nt" else ""
-        subprocess.run(["uv", "pip", "install", "--python", str(venv), str(wheel)], check=True, env=env)
+        # The running interpreter, so that moving HOME does not make uv look for or download one.
+        steps = (
+            ["uv", "venv", "--python", sys.executable, str(venv)],
+            ["uv", "pip", "install", "--python", str(venv), str(wheel)],
+        )
+        for step in steps:
+            done = subprocess.run(step, env=env, capture_output=True, text=True, check=False)
+            if done.returncode != 0:
+                shown = " ".join(step[:3])
+                return [f"`{shown}` exited {done.returncode}: {done.stderr.strip()[-500:]}"]
         for command in SMOKE_COMMANDS:
             argv = [str(bin_dir / (command[0] + suffix)), *command[1:]]
             result = subprocess.run(argv, env=env, cwd=tmp, capture_output=True, text=True, check=False)

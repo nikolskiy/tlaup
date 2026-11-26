@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Every action is pinned by commit hash with its release in a comment. The hashes are the ones
-# research 29 found on 2026-11-19; they are looked up again on the day the pull request is opened.
+# research 29 found on 2026-11-19; Dependabot (package 56) moves them.
 jobs:
   lint:
     runs-on: ubuntu-latest
