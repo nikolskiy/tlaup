@@ -10,21 +10,24 @@ import shutil
 import subprocess
 from typing import TYPE_CHECKING
 
-import pytest
 from typer.testing import CliRunner
 
 import tlaup.cli
-from tests.integration.live import EXAMPLES, SPECS, copy_folder, run_live_tlc
+from tests.integration.live import EXAMPLES, SPECS, copy_folder, run_live_tlc, utc_now
+from tlaup.modules.registry import Registry
 from tlaup_parse import ErrorKind, Verdict
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    import pytest
 
     from tests.integration.conftest import Isolated
     from tests.integration.discovery import TestJar
     from tests.integration.live import Live
     from tlaup.versioning.store import Build
 
+MODULE_BUILD_FAILED = 5  # ModuleBuildError (13 M2, 02 X1)
 OVERRIDES_PROPERTY = "overrides_property"  # a build that loads the classes the property names (00, research 13)
 
 
@@ -79,13 +82,22 @@ def test_project_override_class(live_build: Build, isolated: Isolated, monkeypat
 def test_sequences_ext(
     live_build: Build, test_jar: TestJar, isolated: Isolated, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """R34: a module with a jar in lib/ and several TLA+ modules; the spec says when its overrides are loaded."""
+    """R34: a module with a jar in lib/ and several TLA+ modules; the spec says when its overrides are loaded.
+
+    On rolling builds: success. On v1.7.4 the add itself fails (below).
+    """
+    source = copy_folder(EXAMPLES / "sequences-ext", isolated.work / "sequences-ext")
     if test_jar.line == "stable":
-        # Package 52 asks for success on both builds, but the module's Java sources do not compile against v1.7.4
-        # (tlc2.value.impl.KSubsetValue and FunctionValue are missing, so is Evaluation.silent): `module add` fails
-        # with javac's errors. The 0.8.x test ran on v1.8.0 only. Reported to the lead; skipped until decided.
-        pytest.skip("the sequences-ext sources do not compile against v1.7.4 (finding of package 52a)")
-    module_add(copy_folder(EXAMPLES / "sequences-ext", isolated.work / "sequences-ext"))
+        # The module's Java sources need classes v1.7.4 lacks (tlc2.value.impl.KSubsetValue and FunctionValue,
+        # Evaluation.silent): the add fails as a compile failure does, ModuleBuildError's 5 with javac's output
+        # (13 M2), and nothing is registered. Lead's decision for 52a; the 0.8.x test ran on v1.8.0 only.
+        result = CliRunner().invoke(tlaup.cli.app, ["module", "add", str(source)])
+        assert result.exit_code == MODULE_BUILD_FAILED, result.output
+        assert "KSubsetValue" in result.stderr, result.stderr
+        assert "Traceback" not in result.output, result.output
+        assert not Registry(isolated.paths.modules, now=utc_now).list()
+        return
+    module_add(source)
     live = run_example(isolated, live_build, "SequencesExtTest", monkeypatch)
     result = live.outcome.result
     assert result is not None

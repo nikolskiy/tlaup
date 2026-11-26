@@ -22,13 +22,16 @@ if TYPE_CHECKING:
     from tests.integration.conftest import Isolated
     from tests.integration.discovery import TestJar
 
-# The cases a live run cannot reproduce for a reason cases.toml does not carry, each with that reason (package 52).
-LIVE_SKIP: dict[str, str] = {
-    "tool-oom": "exhausting a 64 MB heap depends on the JVM and the machine",
-    "big-states": (
-        "v1.7.4 with four workers sometimes stops this run of 2.2 million states with an ArithmeticException "
-        "(division by zero, message 1000), a race of the build that depends on the JVM and the machine: 1 run in 16 "
-        "of plain java with no tlaup, on JDK 25.0.4, 2026-11-26"
+# The cases a live run cannot reproduce for a reason cases.toml does not carry, each with that reason (package 52),
+# keyed by (golden folder, case); ANY_BUILD for every build.
+ANY_BUILD = "*"
+LIVE_SKIP: dict[tuple[str, str], str] = {
+    (ANY_BUILD, "tool-oom"): "exhausting a 64 MB heap depends on the JVM and the machine",
+    # Reproduced 2026-11-26 on JDK 25.0.4: 1 run in 16 of plain java with no tlaup, 2 in 26 through tlaup at
+    # different -fp values (also with -fp fixed at 87); 0 in 28 of plain java on OpenJDK 25.0.5.
+    ("v1.7.4", "big-states"): (
+        "TLC v1.7.4's race on some JVMs: a four-worker run of 2.2 million states sometimes stops with message 1000, "
+        "an ArithmeticException (division by zero), also with plain java and no tlaup"
     ),
 }
 
@@ -41,7 +44,7 @@ _OVERRIDE_PROPERTY = "-Dtlc2.overrides.TLCOverrides"
 NAMED = ("violation", "sany-semantic-error", "coverage")
 
 
-def left_out(name: str, table: dict[str, object]) -> str | None:
+def left_out(golden: Path, name: str, table: dict[str, object]) -> str | None:
     """Why a case does not run live, or None (package 52, "Which golden cases run live")."""
     if "spec" not in table:
         return "no spec: run_tlc needs one"
@@ -55,12 +58,12 @@ def left_out(name: str, table: dict[str, object]) -> str | None:
         return "its JVM options name an override class"
     if any(key in table for key in _NOT_REPRODUCIBLE):
         return "a live run cannot reproduce how the capture ended"
-    return LIVE_SKIP.get(name)
+    return LIVE_SKIP.get((golden.name, name)) or LIVE_SKIP.get((ANY_BUILD, name))
 
 
 def live_cases(golden: Path) -> list[str]:
     """The cases of a golden folder that run live, in ``cases.toml``'s order (called by the conftest)."""
-    return [name for name, table in cases_of(golden).items() if left_out(name, table) is None]
+    return [name for name, table in cases_of(golden).items() if left_out(golden, name, table) is None]
 
 
 def test_case_live(live_case: tuple[TestJar, str], isolated: Isolated, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -100,7 +103,10 @@ def test_named_cases_run() -> None:
 
 
 def test_skip_table() -> None:
-    names = {name for golden in build_folders("tlc") for name in cases_of(golden)}
-    for name, reason in LIVE_SKIP.items():
-        assert name in names, f"LIVE_SKIP names {name}, which no cases.toml has"
-        assert reason.strip(), f"LIVE_SKIP gives {name} no reason"
+    folders = {golden.name: set(cases_of(golden)) for golden in build_folders("tlc")}
+    every = set().union(*folders.values())
+    for (build, name), reason in LIVE_SKIP.items():
+        names = every if build == ANY_BUILD else folders.get(build)
+        assert names is not None, f"LIVE_SKIP names the build {build}, which has no golden folder"
+        assert name in names, f"LIVE_SKIP names {build}/{name}, which no such cases.toml has"
+        assert reason.strip(), f"LIVE_SKIP gives {build}/{name} no reason"
