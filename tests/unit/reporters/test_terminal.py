@@ -220,6 +220,28 @@ def test_values_in_a_trace_are_never_markup_p11(monkeypatch: pytest.MonkeyPatch)
     assert lines[-len(MARKUP) :] == [f"     * v{n} = [f |-> {value}]" for n, value in enumerate(MARKUP)]
 
 
+@pytest.mark.parametrize("color", [False, True], ids=["plain", "colour"])
+def test_a_tab_tlc_printed_stays_a_tab(color: bool, monkeypatch: pytest.MonkeyPatch) -> None:
+    """O3: an output line exactly as TLC printed it, and a stack frame of an error with its tab after the indent."""
+    if color:
+        reporter, out = _color_ui(monkeypatch)
+    else:
+        ui, out, _ = make_ui()
+        reporter = TerminalReporter(ui, clock=SecondClock())
+        reporter.start(make_run(load_case("v1.7.4", "violation")))
+    frame = "\tat tlc2.tool.impl.Tool.evalImpl(Tool.java:1419)"
+    message = TlcMessage(1000, 1, "GENERAL", ("TLC threw an unexpected exception.", frame))
+    error = TlcError(ErrorKind.EXCEPTION, None, message, [], None)
+    result = RunResult(errors=[error])
+    reporter.handle(OutputLine("\tTLC - provides model checking"), result)
+    reporter.handle(ErrorOpened(message, error), result)
+    assert ESCAPE.sub("", out.getvalue()).splitlines() == [
+        "\tTLC - provides model checking",
+        "Error: TLC threw an unexpected exception.",
+        "  " + frame,
+    ]
+
+
 def test_violation_with_colour(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> None:
     monkeypatch.setenv("TERM", "xterm-256color")
     run = replay("v1.7.4", "violation", color=True, terminal=True)

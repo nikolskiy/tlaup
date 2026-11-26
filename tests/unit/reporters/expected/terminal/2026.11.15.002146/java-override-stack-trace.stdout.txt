@@ -7,21 +7,21 @@ Error: TLC threw an unexpected exception.
   public static tlc2.value.impl.Value tlc2.module.BoomTrace.BoomTrace(tlc2.value.impl.Value),
   but it produced the following error:
   java.lang.StackOverflowError
-        at tlc2.module.BoomTrace.BoomTrace(BoomTrace.java:9)
-        at tlc2.value.impl.MethodValue.eval(MethodValue.java:145)
-        at tlc2.value.impl.OpValue.eval(OpValue.java:64)
-        at tlc2.tool.impl.Tool.evalApplImpl(Tool.java:2045)
-        at tlc2.tool.impl.FastTool.evalAppl(FastTool.java:117)
-        at tlc2.tool.impl.Tool.evalImpl(Tool.java:1810)
-        at tlc2.tool.impl.FastTool.eval(FastTool.java:110)
-        at tlc2.tool.impl.Tool.getNextStatesApplSwitch(Tool.java:1366)
-        at tlc2.tool.impl.Tool.getNextStatesApplImpl(Tool.java:1156)
-        at tlc2.tool.impl.FastTool.getNextStatesAppl(FastTool.java:96)
-        at tlc2.tool.impl.Tool.getNextStatesImpl(Tool.java:935)
-        at tlc2.tool.impl.FastTool.getNextStates(FastTool.java:89)
-        at tlc2.tool.impl.Tool.getNextStates(Tool.java:920)
-        at tlc2.tool.impl.Tool.getNextStates(Tool.java:914)
-        at tlc2.tool.Worker.run(Worker.java:116)
+  	at tlc2.module.BoomTrace.BoomTrace(BoomTrace.java:9)
+  	at tlc2.value.impl.MethodValue.eval(MethodValue.java:145)
+  	at tlc2.value.impl.OpValue.eval(OpValue.java:64)
+  	at tlc2.tool.impl.Tool.evalApplImpl(Tool.java:2045)
+  	at tlc2.tool.impl.FastTool.evalAppl(FastTool.java:117)
+  	at tlc2.tool.impl.Tool.evalImpl(Tool.java:1810)
+  	at tlc2.tool.impl.FastTool.eval(FastTool.java:110)
+  	at tlc2.tool.impl.Tool.getNextStatesApplSwitch(Tool.java:1366)
+  	at tlc2.tool.impl.Tool.getNextStatesApplImpl(Tool.java:1156)
+  	at tlc2.tool.impl.FastTool.getNextStatesAppl(FastTool.java:96)
+  	at tlc2.tool.impl.Tool.getNextStatesImpl(Tool.java:935)
+  	at tlc2.tool.impl.FastTool.getNextStates(FastTool.java:89)
+  	at tlc2.tool.impl.Tool.getNextStates(Tool.java:920)
+  	at tlc2.tool.impl.Tool.getNextStates(Tool.java:914)
+  	at tlc2.tool.Worker.run(Worker.java:116)
 
   The behavior up to this point is:
   1: Initial predicate

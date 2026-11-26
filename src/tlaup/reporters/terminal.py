@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, assert_never
 
+from rich.segment import Segment
 from rich.text import Text
 
 from tlaup.reporters.text import (
@@ -54,7 +55,7 @@ from tlaup_parse import (
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
-    from rich.console import Console
+    from rich.console import Console, ConsoleOptions, RenderResult
 
     from tlaup.reporters.base import RunInfo
     from tlaup.tlc.run import RunOutcome
@@ -361,6 +362,18 @@ def render_summary(outcome: RunOutcome, run: RunInfo, elapsed: float) -> list[Te
     return out
 
 
+class _AsPrinted:
+    """One line as it stands: Rich's own printing of a `Text` expands each tab to spaces, which would change TLC's
+    lines (O3: "exactly as TLC printed it"); rendering the segments directly keeps a tab a tab, and the styles."""
+
+    def __init__(self, line: Text) -> None:
+        self.line = line
+
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        yield from self.line.render(console)
+        yield Segment.line()
+
+
 class TerminalReporter:
     """A `Reporter` (22 O1) that writes as things arrive: the result text to ``ui.out``, the rest to ``ui.err``.
 
@@ -385,7 +398,7 @@ class TerminalReporter:
     @staticmethod
     def _write(console: Console, lines: Iterable[Text]) -> None:
         for line in lines:
-            console.print(line, soft_wrap=True, markup=False, highlight=False, emoji=False)
+            console.print(_AsPrinted(line), soft_wrap=True, markup=False, highlight=False, emoji=False)
 
     def start(self, run: RunInfo) -> None:
         self._run = run
