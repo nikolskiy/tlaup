@@ -2,8 +2,8 @@
 
 The child is the leader of a new session with the pty as its controlling terminal, so the interrupt
 character typed into the pty is the terminal's own SIGINT to the foreground group. ``pyte`` does not model
-the alternate screen, so what stays on the user's terminal is the screen of the bytes after the last
-``LEAVE_ALT``.
+the alternate screen, so what stays on the user's terminal is the screen of the bytes outside each part from
+``ENTER_ALT`` to ``LEAVE_ALT``.
 """
 
 from __future__ import annotations
@@ -57,6 +57,10 @@ QUIT = "\x1c"  # Ctrl-\, which the terminal turns into SIGQUIT for its foregroun
 TERMINAL_TYPE = "xterm-256color"
 FEED_SECONDS = 10.0
 HISTORY_LINES = 100_000
+HOME = b"\x1b[H"  # the cursor to the top left: where each frame of the layout starts (package 40)
+# The layout's panel titles (22 O4); the header has none, it is the lines above the Status panel.
+PANEL_TITLES = ("── Status ", "── State space progress ", "── Output ")
+ELAPSED = re.compile(r"elapsed (\d+):(\d\d):(\d\d)")
 # Escape sequences, for "the whole output with escape sequences removed": CSI, OSC, and the two-byte forms.
 # DCS strings first, since ESC P is also a two-byte form; the two-byte forms include ESC 7, ESC 8, ESC = and ESC >.
 _ESCAPES = re.compile(
@@ -90,10 +94,28 @@ def screen_text(data: bytes, size: tuple[int, int]) -> str:
     return _join(_lines(screen))
 
 
+def main_screen(data: bytes) -> bytes:
+    """The bytes written to the main screen: ``data`` without each part from ``ENTER_ALT`` to its ``LEAVE_ALT``.
+
+    ``?1049h`` saves the cursor and ``?1049l`` restores it with the main screen, so the bytes before the enter
+    sequence and after the leave sequence follow on from each other (package 40: the header written before the
+    layout opens is still on the terminal after it closes). An enter sequence never left keeps what follows it.
+    """
+    kept = bytearray()
+    rest = data
+    while True:
+        before, entered, after = rest.partition(ENTER_ALT)
+        _, left, tail = after.partition(LEAVE_ALT)
+        if not (entered and left):
+            kept += rest
+            return bytes(kept)
+        kept += before
+        rest = tail
+
+
 def final_screen(data: bytes, size: tuple[int, int]) -> str:
-    """What stays on the user's terminal: the screen of the bytes after the last ``LEAVE_ALT``, if any."""
-    _, found, rest = data.rpartition(LEAVE_ALT)
-    return screen_text(rest if found else data, size)
+    """What stays on the user's terminal: the screen of the bytes written to the main screen (`main_screen`)."""
+    return screen_text(main_screen(data), size)
 
 
 def without_escapes(data: bytes) -> str:
@@ -106,6 +128,39 @@ def _shows(screen: pyte.HistoryScreen, text: str) -> bool:
     # is never found across two separate lines.
     joined = "".join(line if len(line) == screen.columns else line + "\n" for line in _lines(screen))
     return text in joined
+
+
+def _during_layout(data: bytes) -> bytes | None:
+    """The bytes between the first ``ENTER_ALT`` and the ``LEAVE_ALT`` after it; None unless both were written."""
+    _, entered, rest = data.partition(ENTER_ALT)
+    during, left, _ = rest.partition(LEAVE_ALT)
+    return during if entered and left else None
+
+
+def layout_screens(data: bytes, size: tuple[int, int]) -> list[str]:
+    """Each screen the layout showed: the alternate screen's bytes replayed through ``pyte`` (which does not model
+    the alternate screen, so they get a screen of their own), the text taken just before each frame starts again
+    at the top left and once at the end."""
+    during = _during_layout(data)
+    if during is None:
+        return []
+    screen = pyte.Screen(*size)
+    stream = pyte.ByteStream(screen)
+    shown: list[str] = []
+    pieces = during.split(HOME)
+    for number, piece in enumerate(pieces):
+        stream.feed(piece if number == 0 else HOME + piece)
+        shown.append(_join([line.rstrip() for line in screen.display]))
+    return shown
+
+
+def elapsed_seconds(text: str) -> int | None:
+    """The Status panel's ``elapsed HH:MM:SS`` on a screen, in seconds; None when it shows none."""
+    found = ELAPSED.search(text)
+    if found is None:
+        return None
+    hours, minutes, seconds = (int(part) for part in found.groups())
+    return hours * 3600 + minutes * 60 + seconds
 
 
 @dataclass
@@ -126,8 +181,12 @@ class TerminalRun:
     def __post_init__(self) -> None:
         self.screen, self.stream = _new_screen(self.size)
 
-    def read(self, wait: float = POLL_SECONDS) -> None:
-        """Read what is there within ``wait``; end of output is EIO on Linux, an empty read on macOS."""
+    def read(self, wait: float = POLL_SECONDS, *, each_frame: Callable[[], None] | None = None) -> None:
+        """Read what is there within ``wait``; end of output is EIO on Linux, an empty read on macOS.
+
+        With ``each_frame`` the bytes are fed in parts that start at ``HOME``, where the layout starts each frame,
+        and it is called after each part, so no screen of several read at once is missed (package 40).
+        """
         if self.ended:
             return
         ready, _, _ = select.select([self.master], [], [], wait)
@@ -143,7 +202,12 @@ class TerminalRun:
             self.ended = True
             return
         self.output += data
-        self.stream.feed(data)
+        if each_frame is None:
+            self.stream.feed(data)
+            return
+        for number, piece in enumerate(data.split(HOME)):
+            self.stream.feed(piece if number == 0 else HOME + piece)
+            each_frame()
 
     def last_screen(self) -> str:
         return _join(_lines(self.screen))
@@ -171,7 +235,14 @@ class TerminalRun:
             os.close(self.master)
             self.master = -1
 
-    def pump_until(self, condition: Callable[[], bool], *, timeout: float, what: str) -> None:
+    def pump_until(
+        self,
+        condition: Callable[[], bool],
+        *,
+        timeout: float,
+        what: str,
+        each_frame: Callable[[], None] | None = None,
+    ) -> None:
         """Read the pty until ``condition()``; fails with the last screen after ``timeout`` or at end of output."""
         deadline = time.monotonic() + timeout
         while not condition():
@@ -179,7 +250,7 @@ class TerminalRun:
                 self.fail_with_screen(f"the output ended before {what}")
             if time.monotonic() >= deadline:
                 self.fail_with_screen(f"{what} did not happen within {timeout} seconds")
-            self.read()
+            self.read(each_frame=each_frame)
 
     def feed_until(self, text: str, *, timeout: float = FEED_SECONDS) -> pyte.Screen:
         """Read and feed the emulator until the screen shows ``text``; fails with the last screen it saw."""
@@ -304,6 +375,56 @@ def ctrl_c_once_shown(
     return scenario.outcome
 
 
+def ctrl_c_once_elapsed(
+    scenario: Scenario,
+    argv: Sequence[str],
+    size: tuple[int, int],
+    first: str,
+    seconds: int,
+    *,
+    found: list[int | None] | None = None,
+) -> Outcome:
+    """``... press Ctrl-C once the terminal has shown "<text>" and then an elapsed time <n> seconds later`` (40).
+
+    The second wait is for a screen that still shows the text and whose ``elapsed`` value is at least ``seconds``
+    greater than the one on the screen where the text was first seen: two values read from the screen, so the
+    step does not depend on how long the process took to get there (01 T5, 22 O4). Each frame's screen is looked
+    at, also of frames read together. Each wait has ``FEED_SECONDS``. ``found``, if given, receives the two
+    elapsed values the step read (for its own test).
+    """
+    after = prepare(scenario)
+    run = run_on_terminal(argv, size=size).watch(scenario.fakes, after)
+    seen: list[int | None] = []  # the elapsed value where the text was first seen
+    later: list[int] = []  # the first value at least ``seconds`` after it, on a screen that shows the text
+
+    def look() -> None:
+        if later or not _shows(run.screen, first):
+            return
+        now = elapsed_seconds("\n".join(run.screen.display))
+        if not seen:
+            seen.append(now)
+        elif seen[0] is not None and now is not None and now >= seen[0] + seconds:
+            later.append(now)
+
+    try:
+        run.pump_until(
+            lambda: bool(seen), timeout=FEED_SECONDS, what=f"the terminal showing {first!r}", each_frame=look
+        )
+        if seen[0] is None:
+            run.fail_with_screen(f"the screen that first showed {first!r} has no elapsed time")
+        what = f"a screen showing {first!r} with an elapsed time {seconds} seconds after {seen[0]} seconds"
+        run.pump_until(lambda: bool(later), timeout=FEED_SECONDS, what=what, each_frame=look)
+        if found is not None:
+            found.extend([seen[0], later[0]])
+        run.type(INTERRUPT)
+        scenario.outcome = run.finish()
+    except BaseException:
+        run.kill()
+        run.close()
+        raise
+    return scenario.outcome
+
+
 def quit_once_shown(scenario: Scenario, argv: Sequence[str], size: tuple[int, int], first: str, second: str) -> Outcome:
     """``... and press Ctrl-\\ once the terminal has shown "<a>" and then "<b>"`` (package 39, D60's SIGQUIT)."""
     after = prepare(scenario)
@@ -383,6 +504,39 @@ def check_terminal_not_contains(scenario: Scenario, text: str) -> None:
         fail(f"the terminal shows {wanted!r}; it ends with:\n{screen}")
     if wanted in without_escapes(data):
         fail(f"{wanted!r} was written to the terminal, though it is no longer on the screen:\n{screen}")
+
+
+def check_showed_the_layout(scenario: Scenario) -> None:
+    """``the terminal showed the layout``: the enter sequence, a screen with the panel titles, the leave sequence;
+    nothing about how the run ended (22 O4)."""
+    data, size = _terminal(scenario)
+    if ENTER_ALT not in data:
+        fail(f"the alternate screen was never entered; the terminal ends with:\n{final_screen(data, size)}")
+    shown = layout_screens(data, size)
+    if not shown:
+        fail(
+            f"the alternate screen was never left; its last screen:\n{screen_text(data.partition(ENTER_ALT)[2], size)}"
+        )
+    if not any(all(title in text for title in PANEL_TITLES) for text in shown):
+        fail(f"no screen of the layout had the panel titles {PANEL_TITLES}; the last one:\n{shown[-1]}")
+
+
+def check_last_frame_contains(scenario: Scenario, text: str) -> None:
+    """``the last layout frame contains "<text>"``: the last screen before the leave sequence."""
+    data, size = _terminal(scenario)
+    shown = layout_screens(data, size)
+    if not shown:
+        fail("the terminal did not show the layout: no enter and leave sequences of the alternate screen")
+    wanted = scenario.expand(text)
+    if wanted not in shown[-1]:
+        fail(f"the last layout frame does not show {wanted!r}; it was:\n{shown[-1]}")
+
+
+def check_stayed_on_the_main_screen(scenario: Scenario) -> None:
+    """``the terminal stayed on the main screen``: the alternate screen was neither entered nor left."""
+    data, size = _terminal(scenario)
+    if ENTER_ALT in data or LEAVE_ALT in data:
+        fail(f"the alternate screen was used; the terminal ends with:\n{final_screen(data, size)}")
 
 
 def terminal_end(scenario: Scenario) -> str:

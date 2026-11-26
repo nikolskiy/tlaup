@@ -569,6 +569,8 @@ Roadmap: "One preflight used by every `tlaup tlc` path, checking jar, Java, spec
 
 Before those four comes a step that reads nothing from the disk: the checks that need only the command line and the environment. A mistake of that kind is a usage error whatever is installed, and reporting it first means nobody answers the first-run prompt, or waits for a download, and is then told that two of their options conflict.
 
+*Known gap* (found while building 40b, 2026-11-25): as built in 33 and 39a, the settings are loaded before this step (`resolve_tlc_invocation` takes them, and the step checks `TLAUP_JAVA_OPTS` against `java.opts`), so a broken config file (3) is reported before a conflict typed on the command line (2). Package 48 makes the step read nothing from the disk, loading the settings after it.
+
 | Step | Failure | Message and hint |
 | --- | --- | --- |
 | 0. The command line | Two options that conflict (the table of R8); `--workers` that is neither `auto` nor a positive integer; an unbalanced quote in `TLAUP_JAVA_OPTS` ([13 J1](13-modules-and-java.md#j1-java-options)) | `ConflictingOptions` or `UsageError`, code 2 |

@@ -641,6 +641,17 @@ Feature: Running TLC
     And stderr contains "warning:" 1 times
     And java ran "tlc2.TLC" 1 time
 
+  # Inventory row R13: --refresh-interval is accepted (O5); the default of tlc.refresh_interval, 1.0, is
+  # test_the_interval_is_the_settings_by_default in tests/unit/reporters/test_make_reporter.py
+
+  Scenario: --refresh-interval 0.5 is accepted, and the run's exit code passes through
+    Given the build "v1.7.4" is installed and pinned
+    And a spec "Violation" from the golden specs
+    And java replays "tlc/v1.7.4/violation" with exit code 12
+    When I run "tlaup tlc Violation --refresh-interval 0.5"
+    Then the exit code is 12
+    And java ran "tlc2.TLC" 1 time
+
   # F4, handed over by 44: a broken config file
 
   Scenario: With a value of the wrong type in the config file, tlc exits 3 and names the key

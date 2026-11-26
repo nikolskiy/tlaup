@@ -21,7 +21,7 @@ from tlaup.paths import AppPaths
 CONFIG_HEADER = "# tlaup settings; see https://github.com/nikolskiy/tlaup/blob/main/docs/reference/configuration.md"
 
 _USER_FILE = "config.yaml"
-_EDIT_HINT = "run `tlaup config edit` to fix the file"
+EDIT_HINT = "run `tlaup config edit` to fix the file"
 _EMPTY_IS_UNSET = ("module_path", "module_lib_path")  # an empty variable means unset
 _NOT_IN_ENV = "java.opts"  # TLAUP_JAVA_OPTS adds at run time instead (design 13 J1)
 _KIND_LABELS = {"defaults": "default", "user": "user file", "project": "project file", "env": "environment"}
@@ -68,10 +68,10 @@ def _read_user_file(paths: AppPaths) -> dict[str, object] | None:
     except FileNotFoundError:
         return None
     except UnicodeDecodeError:
-        raise ConfigInvalid(f"{_USER_FILE}: not valid UTF-8 text", hint=_EDIT_HINT) from None  # noqa: TRY003
+        raise ConfigInvalid(f"{_USER_FILE}: not valid UTF-8 text", hint=EDIT_HINT) from None  # noqa: TRY003
     except OSError as e:
         raise FileOperationError(f"cannot read {path}: {e.strerror or e}") from None  # noqa: TRY003
-    return _parse_yaml(text, _USER_FILE, hint=_EDIT_HINT)
+    return _parse_yaml(text, _USER_FILE, hint=EDIT_HINT)
 
 
 def _nest(flat: Mapping[str, object]) -> dict[str, Any]:
@@ -136,7 +136,7 @@ def _scan(layer: Layer) -> tuple[dict[str, object], list[str], list[str]]:
         out: dict[str, object] = {}
         for name, value in data.items():
             if not isinstance(name, str):
-                edit = _EDIT_HINT if layer.kind == "user" else None
+                edit = EDIT_HINT if layer.kind == "user" else None
                 raise ConfigInvalid(f"{file}: {prefix}{name}: expected a setting name", hint=edit)  # noqa: TRY003
             key = prefix + name
             child = node.get(name, False)
@@ -151,7 +151,7 @@ def _scan(layer: Layer) -> tuple[dict[str, object], list[str], list[str]]:
             elif value is None:
                 continue  # a section with every key commented out is an empty section
             elif not isinstance(value, Mapping):
-                edit = _EDIT_HINT if layer.kind == "user" else None
+                edit = EDIT_HINT if layer.kind == "user" else None
                 got = schema.show(value)
                 raise ConfigInvalid(f"{file}: {key}: expected a section of settings, got {got}", hint=edit)  # noqa: TRY003
             else:
@@ -213,7 +213,7 @@ def _invalid(error: ValidationError, sources: Mapping[str, str]) -> ConfigInvali
         # a value from the environment or a flag is named by its variable or option, a file's by the file
         prefix = _USER_FILE if in_file else label
         lines.append(line if label == "default" else f"{prefix}: {line}")
-    hint = _EDIT_HINT if from_file else None
+    hint = EDIT_HINT if from_file else None
     return ConfigInvalid(lines[0], hint=hint, details="\n".join(lines[1:]) or None)
 
 
@@ -291,6 +291,7 @@ def config_path() -> Path:
 
 __all__ = [
     "CONFIG_HEADER",
+    "EDIT_HINT",
     "Layer",
     "LoadedSettings",
     "load_config",

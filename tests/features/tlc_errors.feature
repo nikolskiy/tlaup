@@ -48,6 +48,55 @@ Feature: What tlaup tlc checks before it starts TLC
     And stderr contains "TLAUP_JAVA_OPTS"
     And java was not started
 
+  # 22 O5: --refresh-interval from 0.1 to 60 seconds, from each source; the schema checks only the type (14 F1)
+
+  Scenario Outline: --refresh-interval <value> is out of range
+    Given the build "v1.7.4" is installed and pinned
+    When I run "tlaup tlc Success --refresh-interval <value>"
+    Then the exit code is 2
+    And stdout is empty
+    And stderr contains "--refresh-interval"
+    And java was not started
+
+    Examples:
+      | value |
+      | 0     |
+      | 100   |
+
+  Scenario Outline: TLAUP_TLC_REFRESH_INTERVAL=<value> is a usage error that names the variable
+    Given the build "v1.7.4" is installed and pinned
+    And the environment variable "TLAUP_TLC_REFRESH_INTERVAL" is "<value>"
+    When I run "tlaup tlc Success"
+    Then the exit code is 2
+    And stdout is empty
+    And stderr contains "error:" 1 times
+    And stderr contains "TLAUP_TLC_REFRESH_INTERVAL must be from 0.1 to 60 seconds, not <value>"
+    And java was not started
+
+    Examples:
+      | value |
+      | 0     |
+      | 100   |
+
+  Scenario Outline: tlc.refresh_interval: <value> in the config file is a usage error that names the key
+    Given the build "v1.7.4" is installed and pinned
+    And the config file contains:
+      """
+      tlc:
+        refresh_interval: <value>
+      """
+    When I run "tlaup tlc Success"
+    Then the exit code is 2
+    And stdout is empty
+    And stderr contains "error:" 1 times
+    And stderr contains "config.yaml: tlc.refresh_interval must be from 0.1 to 60 seconds, not <value>"
+    And java was not started
+
+    Examples:
+      | value |
+      | 0     |
+      | 100   |
+
   # R11, step 1: the spec (R5)
 
   Scenario: A spec that does not exist exits 4 and names a path that was tried

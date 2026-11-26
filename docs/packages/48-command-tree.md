@@ -166,6 +166,8 @@ Left for this package: C4's and X1's entries above, and any row the check finds 
 
 ## Context for the worker
 
+**From 40b** (noted at its merge, 2026-11-25). `tlaup tlc`'s step 0 (11 R11) is to read nothing from the disk, but as built the settings load first (cmd/tlc.py passes `app.settings` into `resolve_tlc_invocation`, and step 0 reads `java.opts`), so a broken config file (3) beats a typed conflict (2). Load the settings lazily after step 0 (step 0 checks only the variable's quoting), with a scenario: a broken config file and `--workers 2 -- -workers 4` exit 2. The refresh-interval check that 40b put before the preflight reads settings too and should follow them.
+
 **Decisions this rests on.** D14 (no alias, shim or migration: a removed name is an unknown command or option, exit 2, and nothing else). D38 (no short forms of commands, and, by the design agent's decision, of options: the only one-letter option is `-V`, with `-v` and `-q` reserved for milestone 4). D47 (`tool`, `module`). D29 and [02 X1](../design/02-cross-cutting.md#x1-exit-codes) rule 7 (no command: help on stdout, exit 2; a root option alone, `tlaup --debug`, is Typer's "Missing command", stderr only, exit 2).
 
 **Root options go before the command.** `tlaup --debug tlc Spec`; after the command Typer rejects them as unknown (tried on Typer 0.29.1, [14 F10](../design/14-config-and-cli.md#f10-no-tracebacks)). `TLAUP_DEBUG=1` has no position. Whether milestone 4's `--quiet`, `--verbose` and `--color` are also accepted after the command is that design's question; do not add anything for it.
