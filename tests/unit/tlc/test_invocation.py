@@ -28,10 +28,10 @@ from tlaup.tlc.invocation import (
     SEED_MAX,
     TlcInvocation,
     TlcRequest,
-    find_recovered_run,
     new_run_id,
     resolve_tlc_invocation,
 )
+from tlaup.tlc.rundirs import find_recovered_run
 from tlaup.versioning.store import Build, Source
 
 if TYPE_CHECKING:

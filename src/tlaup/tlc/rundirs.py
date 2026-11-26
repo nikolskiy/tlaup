@@ -5,6 +5,10 @@ one call each (decision D46), so that the stateful test can interleave several t
 ``RunStart`` is "Start", ``RunFolder`` is settle and "End", ``EntryVisit`` is one entry of the sweep or of
 ``cache clean``. A run's own lock and the lock of the folder ``-recover`` names are ``RunLock``, tlaup's own
 descriptor, which a JVM inherits on Linux and macOS (D51); the visits use ``filelock.FileLock``.
+
+``run_folder`` is the steps in order for one ``TlcInvocation``; ``list_runs`` and ``clean_runs`` are what
+``tlaup cache list`` and ``cache clean`` call; ``resume_command``, ``kept_note`` and ``reminder`` are the words a
+kept folder is announced with.
 """
 
 from __future__ import annotations
@@ -12,23 +16,29 @@ from __future__ import annotations
 import json
 import os
 import secrets
+import shlex
 import shutil
+import subprocess
 import time
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, tzinfo
 from typing import TYPE_CHECKING, Literal
 
 import filelock
 
-from tlaup.errors import FileOperationError
+from tlaup.durations import format_elapsed
+from tlaup.errors import FileOperationError, PathNotFound
+from tlaup.versioning.app_version import get_app_version
+from tlaup.versioning.spec import format_build
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Iterator, Mapping, Sequence
     from pathlib import Path
 
     from tlaup.java.launcher import ProcessOutcome
     from tlaup.paths import AppPaths
+    from tlaup.tlc.invocation import TlcInvocation
 
 SCHEMA = 1
 RUN_JSON = "run.json"
@@ -36,6 +46,21 @@ LOCK_SUFFIX = ".lock"
 POLL = 0.05  # seconds between two attempts at a run's lock (R6's figure, not measured)
 NO_RUN_JSON_AGE = timedelta(days=30)  # a folder with no run.json, counted from its newest change
 LOCK_FILE_AGE = timedelta(hours=1)  # a lock file whose folder is gone
+RUN_JSON_KEYS = (
+    "schema",
+    "spec",
+    "cfg",
+    "build",
+    "pid",
+    "started",
+    "tlaup",
+    "keep",
+    "fp",
+    "seed",
+    "ended",
+    "kept",
+    "size",
+)  # R6's order
 FINISHED = frozenset({0, 10, 11, 12, 13, 14})  # TLC's clean finish and its violation codes (research 15)
 WINDOWS = os.name == "nt"
 
@@ -50,6 +75,7 @@ class Kept:
     stopped_after: timedelta  # from this run's start to the end of the run
     checkpoint_at: datetime  # when the complete checkpoint was written
     reason: str  # "interrupted", "tlaup failed" or "TLC crashed (exit N)"
+    ended: datetime  # when settle kept it; the note's checkpoint time names the date when it is another day
     resume_command: str | None = None  # None for a folder built without an invocation
 
 
@@ -200,6 +226,52 @@ def recovered_run_id(path: Path, runs: Path) -> str | None:
     return parts[0]
 
 
+def recover_path(extra_args: Sequence[str], cwd: Path) -> Path | None:
+    """The word after the first ``-recover`` among TLC's arguments, made absolute against ``cwd`` as TLC reads it;
+    None when there is no ``-recover`` or no word after it (TLC reports the missing value)."""
+    args = list(extra_args)
+    if "-recover" not in args:
+        return None
+    index = args.index("-recover")
+    if index + 1 >= len(args):
+        return None
+    return cwd / args[index + 1]
+
+
+@dataclass(frozen=True)
+class RecoveredRun:
+    """The run folder a ``-recover PATH`` among TLC's arguments points into (11 R6)."""
+
+    run_id: str
+    folder: Path  # paths.runs / run_id
+    keep: bool  # its run.json says "keep": true or "kept": true
+    fp: int | None  # from its run.json, when it has them
+    seed: int | None
+
+
+def _int_or_none(value: object) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+def find_recovered_run(extra_args: Sequence[str], cwd: Path, runs: Path) -> RecoveredRun | None:
+    """The run under ``runs`` that the word after ``-recover`` lies in, whether or not that path exists; else None.
+
+    A relative path is read against ``cwd``, as TLC reads it, and links are resolved as far as the path exists. A
+    run.json that is missing or cannot be read gives keep=False and no values; the run is still returned. Reads
+    only; takes no lock. (Package 33's, moved here with package 35.)
+    """
+    path = recover_path(extra_args, cwd)
+    if path is None:
+        return None
+    run_id = recovered_run_id(path, runs)
+    if run_id is None:
+        return None
+    folder = runs / run_id
+    record = _read_run_json(folder) or {}
+    keep = record.get("keep") is True or record.get("kept") is True  # review finding FC1
+    return RecoveredRun(run_id, folder, keep, _int_or_none(record.get("fp")), _int_or_none(record.get("seed")))
+
+
 # ---------------------------------------------------------------------- the run's own locks
 
 
@@ -313,7 +385,7 @@ class RunStart:
     """The steps of "Start", one call each, in this order: create_lock_file, take_lock, take_recover_lock,
     make_folder, write_run_json, sweep; then ``entered``."""
 
-    def __init__(  # noqa: PLR0913 (the signature of 11 R6, with tlc_args from package 35)
+    def __init__(  # noqa: PLR0913 (the signature of 11 R6, with tlc_args and invocation from package 35)
         self,
         runs: Path,
         now: Callable[[], datetime],
@@ -323,6 +395,7 @@ class RunStart:
         info: Mapping[str, object] | None = None,
         wait: float = 5.0,
         tlc_args: Sequence[str] = (),
+        invocation: TlcInvocation | None = None,
     ) -> None:
         self.runs = runs
         self.now = now
@@ -336,9 +409,11 @@ class RunStart:
         self.keep = bool(self.info.get("keep"))
         self.wait = wait
         self.tlc_args = tuple(tlc_args)
+        self.invocation = invocation
         self._own = RunLock(_lock_file(runs, self.run_id), wait=wait)
         self._recovered: RunLock | None = None
         self._recovered_path: Path | None = None
+        self._recovered_values: tuple[int | None, int | None] = (None, None)  # its fp and seed, read under the lock
         self._kept_summary = KeptSummary(0, 0)
 
     def create_lock_file(self) -> None:
@@ -370,6 +445,7 @@ class RunStart:
         record = _read_run_json(folder) or {}
         if record.get("keep") or record.get("kept"):
             self.keep = True
+        self._recovered_values = (_int_or_none(record.get("fp")), _int_or_none(record.get("seed")))
 
     def make_folder(self) -> None:
         try:
@@ -378,9 +454,11 @@ class RunStart:
             raise _cannot("create", self.path, error) from error
 
     def write_run_json(self) -> None:
+        """R6's fields, in R6's order, then any other field of ``info``."""
         record: dict[str, object] = {"schema": SCHEMA, **self.info}
         record.update(started=_utc(self.started), keep=self.keep, ended=None, kept=False, size=None)
-        _write_run_json(self.path, record)
+        ordered = {key: record[key] for key in RUN_JSON_KEYS if key in record}
+        _write_run_json(self.path, ordered | record)
 
     def sweep(self) -> KeptSummary:
         """The sweep of ``runs/``, which leaves this run's own entries alone since their locks are held."""
@@ -389,8 +467,9 @@ class RunStart:
 
     def entered(self) -> RunFolder:
         """Hand the locks to the folder; also after a failed step, so that the end steps release them."""
+        values = (_int_or_none(self.info.get("fp")), _int_or_none(self.info.get("seed")))
         folder = RunFolder(
-            path=self.path,
+            path=self.path if self._own_folder() else None,
             run_id=self.run_id,
             now=self.now,
             started=self.started,
@@ -400,10 +479,17 @@ class RunStart:
             recovered=self._recovered,
             recovered_path=self._recovered_path,
             kept_summary=self._kept_summary,
+            invocation=self.invocation,
+            values=values,
+            resumes_exactly=self._recovered is not None and None not in values and self._recovered_values == values,
         )
         self._own = RunLock(self._own.path, wait=self.wait)  # an empty one: this start holds nothing more
         self._recovered = self._recovered_path = None
         return folder
+
+    def _own_folder(self) -> bool:
+        """False when the user passed their own -metadir: no folder and no lock of this run's own."""
+        return self.invocation is None or self.invocation.metadir is not None
 
     def abandon(self) -> None:
         """Every lock descriptor closed, nothing unlocked: a kill."""
@@ -431,6 +517,9 @@ class RunFolder:
         recovered: RunLock | None,
         recovered_path: Path | None,
         kept_summary: KeptSummary,
+        invocation: TlcInvocation | None = None,
+        values: tuple[int | None, int | None] = (None, None),
+        resumes_exactly: bool = False,
     ) -> None:
         self.path = path
         self.run_id = run_id
@@ -443,6 +532,9 @@ class RunFolder:
         self._recovered = recovered
         self._recovered_path = recovered_path
         self._settled: Settled | None = None
+        self._invocation = invocation
+        self._values = values  # the fp and seed this run passes, as its run.json records them
+        self.resumes_exactly = resumes_exactly  # resumed with the recovered run's own -fp and -seed (D54)
 
     @property
     def lock_fds(self) -> tuple[int, ...]:
@@ -457,8 +549,11 @@ class RunFolder:
             return self._recovered_path
         return self.path
 
-    def settle(self, process: ProcessOutcome | None) -> Settled:
-        """Decide once whether the folder is kept; deletes nothing. A second call returns the first answer."""
+    def settle(self, process: ProcessOutcome | None, *, workers_reported: int | None = None) -> Settled:
+        """Decide once whether the folder is kept; deletes nothing. A second call returns the first answer.
+
+        ``workers_reported``: the count TLC's start line gave, when the run was parsed (for the resume command).
+        """
         if self._settled is not None:
             return self._settled
         folder = self._settles_in()
@@ -469,7 +564,7 @@ class RunFolder:
             checkpoint = complete_checkpoint(folder) if self._keep else None
             if checkpoint is not None:
                 ended = self._now()
-                kept = self._kept(folder, checkpoint, _reason(process), ended)
+                kept = self._kept(folder, checkpoint, _reason(process), ended, workers_reported)
                 self._settled = Settled(kept, None)  # decided before run.json is written: a failed write keeps it
                 _record_kept(kept, ended)
                 return self._settled
@@ -483,7 +578,11 @@ class RunFolder:
         self._settled = Settled(kept, dropped)
         return self._settled
 
-    def _kept(self, folder: Path, checkpoint: Path, reason: str, ended: datetime) -> Kept:
+    def _kept(self, folder: Path, checkpoint: Path, reason: str, ended: datetime, workers_reported: int | None) -> Kept:
+        command = None
+        if self._invocation is not None:
+            fp, seed = self._values
+            command = resume_command(self._invocation, checkpoint, fp=fp, seed=seed, workers_reported=workers_reported)
         return Kept(
             path=folder,
             checkpoint_dir=checkpoint,
@@ -491,6 +590,8 @@ class RunFolder:
             stopped_after=ended - self._started,
             checkpoint_at=_checkpoint_at(checkpoint),
             reason=reason,
+            ended=ended,
+            resume_command=command,
         )
 
     def _kept_path(self) -> Path | None:
@@ -568,18 +669,21 @@ class EntryVisit:
         self._lock_file = _lock_file(runs, run_id)
         self._lock = filelock.FileLock(self._lock_file)  # this object's own: a second object is refused
         self.kept_size: int | None = None  # set by sweep for a kept folder it leaves
+        self.lock_error: OSError | None = None  # set by take_lock when the lock file could not be opened or made
 
     def take_lock(self) -> bool:
         """One attempt, no waiting; False: the entry is in use. Creates the lock file when there is none (K1-7).
 
         filelock's RuntimeError("Deadlock ...") is not caught: it comes only from a wait with no timeout.
         """
+        self.lock_error = None
         try:
             self._lock.acquire(timeout=0)
         except filelock.Timeout:
             return False
-        except OSError:
-            return False  # a lock file that cannot be made: leave the entry alone
+        except OSError as error:
+            self.lock_error = error  # a lock file that cannot be made: leave the entry alone
+            return False
         return True
 
     def _resumable(self, record: Mapping[str, object]) -> bool:
@@ -648,3 +752,320 @@ def _sweep_runs(runs: Path, now: Callable[[], datetime]) -> KeptSummary:
 def sweep(paths: AppPaths, now: Callable[[], datetime]) -> KeptSummary:
     """Every entry of ``<cache>/runs/`` whose lock can be had at once; what it left kept, counted."""
     return _sweep_runs(paths.runs, now)
+
+
+# ---------------------------------------------------------------------- one run: run_folder
+
+
+def _flag_int(extra_args: Sequence[str], flag: str) -> int | None:
+    """The integer after the first ``flag`` among TLC's arguments; None when it is missing or does not parse."""
+    args = list(extra_args)
+    if flag not in args:
+        return None
+    index = args.index(flag)
+    try:
+        return int(args[index + 1])
+    except (IndexError, ValueError):
+        return None
+
+
+def _run_info(inv: TlcInvocation) -> dict[str, object]:
+    """The fields of run.json that come from the invocation (R6): the value each run uses for -fp and -seed."""
+    return {
+        "spec": str(inv.spec),
+        "cfg": None if inv.cfg is None else str(inv.cfg),
+        "build": format_build(inv.build),
+        "pid": os.getpid(),
+        "tlaup": get_app_version(),
+        "keep": inv.keep,
+        "fp": inv.fp if inv.fp is not None else _flag_int(inv.extra_args, "-fp"),
+        "seed": inv.seed if inv.seed is not None else _flag_int(inv.extra_args, "-seed"),
+    }
+
+
+def _end(folder: RunFolder) -> None:
+    """The four end steps, own folder first; each runs even when one before it raised."""
+    try:
+        folder.end_own()
+    finally:
+        try:
+            folder.release_own()
+        finally:
+            try:
+                folder.end_recovered()
+            finally:
+                folder.release_recovered()
+
+
+@contextmanager
+def run_folder(
+    inv: TlcInvocation, paths: AppPaths, now: Callable[[], datetime], *, wait: float = 5.0
+) -> Iterator[RunFolder]:
+    """The steps of "Start" in order, then the block, then the steps of "End" (R6).
+
+    With the user's own ``-metadir`` (``inv.metadir`` is None) no folder and no lock of the run's own are made; the
+    ``-recover`` rules and the sweep still apply. A start step that fails hands what it holds to the end steps,
+    which release it, and its error goes on; a lock file whose lock was never taken is left to the one-hour rule.
+    """
+    start = RunStart(
+        paths.runs,
+        now,
+        run_id=inv.run_id,
+        recover=recover_path(inv.extra_args, inv.cwd),
+        info=_run_info(inv),
+        wait=wait,
+        tlc_args=inv.extra_args,
+        invocation=inv,
+    )
+    own = inv.metadir is not None
+    try:
+        if own:
+            start.create_lock_file()
+            start.take_lock()
+        start.take_recover_lock()
+        if own:
+            start.make_folder()
+            start.write_run_json()
+        start.sweep()
+    except BaseException:
+        _end(start.entered())
+        raise
+    folder = start.entered()
+    try:
+        yield folder
+    finally:
+        _end(folder)
+
+
+# ---------------------------------------------------------------------- the words of a kept folder
+
+
+def resume_command(  # noqa: PLR0913 (R6's inputs, each needed)
+    inv: TlcInvocation,
+    checkpoint_dir: Path,
+    *,
+    fp: int | None,
+    seed: int | None,
+    workers_reported: int | None,
+    windows: bool = WINDOWS,
+) -> str:
+    """The command that resumes a kept run, built from the request and the resolved paths (R6)."""
+    request = inv.request
+    words = ["tlaup", "tlc", str(inv.cwd / inv.spec)]
+    if request.cfg is not None and inv.cfg is not None:
+        words += ["--cfg", str(inv.cwd / inv.cfg)]
+    words.append("--keep")
+    if workers_reported is not None and "-workers" not in inv.extra_args:
+        words += ["--workers", str(workers_reported)]
+    elif request.workers is not None:
+        words += ["--workers", request.workers]
+    if request.coverage:
+        words.append("--coverage")
+    if request.raw:
+        words.append("--raw")
+    words += [f"--java-opt={option}" for option in request.java_opts]
+    words.append("--")
+    args = list(inv.extra_args)
+    index = 0
+    while index < len(args):
+        if args[index] in ("-recover", "-fp", "-seed"):
+            index += 2
+            continue
+        words.append(args[index])
+        index += 1
+    if fp is not None:
+        words += ["-fp", str(fp)]
+    if seed is not None:
+        words += ["-seed", str(seed)]
+    words += ["-recover", str(checkpoint_dir)]
+    return subprocess.list2cmdline(words) if windows else shlex.join(words)
+
+
+SIZE_UNITS = ("kB", "MB", "GB", "TB")
+KILO = 1000
+
+
+def format_size(n: int) -> str:
+    """Decimal units with one decimal: ``512 B``, ``1.5 kB``, ``2.1 GB``. Rounded first, then given the unit of
+    what it rounded to, so 999,960 bytes are ``1.0 MB``."""
+    if n < KILO:
+        return f"{max(n, 0)} B"
+    value = float(n)
+    for unit in SIZE_UNITS:
+        value /= KILO
+        tenths = round(value * 10)
+        if tenths < KILO * 10 or unit == SIZE_UNITS[-1]:
+            return f"{tenths / 10:.1f} {unit}"
+    raise AssertionError  # pragma: no cover - the loop returns at its last unit
+
+
+def _clock_time(moment: datetime, ended: datetime, zone: tzinfo | None) -> str:
+    """``HH:MM`` in the local zone (or ``zone``), with the date before it when it is not the day the run ended."""
+    local, end_local = moment.astimezone(zone), ended.astimezone(zone)
+    if local.date() == end_local.date():
+        return f"{local:%H:%M}"
+    return f"{local:%Y-%m-%d %H:%M}"
+
+
+def kept_note(kept: Kept, *, zone: tzinfo | None = None) -> tuple[str, str]:
+    """The two lines of R6's note. ``zone``: the zone the checkpoint's time is shown in; None is the local zone."""
+    if kept.resume_command is None:
+        message = "a kept folder settled without an invocation has no resume command"
+        raise ValueError(message)
+    detail = (
+        f"{format_size(kept.size)}, {kept.reason} after {format_elapsed(kept.stopped_after.total_seconds())}, "
+        f"checkpoint of {_clock_time(kept.checkpoint_at, kept.ended, zone)}"
+    )
+    return f"Checkpoint kept ({detail}): {kept.path}", f"Resume with: {kept.resume_command}"
+
+
+def reminder(summary: KeptSummary) -> str:
+    """The line every ``tlaup tlc`` start prints while kept folders exist (R6)."""
+    if summary.count == 1:
+        return f"1 kept run folder holds {format_size(summary.size)} (tlaup cache list)"
+    return f"{summary.count} kept run folders hold {format_size(summary.size)} (tlaup cache list)"
+
+
+# ---------------------------------------------------------------------- tlaup cache list and cache clean
+
+
+UNSETTLED = "unsettled after a kill"
+
+
+@dataclass(frozen=True)
+class RunRecord:
+    """One folder, as ``tlaup cache list`` shows it (23 C1); not the reporter's RunInfo."""
+
+    run_id: str
+    path: Path
+    has_run_json: bool  # False also for one that cannot be read
+    spec: str | None
+    cfg: str | None
+    build: str | None  # the build the checkpoint was written by
+    started: datetime | None
+    ended: datetime | None
+    last_change: datetime  # the newest modification time of anything under the folder
+    size: int  # the recorded size of a kept folder, else measured
+    in_use: bool  # its lock is held
+    kept: bool
+    keep: bool
+    reason: str | None  # why kept; "unsettled after a kill" for an unsettled resumable folder
+    checkpoint_complete: bool
+
+
+@dataclass(frozen=True)
+class CleanReport:
+    removed: tuple[str, ...]  # run ids
+    freed: int  # bytes
+    in_use: tuple[str, ...]  # folders left because their lock was held
+    cannot_lock: tuple[str, ...] = ()  # folders left because their lock file could not be opened or made
+
+
+def _text(record: Mapping[str, object], key: str) -> str | None:
+    value = record.get(key)
+    return value if isinstance(value, str) else None
+
+
+def _moment(record: Mapping[str, object], key: str) -> datetime | None:
+    value = record.get(key)
+    if not isinstance(value, str):
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    except ValueError:
+        return None
+
+
+def _run_record(runs: Path, run_id: str, *, in_use: bool) -> RunRecord:
+    folder = runs / run_id
+    record = _read_run_json(folder)
+    data: Mapping[str, object] = record or {}
+    kept, keep = bool(data.get("kept")), bool(data.get("keep"))
+    complete = complete_checkpoint(folder) is not None
+    recorded = _int_or_none(data.get("size"))
+    if kept:
+        reason = _text(data, "reason")
+    elif record is not None and keep and complete and not in_use:
+        reason = UNSETTLED
+    else:
+        reason = None
+    return RunRecord(
+        run_id=run_id,
+        path=folder,
+        has_run_json=record is not None,
+        spec=_text(data, "spec"),
+        cfg=_text(data, "cfg"),
+        build=_text(data, "build"),
+        started=_moment(data, "started"),
+        ended=_moment(data, "ended"),
+        last_change=datetime.fromtimestamp(_newest_change(folder), tz=UTC),
+        size=recorded if kept and recorded is not None else _size(folder),
+        in_use=in_use,
+        kept=kept,
+        keep=keep,
+        reason=reason,
+        checkpoint_complete=complete,
+    )
+
+
+def list_runs(paths: AppPaths) -> list[RunRecord]:
+    """One record per folder under ``<cache>/runs/``, by run id; each read under its lock when the lock is free."""
+    records = []
+    for run_id in list_entries(paths.runs, folders_only=True):
+        visit = EntryVisit(paths.runs, run_id, lambda: datetime.now(UTC))
+        free = visit.take_lock()
+        try:
+            records.append(_run_record(paths.runs, run_id, in_use=not free))
+        except OSError:
+            continue  # the folder went while it was looked at
+        finally:
+            if free:
+                visit.release()
+    return records
+
+
+def clean_runs(paths: AppPaths, *, include_kept: bool, run_id: str | None = None) -> CleanReport:
+    """``tlaup cache clean``'s rule for run folders (R6, D49): by default what the sweep would remove and is not
+    resumable; with ``include_kept`` every folder whose lock is free; with ``run_id`` that one folder, whatever it
+    is, or PathNotFound (4) when no folder has that id and FileOperationError (5) when its lock is held."""
+    runs = paths.runs
+    if run_id is not None:
+        return _clean_one(runs, run_id)
+    removed: list[str] = []
+    in_use: list[str] = []
+    cannot_lock: list[str] = []
+    freed = 0
+    for entry in list_entries(runs, folders_only=True):
+        visit = EntryVisit(runs, entry, lambda: datetime.now(UTC))
+        if not visit.take_lock():
+            (in_use if visit.lock_error is None else cannot_lock).append(entry)
+            continue
+        try:
+            size = _size(visit.path)
+            if visit.clean(include_kept=include_kept):
+                removed.append(entry)
+                freed += size
+        finally:
+            visit.release()
+    return CleanReport(tuple(removed), freed, tuple(in_use), tuple(cannot_lock))
+
+
+def _clean_one(runs: Path, run_id: str) -> CleanReport:
+    folder = runs / run_id
+    if run_id not in list_entries(runs, folders_only=True):
+        message = f"no run folder {run_id} in {runs}"
+        raise PathNotFound(message, hint="tlaup cache list shows the run folders")
+    visit = EntryVisit(runs, run_id, lambda: datetime.now(UTC))
+    if not visit.take_lock():
+        if visit.lock_error is not None:
+            raise _cannot("lock", _lock_file(runs, run_id), visit.lock_error)
+        message = f"the run folder {folder} is in use by another tlaup run"
+        raise FileOperationError(message)
+    try:
+        size = _size(folder)
+        if not visit.clean(include_kept=True):
+            message = f"cannot remove {folder}"
+            raise FileOperationError(message)
+    finally:
+        visit.release()
+    return CleanReport((run_id,), size, ())
