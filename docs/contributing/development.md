@@ -15,6 +15,7 @@ uv run poe lint                # ruff check, bandit, mypy (strict)
 uv run poe format              # ruff format, Python files and Python blocks in Markdown
 uv run poe build-lifeline      # rebuild src/tlaup/java/lifeline.jar from its source (needs a JDK)
 uv run poe test-lifeline       # tests/lifeline: the agent with a real JVM (needs a JDK; not part of poe test)
+uv run poe docs-cli            # rewrite docs/reference/cli.md from the help strings; run it after changing any help string (the drift test fails otherwise)
 uv run poe check               # all pre-commit hooks on all files
 uv run poe check-release       # hooks, build, twine check
 ```

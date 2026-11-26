@@ -34,7 +34,9 @@ EDIT_HELP = (
     "EDITOR='code --wait'; an editor that returns at once leaves nothing to check."
 )
 KEY_HELP = "A setting, as section.name (tlc.workers); `config show` lists them."
-VALUE_HELP = "The new value, read as YAML: 4, auto, true, or '\\[ghe.example.com]' for a list. Quote it for the shell."
+VALUE_HELP = (
+    "The new value, read as YAML: 4, auto, true, or '[\"ghe.example.com\"]' for a list. Quote it for the shell."
+)
 
 app = typer.Typer(name="config", help=GROUP_HELP, no_args_is_help=True)
 
