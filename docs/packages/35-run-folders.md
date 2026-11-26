@@ -1,6 +1,6 @@
 # 35. Run folders and their locks
 
-Size: L. Suggested model: most capable. Status: built, not yet proven on CI.
+Size: L. Suggested model: most capable. Status: built.
 
 ## Goal
 

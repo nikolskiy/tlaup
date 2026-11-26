@@ -1,6 +1,6 @@
 # 37. The run functions: `run_tlc` and `run_tlc_raw`
 
-Size: M. Suggested model: most capable. Status: built, not yet proven on CI.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 

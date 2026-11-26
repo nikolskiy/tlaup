@@ -1,6 +1,6 @@
 # 03. Test foundation
 
-Size: L, as two pull requests of size M (03a, 03b). Suggested model: most capable. Status: built, not yet proven on CI.
+Size: L, as two pull requests of size M (03a, 03b). Suggested model: most capable. Status: built.
 
 ## Goal
 

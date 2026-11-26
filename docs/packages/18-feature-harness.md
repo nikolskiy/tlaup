@@ -1,6 +1,6 @@
 # 18. The feature harness: steps, processes, terminals and the first scenarios
 
-Size: L as a whole, delivered as two pull requests of size M each (18a and 18b, see the end of this file). Suggested model: most capable. Status: built, not yet proven on CI.
+Size: L as a whole, delivered as two pull requests of size M each (18a and 18b, see the end of this file). Suggested model: most capable. Status: built.
 
 ## Goal
 
