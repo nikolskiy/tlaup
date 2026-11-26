@@ -1,6 +1,6 @@
 # 52. Integration tests
 
-Size: L, as two pull requests of size M (52a, 52b; see the last section). Suggested model: most capable. Status: built in part (52a). One row of T9's table, the examples manifest, waits on the documentation track (`docs/examples/examples.toml` does not exist and has no design) and is not built here.
+Size: L, as two pull requests of size M (52a, 52b; see the last section). Suggested model: most capable. Status: built, not yet proven on CI. One row of T9's table, the examples manifest, waits on the documentation track (`docs/examples/examples.toml` does not exist and has no design) and is not built here.
 
 ## Goal
 

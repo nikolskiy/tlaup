@@ -20,9 +20,12 @@ import pytest
 
 import tlaup.context
 from tests.integration.discovery import REMOVED_VARIABLES, VARIABLE, TestJar, find_test_jars, install, missing
+from tests.integration.live import Reaper
 from tlaup.paths import AppPaths
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from tlaup.versioning.store import Build
 
 
@@ -125,3 +128,15 @@ def test_jar(request: pytest.FixtureRequest) -> TestJar:
 def live_build(test_jar: TestJar, isolated: Isolated) -> Build:
     """``test_jar`` copied into the test's store and pinned (12 V1); no network."""
     return install(isolated.paths, test_jar)
+
+
+@pytest.fixture
+def reaper() -> Iterator[Reaper]:
+    """Starts tlaup as a real process; at teardown, whatever the outcome, kills by process id every tlaup still
+    alive with the JVM it started (found before tlaup is killed), and every JVM the test noted, so a failing
+    assertion never leaves TLC running."""
+    started = Reaper()
+    try:
+        yield started
+    finally:
+        started.reap()
