@@ -5,6 +5,10 @@ Feature: Running TLC
 
   # X1, inventory row R1: TLC's exit code passes through
 
+  # Every case of both builds' cases.toml with a recorded exit code. json-live, json-stut and dump-trace-live are
+  # left out: their captures recorded no exit code, so there is none to pass through. The plain/ captures are
+  # replayed by tlc_raw.feature (39b).
+
   Scenario Outline: The exit code of <case> passes through
     Given the build "<build>" is installed and pinned
     And a spec "<spec>" from the golden specs
@@ -432,10 +436,8 @@ Feature: Running TLC
     Given java replays "tlc/v1.7.4/checkpoint-recover" with exit code 0
     When I run "tlaup tlc Slow -- -recover {kept}/checkpoint"
     Then the exit code is 0
-    And java was started with "-fp"
-    And java was started with "3"
-    And java was started with "-seed"
-    And java was started with "7"
+    # That the resumed start itself has the kept -fp and -seed is checked on the last start alone, by
+    # test_the_drawn_fp_and_seed_are_recorded_repeated_and_passed_on_resume in tests/unit/cmd/test_tlc_command.py.
     And the cache holds no run folders
     And the cache holds no lock files
 

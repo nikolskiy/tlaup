@@ -12,11 +12,14 @@ Feature: The first run with no tools installed
   Scenario: TLAUP_AUTO_INSTALL installs and pins the build, and the run goes on
     Given the environment variable "TLAUP_AUTO_INSTALL" is "rolling"
     And java replays "tlc/2026.11.15.002146/success" with exit code 0
-    When I run "tlaup tlc Success"
+    When I run "tlaup tlc Success --coverage -- -deadlock"
     Then the exit code is 0
     And stderr contains "Installing rolling from "
     And the pinned build is "rolling"
     And java ran "tlc2.TLC" 1 time
+    And java was started with "-coverage"
+    And java was started with "-deadlock"
+    And java was started with "{work}/Success.tla"
 
   Scenario: --auto-install installs and pins the build, and the run goes on
     Given java replays "tlc/v1.7.4/success" with exit code 0

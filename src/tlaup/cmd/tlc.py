@@ -122,13 +122,16 @@ def _join(argv: list[str], *, windows: bool) -> str:
 
 
 def _run_build(app: AppContext, auto_install: str | None) -> Callable[[], Build]:
-    """``get_build`` for a run: the pin, or the first-run question or install (12 V9)."""
+    """``get_build`` for a run: the pin, or the first-run question or install (12 V9). The GitHub client, and so
+    ``requests``, is built only when nothing is installed and ``ensure_tools`` may install or ask (14 F9)."""
 
     def get_build() -> Build:
-        from tlaup.cmd.tool._shared import download_progress, open_remote, open_store
+        from tlaup.cmd.tool._shared import download_progress, open_remote, open_store, pinned_build
         from tlaup.versioning.first_run import ensure_tools
 
         store = open_store(app)
+        if store.pinned() is not None or store.builds():
+            return pinned_build(store)  # the pin, or NoPinnedBuild naming the builds to pin
         client, remote = open_remote(app)
         with download_progress(app.ui) as progress:
             return ensure_tools(store, remote, client, app.ui, auto_install=auto_install, progress=progress)
@@ -137,14 +140,14 @@ def _run_build(app: AppContext, auto_install: str | None) -> Callable[[], Build]
 
 
 def _pinned_build(app: AppContext) -> Callable[[], Build]:
-    """``get_build`` for ``--show-command``: the pin or an error; never asks, installs or sends a request (11 R9)."""
+    """``get_build`` for ``--show-command``: the pin or an error; never asks, installs or sends a request (11 R9).
+
+    The same errors as ``ensure_tools(..., may_install=False)``, with no GitHub client built."""
 
     def get_build() -> Build:
-        from tlaup.cmd.tool._shared import open_remote, open_store
-        from tlaup.versioning.first_run import ensure_tools
+        from tlaup.cmd.tool._shared import open_store, pinned_build
 
-        client, remote = open_remote(app)  # built, never used: may_install=False returns or raises first
-        return ensure_tools(open_store(app), remote, client, app.ui, auto_install=None, may_install=False)
+        return pinned_build(open_store(app))
 
     return get_build
 

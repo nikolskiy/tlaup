@@ -50,6 +50,12 @@ Feature: tlaup tlc --show-command
     Then the exit code is 0
     And stdout contains " -workers auto -coverage 1 -fp 3 -seed 7 {work}/Success.tla"
 
+  Scenario: A named cfg is passed as -config relative to the spec's folder, just before the spec (R4, R11)
+    Given the build "v1.7.4" is installed and pinned
+    When I run "tlaup tlc Success --cfg Success.cfg --show-command"
+    Then the exit code is 0
+    And stdout contains " -config Success.cfg {work}/Success.tla" 1 times
+
   Scenario Outline: With no build pinned it exits 3, and nothing is asked or installed: <flags>
     Given the build "v1.7.4" is installed
     And GitHub answers from "releases"

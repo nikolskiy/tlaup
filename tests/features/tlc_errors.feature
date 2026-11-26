@@ -74,6 +74,7 @@ Feature: What tlaup tlc checks before it starts TLC
     Then the exit code is 4
     And stdout is empty
     And stderr contains "error:" 1 times
+    And stderr contains "hint: did you mean Success.tla?"
     And java was not started
 
   Scenario: A folder alone is not a spec
@@ -166,6 +167,7 @@ Feature: What tlaup tlc checks before it starts TLC
     And the environment variable "TLAUP_AUTO_INSTALL" is "rolling"
     When I run "tlaup tlc Nosuch"
     Then the exit code is 4
+    And stdout is empty
     And stderr contains "error:" 1 times
     And 0 requests were sent to GitHub
     And no build is pinned
@@ -174,6 +176,7 @@ Feature: What tlaup tlc checks before it starts TLC
     Given no build is installed
     When I run "tlaup tlc Success --workers 2 -- -workers 4"
     Then the exit code is 2
+    And stdout is empty
     And stderr contains "error:" 1 times
     And stderr does not contain "Which build"
     And java was not started

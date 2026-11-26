@@ -101,7 +101,7 @@ def printed(build: Build, every: Sequence[Build]) -> str:
 
 
 def pinned_build(store: ToolStore) -> Build:
-    """The pinned build, for ``tool current`` and ``tool path``; NoPinnedBuild, NoToolsInstalled or
+    """The pinned build, for ``tool current``, ``tool path`` and ``tlc``; NoPinnedBuild, NoToolsInstalled or
     PinnedBuildMissing (3) when there is none to show."""
     build = store.pinned()  # PinnedBuildMissing for a pin that names no installed build
     if build is not None:

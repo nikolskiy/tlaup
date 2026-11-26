@@ -3,7 +3,7 @@
 Design 11 R9 and 20 G1 (the printed command is the command that runs), 11 R6 (the values tlaup draws for -fp and
 -seed are the ones it records and repeats), 10 P3 (the warning when TLC's exit code and its output disagree). The
 runs go in-process through the app with the fake `java`, set up by the feature steps' own helpers; every store the
-steps build has an injected clock.
+steps build has an injected clock. One test starts a fresh interpreter, to see which modules a run imports (14 F9).
 """
 
 from __future__ import annotations
@@ -13,13 +13,15 @@ import json
 import os
 import re
 import shlex
+import subprocess
+import sys
 from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from tests.parse.drive import golden_root, read_lines
 from tests.steps import _store
-from tlaup.cmd.tlc import print_run_notes
+from tlaup.cmd.tlc import disagreement, print_run_notes
 from tlaup.tlc.runner import RunOutcome
 from tlaup.ui import Ui
 from tlaup_parse import RunResult, TlcParser, Verdict
@@ -168,3 +170,67 @@ def test_print_run_notes_leaves_a_parsed_runs_dropped_checkpoint_to_the_result_l
     print_run_notes(_outcome(RunResult(verdict=Verdict.INCOMPLETE), 255, dropped_checkpoint="not-asked"), ui)
     assert err.getvalue() == ""
     assert out.getvalue() == ""
+
+
+@pytest.mark.parametrize(
+    ("verdict", "expected"),
+    [
+        (Verdict.NOT_CHECKED, "warning: TLC exited with 0, but its output reports that the spec was not checked\n"),
+        (Verdict.INCOMPLETE, "warning: TLC exited with 0, but its output reports an incomplete run\n"),
+    ],
+)
+def test_print_run_notes_warns_for_exit_0_with_a_spec_not_checked_or_a_run_incomplete(
+    verdict: Verdict, expected: str
+) -> None:
+    ui, out, err = _ui()
+    print_run_notes(_outcome(RunResult(verdict=verdict), 0), ui)
+    assert err.getvalue() == expected
+    assert out.getvalue() == ""
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        pytest.param({"stopped_by": "int"}, id="stopped-by-a-signal"),
+        pytest.param({"stopped_for_closed_pipe": True}, id="stopped-for-a-closed-pipe"),
+    ],
+)
+@pytest.mark.parametrize(
+    ("verdict", "code"),
+    [(Verdict.INCOMPLETE, 0), (Verdict.NO_ERROR, 143), (Verdict.ERRORS, 0)],
+)
+def test_a_run_tlaup_stopped_gets_no_disagreement_warning(changes: dict[str, Any], verdict: Verdict, code: int) -> None:
+    outcome = _outcome(RunResult(verdict=verdict), code, **changes)
+    assert disagreement(outcome) is None
+    ui, out, err = _ui()
+    print_run_notes(outcome, ui)
+    assert err.getvalue() == ""
+    assert out.getvalue() == ""
+
+
+_IMPORTS_AFTER_A_RUN = """
+import sys
+sys.argv = ["tlaup", "tlc", *sys.argv[1:]]
+import tlaup.cli
+try:
+    tlaup.cli.app(prog_name="tlaup")
+except SystemExit as leaving:
+    code = leaving.code
+print(f"exit={code} requests={'requests' in sys.modules} truststore={'truststore' in sys.modules}", file=sys.__stderr__)
+"""
+
+
+@pytest.mark.parametrize("flags", [[], ["--show-command"]], ids=["run", "show-command"])
+def test_a_run_with_a_build_pinned_does_not_load_the_github_client(scenario: Scenario, flags: list[str]) -> None:
+    """14 F9: with a build pinned, neither a run nor --show-command imports requests or sets up truststore."""
+    _set_up(scenario)
+    scenario.java_replays("tlc/v1.7.4/success", 0)
+    done = subprocess.run(
+        [sys.executable, "-c", _IMPORTS_AFTER_A_RUN, "Slow", *flags],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=60,
+    )
+    last = done.stderr.strip().splitlines()[-1]
+    assert last == "exit=0 requests=False truststore=False", done.stderr
