@@ -116,6 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - The message of a violated invariant or property was hidden when a trace was shown.
 - On a terminal, TLC output containing square brackets (every TLA+ record) was printed as an empty line or made tlaup fail.
 - Runs with a lot of printed output became slower and slower and used more and more memory.
+- `--refresh-interval` and `tlc.refresh_interval` had no effect. They now set how often the live view is redrawn.
 
 ## [0.8.2] - 2026-11-14
 

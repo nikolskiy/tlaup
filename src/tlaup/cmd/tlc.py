@@ -39,10 +39,17 @@ PLAIN_HELP = (
     "Plain output on a terminal too: each line as it arrives, no live view (default: the setting tlc.plain). "
     "No effect with --raw."
 )
+REFRESH_INTERVAL_HELP = (
+    "How often the live view is redrawn, in seconds (default: the setting tlc.refresh_interval, 1.0). "
+    "No effect with plain output or --raw."
+)
+REFRESH_SETTING = "tlc.refresh_interval"
+REFRESH_VARIABLE = "TLAUP_TLC_REFRESH_INTERVAL"
+REFRESH_MIN, REFRESH_MAX = 0.1, 60.0
 AUTO_INSTALL_HELP = "With no tools installed, install this build without asking: stable or rolling."
 
 
-def tlc(  # noqa: PLR0913, PLR0917 - a command with eleven options takes them as parameters
+def tlc(  # noqa: PLR0913, PLR0917 - a command with twelve options takes them as parameters
     ctx: typer.Context,
     spec: str = typer.Argument(..., metavar="SPEC", help=SPEC_HELP, show_default=False),
     tlc_args: Annotated[
@@ -53,6 +60,15 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with eleven options takes them as
     coverage: bool = typer.Option(False, "--coverage", help=COVERAGE_HELP),
     raw: bool = typer.Option(False, "--raw", help=RAW_HELP),
     plain: bool = typer.Option(False, "--plain", help=PLAIN_HELP),
+    refresh_interval: float | None = typer.Option(
+        None,
+        "--refresh-interval",
+        metavar="SECONDS",
+        min=REFRESH_MIN,
+        max=REFRESH_MAX,
+        help=REFRESH_INTERVAL_HELP,
+        show_default=False,
+    ),
     keep: bool = typer.Option(False, "--keep", help=KEEP_HELP),
     show_command: bool = typer.Option(False, "--show-command", help=SHOW_COMMAND_HELP),
     java_opt: Annotated[
@@ -78,6 +94,7 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with eleven options takes them as
     app: AppContext = ctx.find_root().obj
     ui = app.ui
     auto = read_auto_install(auto_install, app.env)  # a usage error, before the preflight (02 X1, rule 5)
+    interval = read_refresh_interval(refresh_interval, app)  # the same (22 O5, 11 R11 step 0)
     request = TlcRequest(
         spec=spec,
         cfg=cfg,
@@ -110,10 +127,32 @@ def tlc(  # noqa: PLR0913, PLR0917 - a command with eleven options takes them as
     if request.raw:
         outcome = run_tlc_raw(inv, java_inv, paths=app.paths, now=utc_now, notice=ui.note)
     else:
-        reporter = make_reporter(app, ReporterOptions(plain=plain))
+        reporter = make_reporter(app, ReporterOptions(plain=plain, refresh_interval=interval))
         outcome = run_tlc(inv, java_inv, reporter, paths=app.paths, now=utc_now, notice=ui.note)
     print_run_notes(outcome, ui)
     raise typer.Exit(outcome.exit_code)
+
+
+def read_refresh_interval(option: float | None, app: AppContext) -> float:
+    """The option, else the setting ``tlc.refresh_interval``; from 0.1 to 60 seconds, else UsageError (22 O5).
+
+    The schema checks only that the setting is a number (14 F1, question Q16); the range is the command's, so a value
+    from the environment or the config file is a usage error too, naming where it came from. Typer checks the
+    option's range itself, so the option is checked here again only as a guard.
+    """
+    from tlaup.errors import UsageError
+
+    if option is not None:
+        source, value, hint = "the option --refresh-interval", option, None
+    elif REFRESH_VARIABLE in app.env:  # the environment layer wins over the file (14 F1)
+        source, value, hint = f"the environment variable {REFRESH_VARIABLE}", app.settings.tlc.refresh_interval, None
+    else:
+        source, value = f"config.yaml: {REFRESH_SETTING}", app.settings.tlc.refresh_interval
+        hint = "run `tlaup config edit` to fix the file"
+    if not REFRESH_MIN <= value <= REFRESH_MAX:  # false for nan too
+        message = f"{source} must be from {REFRESH_MIN:g} to {REFRESH_MAX:g} seconds, not {value:g}"
+        raise UsageError(message, hint=hint)
+    return value
 
 
 def _join(argv: list[str], *, windows: bool) -> str:

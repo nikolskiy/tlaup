@@ -178,6 +178,21 @@ def the_terminal_does_not_contain(scenario: Scenario, text: str) -> None:
     _terminal.check_terminal_not_contains(scenario, text)
 
 
+@then(parsers.re(r"the terminal showed the layout"))
+def the_terminal_showed_the_layout(scenario: Scenario) -> None:
+    _terminal.check_showed_the_layout(scenario)  # package 40
+
+
+@then(parsers.re(r'the last layout frame contains "(?P<text>.*)"'))
+def the_last_layout_frame_contains(scenario: Scenario, text: str) -> None:
+    _terminal.check_last_frame_contains(scenario, text)  # package 40
+
+
+@then(parsers.re(r"the terminal stayed on the main screen"))
+def the_terminal_stayed_on_the_main_screen(scenario: Scenario) -> None:
+    _terminal.check_stayed_on_the_main_screen(scenario)  # package 40
+
+
 @then(parsers.re(r'the terminal ends with the expected file "(?P<name>[^"]+)"'))
 def the_terminal_ends_with_the_expected_file(scenario: Scenario, name: str) -> None:
     scenario.check_matches(_terminal.terminal_end(scenario), name)

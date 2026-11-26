@@ -31,11 +31,16 @@ from tests.steps._terminal import (
     TerminalRun,
     _shows,
     ctrl_c_at_checkpoint,
+    ctrl_c_once_elapsed,
     ctrl_c_once_shown,
+    elapsed_seconds,
+    layout_screens,
+    main_screen,
     quit_once_shown,
     run_in_terminal,
     run_on_terminal,
     screen_text,
+    terminal_end,
     without_escapes,
 )
 from tlaup.modules.registry import read_record
@@ -403,17 +408,61 @@ def test_the_module_forms_do_not_take_each_others_text() -> None:
 
 def test_steps_owned_by_later_packages_are_not_here() -> None:
     for kind, text in [
-        ("then", "the terminal showed the layout"),
-        ("then", 'the last layout frame contains "x"'),
-        ("then", "the terminal stayed on the main screen"),
-        (
-            "when",
-            'I start "tlaup tlc Big" in a terminal 100 by 30 and press Ctrl-C once the terminal has shown "Checking" '
-            "and then an elapsed time 2 seconds later",
-        ),
         ("when", 'I start "tlaup tlc Big" in a terminal 100 by 30 and press Ctrl-\\ once java is running'),
     ]:
         assert not [c for c in contexts(kind) if c.parser.is_matching(text)], text
+
+
+# The screen steps of package 40, tried against the terminal forms that share their words.
+
+LAYOUT_FORMS = {
+    ("then", "the terminal showed the layout"): ("the_terminal_showed_the_layout", {}),
+    ("then", 'the last layout frame contains "Finished"'): ("the_last_layout_frame_contains", {"text": "Finished"}),
+    ("then", "the terminal stayed on the main screen"): ("the_terminal_stayed_on_the_main_screen", {}),
+    (
+        "when",
+        'I start "tlaup tlc Big --refresh-interval 0.2" in a terminal 100 by 30 and press Ctrl-C once the terminal '
+        'has shown "Checking" and then an elapsed time 2 seconds later',
+    ): (
+        "i_start_in_a_terminal_and_press_ctrl_c_once_elapsed",
+        {
+            "command": "tlaup tlc Big --refresh-interval 0.2",
+            "width": "100",
+            "height": "30",
+            "first": "Checking",
+            "seconds": "2",
+        },
+    ),
+}
+
+
+@pytest.mark.parametrize(("kind", "text"), list(LAYOUT_FORMS))
+def test_each_layout_form_finds_one_step(kind: str, text: str) -> None:
+    name, arguments = LAYOUT_FORMS[(kind, text)]
+    context = find_step(kind, text)
+    assert context.step_func.__name__ == name
+    assert (context.parser.parse_arguments(text) or {}) == arguments
+
+
+def test_the_layout_forms_do_not_take_each_others_text() -> None:
+    # The pairs that share words: the two Ctrl-C forms ending "and then", "contains" on the terminal and on the
+    # last frame, the two "the terminal ..." forms.
+    shown = 'I start "tlaup x" in a terminal 80 by 24 and press Ctrl-C once the terminal has shown "a" and then "b"'
+    assert find_step("when", shown).step_func.__name__ == "i_start_in_a_terminal_and_press_ctrl_c_once_shown"
+    assert find_step("then", 'the terminal contains "Finished"').step_func.__name__ == "the_terminal_contains"
+    assert find_step("then", 'the terminal ends with the expected file "a.txt"').step_func.__name__ == (
+        "the_terminal_ends_with_the_expected_file"
+    )
+    for kind, text in (
+        (
+            "when",
+            'I start "tlaup x" in a terminal 80 by 24 and press Ctrl-C once the terminal has shown "a" and then '
+            '"an elapsed time 2 seconds later"',
+        ),
+    ):
+        assert find_step(kind, text).step_func.__name__ == "i_start_in_a_terminal_and_press_ctrl_c_once_shown"
+    for text in ("the terminal showed the layout twice", 'the last layout frame contains "x" 2 times'):
+        assert not [c for c in contexts("then") if c.parser.is_matching(text)], text
 
 
 # Placeholders
@@ -1315,7 +1364,8 @@ def terminal_outcome(scenario: Scenario, data: bytes, size: tuple[int, int] = (4
     scenario.outcome = Outcome(exit_code=0, stdout="", stderr="", terminal=data, terminal_size=size)
 
 
-def test_the_terminal_ends_with_what_follows_the_alternate_screen(scenario: Scenario) -> None:
+def test_the_terminal_ends_with_the_main_screen_around_the_alternate_screen(scenario: Scenario) -> None:
+    # Package 40: ?1049l restores the main screen, so what was written before ?1049h is still there.
     scenario.expected_dir = UNIT_EXPECTED
     frame = b"\x1b[H\x1b[2JLayout frame\r\nPanel"
     terminal_outcome(scenario, b"before\r\n" + ENTER_ALT + frame + LEAVE_ALT + b"Result: done\r\nbye\r\n")
@@ -1331,6 +1381,88 @@ def test_the_terminal_does_not_contain_sees_overwritten_text(scenario: Scenario)
     then(scenario, 'the terminal does not contain "other"')
     with pytest.raises(FAILED, match="no longer on the screen"):
         then(scenario, 'the terminal does not contain "secret"')
+
+
+# The screen steps of package 40
+
+FRAME_ONE = (
+    b"\x1b[H\x1b[2J"
+    + "── Status ──\r\nStarting  elapsed 00:00:00\r\n── State space progress ──\r\n── Output ──".encode()
+)
+FRAME_TWO = b"\x1b[H" + "── Status ──\r\nFinished  elapsed 00:00:04\r\n".encode()
+
+
+def test_layout_screens_are_the_screens_before_each_frame_starts() -> None:
+    data = b"header\r\n" + ENTER_ALT + FRAME_ONE + FRAME_TWO + LEAVE_ALT + b"result\r\n"
+    shown = layout_screens(data, (40, 6))
+    assert len(shown) == 3  # the bytes before the first home, then one screen per frame
+    assert "Starting  elapsed 00:00:00" in shown[1]
+    assert shown[-1].startswith("── Status ──\nFinished  elapsed 00:00:04\n── State space progress ──")
+    assert layout_screens(b"header\r\n" + ENTER_ALT + FRAME_ONE, (40, 6)) == []  # never left
+    assert main_screen(data) == b"header\r\nresult\r\n"
+    assert main_screen(b"a" + ENTER_ALT + b"b") == b"a" + ENTER_ALT + b"b"
+
+
+def test_the_layout_steps(scenario: Scenario) -> None:
+    terminal_outcome(scenario, b"header\r\n" + ENTER_ALT + FRAME_ONE + FRAME_TWO + LEAVE_ALT + b"result\r\n", (40, 6))
+    then(scenario, "the terminal showed the layout")
+    then(scenario, 'the last layout frame contains "Finished"')
+    with pytest.raises(FAILED, match="does not show 'Starting'"):
+        then(scenario, 'the last layout frame contains "Starting"')
+    with pytest.raises(FAILED, match="alternate screen was used"):
+        then(scenario, "the terminal stayed on the main screen")
+    assert terminal_end(scenario) == "header\nresult\n"
+
+
+def test_the_layout_steps_fail_without_the_layout(scenario: Scenario) -> None:
+    terminal_outcome(scenario, b"plain\r\n")
+    then(scenario, "the terminal stayed on the main screen")
+    with pytest.raises(FAILED, match="never entered"):
+        then(scenario, "the terminal showed the layout")
+    with pytest.raises(FAILED, match="did not show the layout"):
+        then(scenario, 'the last layout frame contains "x"')
+    terminal_outcome(scenario, ENTER_ALT + b"\x1b[Hno titles" + LEAVE_ALT)
+    with pytest.raises(FAILED, match="panel titles"):
+        then(scenario, "the terminal showed the layout")
+    terminal_outcome(scenario, ENTER_ALT + FRAME_ONE)
+    with pytest.raises(FAILED, match="never left"):
+        then(scenario, "the terminal showed the layout")
+
+
+def test_elapsed_seconds_reads_the_status_line() -> None:
+    assert elapsed_seconds("Checking   elapsed 01:02:03   errors 0") == 3723
+    assert elapsed_seconds("Checking") is None
+
+
+ELAPSED_CHILD = """
+import sys, time
+def frame(word, clock):
+    sys.stdout.write("\\x1b[H\\x1b[2J" + word + "  elapsed " + clock + "\\r\\n")
+    sys.stdout.flush()
+frame("Starting", "00:00:00")
+frame("Checking", "00:00:01")
+frame("Checking", "00:00:02")
+frame("Other", "00:00:09")
+frame("Checking", "00:00:03")
+while True:
+    time.sleep(0.05)
+"""
+
+
+@PTY_ONLY
+def test_ctrl_c_once_an_elapsed_time_later(scenario: Scenario) -> None:
+    # The frames come at once: the step compares the values on the screen, not the time it waited.
+    result = ctrl_c_once_elapsed(scenario, py(ELAPSED_CHILD), (60, 10), "Checking", 2)
+    assert result.exit_code == 130
+    assert result.terminal is not None
+    assert result.terminal.count(b"elapsed") == 5
+
+
+@PTY_ONLY
+def test_ctrl_c_once_an_elapsed_time_later_fails_when_none_is_shown(scenario: Scenario) -> None:
+    child = "import time\nprint('Checking', flush=True)\nwhile True:\n    time.sleep(0.05)\n"
+    with pytest.raises(FAILED, match="has no elapsed time"):
+        ctrl_c_once_elapsed(scenario, py(child), (60, 10), "Checking", 2)
 
 
 def test_screen_text_keeps_lines_that_scrolled_off() -> None:

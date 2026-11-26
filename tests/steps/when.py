@@ -128,6 +128,21 @@ def i_start_in_a_terminal_and_press_ctrl_c_once_shown(
     _terminal.ctrl_c_once_shown(scenario, argv, (width, height), scenario.expand(first), scenario.expand(second))
 
 
+@when(
+    parsers.re(
+        rf"I start {COMMAND} {TERMINAL} and press Ctrl-C once the terminal has shown "
+        r'"(?P<first>[^"]+)" and then an elapsed time (?P<seconds>\d+) seconds? later'
+    ),
+    converters={**SIZE, "seconds": int},
+)
+def i_start_in_a_terminal_and_press_ctrl_c_once_elapsed(
+    scenario: Scenario, command: str, width: int, height: int, first: str, seconds: int
+) -> None:
+    # Package 40: it reads the layout's elapsed value, for the display that updates while TLC is silent (22 O4).
+    argv = _process.tlaup_argv(scenario, command)
+    _terminal.ctrl_c_once_elapsed(scenario, argv, (width, height), scenario.expand(first), seconds)
+
+
 @when(parsers.re(rf"I start {COMMAND} {TERMINAL} and press Ctrl-C once java has begun its checkpoint"), converters=SIZE)
 def i_start_in_a_terminal_and_press_ctrl_c_at_the_checkpoint(
     scenario: Scenario, command: str, width: int, height: int
