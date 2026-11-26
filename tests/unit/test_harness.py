@@ -6,6 +6,7 @@ Each step is called through its own step function, found by its text as pytest-b
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import shutil
@@ -1013,7 +1014,8 @@ def reap(fakes: Fakes) -> Any:
     yield
     for line in fakes.log("java"):
         if line.get("event") == "start" and _process_alive(int(line["pid"])):
-            os.kill(int(line["pid"]), signal.SIGKILL)
+            with contextlib.suppress(ProcessLookupError):  # it may exit between the check and the kill
+                os.kill(int(line["pid"]), signal.SIGKILL)
 
 
 def test_exit_code_of() -> None:
