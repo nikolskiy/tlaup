@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `tlaup tool current` shows the pinned build and its jar without starting Java.
 - `tlaup tool list --installed` lists the installed builds only, with no network.
 - `tool.token_hosts` lists extra hosts that may receive the GitHub token.
+- tlaup warns before a run when a registered Java override class will not be loaded by the pinned TLC build. On v1.7.4 only a class named `tlc2.overrides.TLCOverrides` is loaded.
 
 ### Breaking
 - Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.

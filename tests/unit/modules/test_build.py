@@ -52,7 +52,7 @@ class Env:
             prerelease=False,
             source=Source("github-release", "https://example.invalid/tla2tools.jar", 1, None, digest_checked=True),
             installed_at="2026-11-15T00:00:00Z",
-            capabilities=frozenset(),
+            capabilities=frozenset({"overrides_property"}),  # a build that loads any override class
             path=jar.parent,
         )
         javac = shutil.which("javac")
@@ -298,7 +298,7 @@ def test_the_source_folders_own_service_file(env: Env, fakes: Fakes, tmp_path: P
     built = env.add(source)
     assert (built.path / "classes" / SERVICE).read_bytes() == own
     assert built.override_classes == ("tlc2.overrides.DirectOverrides", "a.Other")
-    assert built.warnings == ()
+    assert built.warnings == ("override class a.Other (module Queue) is not on the classpath and will not load",)
 
 
 def test_no_override_class(env: Env, tmp_path: Path) -> None:
@@ -362,3 +362,35 @@ def test_no_pinned_build(env: Env, tmp_path: Path) -> None:
     assert env.javac_calls == 0
     assert env.tmp_entries() == []
     assert env.javac_starts() == []
+
+
+def test_the_check_of_the_preflight_is_run_against_the_build_the_module_was_compiled_with_r7(
+    env: Env, tmp_path: Path
+) -> None:
+    source = make_source(tmp_path / "Queue")
+    env.build = replace(env.build, capabilities=frozenset(), name="v1.7.4")
+    built = env.add(source)
+    assert built.warnings == (
+        "TLC v1.7.4@bc1b506 loads Java overrides only from a class named tlc2.overrides.TLCOverrides; "
+        "tlc2.overrides.DirectOverrides (module Queue) will not load, and the TLA+ definitions of its operators "
+        "will be used",
+    )
+
+
+def test_a_module_with_the_default_class_name_is_not_warned_about_on_a_build_without_the_property(
+    env: Env, tmp_path: Path
+) -> None:
+    source = make_source(tmp_path / "Queue", java=())
+    (source / "tlc2" / "overrides").mkdir(parents=True)
+    shutil.copyfile(JAVA_SRC / "DirectOverrides.java", source / "tlc2" / "overrides" / "TLCOverrides.java")
+    own = source / SERVICE
+    own.parent.mkdir(parents=True)
+    own.write_text("tlc2.overrides.TLCOverrides\n")
+    env.fakes.script("javac", {"classes": str(tmp_path / "classes")})
+    shutil.copytree(CLASSES_DIR / "tlc2", tmp_path / "classes" / "tlc2")
+    shutil.copyfile(
+        tmp_path / "classes" / "tlc2" / "overrides" / "DirectOverrides.class",
+        tmp_path / "classes" / "tlc2" / "overrides" / "TLCOverrides.class",
+    )
+    env.build = replace(env.build, capabilities=frozenset())
+    assert env.add(source).warnings == ()

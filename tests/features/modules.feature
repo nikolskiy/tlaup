@@ -84,7 +84,7 @@ Feature: Adding, listing and removing Java modules
   # M2: the build in a temporary folder
 
   Scenario: The first add compiles the Java sources and registers the module
-    Given the build "v1.7.4" is installed and pinned
+    Given the build "rolling" is installed and pinned
     And a module source "Queue" from the fake sources
     When I run "tlaup module add Queue"
     Then the exit code is 0
@@ -132,7 +132,7 @@ Feature: Adding, listing and removing Java modules
     And the file "{modules}/Queue" does not exist
 
   Scenario: A second add replaces the module and says so
-    Given the build "v1.7.4" is installed and pinned
+    Given the build "rolling" is installed and pinned
     And a module source "Queue" from the fake sources
     When I run "tlaup module add Queue"
     And I run "tlaup module add Queue"
@@ -233,6 +233,27 @@ Feature: Adding, listing and removing Java modules
     When I run "tlaup module add Queue"
     Then the exit code is 0
     And javac was started with "11"
+
+  # R7: the check before a run, at the moment the module is added
+
+  Scenario: A class that the pinned build will not load is warned about when the module is added
+    Given the build "v1.7.4" is installed and pinned
+    And a module source "Queue" from the fake sources
+    When I run "tlaup module add Queue"
+    Then the exit code is 0
+    And stderr contains "Added module Queue"
+    And stderr contains "warning:" 1 times
+    And stderr contains "tlc2.overrides.DirectOverrides (module Queue) will not load"
+    And the registered modules are:
+      | module |
+      | Queue  |
+
+  Scenario: A rolling build loads any override class, so there is no warning
+    Given the build "rolling" is installed and pinned
+    And a module source "Queue" from the fake sources
+    When I run "tlaup module add Queue"
+    Then the exit code is 0
+    And stderr is exactly "Added module Queue"
 
   Scenario: A module whose Java has no override class gets no service file and a warning
     Given the build "v1.7.4" is installed and pinned

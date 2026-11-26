@@ -22,6 +22,7 @@ from tlaup.java.opts import jvm_options
 from tlaup.modules.registry import Registry
 from tlaup.project.core import find_project_root
 from tlaup.project.spec import config_arg, resolve_cfg, resolve_spec
+from tlaup.tlc.overrides import check_overrides, collect_override_classes
 
 if TYPE_CHECKING:
     import random
@@ -90,7 +91,7 @@ class TlcInvocation:
     cwd: Path  # where tlaup was started (D34)
     classpath: tuple[Path, ...]
     tla_library: tuple[Path, ...]
-    override_classes: tuple[str, ...]  # empty until package 34 fills it
+    override_classes: tuple[str, ...]  # names, in the order of 11 R7 part 1; empty = no property is passed
     warnings: tuple[str, ...]
     jvm_options: tuple[str, ...]  # settings, then TLAUP_JAVA_OPTS, then --java-opt
     workers: str | None  # None = pass no -workers
@@ -246,9 +247,10 @@ def resolve_tlc_invocation(  # noqa: PLR0913 - the pieces the preflight needs, n
     classpath = tuple(resolver.runtime_classpath(cwd))
     tla_library = tuple(resolver.tla_library(cwd))
 
-    # Package 34: collect_override_classes and check_overrides go here, once the classpath is known.
-    override_classes: tuple[str, ...] = ()
-    override_warnings: tuple[str, ...] = ()
+    # The override classes TLC is passed, and the warnings for those the pinned build will not load (11 R7).
+    classes = collect_override_classes(classpath)
+    override_classes = tuple(item.name for item in classes)
+    override_warnings = tuple(check_overrides(classes, classpath, build))
 
     warnings = (*java.warnings, *override_warnings, *_path_warnings(spec, cfg, env, platform))
 
