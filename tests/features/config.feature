@@ -51,7 +51,7 @@ Feature: The config commands
     Then the exit code is 0
     And stdout is exactly "0.0"
 
-  Scenario: config show on a fresh home lists every default
+  Scenario: config show on a fresh home lists the settings with no file (the fixture's repository comes from the environment)
     When I run "tlaup config show"
     Then the exit code is 0
     And stderr is empty
@@ -192,6 +192,23 @@ Feature: The config commands
     And stderr contains "tlaup config edit"
     And stderr does not contain "Traceback"
     And the config file is unchanged
+
+  # F4: a bad value in the environment is not a file error
+
+  Scenario Outline: A bad environment value names the variable and does not point at the file: <command>
+    Given the environment variable "TLAUP_TLC_WORKERS" is "many"
+    When I run "<command>"
+    Then the exit code is 3
+    And stdout is empty
+    And stderr contains "TLAUP_TLC_WORKERS"
+    And stderr contains "tlc.workers"
+    And stderr does not contain "tlaup config edit"
+
+    Examples:
+      | command                        |
+      | tlaup config show              |
+      | tlaup config get tlc.workers   |
+      | tlaup config set tlc.workers 4 |
 
   # F4: a file with a value of the wrong type
 
