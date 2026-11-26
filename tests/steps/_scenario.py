@@ -61,7 +61,7 @@ CLOSED_STREAM = "it was a closed pipe or the null device"
 PASSTHROUGH = 'this command passes the terminal through; use "as a process"'
 
 _STARTUP_ONLY_NAMES = frozenset({"LC_ALL", "LC_CTYPE", "LANG"})
-_PLACEHOLDER = re.compile(r"\{(home|work|tools|modules|runs|config|kept)\}")
+_PLACEHOLDER = re.compile(r"\{(home|work|tools|modules|runs|config|kept-id|kept)\}")
 _AGENT_PID = re.compile(r"(=pid=)\d+$")
 # The folder of the installed package that holds the lifeline agent's jar, written as <tlaup> (D51).
 TLAUP_JAVA_DIR = Path(tlaup.java.__file__).resolve().parent
@@ -195,6 +195,8 @@ class Scenario:
             return self.isolated.work
         if name == "kept":
             return self.kept()
+        if name == "kept-id":
+            return Path(self.kept().name)
         paths = self.paths()
         folders = {"tools": paths.tools, "modules": paths.modules, "runs": paths.runs, "config": paths.config}
         return folders[name]
@@ -209,7 +211,7 @@ class Scenario:
         return found[0]
 
     def expand(self, text: str) -> str:
-        """Replace the seven placeholders; any other brace is left alone."""
+        """Replace the eight placeholders; any other brace is left alone."""
         return _PLACEHOLDER.sub(lambda match: str(self.placeholder(match.group(1))), text)
 
     def words(self, command: str) -> list[str]:

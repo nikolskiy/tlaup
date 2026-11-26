@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `GITHUB_TOKEN` or `GH_TOKEN` is used for GitHub API requests, which raises the rate limit. The token is sent only to `api.github.com`, and to hosts you list in `tool.token_hosts`; it is never printed. Credentials in `.netrc` are not used.
 - Versions can be typed without the `v`, as `stable` or `rolling`, and as `tag@commit` to name one build.
 - `tlaup tool current` shows the pinned build and its jar without starting Java.
+- `tlaup cache dir` prints the cache folder; `tlaup cache clean` removes the remembered GitHub lookups and the run folders nothing will resume, and with `--all` also kept run folders and the remembered Java check. It never removes installed tools or modules.
 - `tlaup tool list --installed` lists the installed builds only, with no network.
 - `tool.token_hosts` lists extra hosts that may receive the GitHub token.
 - tlaup warns before a run when a registered Java override class will not be loaded by the pinned TLC build. On v1.7.4 only a class named `tlc2.overrides.TLCOverrides` is loaded.
@@ -75,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `JAVA_OPTS` is no longer read. Use `TLAUP_JAVA_OPTS` or `--java-opt`; both add to the configured options instead of replacing them.
 - The editor of `tlaup config edit` can no longer be given as an argument; set `VISUAL` or `EDITOR`.
 - `tlaup config list` is now `tlaup config show` and prints the settings in effect, not the file.
+- `tlaup fetch-cache clear` and `tlaup tlc --cleanup` are now `tlaup cache clean`; `tlaup cache list` shows the run folders, and `tlaup cache clean RUN_ID` removes one.
 
 ### Removed
 - `tlaup tool install <URL>`. Install by version name; installing from an address may return later.
