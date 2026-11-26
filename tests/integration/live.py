@@ -294,11 +294,19 @@ class Running:
         try:
             self.process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
-            self.process.kill()
-            self.process.wait()
-            message = f"tlaup was still running after {timeout} s; it was killed{self.output()}"
+            self.kill()
+            message = f"tlaup was still running after {timeout} s; it and its JVM were killed{self.output()}"
             raise AssertionError(message) from None
         return exit_code_of(self.process.returncode)
+
+    def kill(self) -> None:
+        """SIGKILL tlaup, then by process id the processes it started, found first: once tlaup is gone, ``pgrep -P``
+        no longer finds them, and a JVM whose lifeline has not yet fired would run on."""
+        children = java_children(self.pid) if self.process.poll() is None else []
+        if self.process.poll() is None:
+            self.process.kill()
+        self.process.wait()
+        kill_pids(children)
 
     def jvm(self, paths: AppPaths) -> list[int]:
         """Once TLC has made its folder under the run folder: the processes tlaup started, by ``pgrep -P``."""
@@ -319,7 +327,8 @@ def start_tlaup(args: Sequence[str], folder: Path, *, prefix: Sequence[str] = ()
 
 @dataclass
 class Reaper:
-    """What a test started: at its end, whatever the outcome, every one still alive is killed by its process id."""
+    """What a test started: at its end, whatever the outcome, every tlaup still alive is killed together with the
+    processes it started at that moment, and every JVM the test noted with ``watch``, all by process id."""
 
     started: list[Running] = field(default_factory=list)
     pids: list[int] = field(default_factory=list)
@@ -334,12 +343,21 @@ class Reaper:
         return list(pids)
 
     def reap(self) -> None:
+        """Each tlaup with the processes it started now (``Running.kill``), then every JVM a test noted earlier."""
         for running in self.started:
-            if running.process.poll() is None:
-                running.process.kill()
-            running.process.wait()
-        for pid in self.pids:
-            if alive(pid):
-                with contextlib.suppress(ProcessLookupError):
-                    os.kill(pid, signal.SIGKILL)
-        still_alive(self.pids)
+            running.kill()
+        kill_pids(self.pids)
+
+
+def kill_pids(pids: Sequence[int]) -> None:
+    """SIGKILL, by process id, each of ``pids`` still alive, and wait for them to be gone.
+
+    Not guarded against a reused process id: a JVM that ended long before its id is killed could in principle have
+    handed the id to an unrelated process. Accepted: the ids are a few seconds old at most, and the system hands
+    them out in rising order on Linux.
+    """
+    for pid in pids:
+        if alive(pid):
+            with contextlib.suppress(ProcessLookupError):
+                os.kill(pid, signal.SIGKILL)
+    still_alive(pids)

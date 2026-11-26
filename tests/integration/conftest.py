@@ -132,8 +132,9 @@ def live_build(test_jar: TestJar, isolated: Isolated) -> Build:
 
 @pytest.fixture
 def reaper() -> Iterator[Reaper]:
-    """Starts tlaup as a real process; at teardown, whatever the outcome, kills by process id every tlaup and JVM
-    the test started that is still alive, so a failing assertion never leaves TLC running."""
+    """Starts tlaup as a real process; at teardown, whatever the outcome, kills by process id every tlaup still
+    alive with the JVM it started (found before tlaup is killed), and every JVM the test noted, so a failing
+    assertion never leaves TLC running."""
     started = Reaper()
     try:
         yield started

@@ -1,6 +1,8 @@
 \* For test_runner.py::test_keep_and_resume_exact: a state space whose size is known by construction, four counters
 \* in 0..K, so (K + 1)^4 distinct states. Work(x) makes each step cost a set of W numbers (it depends on the state,
 \* so TLC cannot compute it once), which makes a run last past its first one-minute checkpoint with few states.
+\* The run time rests on how TLC evaluates Work, so a faster build or machine can finish before the first
+\* checkpoint (the test then fails saying so): W in Counted.cfg is the knob to turn; K sets the count.
 ---- MODULE Counted ----
 EXTENDS Naturals
 CONSTANTS K, W

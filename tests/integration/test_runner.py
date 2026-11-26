@@ -7,6 +7,7 @@ R6 (no leftovers; a kept checkpoint resumed to the exact count, D52 and D54), R8
 
 from __future__ import annotations
 
+import itertools
 import json
 import os
 import re
@@ -202,14 +203,35 @@ def _resume_words(stderr: str) -> list[str]:
     return words[1:]
 
 
+def _pairs(words: list[str]) -> set[tuple[str, str]]:
+    return set(itertools.pairwise(words))
+
+
+# Golden folders on which the resume test does not run, each with its reason (the lead's decision while building 52b).
+RESUME_SKIP = {
+    "v1.7.4": (
+        "TLC v1.7.4's upstream defect on some JVMs: a run of this spec sometimes ends with an ArithmeticException "
+        "(division by zero), also with plain java and no tlaup (5 of 15 with two workers, 4 of 15 with one, on "
+        "JDK 25.0.4; 0 of 15 on OpenJDK 25.0.5), as LIVE_SKIP's big-states; the rolling build covers the resume"
+    ),
+}
+
+
 def test_keep_and_resume_exact(
-    live_build: Build, isolated: Isolated, reaper: Reaper, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    live_build: Build,
+    test_jar: TestJar,
+    isolated: Isolated,
+    reaper: Reaper,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """R6, D52, D54: interrupted after its first complete checkpoint under ``--keep``, the run is kept, and the
-    printed resume command finishes with the count the spec has by construction, not marked approximate. It also
-    shows that both builds take the ``-fp`` and ``-seed`` tlaup passes."""
+    printed resume command, which repeats run.json's ``-fp`` and ``-seed``, finishes with the count the spec has by
+    construction, not marked approximate. It also shows that the build takes the ``-fp`` and ``-seed`` tlaup passes."""
     if not hasattr(signal, "SIGINT"):
         pytest.skip("SIGINT does not exist here; no Windows CI (D15)")
+    if test_jar.golden.name in RESUME_SKIP:
+        pytest.skip(RESUME_SKIP[test_jar.golden.name])
     folder = copy_folder(SPECS / "counted", isolated.work / "counted")
     match = re.search(r"\bK = (\d+)", (folder / "Counted.cfg").read_text(encoding="utf-8"))
     assert match is not None
@@ -229,9 +251,10 @@ def test_keep_and_resume_exact(
     [kept] = run_folders(isolated.paths)
     record = json.loads((kept / "run.json").read_text(encoding="utf-8"))
     assert record["kept"] is True, record
-    assert str(record["seed"]) in run.stderr() and str(record["fp"]) in run.stderr(), run.output()
+    words = _resume_words(run.stderr())
+    assert {("-fp", str(record["fp"])), ("-seed", str(record["seed"]))} <= _pairs(words), (words, record)
 
-    resume = reaper.start(_resume_words(run.stderr()), tmp_path / "resume")
+    resume = reaper.start(words, tmp_path / "resume")
     assert resume.wait(timeout=RESUME_SECONDS) == 0, resume.output()
     out = resume.stdout()
     assert f"{format_count(expected)} distinct" in out, resume.output()
