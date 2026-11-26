@@ -5,6 +5,7 @@ does no file, network, clock or environment access. The names below are its publ
 private.
 """
 
+from tlaup_parse.codes import CODES, CodeInfo
 from tlaup_parse.exit_status import ExitStatus, describe_exit_status
 from tlaup_parse.framing import Framer, Unframed, render_framed
 from tlaup_parse.model import (
@@ -52,8 +53,10 @@ from tlaup_parse.tlc import TlcParser
 from tlaup_parse.values import Value, parse_value
 
 __all__ = [
+    "CODES",
     "CheckpointStarted",
     "CheckpointWritten",
+    "CodeInfo",
     "CoverageAdded",
     "CoverageItem",
     "Diagnostic",
