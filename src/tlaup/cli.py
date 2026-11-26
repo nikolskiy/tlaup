@@ -15,6 +15,7 @@ from tlaup.cmd.check_java import check_java
 from tlaup.cmd.config import app as config_app
 from tlaup.cmd.module import app as module_app
 from tlaup.cmd.pcal import pcal as run_pcal_cmd
+from tlaup.cmd.repl import repl as run_repl_cmd
 from tlaup.cmd.sany import sany as run_sany_cmd
 from tlaup.cmd.tlc import tlc as run_tlc_cmd
 from tlaup.cmd.tool import app as tool_app
@@ -288,6 +289,7 @@ app.add_typer(config_app, name="config")
 app.command(name="tlc")(run_tlc_cmd)
 app.command(name="sany")(run_sany_cmd)
 app.command(name="pcal")(run_pcal_cmd)
+app.command(name="repl")(run_repl_cmd)
 app.command(name="check-java")(check_java)
 
 
