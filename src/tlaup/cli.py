@@ -11,19 +11,23 @@ from typing import Any, NoReturn
 import typer
 from typer.core import TyperGroup
 
+from tlaup.cmd import cache, completion, config, doctor, pcal, repl, sany, tlc
 from tlaup.cmd.cache import app as cache_app
-from tlaup.cmd.completion import HELP as COMPLETION_HELP
-from tlaup.cmd.completion import completion as run_completion_cmd
-from tlaup.cmd.completion import init_completion
 from tlaup.cmd.config import app as config_app
-from tlaup.cmd.doctor import HELP as DOCTOR_HELP
-from tlaup.cmd.doctor import doctor as run_doctor_cmd
+from tlaup.cmd.module import add as module_add
 from tlaup.cmd.module import app as module_app
-from tlaup.cmd.pcal import pcal as run_pcal_cmd
-from tlaup.cmd.repl import repl as run_repl_cmd
-from tlaup.cmd.sany import sany as run_sany_cmd
-from tlaup.cmd.tlc import tlc as run_tlc_cmd
+from tlaup.cmd.module import dir as module_dir
+from tlaup.cmd.module import list as module_list
+from tlaup.cmd.module import remove as module_remove
 from tlaup.cmd.tool import app as tool_app
+from tlaup.cmd.tool import current as tool_current
+from tlaup.cmd.tool import dir as tool_dir
+from tlaup.cmd.tool import install as tool_install
+from tlaup.cmd.tool import list as tool_list
+from tlaup.cmd.tool import path as tool_path
+from tlaup.cmd.tool import pin as tool_pin
+from tlaup.cmd.tool import uninstall as tool_uninstall
+from tlaup.cmd.tool import upgrade as tool_upgrade
 from tlaup.context import AppContext, build_context
 from tlaup.errors import CannotAsk, Failed, TlaupError
 from tlaup.stdio import WRITE_ERRNOS, closed_pipe_on_windows, is_null_device, reader_gone, silence
@@ -262,7 +266,7 @@ def version_callback(value: bool) -> None:
         meta = importlib.metadata.metadata("tlaup")
         app_ver = get_app_version(base_version=meta["Version"])
         ui = Ui.for_process()  # eager: runs before the root callback has built the context
-        ui.result(f"{meta['Name']} v{app_ver}")
+        ui.result(f"{meta['Name']} {app_ver}")
         ui.result(meta["Summary"])
         raise typer.Exit()
 
@@ -273,7 +277,7 @@ def root(
     _: bool = typer.Option(
         None,
         "--version",
-        "-v",
+        "-V",
         help="Show the application's version and exit.",
         callback=version_callback,
         is_eager=True,
@@ -284,24 +288,48 @@ def root(
     ctx.obj = build_context(os.environ, debug=debug)
 
 
-# --- Subcommands ---
+# --- The command tree (design 23 C1), registered here and nowhere else: Run, Manage, Maintenance ---
+# Every command is registered by name with its HELP constant; every group with add_typer.
 
+app.command(name="tlc")(tlc.tlc)
+app.command(name="sany")(sany.sany)
+app.command(name="pcal")(pcal.pcal)
+app.command(name="repl")(repl.repl)
+
+app.add_typer(tool_app, name="tool")
+tool_app.command(name="list", help=tool_list.HELP)(tool_list.list_command)
+tool_app.command(name="install", help=tool_install.HELP)(tool_install.install_command)
+tool_app.command(name="upgrade", help=tool_upgrade.HELP)(tool_upgrade.upgrade_command)
+tool_app.command(name="uninstall", help=tool_uninstall.HELP)(tool_uninstall.uninstall_command)
+tool_app.command(name="pin", help=tool_pin.HELP)(tool_pin.pin_command)
+tool_app.command(name="current", help=tool_current.HELP)(tool_current.current_command)
+tool_app.command(name="path", help=tool_path.HELP)(tool_path.path_command)
+tool_app.command(name="dir", help=tool_dir.HELP)(tool_dir.dir_command)
 
 app.add_typer(module_app, name="module")
-app.add_typer(tool_app, name="tool")
-app.add_typer(config_app, name="config")
-app.add_typer(cache_app, name="cache")
+module_app.command(name="add", help=module_add.HELP)(module_add.add_command)
+module_app.command(name="list", help=module_list.HELP)(module_list.list_command)
+module_app.command(name="remove", help=module_remove.HELP)(module_remove.remove_command)
+module_app.command(name="dir", help=module_dir.HELP)(module_dir.dir_command)
 
-app.command(name="tlc")(run_tlc_cmd)
-app.command(name="sany")(run_sany_cmd)
-app.command(name="pcal")(run_pcal_cmd)
-app.command(name="repl")(run_repl_cmd)
-app.command(name="doctor", help=DOCTOR_HELP)(run_doctor_cmd)
-app.command(name="completion", help=COMPLETION_HELP)(run_completion_cmd)
+app.add_typer(config_app, name="config")
+config_app.command(name="path", help=config.PATH_HELP)(config.path_command)
+config_app.command(name="show", help=config.SHOW_HELP)(config.show_command)
+config_app.command(name="get", help=config.GET_HELP)(config.get_command)
+config_app.command(name="set", help=config.SET_HELP)(config.set_command)
+config_app.command(name="edit", help=config.EDIT_HELP)(config.edit_command)
+
+app.add_typer(cache_app, name="cache")
+cache_app.command(name="dir", help=cache.DIR_HELP)(cache.dir_command)
+cache_app.command(name="list", help=cache.LIST_HELP)(cache.list_command)
+cache_app.command(name="clean", help=cache.CLEAN_HELP)(cache.clean_command)
+
+app.command(name="doctor", help=doctor.HELP)(doctor.doctor)
+app.command(name="completion", help=completion.HELP)(completion.completion)
 
 
 def main() -> None:
     """Entry point for [project.scripts] and `python -m tlaup`."""
     if "_TLAUP_COMPLETE" in os.environ:  # a shell is asking for words: fill Typer's registry of shells (C3)
-        init_completion()
+        completion.init_completion()
     run_app(app)

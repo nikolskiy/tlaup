@@ -123,10 +123,3 @@ def edit_command(ctx: typer.Context) -> None:
     loaded = edit_file(app_context.paths, app_context.env, argv)
     for warning in loaded.warnings:
         app_context.ui.warning(warning)
-
-
-app.command(name="path", help=PATH_HELP)(path_command)
-app.command(name="show", help=SHOW_HELP)(show_command)
-app.command(name="get", help=GET_HELP)(get_command)
-app.command(name="set", help=SET_HELP)(set_command)
-app.command(name="edit", help=EDIT_HELP)(edit_command)

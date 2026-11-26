@@ -16,7 +16,7 @@ from tlaup.errors import ToolNotInBuild, UsageError
 from tlaup.java.classpath import run_paths
 from tlaup.java.launcher import JavaInvocation
 from tlaup.java.locate import require_java
-from tlaup.java.opts import jvm_options
+from tlaup.java.opts import env_options, jvm_options
 from tlaup.project.core import find_project_root
 from tlaup.project.spec import resolve_spec
 from tlaup.tools import ENTRY_POINTS
@@ -75,6 +75,17 @@ def _check_capability(tool: Tool, build: Build) -> None:
         raise ToolNotInBuild(message, hint="install a rolling build: `tlaup tool install rolling`")
 
 
+def check_command_line(tool: Tool, extra_args: Sequence[str], env: Mapping[str, str]) -> None:
+    """Step 0 of 11 R11: what needs only the command line and the environment; reads nothing from the disk.
+
+    The command calls it before it loads the settings, so a broken config file (3) never hides a mistake typed on
+    the command line (2).
+    """
+    env_options(env)  # only the quoting of TLAUP_JAVA_OPTS; the setting java.opts is read after this step
+    if tool == "sany":
+        _check_explorer(extra_args)
+
+
 def resolve_tool_invocation(  # noqa: PLR0913 - the pieces the preflight needs, not the whole context (21)
     tool: Tool,
     spec: str | None,
@@ -92,9 +103,8 @@ def resolve_tool_invocation(  # noqa: PLR0913 - the pieces the preflight needs, 
     """The preflight (11 R11): each step raises a TlaupError and stops; nothing after Java can fail for a reason the
     user caused on the command line."""
     # 0. What needs only the command line and the environment.
+    check_command_line(tool, extra_args, env)
     options = jvm_options(settings.java.opts, env, java_opts)
-    if tool == "sany":
-        _check_explorer(extra_args)
 
     # 1. The spec, and 1b. the project root found from it. There is no step 2: these tools take no cfg.
     spec_path: Path | None = None

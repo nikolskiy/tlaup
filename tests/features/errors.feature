@@ -203,3 +203,66 @@ Feature: Errors and exit codes
     Then the exit code is 4
     And stdout is empty
     And stderr contains "error:" 1 times
+
+  # The command tree as a whole (package 48)
+
+  Scenario Outline: A removed name is an unknown command or option and exits 2: <removed>
+    When I run "<command>"
+    Then the exit code is 2
+    And stdout is empty
+
+    Examples:
+      | command                      | removed         |
+      | tlaup tools list             | tools           |
+      | tlaup modules list           | modules         |
+      | tlaup check-java             | check-java      |
+      | tlaup fetch-cache clear      | fetch-cache     |
+      | tlaup tool meta sync         | tools meta      |
+      | tlaup module path            | modules path    |
+      | tlaup config list            | config list     |
+      | tlaup config edit vim        | config edit EDITOR |
+      | tlaup tool install -f v1.7.4 | install -f      |
+      | tlaup tool uninstall -y v1.7.4 | uninstall -y  |
+      | tlaup -v                     | the old version flag |
+
+  Scenario: The module group without its command prints the usage on stdout and exits 2
+    When I run "tlaup module"
+    Then the exit code is 2
+    And stdout contains "Usage"
+    And stderr is empty
+
+  # Design 11 R11 step 0: a mistake in the command line is reported before the settings are read
+
+  Scenario Outline: A mistake on the command line beats a broken config file: <command>
+    Given the config file contains:
+      """
+      tlc:
+        refresh_interval: fast
+      """
+    And the environment variable "TLAUP_JAVA_OPTS" is "<opts>"
+    And the build "v1.7.4" is installed and pinned
+    When I run "<command>"
+    Then the exit code is 2
+    And stdout is empty
+    And stderr contains "error:" 1 times
+    And stderr does not contain "config.yaml"
+
+    Examples:
+      | command                                       | opts |
+      | tlaup tlc Success --workers 2 -- -workers 4   |      |
+      | tlaup tlc Success                             | 'a   |
+      | tlaup sany Success                            | 'a   |
+      | tlaup pcal Success                            | 'a   |
+      | tlaup repl                                    | 'a   |
+
+  Scenario: A broken config file is still reported when the command line is right
+    Given the config file contains:
+      """
+      tlc:
+        refresh_interval: fast
+      """
+    And the build "v1.7.4" is installed and pinned
+    When I run "tlaup tlc Success"
+    Then the exit code is 3
+    And stdout is empty
+    And stderr contains "error:" 1 times

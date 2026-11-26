@@ -1,6 +1,6 @@
 # 48. The command tree as a whole, `-V`, and the end of tlaup's own exit 1
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
