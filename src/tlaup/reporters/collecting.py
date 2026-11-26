@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from tlaup.reporters.base import RunInfo
+    from tlaup.tlc.run import RunOutcome
     from tlaup_parse import Event, RunResult
 
 
@@ -16,7 +17,7 @@ class CollectingReporter:
         self.results: list[RunResult] = []  # the result handed with each event
         self.stderr_lines: list[str] = []
         self.notices: list[str] = []
-        self.outcome: object | None = None  # narrowed to RunOutcome by the run_tlc package
+        self.outcome: RunOutcome | None = None
         self.calls: list[str] = [] if calls is None else calls
         self.write_error: OSError | None = None
         self._closed = False
@@ -38,7 +39,7 @@ class CollectingReporter:
         self.calls.append("notice")
         self.notices.append(line)
 
-    def finish(self, outcome: object) -> None:
+    def finish(self, outcome: RunOutcome) -> None:
         self.calls.append("finish")
         self.outcome = outcome
 

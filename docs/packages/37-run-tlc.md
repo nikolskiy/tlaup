@@ -1,6 +1,6 @@
 # 37. The run functions: `run_tlc` and `run_tlc_raw`
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built, not yet proven on CI.
 
 ## Goal
 
@@ -142,7 +142,8 @@ Signals at an exact moment ([20 G3](../design/20-groundwork.md#g3-java-launcher)
 
 The checkpoint deferral, through `run_tlc` (the plain pytest form of R6's and G3's real-process deferral scenarios, which are [39](39-tlc-command.md)'s, with T5's step `once java has begun its checkpoint`). The fake replays a capture with 2195 and 2196, uses `checkpoint` to write `queue.tmp` and `vars.tmp` after 2195 and commit them before it writes 2196 ([01 T4](../design/01-testing.md#t4-fakes-at-the-edges), as TLC commits before it prints 2196; question Q10), and hangs after 2196 (`hang_after_line` at 2196's line, never between the two: T4, finding E1), so the SIGTERM tlaup sends on at 2196 ends the hang. The reporter sends the signal from `handle` of `CheckpointStarted`; the deferral then holds whatever the fake has written meanwhile, because the mark is what tlaup has read. `release_file` stays `null` where the fake is to commit (T4: a plain pytest test that signals from a reporter's callback needs no release), and is set to a file the test never creates where the fake must not commit, so that case does not race. The real-process scenarios of [39](39-tlc-command.md) instead use T5's step, which gives the release once tlaup has shown the waiting line.
 
-- One SIGINT (`release_file` `null`): the reporter's `notice` gets `waiting_line("int")` exactly once, after the event of 2195 (`reporter.notices`, and one `"notice"` in the shared list after the `"handle"` of 2195), the shared list holds no `"note: ..."` entry with the waiting line, and nothing is written to the `Ui`'s streams while the reporter is open (O1's test); when `handle` of `CheckpointWritten` runs, the fake's log has no `signal` line; afterwards it has SIGTERM; the code is 130; under `keep` the folder is kept with a complete checkpoint.
+- One SIGINT (`release_file` set, and given by the reporter after the signal; built so in 37, since with the mark before `handle` the signal is already on its way when `handle` of `CheckpointWritten` runs, so its "no `signal` line yet" check raced): the reporter's `notice` gets `waiting_line("int")` exactly once, after the event of 2195 (`reporter.notices`, and one `"notice"` in the shared list after the `"handle"` of 2195), the shared list holds no `"note: ..."` entry with the waiting line, and nothing is written to the `Ui`'s streams while the reporter is open (O1's test); when `handle` of `CheckpointWritten` runs, the fake's log has no `signal` line; afterwards it has SIGTERM; the code is 130; under `keep` the folder is kept with a complete checkpoint.
+  As built, the deferral is proven by the single waiting line (it comes only from a held signal), the kept complete checkpoint and the one SIGTERM, not by the log's state at `handle` time.
 - One SIGTERM: the same with `waiting_line("term")` and 143.
 - Two SIGINTs from the same `handle`, with `release_file` set to a file the test never creates, so the fake waits between the two lines: the second kills at once; the fake's log shows no SIGTERM before it was killed; the checkpoint is incomplete, so under `keep` nothing is kept and `dropped_checkpoint` is `"incomplete"`.
 - `waiting_line` gives the three texts above (the wording test 21 hands over).

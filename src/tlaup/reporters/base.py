@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from tlaup.java.locate import JavaRuntime
+    from tlaup.tlc.run import RunOutcome
     from tlaup.versioning.store import Build
     from tlaup_parse import Event, RunResult
 
@@ -56,6 +57,5 @@ class Reporter(Protocol):
     def handle(self, event: Event, result: RunResult) -> None: ...
     def stderr_line(self, line: str) -> None: ...  # a line the tool wrote to stderr
     def notice(self, line: str) -> None: ...  # a line of tlaup's own during the run
-    # `object` until run_tlc's package creates RunOutcome and narrows it (under TYPE_CHECKING).
-    def finish(self, outcome: object) -> None: ...
+    def finish(self, outcome: RunOutcome) -> None: ...
     def close(self) -> None: ...  # always called last; never raises
