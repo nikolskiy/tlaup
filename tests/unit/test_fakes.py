@@ -402,6 +402,17 @@ def test_java_ignore_keeps_it_running(fakes: Fakes) -> None:
 
 
 @POSIX_ONLY
+def test_java_logs_two_signals_sent_back_to_back_in_order(fakes: Fakes) -> None:
+    # A terminal's SIGINT and tlaup's SIGTERM together: neither line is lost to the other's handler (package 39b).
+    proc = hanging(fakes, on_sigint="ignore", on_sigterm=143)
+    os.kill(proc.pid, signal.SIGINT)
+    os.kill(proc.pid, signal.SIGTERM)
+    assert finish(proc) == 143
+    assert [line["name"] for line in logged(fakes, "java", "signal")] == ["SIGINT", "SIGTERM"]
+    assert logged(fakes, "java", "exit")[0]["code"] == 143
+
+
+@POSIX_ONLY
 def test_java_sigquit_is_logged_and_survived(fakes: Fakes) -> None:
     proc = hanging(fakes, on_sigterm=143)
     proc.send_signal(signal.SIGQUIT)

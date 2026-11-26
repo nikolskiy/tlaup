@@ -240,3 +240,13 @@ Feature: What tlaup tlc checks before it starts TLC
       | option    |
       | --cleanup |
       | --version |
+
+  # V9 and D45 on a pseudo-terminal, where tlaup could ask: the spec is checked first, so nothing is asked
+
+  Scenario: On a terminal with nothing installed a missing spec exits 4 and the question is never shown
+    Given no build is installed
+    When I run "tlaup tlc Nosuch" in a terminal 100 by 30
+    Then the exit code is 4
+    And stderr contains "error:" 1 times
+    And the terminal does not contain "Which build should tlaup install?"
+    And java was not started

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, cast
 
 from pytest_bdd import parsers, then
 
-from tests.steps import _modules, _store, _terminal
+from tests.steps import _modules, _signals, _store, _terminal
 
 if TYPE_CHECKING:
     from tests.fakes.control import Tool
@@ -228,3 +228,26 @@ def jar_downloads_were_made(scenario: Scenario, count: int) -> None:
 @then(parsers.re(r'no request carried a token to "(?P<host>[^"]+)"'))
 def no_request_carried_a_token_to(scenario: Scenario, host: str) -> None:
     _store.check_no_token_to(scenario, host)
+
+
+# Then: the signals java received and its process group (package 39, outside T5's table; reasons in _signals.py)
+
+
+@then(parsers.re(r"java received (?P<names>SIG[A-Z]+(?:, then SIG[A-Z]+)*)"))
+def java_received(scenario: Scenario, names: str) -> None:
+    _signals.check_received(scenario, names)
+
+
+@then(parsers.re(r"java received no signal"))
+def java_received_no_signal(scenario: Scenario) -> None:
+    _signals.check_no_signal(scenario)
+
+
+@then(parsers.re(r"java ran in its own process group"))
+def java_ran_in_its_own_process_group(scenario: Scenario) -> None:
+    _signals.check_group(scenario, own=True)
+
+
+@then(parsers.re(r"java ran in tlaup's process group"))
+def java_ran_in_tlaups_process_group(scenario: Scenario) -> None:
+    _signals.check_group(scenario, own=False)

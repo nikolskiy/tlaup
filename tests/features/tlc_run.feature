@@ -657,3 +657,45 @@ Feature: Running TLC
     And stderr contains "tlc.refresh_interval"
     And stderr does not contain "Traceback"
     And java was not started
+
+  # Real processes (39b): a closed output pipe, and a stdout that cannot encode the output
+
+  # R1 and X1 rule 8: ten times the launcher's queue bound, so the reader certainly closes first
+
+  Scenario: When the reader of a parsed run goes away, tlaup exits 141 without a traceback and TLC is gone
+    Given the build "v1.7.4" is installed and pinned
+    And a spec "Success" from the golden specs
+    And java prints 100000 lines
+    And java hangs after line 100000
+    When I run "tlaup tlc Success" as a process whose reader closes after 1 line
+    Then the exit code is 141
+    And stderr does not contain "Traceback"
+    And the java process has exited
+
+  # G3, review finding TU2: the reader goes while TLC writes nothing, so only the watch of the reader sees it
+
+  Scenario: When the reader goes while TLC prints nothing, TLC is stopped and tlaup exits 141
+    Given the build "v1.7.4" is installed and pinned
+    And a spec "Success" from the golden specs
+    And java replays "tlc/v1.7.4/success" with exit code 0
+    And java hangs after line 6
+    When I run "tlaup tlc Success" as a process whose reader closes after 1 line
+    Then the exit code is 141
+    And stderr does not contain "Traceback"
+    And java received SIGTERM
+    And the java process has exited
+
+  # R3: the variable is read when the interpreter starts, so this is a real process. The Latin-1 é of the trace
+  # reaches tlaup as a replacement character, which an ASCII stdout shows as ?.
+
+  Scenario: With PYTHONIOENCODING=ascii a trace holding a non-ASCII character does not stop tlaup
+    Given the build "v1.7.4" is installed and pinned
+    And a spec "Violation" from the golden specs
+    And the environment variable "PYTHONIOENCODING" is "ascii"
+    And java replays "synthetic/invalid-utf8" with exit code 12
+    When I run "tlaup tlc Violation" as a process
+    Then the exit code is 12
+    And stdout contains "Invariant Small is violated."
+    And stdout contains "a d?liberately long note"
+    And stdout contains "Result: errors found"
+    And stderr does not contain "Traceback"

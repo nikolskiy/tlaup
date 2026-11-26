@@ -1,6 +1,6 @@
 # 39. The `tlc` command: switch to the new runner
 
-Size: L. Suggested model: most capable. Status: 39a built, 39b ready.
+Size: L. Suggested model: most capable. Status: built, not yet proven on CI.
 
 ## Goal
 
@@ -234,7 +234,7 @@ Scenarios run in-process unless one of T5's five situations applies ([01 T12](..
 
 `tests/features/tlc_signals.feature` (R2, G3; inventory row R14). tlaup is started with `sys.executable -m tlaup`; the signal goes to the tlaup process alone, so each scenario proves forwarding.
 
-- Six scenarios: SIGTERM (143), one SIGINT (130), two SIGINTs (`send SIGINT twice` with `java ignores SIGINT`; 130, no `Traceback`), each in parsed mode and with `--raw`. In each, `the java process has exited`. In parsed mode stdout holds what was printed before the signal and the result line says the run was interrupted.
+- Six scenarios: SIGTERM (143), one SIGINT (130), two SIGINTs (`send SIGINT twice` with `java ignores SIGTERM` (corrected while building 39b: tlaup passes a first signal on as SIGTERM, so a fake that ignored SIGINT would die on it); 130, no `Traceback`), each in parsed mode and with `--raw`. In each, `the java process has exited`. In parsed mode stdout holds what was printed before the signal and the result line says the run was interrupted.
 - R6: the checkpoint-writing fake under `--keep`, interrupted with SIGINT, in parsed and in raw mode: one run folder is kept and the note is on stderr.
 - D60, on a pseudo-terminal, Linux and macOS (`in a terminal`; skipped with the reason where there is no pty): a Ctrl-C typed at the terminal during a parsed run reaches tlaup and not the fake, whose process group differs from tlaup's, and the run ends with 130; Ctrl-\ is logged as SIGQUIT by the fake and changes nothing else; with `--raw` the fake logs the SIGINT itself, in tlaup's group.
 - R6 and G3, the checkpoint deferral as real processes (question Q10, settled), with a fake that replays 2195 at line `n`, begins its checkpoint after it and commits it before it writes 2196 at line `m` (`java begins a checkpoint after line <n> and commits it before line <m>`, which also gives the fake a release file, [01 T4](../design/01-testing.md#t4-fakes-at-the-edges)), and `java hangs after line <m>`, after 2196 and never between the two (T4; finding E1). The When step is T5's, as [18](18-feature-harness.md) builds it: it sends the signal once the fake has logged its `checkpoint` line, waits until tlaup has shown the waiting line, and only then gives the release, so the fake commits and prints 2196 only after tlaup has shown that it holds the signal. `I start "tlaup tlc Spec --keep" and send SIGINT once java has begun its checkpoint`: stderr holds the waiting line (`waiting for TLC to finish writing its checkpoint; press Ctrl-C again to stop now`), the fake gets its SIGTERM only after 2196, which ends its hang (`java received SIGTERM`, and no SIGINT), the exit code is 130 and one run folder is kept with a complete checkpoint. The same ending `, and again once stderr contains "waiting for TLC"`: the step gives no release, the second SIGINT kills at once while the fake waits, before 2196, and nothing is kept (the `.tmp` files were never renamed).
