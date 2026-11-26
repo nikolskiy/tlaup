@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Literal
 
 import filelock
 
-from tlaup.durations import format_elapsed
+from tlaup.durations import format_elapsed, half_up
 from tlaup.errors import FileOperationError, PathNotFound
 from tlaup.versioning.app_version import get_app_version
 from tlaup.versioning.spec import format_build
@@ -629,15 +629,16 @@ class RunFolder:
 
 
 def _record_kept(kept: Kept, ended: datetime, values: tuple[int | None, int | None]) -> None:
-    """Write ended, kept, keep (FC1), size and reason into the kept folder's run.json, and the fp and seed this run
-    passed, so that a later -recover of a resumed folder reads the values its checkpoint now continues with; a value
-    this run did not record leaves the one there. A write that fails passes on; the decision is already made, so
-    the end steps still leave the folder the user asked to keep (D53)."""
+    """Write ended, kept, keep (FC1), size and reason into the kept folder's run.json. For fp and for seed: a value
+    this run passed that differs from the recorded one, or that meets none, becomes null, since the checkpoint now
+    holds the work of two values and no later resume is exact (D54); a value this run did not record leaves the one
+    there. A write that fails passes on; the decision is already made, so the end steps still leave the folder the
+    user asked to keep (D53)."""
     record = _read_run_json(kept.path) or {"schema": SCHEMA}
     record.update(ended=_utc(ended), kept=True, keep=True, size=kept.size, reason=kept.reason)
     for key, value in zip(("fp", "seed"), values, strict=True):
-        if value is not None:
-            record[key] = value
+        if value is not None and _int_or_none(record.get(key)) != value:
+            record[key] = None
     _write_run_json(kept.path, record)
 
 
@@ -898,7 +899,7 @@ def format_size(n: int) -> str:
     value = float(n)
     for unit in SIZE_UNITS:
         value /= KILO
-        tenths = round(value * 10)
+        tenths = half_up(value * 10)
         if tenths < KILO * 10 or unit == SIZE_UNITS[-1]:
             return f"{tenths / 10:.1f} {unit}"
     raise AssertionError  # pragma: no cover - the loop returns at its last unit
@@ -952,6 +953,7 @@ class RunRecord:
     last_change: datetime  # the newest modification time of anything under the folder
     size: int  # the recorded size of a kept folder, else measured
     in_use: bool  # its lock is held
+    cannot_lock: bool  # its lock file could not be opened or made, so whether it is in use is not known
     kept: bool
     keep: bool
     reason: str | None  # why kept; "unsettled after a kill" for an unsettled resumable folder
@@ -981,7 +983,7 @@ def _moment(record: Mapping[str, object], key: str) -> datetime | None:
         return None
 
 
-def _run_record(runs: Path, run_id: str, *, in_use: bool) -> RunRecord:
+def _run_record(runs: Path, run_id: str, *, in_use: bool, cannot_lock: bool) -> RunRecord:
     folder = runs / run_id
     record = _read_run_json(folder)
     data: Mapping[str, object] = record or {}
@@ -990,7 +992,7 @@ def _run_record(runs: Path, run_id: str, *, in_use: bool) -> RunRecord:
     recorded = _int_or_none(data.get("size"))
     if kept:
         reason = _text(data, "reason")
-    elif record is not None and keep and complete and not in_use:
+    elif record is not None and keep and complete and not in_use and not cannot_lock:
         reason = UNSETTLED
     else:
         reason = None
@@ -1006,6 +1008,7 @@ def _run_record(runs: Path, run_id: str, *, in_use: bool) -> RunRecord:
         last_change=datetime.fromtimestamp(_newest_change(folder), tz=UTC),
         size=recorded if kept and recorded is not None else _size(folder),
         in_use=in_use,
+        cannot_lock=cannot_lock,
         kept=kept,
         keep=keep,
         reason=reason,
@@ -1020,7 +1023,10 @@ def list_runs(paths: AppPaths) -> list[RunRecord]:
         visit = EntryVisit(paths.runs, run_id, lambda: datetime.now(UTC))
         free = visit.take_lock()
         try:
-            records.append(_run_record(paths.runs, run_id, in_use=not free))
+            cannot_lock = visit.lock_error is not None
+            records.append(
+                _run_record(paths.runs, run_id, in_use=not free and not cannot_lock, cannot_lock=cannot_lock)
+            )
         except OSError:
             continue  # the folder went while it was looked at
         finally:

@@ -30,7 +30,6 @@ from tlaup.tlc.rundirs import (
     RunStart,
     clean_runs,
     complete_checkpoint,
-    find_recovered_run,
     list_entries,
     list_runs,
     run_folder,
@@ -993,14 +992,31 @@ def resumed_and_kept_again(project: Path, paths: AppPaths, clock: FakeClock, run
     return old
 
 
-def test_a_resume_kept_again_records_the_fp_and_seed_it_passed(
+def test_a_resume_kept_again_with_other_values_records_none(
     project: Path, paths: AppPaths, clock: FakeClock, runs: Path
 ) -> None:
+    """D54: the checkpoint now holds the work of two -fp and -seed values, so no later resume is exact."""
     old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "3", "-seed", "11")
-    assert (record(old)["fp"], record(old)["seed"]) == (3, 11)
-    recovered = find_recovered_run(["-recover", str(old / STATES)], project, runs)
-    assert recovered is not None
-    assert (recovered.fp, recovered.seed) == (3, 11)
+    assert (record(old)["fp"], record(old)["seed"]) == (None, None)
+    third = invocation_for(project, paths, "-fp", "3", "-seed", "11", "-recover", str(old / STATES), run_id="run2")
+    with run_folder(third, paths, clock.now, wait=0) as folder:  # the note's command passes 3 and 11 again
+        assert not folder.resumes_exactly
+        folder.settle(outcome(130, stopped_by="int"))
+    assert (record(old)["fp"], record(old)["seed"]) == (None, None)
+
+
+def test_a_resume_kept_again_with_one_value_changed_nulls_only_that_one(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "58", "-seed", "11")
+    assert (record(old)["fp"], record(old)["seed"]) == (58, None)
+
+
+def test_a_resume_kept_again_with_the_same_values_keeps_them(
+    project: Path, paths: AppPaths, clock: FakeClock, runs: Path
+) -> None:
+    old = resumed_and_kept_again(project, paths, clock, runs)
+    assert (record(old)["fp"], record(old)["seed"]) == (58, 8556987057680880581)
 
 
 def test_a_resume_that_recorded_no_values_leaves_the_recorded_ones(
@@ -1008,3 +1024,16 @@ def test_a_resume_that_recorded_no_values_leaves_the_recorded_ones(
 ) -> None:
     old = resumed_and_kept_again(project, paths, clock, runs, "-fp", "oops", "-seed", "bad")
     assert (record(old)["fp"], record(old)["seed"]) == (58, 8556987057680880581)
+
+
+@pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="file modes: POSIX, and root ignores them")
+def test_list_runs_does_not_call_an_unopenable_lock_in_use(runs: Path, clock: FakeClock, paths: AppPaths) -> None:
+    unsettled(runs, clock, "old", keep=True, checkpoint=True)
+    (runs / "old.lock").chmod(0)
+    try:
+        (only,) = list_runs(paths)
+    finally:
+        (runs / "old.lock").chmod(0o644)
+    assert (only.in_use, only.cannot_lock, only.reason) == (False, True, None)
+    (again,) = list_runs(paths)
+    assert (again.in_use, again.cannot_lock, again.reason) == (False, False, "unsettled after a kill")

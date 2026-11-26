@@ -9,7 +9,8 @@ MINUTE = 60
 HOUR = 3600
 
 
-def _half_up(value: float) -> int:
+def half_up(value: float) -> int:
+    """The nearest integer, halves upward; for durations and sizes alike."""
     return math.floor(value + 0.5)
 
 
@@ -18,13 +19,13 @@ def format_elapsed(seconds: float) -> str:
     ``2 h 13 min``. A value is rounded first and then given the form of what it rounded to, so 9.96 seconds is
     ``10 s`` and 59.6 seconds ``1 min 00 s``."""
     seconds = max(seconds, 0.0)
-    tenths = _half_up(seconds * 10)
+    tenths = half_up(seconds * 10)
     if tenths < TEN_SECONDS * 10:
         return f"{tenths / 10:.1f} s"
-    whole = _half_up(seconds)
+    whole = half_up(seconds)
     if whole < MINUTE:
         return f"{whole} s"
     if whole < HOUR:
         return f"{whole // MINUTE} min {whole % MINUTE:02d} s"
-    minutes = _half_up(whole / MINUTE)
+    minutes = half_up(whole / MINUTE)
     return f"{minutes // 60} h {minutes % 60:02d} min"
