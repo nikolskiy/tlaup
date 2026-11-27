@@ -16,11 +16,13 @@ permissions:
 
 jobs:
   archive:
-    # Merged, from this repository and not a fork, and not already an archived branch.
+    # Merged, from this repository and not a fork, not already an archived branch, and not
+    # Dependabot's: Dependabot deletes its own branch after the merge, and a rename raced it.
     if: >-
       github.event.pull_request.merged == true &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      !startsWith(github.event.pull_request.head.ref, 'archive/')
+      !startsWith(github.event.pull_request.head.ref, 'archive/') &&
+      !startsWith(github.event.pull_request.head.ref, 'dependabot/')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:

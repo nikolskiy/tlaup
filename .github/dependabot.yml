@@ -1,12 +1,17 @@
 version: 2
+# One grouped pull request per ecosystem a month, two weeks apart, so the two never wait on each
+# other: the ruleset makes a branch be up to date with main before it merges, so a merge sends any
+# other open pull request back for a fresh run (design 30 B1). Cron in UTC, minute hour
+# day-of-month month weekday; only dates are used, since cron fires when either a date or a weekday
+# matches. 06:00 is after the Monday 04:17 weekly Test run on main.
 updates:
   - package-ecosystem: uv
     directory: /
-    schedule: {interval: monthly}
+    schedule: {interval: cron, cronjob: "0 6 1 * *"} # the 1st of each month
     groups:
       all: {patterns: ["*"]}
   - package-ecosystem: github-actions
     directory: /
-    schedule: {interval: monthly}
+    schedule: {interval: cron, cronjob: "0 6 15 * *"} # the 15th of each month
     groups:
       all: {patterns: ["*"]}
