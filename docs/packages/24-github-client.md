@@ -1,6 +1,6 @@
 # 24. GitHub client
 
-Size: M. Suggested model: most capable. Status: built, not yet proven on CI. The by-hand request of "Done when" was made on 2026-11-25, through `GitHubClient.get_json("releases/tags/v1.7.4")` against `api.github.com/repos/tlaplus/tlaplus`, once without and once with a token: both answered 200 over TLS through the system trust store; without a token the request carried `Accept`, `Accept-Encoding`, `Connection`, `User-Agent` and `X-GitHub-Api-Version` and the rate limit was 60, with a token it also carried `Authorization` and the limit was 5000; the answer selected API version 2022-11-28. The debug filter (question Q6) is settled: a stand-alone `redact` owned by this package (Interfaces).
+Size: M. Suggested model: most capable. Status: built. The by-hand request of "Done when" was made on 2026-11-25, through `GitHubClient.get_json("releases/tags/v1.7.4")` against `api.github.com/repos/tlaplus/tlaplus`, once without and once with a token: both answered 200 over TLS through the system trust store; without a token the request carried `Accept`, `Accept-Encoding`, `Connection`, `User-Agent` and `X-GitHub-Api-Version` and the rate limit was 60, with a token it also carried `Authorization` and the limit was 5000; the answer selected API version 2022-11-28. The debug filter (question Q6) is settled: a stand-alone `redact` owned by this package (Interfaces).
 
 This is the security-sensitive package of the store track: it decides where the user's GitHub token goes.
 

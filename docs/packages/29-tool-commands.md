@@ -1,6 +1,6 @@
 # 29. The `tool` commands: switch to the new store
 
-Size: L as a whole, delivered as two pull requests (29a, L; 29b, M; see the end of this file). Suggested model: most capable. Status: built, not yet proven on CI. The debug filter is [24](24-github-client.md)'s `redact`, in place before this package (question Q6); the uninstall race is answered by the design (question Q8, [27](27-install-steps.md)).
+Size: L as a whole, delivered as two pull requests (29a, L; 29b, M; see the end of this file). Suggested model: most capable. Status: built. The debug filter is [24](24-github-client.md)'s `redact`, in place before this package (question Q6); the uninstall race is answered by the design (question Q8, [27](27-install-steps.md)).
 
 This is the switch package of the store track.
 
