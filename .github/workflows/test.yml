@@ -1,27 +1,30 @@
 name: Test
 
-# Every pushed branch runs, main included (the release script reads Test on main's HEAD); an
-# archived branch does not (design 30 I9). The push run is the one that reports Test on a branch's
-# head commit: a pull request opened by pull-request.yml's token starts no pull_request run. A
-# pull request from a branch of this repository runs twice per push, as push and as pull_request
-# (which tests the merge with main); the duplicate is accepted, since skipping it by a job
-# condition would leave a skipped Test, which counts as passed, on the same commit (I9).
+# A push to any branch but main and archive/** runs this, and the push run is the one that reports
+# Test on a pull request's head commit, the check the ruleset requires. Main itself takes changes
+# only as squash merges of such pull requests, so a push to main is not run again: the squash
+# commit has the tested head's tree, since the ruleset requires the branch to be up to date, and
+# the release script checks exactly that (design 30 I9, L1). There is no pull_request trigger: it
+# ran the same commit twice, and a run for a pull request the workflow's bot opened is held until
+# someone approves it. A pull request from a fork therefore gets no run (I9). The weekly run, and
+# one started by hand, test main.
 on:
   push:
     branches-ignore:
+      - main
       - "archive/**"
-  pull_request:
   schedule:
     - cron: "17 4 * * 1" # Mondays 04:17 UTC: the weekly run (design 30 I1, I3)
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-# A newer push to a branch or a pull request cancels its older run. The cancelled run's Test job
-# still runs (if: always(), below) and fails, so the superseded commit shows a red Test; the
-# required check reads the head commit, so that is harmless. On main a running run is never
-# cancelled, but a group keeps only one pending run, so a newer run replaces an older one that is
-# still waiting.
+# A newer push to a branch cancels its older run. The cancelled run's Test job still runs (if:
+# always(), below) and fails, so the superseded commit shows a red Test; the required check reads
+# the head commit, so that is harmless. On main (the weekly run, or one started by hand) a running
+# run is never cancelled, but a group keeps only one pending run, so a newer run replaces an older
+# one that is still waiting.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}

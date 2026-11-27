@@ -4,7 +4,7 @@ A release is cut from `main` in this order. Each step says what it checks; stop 
 
 1. **Refresh the lock file.** On a branch, run `uv lock --upgrade`, commit, push, and squash-merge the pull request once `Test` is green ([branches and pull requests](development.md#branches-and-pull-requests)). The weekly `deps-newest` run has usually shown already whether the newest versions work.
 2. **Bump the version.** Choose the part by the version rule in [conventions](conventions.md#compatibility-and-versions): from 0.9.0 on, a minor version carries breaking changes and features, a patch version only fixes. Run `uv run poe bump patch`, `minor` or `major`. It moves the version in `pyproject.toml` and `uv.lock` together and prints the new version; it does not touch the changelog and does not commit.
-3. **Date the changelog.** Rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`, with today's date; an empty `## [Unreleased]` heading above it may stay. `uv run python scripts/changelog_section.py X.Y.Z` prints the section the release page will show. Commit on a branch, push, and squash-merge the pull request once `Test` is green. Steps 2 and 3 may share one branch and one pull request. Then switch to `main` and pull, so that `HEAD` is the merged commit; the push of that commit to `main` starts the `Test` run that step 4 checks.
+3. **Date the changelog.** Rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`, with today's date; an empty `## [Unreleased]` heading above it may stay. `uv run python scripts/changelog_section.py X.Y.Z` prints the section the release page will show. Commit on a branch, push, and squash-merge the pull request once `Test` is green. Steps 2 and 3 may share one branch and one pull request. Then switch to `main` and pull, so that `HEAD` is the merged commit. The merge starts no `Test` run on `main`: step 4 reads the one on the pull request's head, which has the same tree.
 4. **Tag.** Run `scripts/release.sh --check`, then `scripts/release.sh`. Both need `gh` logged in. The script stops at the first check that fails and says what to do:
    1. reads the version with `uv version --short`;
    2. the branch is `main` and the working tree is clean;
@@ -12,7 +12,7 @@ A release is cut from `main` in this order. Each step says what it checks; stop 
    4. the tag `vX.Y.Z` exists neither locally nor on `origin`;
    5. `uv lock --check` passes and `uv.lock` has the same version;
    6. `CHANGELOG.md` has a dated section for the version, and nothing is left under `## [Unreleased]`;
-   7. the check `Test` of GitHub Actions completed with success on `HEAD`;
+   7. the check `Test` of GitHub Actions completed with success on `HEAD`'s tree: on `HEAD` itself if it has the check (the weekly run, or one started with `gh workflow run test.yml --ref main`), otherwise on the head of the pull request whose squash merge `HEAD` is, when that head has the same tree. The newest `Test` counts, so a run by hand or a re-run replaces a failed one; a run still going on `HEAD` is waited for;
    8. `uv run poe check-release` passes;
    9. it makes the annotated tag `vX.Y.Z`;
    10. it pushes `main` and the tag in one atomic push, and deletes the local tag if the push fails. Since `HEAD` is `origin/main` (step 3), only the tag is sent; `main` itself changes only through pull requests.
