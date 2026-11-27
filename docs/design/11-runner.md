@@ -16,6 +16,7 @@ class RunOutcome:
     resume_command: str | None        # R6; set when run_folder_kept is
     dropped_checkpoint: str | None    # R6; "not-asked", "incomplete" or "depth-first" when a checkpoint was not kept
     stopped_for_closed_pipe: bool     # R1; the reader of stdout went away and TLC was stopped (D58)
+    asked_for_help: bool              # TLC's arguments after `--` held `-help`; the result line says so (22 O3)
 
 def run_tlc(inv: TlcInvocation, java_inv: JavaInvocation, reporter: Reporter, *,
             paths: AppPaths, now, notice: Callable[[str], None]) -> RunOutcome

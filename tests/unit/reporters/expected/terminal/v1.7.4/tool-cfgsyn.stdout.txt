@@ -5,4 +5,4 @@ Error: TLC threw an unexpected exception.
   The exception was a tlc2.tool.ConfigFileException
   : TLC found an error in the configuration file at line 1
   The keyword SPECIFICATION was not followed by an identifier.
-Result: not checked: the configuration has errors (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4)
+Result: not checked: the configuration has errors (TLC exit code 255: TLC stopped on an error it does not classify; its output above says what went wrong)

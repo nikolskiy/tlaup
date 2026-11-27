@@ -293,6 +293,15 @@ def test_the_run_info_comes_from_the_invocation(make_run: Callable[..., Run], ja
     assert info.command == tuple(run.java_inv.argv())
 
 
+@pytest.mark.parametrize(("extra", "asked"), [((), False), (("-help",), True), (("-workers", "2"), False)])
+def test_the_outcome_says_whether_tlc_was_asked_for_its_help(
+    make_run: Callable[..., Run], java: Java, extra: tuple[str, ...], asked: bool
+) -> None:
+    java.script(stdout=SUCCESS, exit=1 if asked else 0)
+    outcome = make_run(*extra).parsed()
+    assert outcome.asked_for_help is asked
+
+
 def test_finish_and_close_come_after_an_interrupt(make_run: Callable[..., Run], java: Java) -> None:
     java.script(stdout=SUCCESS, hang_after_line=3)
     run = make_run()

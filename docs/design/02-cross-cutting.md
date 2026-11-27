@@ -45,22 +45,23 @@ Rules:
 | --- | --- | --- | --- |
 | 0 | success | TLC checked the spec and found nothing wrong. | yes |
 | 1 | usage error | TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find. (Rule 1 above; the meaning printed in the result line carries no cross-reference, corrected while building 38a.) | yes |
-| 10 | assumption failure | An assumption of the spec is false; on rolling also a postcondition. | yes |
+| 10 | assumption failure | An assumption in the spec is false. | yes |
 | 11 | deadlock failure | A reachable state has no successor. | yes |
 | 12 | safety failure | An invariant was violated. | yes |
 | 13 | liveness failure | A temporal property or an action property was violated. | yes |
 | 14 | assertion failure | An `Assert` in the spec failed. | yes |
-| 75 | evaluation failure | Evaluating the spec failed, for example while computing the initial states, or Java ran out of memory. | yes |
+| 75 | evaluation failure | TLC could not evaluate part of the spec, or Java ran out of memory. | yes |
 | 76 | evaluation failure | Evaluating an invariant failed. | yes |
 | 77 | evaluation failure | Evaluating a liveness property failed. | yes |
 | 150 | parse error | The spec does not parse, or fails SANY's semantic checks. | yes |
-| 151 | configuration error | The cfg file is wrong, or on rolling missing. | yes |
-| 152 | state space too large | Upstream's name for a code TLC declares; no supported build returns it. | yes |
-| 153 | system error | Upstream's name for a code TLC declares; no supported build returns it. | yes |
-| 255 | error | TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4. | yes |
-| any other | error | TLC returned a code it does not document. | no |
+| 151 | configuration error | The cfg file is missing or wrong. | yes |
+| 152 | state space too large | The state space is too large for TLC to check. | yes |
+| 153 | system error | TLC stopped on a system error. | yes |
+| 255 | error | TLC stopped on an error it does not classify; its output above says what went wrong. | yes |
+| above 128, not in the table | error | Java was stopped by a signal (`SIGTERM`): the name is that of signal `code - 128` from Python's `signal.Signals`, or `a signal (N)` when the number is no known signal. | no |
+| any other | error | TLC ended with a code tlaup does not know. | no |
 
-Each meaning is one sentence; the terminal reporter shows it with no full stop and with a lower-case first letter, unless its first word is an acronym (`TLC`, `JVM`), which stays as it is: `TLC returned a code it does not document`. The last row's word is `error`, not the first design's `failure`: for a code TLC does not document nobody can say that something was checked and found wrong (settled with the maintainer on 2026-11-24). The code alone cannot tell a false assumption from a false postcondition, which rolling also reports as 10 (research 15); when the first error's kind is `postcondition`, the terminal reporter shows the meaning of 10 as "a postcondition was false" ([22 O3](22-reporters.md#o3-terminal-reporter)). The terminal reporter prints the meaning beside the verdict in its result line (22 O3); the JSON of milestone 4 carries the word. Printing and JSON are designed in [22](22-reporters.md) and sketched in [40](40-later-milestones.md); the table itself is built in milestone 1b. (Stage 4 review, 2026-11-24: the full table of words and meanings and its unit test were missing, question Q4, decision D63; the test is P2's, and the postcondition case and where the meaning is printed now follow 22 O3; an initial acronym keeps its capitals, finding G5.)
+Each meaning is one sentence; the terminal reporter shows it with no full stop and with a lower-case first letter, unless its first word is an acronym (`TLC`, `JVM`) or the name `Java`, which stays as it is: `TLC ended with a code tlaup does not know`. The last two rows' word is `error`, not the first design's `failure`: for a code TLC does not document nobody can say that something was checked and found wrong (settled with the maintainer on 2026-11-24). A code above 128 that the table does not hold is how a shell and Java's launcher report a process stopped by signal `code - 128` (137 is SIGKILL, 143 SIGTERM); the numbers are the platform's, so a few names differ between Linux and macOS (SIGBUS is 7 and 10). `known` stays `no` for it, because the table does not hold the code. The code alone cannot tell a false assumption from a false postcondition, which rolling also reports as 10 (research 15); when the first error's kind is `postcondition`, the terminal reporter shows the meaning of 10 as "a postcondition was false" ([22 O3](22-reporters.md#o3-terminal-reporter)). The terminal reporter prints the meaning beside the verdict in its result line (22 O3); the JSON of milestone 4 carries the word. Printing and JSON are designed in [22](22-reporters.md) and sketched in [40](40-later-milestones.md); the table itself is built in milestone 1b. (Reworded on 2026-11-27, as the maintainer approved: the meanings of 10, 75, 151, 152, 153 and 255 read as plain statements instead of design notes, and the two unknown rows are new; the words and `known` did not change. Stage 4 review, 2026-11-24: the full table of words and meanings and its unit test were missing, question Q4, decision D63; the test is P2's, and the postcondition case and where the meaning is printed now follow 22 O3; an initial acronym keeps its capitals, finding G5.)
 
 **Rejected.** Three codes (2, 3, 4): a script could not tell "you named something that does not exist" from "try again later". Using 1 for failures: clashes with TLC's 1. Codes from sysexits (64 to 78): TLC uses 75 to 77. A separate code for internal errors: one more number to keep stable for something a script cannot act on.
 

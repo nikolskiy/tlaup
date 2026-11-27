@@ -10,4 +10,4 @@ Error: The second argument of \div is 0.
 
 
 1 states generated, 1 distinct, 0 left on queue
-Result: errors found (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4) in 1.1 s
+Result: errors found (TLC exit code 255: TLC stopped on an error it does not classify; its output above says what went wrong) in 1.1 s

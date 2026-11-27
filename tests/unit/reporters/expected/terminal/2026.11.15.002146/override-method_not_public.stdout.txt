@@ -5,4 +5,4 @@ Error: Attempted to apply the operator overridden by the Java method
   member is private to package: tlc2.overrides.TLCOverrides.Add2[Ljava.lang.Object;@2781e022/invokeStatic, from public Lookup,
   but it produced the following error:
   %2%
-Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4)
+Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify; its output above says what went wrong)

@@ -9,4 +9,4 @@ Error: Attempted to apply the operator overridden by the Java method
 
 
 0 states generated, 0 distinct, 0 left on queue; depth 0
-Result: errors found (TLC exit code 75: evaluating the spec failed, for example while computing the initial states, or Java ran out of memory) in 0.6 s
+Result: errors found (TLC exit code 75: TLC could not evaluate part of the spec, or Java ran out of memory) in 0.6 s

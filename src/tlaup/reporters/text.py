@@ -157,16 +157,18 @@ _NOT_CHECKED = {
     ErrorKind.OTHER: "TLC failed before computing the initial states",
 }
 _POSTCONDITION_CODE = 10
+_KEPT_CAPITALS = {"Java"}  # a name, not an acronym, that keeps its capital at the start of a meaning
+_HELP_CODE = 1  # what TLC exits with after `-help` (research 15)
 
 
 def _meaning(code: int, result: RunResult) -> str:
     """X1's sentence for the code, without its full stop and with a lower-case first letter unless the first word
-    is an acronym (finding G5); code 10 after a false postcondition says so (O3)."""
+    is an acronym or `Java` (finding G5); code 10 after a false postcondition says so (O3)."""
     if code == _POSTCONDITION_CODE and result.errors and result.errors[0].kind is ErrorKind.POSTCONDITION:
         return "a postcondition was false"
     sentence = describe_exit_status(code).meaning.removesuffix(".")
     first_word = sentence.split(" ", 1)[0]
-    if len(first_word) > 1 and first_word.isupper():
+    if (len(first_word) > 1 and first_word.isupper()) or first_word in _KEPT_CAPITALS:
         return sentence
     return sentence[:1].lower() + sentence[1:]
 
@@ -212,6 +214,8 @@ def result_line(outcome: RunOutcome, result: RunResult, elapsed: float) -> str:
         line = f"incomplete, interrupted after {format_elapsed(elapsed)}"
     elif outcome.stopped_for_closed_pipe:
         line = "incomplete, stopped because the output was closed"
+    elif outcome.asked_for_help and outcome.tool_exit_code == _HELP_CODE:
+        line = "TLC printed its help (TLC exit code 1)"
     else:
         line = f"incomplete, TLC stopped without finishing{code}"
     if result.resumed:

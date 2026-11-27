@@ -3,4 +3,4 @@ Error: TLC threw an unexpected exception.
   See the User Output or TLC Console for clues to what happened.
   The exception was a java.lang.IllegalStateException
   : boom in constructor
-Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4)
+Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify; its output above says what went wrong)
