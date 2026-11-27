@@ -1,6 +1,6 @@
 # 57. Repository hygiene
 
-Size: S. Suggested model: mid-tier. Status: built, not yet proven on CI.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
