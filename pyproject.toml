@@ -132,6 +132,7 @@ select = [
     "RET",    # flake8-return: cleaner return logic
     "TRY",    # tryceratops: prevent exception handling anti-patterns
     "BLE",    # flake8-blind-except: no blind except (two allowed, noqa with reason)
+    "DTZ",    # flake8-datetimez: no naive datetimes
     "TID251", # flake8-tidy-imports: banned APIs (below)
 ]
 ignore = [
