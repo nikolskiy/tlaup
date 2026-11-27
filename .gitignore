@@ -64,3 +64,8 @@ history.repl
 Thumbs.db
 *.sw[op]
 **/.claude/settings.local.json
+
+# Coverage reports and environment files
+htmlcov/
+coverage.xml
+.direnv/
