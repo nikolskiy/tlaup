@@ -9,9 +9,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
-from tlaup_parse.values import Value
+from tlaup_parse.values import JSONObject, Value
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -67,7 +67,7 @@ class ErrorKind(Enum):
     OTHER = "other"
 
 
-def _optional(data: dict[str, Any] | None, read: Callable[[dict[str, Any]], _T]) -> _T | None:
+def _optional(data: JSONObject | None, read: Callable[[JSONObject], _T]) -> _T | None:
     return None if data is None else read(data)
 
 
@@ -80,7 +80,7 @@ class ToolInfo:
     # `build.toml` uses for a golden folder (01 T3)
     raw: str  # the whole line
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "version": self.version,
             "revision": self.revision,
@@ -90,7 +90,7 @@ class ToolInfo:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> ToolInfo:
+    def from_dict(cls, data: JSONObject) -> ToolInfo:
         return cls(
             version=data["version"],
             revision=data["revision"],
@@ -145,7 +145,7 @@ class TlcMessage:
         text[-1] += self.after
         return text
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "code": self.code,
             "severity": self.severity,
@@ -157,7 +157,7 @@ class TlcMessage:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> TlcMessage:
+    def from_dict(cls, data: JSONObject) -> TlcMessage:
         return cls(
             code=data["code"],
             severity=data["severity"],
@@ -177,7 +177,7 @@ class Location:
     end_line: int | None
     end_column: int | None
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "module": self.module,
             "line": self.line,
@@ -187,7 +187,7 @@ class Location:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Location:
+    def from_dict(cls, data: JSONObject) -> Location:
         return cls(
             module=data["module"],
             line=data["line"],
@@ -205,11 +205,11 @@ class Variable:
     # forward (P5, -difftrace), the text of the state it came from
     printed: bool = True  # False when TLC left it out of this state and the parser carried it
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {"name": self.name, "value": self.value.to_dict(), "raw": self.raw, "printed": self.printed}
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Variable:
+    def from_dict(cls, data: JSONObject) -> Variable:
         return cls(name=data["name"], value=Value.from_dict(data["value"]), raw=data["raw"], printed=data["printed"])
 
 
@@ -222,7 +222,7 @@ class TraceState:
     variables: tuple[Variable, ...]
     lines: tuple[str, ...]  # the whole message body as printed, blank lines included
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "index": self.index,
             "action": self.action,
@@ -233,7 +233,7 @@ class TraceState:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> TraceState:
+    def from_dict(cls, data: JSONObject) -> TraceState:
         return cls(
             index=data["index"],
             action=data["action"],
@@ -250,7 +250,7 @@ class Trace:
     loop_to: int | None  # state index the behaviour returns to (2122)
     stuttering: bool  # the behaviour ends by stuttering (2218)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "states": [state.to_dict() for state in self.states],
             "loop_to": self.loop_to,
@@ -258,7 +258,7 @@ class Trace:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Trace:
+    def from_dict(cls, data: JSONObject) -> Trace:
         return cls(
             states=[TraceState.from_dict(state) for state in data["states"]],
             loop_to=data["loop_to"],
@@ -275,7 +275,7 @@ class TlcError:
     # in the order they arrived
     trace: Trace | None
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "kind": self.kind.value,
             "name": self.name,
@@ -285,7 +285,7 @@ class TlcError:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> TlcError:
+    def from_dict(cls, data: JSONObject) -> TlcError:
         return cls(
             kind=ErrorKind(data["kind"]),
             name=data["name"],
@@ -303,7 +303,7 @@ class Progress:
     queue: int  # -1 kept as -1 (simulation, research 1)
     at: str
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "diameter": self.diameter,
             "generated": self.generated,
@@ -313,7 +313,7 @@ class Progress:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Progress:
+    def from_dict(cls, data: JSONObject) -> Progress:
         return cls(
             diameter=data["diameter"],
             generated=data["generated"],
@@ -333,7 +333,7 @@ class FinalStats:
     outdegree: str | None  # the 2268 line as printed ("The average outdegree ... is 1 (minimum is 0, ...)")
     # dictionary keys: totalStates, distinctStates, stateDepth, as in the Examples manifest
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "totalStates": self.total_states,
             "distinctStates": self.distinct_states,
@@ -344,7 +344,7 @@ class FinalStats:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> FinalStats:
+    def from_dict(cls, data: JSONObject) -> FinalStats:
         return cls(
             total_states=data["totalStates"],
             distinct_states=data["distinctStates"],
@@ -367,7 +367,7 @@ class CoverageItem:
     distinct: int | None  # D of "D:G" (2772, 2773); None otherwise
     depth: int  # 2221 only: the number of "|" before "line"; 0 otherwise
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "kind": self.kind,
             "name": self.name,
@@ -379,7 +379,7 @@ class CoverageItem:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> CoverageItem:
+    def from_dict(cls, data: JSONObject) -> CoverageItem:
         return cls(
             kind=data["kind"],
             name=data["name"],
@@ -402,7 +402,7 @@ class Diagnostic:
     details: tuple[str, ...] = ()  # lines that belong to the diagnostic but are not its message
     # (the residual stack of a parse error, P8)
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "tool": self.tool,
             "severity": self.severity,
@@ -414,7 +414,7 @@ class Diagnostic:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Diagnostic:
+    def from_dict(cls, data: JSONObject) -> Diagnostic:
         return cls(
             tool=data["tool"],
             severity=data["severity"],
@@ -457,7 +457,7 @@ class RunResult:
     finished: str | None = None
     duration_ms: int | None = None
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "tool": None if self.tool is None else self.tool.to_dict(),
             "mode": self.mode,
@@ -487,7 +487,7 @@ class RunResult:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> RunResult:
+    def from_dict(cls, data: JSONObject) -> RunResult:
         return cls(
             tool=_optional(data["tool"], ToolInfo.from_dict),
             mode=data["mode"],
