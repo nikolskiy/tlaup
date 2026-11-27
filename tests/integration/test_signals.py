@@ -160,7 +160,7 @@ def test_sigkill_leaves_no_java(
         if before and after:
             assert clean.exit_code == IN_USE, clean.output
             assert (isolated.paths.runs / run_id).is_dir()
-            print(f"cache clean refused on attempt {attempt} of {ATTEMPTS}")  # shown by -rP, for the pull request
+            print(f"cache clean refused on attempt {attempt} of {ATTEMPTS}")  # noqa: T201 - shown by -rP
             return
         timings.append(f"attempt {attempt}: JVM alive before the command {before}, after it {after}")
         if (isolated.paths.runs / run_id).is_dir():  # cleaned now that the JVM is gone, so the next run is the one

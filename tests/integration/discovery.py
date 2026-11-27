@@ -182,9 +182,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     reason = missing(os.environ)
     if reason is not None:
         if not os.environ.get(VARIABLE):
-            print(HOW_TO_SET, file=sys.stderr)
+            print(HOW_TO_SET, file=sys.stderr)  # noqa: T201 - a poe task that prints for its user
         else:
-            print(f"test-integration: {reason}", file=sys.stderr)
+            print(f"test-integration: {reason}", file=sys.stderr)  # noqa: T201 - same
         return 1
     args = list(sys.argv[1:] if argv is None else argv)
     command = [sys.executable, "-m", "pytest", "tests/integration", "--no-cov", *args]

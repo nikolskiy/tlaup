@@ -116,6 +116,15 @@ repos:
         # which 01 T12 rule 3 exempts.
         exclude: ^(tests/fixtures/research/|tests/parse/test_framing_props\.py$)
 
+      # Every message goes through tlaup.ui or a reporter (14 F6, 30 I8). A type
+      # annotation `Console` without a call does not match.
+      - id: no-direct-output
+        name: No typer.echo or Console( outside ui.py and the reporters (14 F6)
+        language: pygrep
+        entry: '\btyper\.echo\b|\bConsole\('
+        files: ^src/.*\.py$
+        exclude: ^src/tlaup/(ui\.py|reporters/)
+
       - id: check-added-large-files
         name: Check for added large files
         entry: uv run check-added-large-files
