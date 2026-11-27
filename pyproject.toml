@@ -196,7 +196,8 @@ sequence = [
 python_version = "3.11"
 strict = true
 ignore_missing_imports = false
-exclude = ["build", "tests/"]
+# tests/ stays unchecked except tests/fakes/ (30 I8); the tests/ folder itself must not match, or mypy never descends.
+exclude = ["^build/", "^tests/(?!$|fakes/)"]
 
 # Per-module overrides for libraries without strict types
 [[tool.mypy.overrides]]

@@ -9,6 +9,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+# The JSON form of the model at the boundary (to_dict, from_dict, the parsers' input), not the model's own types.
+JSONObject = dict[str, Any]
+
 
 @dataclass(frozen=True)
 class Value:
@@ -22,7 +25,7 @@ class Value:
     # raw (the text again, so that two raw values compare by text)
     bounds: tuple[int, int] | None = None  # interval a..b
 
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> JSONObject:
         return {
             "kind": self.kind,
             "text": self.text,
@@ -34,7 +37,7 @@ class Value:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Value:
+    def from_dict(cls, data: JSONObject) -> Value:
         bounds = data["bounds"]
         return cls(
             kind=data["kind"],

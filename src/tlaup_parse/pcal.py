@@ -16,6 +16,8 @@ from tlaup_parse.model import Diagnostic, Location
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from tlaup_parse.values import JSONObject
+
 
 @dataclass
 class PcalResult:
@@ -37,7 +39,7 @@ class PcalResult:
     @classmethod
     def from_dict(cls, data: Mapping[str, object]) -> PcalResult:
         labels = cast("list[list[Any]]", data["labels_added"])
-        diagnostics = cast("list[dict[str, Any]]", data["diagnostics"])
+        diagnostics = cast("list[JSONObject]", data["diagnostics"])
         return cls(
             version=cast("str | None", data["version"]),
             files_written=list(cast("list[str]", data["files_written"])),

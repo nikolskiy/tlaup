@@ -535,7 +535,7 @@ class TerminalReporter:
         width, height = self._size
         return render_layout(view, self._clock(), width, height)
 
-    def _update(self, **changes: Any) -> None:
+    def _update(self, **changes: Any) -> None:  # Any: mypy checks dataclasses.replace per field, so no common type fits
         """A new view replaces the old one whole; a view is never changed in place (the thread reads it)."""
         if self.view is not None:
             self.view = replace(self.view, **changes)
@@ -561,7 +561,7 @@ class TerminalReporter:
         self._write(err_spool, status)
         self._write(out_spool, lines)
         self._tail.extend(lines)
-        changes: dict[str, Any] = {}
+        changes: dict[str, Any] = {}  # Any: the fields of LayoutView, passed to _update
         if isinstance(event, ProgressMade):
             self._progress.append(event.progress)
             changes["progress"] = tuple(self._progress)

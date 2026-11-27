@@ -1,6 +1,6 @@
 # 58. Lint rules
 
-Size: M, as six pull requests of size S, one per rule group (58a to 58f; see the last section). Suggested model: mid-tier. Status: ready.
+Size: M, as six pull requests of size S, one per rule group (58a to 58f; see the last section). Suggested model: mid-tier. Status: built, not yet proven on CI.
 
 ## Goal
 

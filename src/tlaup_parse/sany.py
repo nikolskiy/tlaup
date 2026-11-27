@@ -9,12 +9,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from tlaup_parse.model import Diagnostic, Location
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    from tlaup_parse.values import JSONObject
 
 
 class SanyLineClass(Enum):
@@ -53,7 +55,7 @@ class SanyResult:
 
     @classmethod
     def from_dict(cls, data: Mapping[str, object]) -> SanyResult:
-        diagnostics = cast("list[dict[str, Any]]", data["diagnostics"])
+        diagnostics = cast("list[JSONObject]", data["diagnostics"])
         return cls(
             diagnostics=tuple(Diagnostic.from_dict(d) for d in diagnostics),
             module_files=dict(cast("dict[str, str]", data["module_files"])),
@@ -150,7 +152,7 @@ class SanyParser:
 
     # -- the state machine ---------------------------------------------------------------------------------------
 
-    def _classify(self, text: str, done: list[Diagnostic]) -> SanyLineClass:  # noqa: PLR0911, PLR0912
+    def _classify(self, text: str, done: list[Diagnostic]) -> SanyLineClass:  # noqa: PLR0911, PLR0912 - one branch per state and line shape
         state = self._state
         if _BANNER.match(text):
             return self._enter("preamble", done, SanyLineClass.BANNER)
