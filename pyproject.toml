@@ -37,7 +37,7 @@ classifiers = [
 Homepage = "https://github.com/nikolskiy/tlaup"
 Repository = "https://github.com/nikolskiy/tlaup"
 Issues = "https://github.com/nikolskiy/tlaup/issues"
-Changelog = "https://github.com/nikolskiy/tlaup/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/nikolskiy/tlaup/releases"
 
 [project.scripts]
 tlaup = "tlaup.cli:main"
@@ -170,6 +170,8 @@ clean = "rm -rf dist"
 
 twine-check = "twine check dist/*.whl dist/*.tar.gz"
 check-wheel = "python scripts/check_wheel.py"
+# uv run poe bump patch|minor|major: pyproject.toml and uv.lock together (design 30 L4).
+bump = "python scripts/bump.py"
 
 [tool.poe.tasks.check-release]
 sequence = [
