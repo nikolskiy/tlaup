@@ -1,0 +1,61 @@
+"""Every fact of ``facts.py`` on every TLC build folder whose line it holds for (design 01 T3, 10 P1; package 08).
+
+``test_fact`` is the one test per fact and build; the other three tests check the facts themselves.
+"""
+
+from __future__ import annotations
+
+from collections import Counter
+from typing import TYPE_CHECKING
+
+import pytest
+
+from tests.parse.drive import build_folders, cases_of, line_of, parse_tlc
+from tests.parse.facts import FACTS, LINES, facts_for
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from tests.parse.facts import Fact
+
+
+def _fact_params() -> list[object]:
+    params: list[object] = []
+    for folder in build_folders("tlc"):
+        line = line_of(folder)
+        for case in cases_of(folder):
+            for fact in facts_for(case, line):
+                params.append(pytest.param(folder, fact, id=f"{folder.name}/{fact.id}"))
+    return params
+
+
+@pytest.mark.parametrize(("folder", "fact"), _fact_params())
+def test_fact(folder: Path, fact: Fact) -> None:
+    fact.check(parse_tlc(folder / f"{fact.case}.out"))
+
+
+def test_every_case_has_facts_for_its_line() -> None:
+    missing = [
+        f"{folder.name}/{case}"
+        for folder in build_folders("tlc")
+        for case in cases_of(folder)
+        if not facts_for(case, line_of(folder))
+    ]
+    assert missing == []
+
+
+def test_every_fact_names_a_case_of_every_line_it_holds_for() -> None:
+    cases_by_line: dict[str, set[str]] = {line: set() for line in LINES}
+    for folder in build_folders("tlc"):
+        cases_by_line[line_of(folder)].update(cases_of(folder))
+    wrong = [
+        (fact.id, sorted(fact.lines))
+        for fact in FACTS
+        if not fact.lines or not fact.lines <= LINES or any(fact.case not in cases_by_line[line] for line in fact.lines)
+    ]
+    assert wrong == []
+
+
+def test_fact_ids_are_unique() -> None:
+    counts = Counter(fact.id for fact in FACTS)
+    assert sorted(i for i, n in counts.items() if n > 1) == []

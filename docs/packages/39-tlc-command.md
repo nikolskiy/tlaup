@@ -1,6 +1,6 @@
 # 39. The `tlc` command: switch to the new runner
 
-Size: L. Suggested model: most capable. Status: ready.
+Size: L. Suggested model: most capable. Status: built.
 
 ## Goal
 
@@ -122,12 +122,20 @@ def make_reporter(ctx: AppContext, options: ReporterOptions) -> Reporter     # w
 The command function is G1's sketch; nothing else belongs in it:
 
 ```python
-inv = resolve_tlc_invocation(request, paths=..., settings=..., env=..., cwd=..., home=..., get_build=..., now=..., rng=...)
+inv = resolve_tlc_invocation(
+    request, paths=..., settings=..., env=..., cwd=..., home=..., get_build=..., now=..., rng=...
+)
 java_inv = build_tlc_command(inv)
 if show_command:
-    ui.out.print(join(replace(java_inv, lifeline=False).argv()),           # 11 R9: no lifeline; one line,
-                 markup=False, highlight=False, soft_wrap=True); return      # never wrapped or read as markup; exit 0
-for text in inv.warnings: ui.warning(text)
+    ui.out.print(
+        join(replace(java_inv, lifeline=False).argv()),  # 11 R9: no lifeline; one line,
+        markup=False,
+        highlight=False,
+        soft_wrap=True,
+    )
+    return  # never wrapped or read as markup; exit 0
+for text in inv.warnings:
+    ui.warning(text)
 if request.raw:
     outcome = run_tlc_raw(inv, java_inv, paths=paths, now=now, notice=ui.note)
 else:
@@ -226,7 +234,7 @@ Scenarios run in-process unless one of T5's five situations applies ([01 T12](..
 
 `tests/features/tlc_signals.feature` (R2, G3; inventory row R14). tlaup is started with `sys.executable -m tlaup`; the signal goes to the tlaup process alone, so each scenario proves forwarding.
 
-- Six scenarios: SIGTERM (143), one SIGINT (130), two SIGINTs (`send SIGINT twice` with `java ignores SIGINT`; 130, no `Traceback`), each in parsed mode and with `--raw`. In each, `the java process has exited`. In parsed mode stdout holds what was printed before the signal and the result line says the run was interrupted.
+- Six scenarios: SIGTERM (143), one SIGINT (130), two SIGINTs (`send SIGINT twice` with `java ignores SIGTERM` (corrected while building 39b: tlaup passes a first signal on as SIGTERM, so a fake that ignored SIGINT would die on it); 130, no `Traceback`), each in parsed mode and with `--raw`. In each, `the java process has exited`. In parsed mode stdout holds what was printed before the signal and the result line says the run was interrupted.
 - R6: the checkpoint-writing fake under `--keep`, interrupted with SIGINT, in parsed and in raw mode: one run folder is kept and the note is on stderr.
 - D60, on a pseudo-terminal, Linux and macOS (`in a terminal`; skipped with the reason where there is no pty): a Ctrl-C typed at the terminal during a parsed run reaches tlaup and not the fake, whose process group differs from tlaup's, and the run ends with 130; Ctrl-\ is logged as SIGQUIT by the fake and changes nothing else; with `--raw` the fake logs the SIGINT itself, in tlaup's group.
 - R6 and G3, the checkpoint deferral as real processes (question Q10, settled), with a fake that replays 2195 at line `n`, begins its checkpoint after it and commits it before it writes 2196 at line `m` (`java begins a checkpoint after line <n> and commits it before line <m>`, which also gives the fake a release file, [01 T4](../design/01-testing.md#t4-fakes-at-the-edges)), and `java hangs after line <m>`, after 2196 and never between the two (T4; finding E1). The When step is T5's, as [18](18-feature-harness.md) builds it: it sends the signal once the fake has logged its `checkpoint` line, waits until tlaup has shown the waiting line, and only then gives the release, so the fake commits and prints 2196 only after tlaup has shown that it holds the signal. `I start "tlaup tlc Spec --keep" and send SIGINT once java has begun its checkpoint`: stderr holds the waiting line (`waiting for TLC to finish writing its checkpoint; press Ctrl-C again to stop now`), the fake gets its SIGTERM only after 2196, which ends its hang (`java received SIGTERM`, and no SIGINT), the exit code is 130 and one run folder is kept with a complete checkpoint. The same ending `, and again once stderr contains "waiting for TLC"`: the step gives no release, the second SIGINT kills at once while the fake waits, before 2196, and nothing is kept (the `.tmp` files were never renamed).
@@ -323,6 +331,10 @@ Removed:
 Notes on the list. The design's duplicate entries are gone (index "Clerical", settled): a killed tlaup is G3's Fixed entry only, the Ctrl-C that waits for a checkpoint is R6's Changed entry only, and the removal of `tlc --cleanup` is in C1's Breaking line, which [45](45-cache-commands.md) writes with `tlaup cache clean`. R10's Breaking entry was written by [32](32-spec-resolution.md). X1's Breaking entry on exit codes belongs to [48](48-command-tree.md) (finding G7). The entry for the live view (O4), `--plain` and `--refresh-interval` (O5) is 40's. The P2 entry names `tlaup.tlc.models` as gone; the file itself goes one package later, with the layout code that still imports it (see Files), as P2 now says, and nothing is released in between (D6). The R7 Changed entry about listing loaded overrides was dropped from the design (finding C1); nothing in the first wave prints that list.
 
 ## Context for the worker
+
+**From 37** (noted at its merge, 2026-11-25). The checkpoint mark comes before `reporter.handle`, so when the reporter sees `CheckpointWritten` the held signal may already be on its way: a real-process deferral scenario must not assert that nothing was signalled yet at that moment; prove the deferral by the one waiting line and the kept, complete checkpoint, as 37's unit test does.
+
+**From 35b** (noted at its merge, 2026-11-25). The kept note, the reminder and the resume command come from `tlaup/tlc/rundirs.py` (`kept_note`, `reminder`, `resume_command`); `Kept` has a required `ended` field.
 
 **State of `main` when this starts.** Everything new exists and is tested from below: `tlaup_parse`, the launcher, the store and the `tool` commands, the module build and the `module` commands, `tlc/invocation.py`, `tlc/command.py`, `tlc/overrides.py`, `tlc/rundirs.py`, the run functions, the reporter interface and the plain terminal reporter. `tlaup tlc` is the last command on the old code: `cmd/tlc.py` calls the old `tlc/runner.py`, which uses the old parser, `run_cache.py`, `compiler.py` (edited by [04](04-delete-dead-code.md) and [29](29-tool-commands.md) so that it finds the pinned jar in the new store), `java/inspector.py` and the old formatter. Check what really imports what before deleting: `uv run mypy` and `ruff` name every dangling import.
 

@@ -1,0 +1,235 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {},
+    "other": [
+      "\u001b[1mNAME\u001b[0m",
+      "",
+      "\tSANY - provides parsing, semantic analysis, and level-checking for a TLA+ spec - Version 2.2 created 08 July 2020",
+      "",
+      "",
+      "\u001b[1mSYNOPSIS\u001b[0m",
+      "",
+      "\t\u001b[1mSANY\u001b[0m [\u001b[1m-dls\u001b[0m] [\u001b[1m-error-codes\u001b[0m] [\u001b[1m-messagesAsErrors\u001b[0m \u001b[3mcodes\u001b[0m] [\u001b[1m-suppressMessages\u001b[0m \u001b[3mcodes\u001b[0m] FILE...",
+      "",
+      "\u001b[1mDESCRIPTION\u001b[0m",
+      "",
+      "\t\u001b[1mSANY\u001b[0m is a parser and syntax checker for TLA+ specifications.",
+      "\tIt catches parsing errors and some \"semantic\" errors such as",
+      "\tpriming an expression containing primed variables.",
+      "",
+      "\u001b[1mOPTIONS\u001b[0m",
+      "",
+      "\t\u001b[1m-d\u001b[0m",
+      "\t\tOpens the semantic graph explorer prompt. The prompt accepts the following commands:",
+      "\t\t'cst' Prints out the concrete syntax tree.",
+      "\t\t'dot' Emits the semantic graph to a ModuleName.dot file in the DOT graph description language.",
+      "\t\t'mt'  Prints the module table, a list of all imported modules and their top-level definitions.",
+      "\t\t'mt*' Prints the extended module table including built-in operator definitions.",
+      "",
+      "\t\tOptionally, skip the prompt and run a command directly by appending it like 'SANY -d ModuleName.tla cst'",
+      "\t\u001b[1m-error-codes\u001b[0m",
+      "\t\tReturn a descriptive exit code in case of error.",
+      "",
+      "\t\t'2' Error during parsing.",
+      "\t\t'4' Error during semantic analysis or level-checking.",
+      "\t\u001b[1m-l\u001b[0m",
+      "\t\tTurns off level-checking.",
+      "\t\u001b[1m-messagesAsErrors\u001b[0m \u001b[3mcodes\u001b[0m",
+      "\t\tTreat specific message codes as errors; comma-separated list of message codes.",
+      "\t\tWhen triggered, SANY exits with failure.",
+      "\t\tMessage codes can be found in https://github.com/tlaplus/tlaplus/blob/master/tlatools/org.lamport.tlatools/src/tla2sany/semantic/ErrorCode.java#L38",
+      "\t\u001b[1m-s\u001b[0m",
+      "\t\tTurns off semantic analysis and level-checking.",
+      "\t\u001b[1m-suppressMessages\u001b[0m \u001b[3mcodes\u001b[0m",
+      "\t\tSuppress specific messages; comma-separated list of message codes.",
+      "\t\tSuppressed messages are not printed and do not cause SANY to fail.",
+      "\t\tErrors cannot be suppressed.",
+      "\t\t Message codes can be found in https://github.com/tlaplus/tlaplus/blob/master/tlatools/org.lamport.tlatools/src/tla2sany/semantic/ErrorCode.java#L38",
+      ""
+    ],
+    "lines_used": 1
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\u001b[1mNAME\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\tSANY - provides parsing, semantic analysis, and level-checking for a TLA+ spec - Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\u001b[1mSYNOPSIS\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1mSANY\u001b[0m [\u001b[1m-dls\u001b[0m] [\u001b[1m-error-codes\u001b[0m] [\u001b[1m-messagesAsErrors\u001b[0m \u001b[3mcodes\u001b[0m] [\u001b[1m-suppressMessages\u001b[0m \u001b[3mcodes\u001b[0m] FILE..."
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\u001b[1mDESCRIPTION\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1mSANY\u001b[0m is a parser and syntax checker for TLA+ specifications."
+    },
+    {
+      "class": "other",
+      "text": "\tIt catches parsing errors and some \"semantic\" errors such as"
+    },
+    {
+      "class": "other",
+      "text": "\tpriming an expression containing primed variables."
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\u001b[1mOPTIONS\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": ""
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1m-d\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": "\t\tOpens the semantic graph explorer prompt. The prompt accepts the following commands:"
+    },
+    {
+      "class": "other",
+      "text": "\t\t'cst' Prints out the concrete syntax tree."
+    },
+    {
+      "class": "other",
+      "text": "\t\t'dot' Emits the semantic graph to a ModuleName.dot file in the DOT graph description language."
+    },
+    {
+      "class": "other",
+      "text": "\t\t'mt'  Prints the module table, a list of all imported modules and their top-level definitions."
+    },
+    {
+      "class": "other",
+      "text": "\t\t'mt*' Prints the extended module table including built-in operator definitions."
+    },
+    {
+      "class": "other",
+      "text": "\t\t"
+    },
+    {
+      "class": "other",
+      "text": "\t\tOptionally, skip the prompt and run a command directly by appending it like 'SANY -d ModuleName.tla cst'"
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1m-error-codes\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": "\t\tReturn a descriptive exit code in case of error."
+    },
+    {
+      "class": "other",
+      "text": "\t\t"
+    },
+    {
+      "class": "other",
+      "text": "\t\t'2' Error during parsing."
+    },
+    {
+      "class": "other",
+      "text": "\t\t'4' Error during semantic analysis or level-checking."
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1m-l\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": "\t\tTurns off level-checking."
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1m-messagesAsErrors\u001b[0m \u001b[3mcodes\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": "\t\tTreat specific message codes as errors; comma-separated list of message codes."
+    },
+    {
+      "class": "other",
+      "text": "\t\tWhen triggered, SANY exits with failure."
+    },
+    {
+      "class": "other",
+      "text": "\t\tMessage codes can be found in https://github.com/tlaplus/tlaplus/blob/master/tlatools/org.lamport.tlatools/src/tla2sany/semantic/ErrorCode.java#L38"
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1m-s\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": "\t\tTurns off semantic analysis and level-checking."
+    },
+    {
+      "class": "other",
+      "text": "\t\u001b[1m-suppressMessages\u001b[0m \u001b[3mcodes\u001b[0m"
+    },
+    {
+      "class": "other",
+      "text": "\t\tSuppress specific messages; comma-separated list of message codes."
+    },
+    {
+      "class": "other",
+      "text": "\t\tSuppressed messages are not printed and do not cause SANY to fail."
+    },
+    {
+      "class": "other",
+      "text": "\t\tErrors cannot be suppressed."
+    },
+    {
+      "class": "other",
+      "text": "\t\t Message codes can be found in https://github.com/tlaplus/tlaplus/blob/master/tlatools/org.lamport.tlatools/src/tla2sany/semantic/ErrorCode.java#L38"
+    },
+    {
+      "class": "other",
+      "text": ""
+    }
+  ]
+}

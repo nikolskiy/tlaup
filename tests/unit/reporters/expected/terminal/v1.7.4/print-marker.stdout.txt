@@ -1,0 +1,17 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+"before @!@!@STARTMSG 2185:0 @!@!@ after"
+"@!@!@STARTMSG 9999:1 @!@!@"
+"@!@!@STARTMSG 9999:1 @!@!@"
+Error: Deadlock reached.
+"before @!@!@STARTMSG 2185:0 @!@!@ after"
+"@!@!@STARTMSG 9999:1 @!@!@"
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+  2: Next  (PrintMarker.tla:5:9)
+     * x = 1
+"@!@!@STARTMSG 9999:1 @!@!@"
+  3: Next  (PrintMarker.tla:5:9)
+     * x = 2
+3 states generated, 3 distinct, 0 left on queue; depth 3
+Result: errors found (TLC exit code 11: a reachable state has no successor) in 0.7 s

@@ -1,0 +1,4 @@
+TLC rolling@bc1b506 (2026.11.15.002146), Java 25.0.5
+Big.tla  cfg: Big.cfg
+1,581,826 states generated, 537,890 distinct, 10,473 on queue, diameter 148
+6,692,791 states generated, 2,248,091 distinct, 0 on queue, diameter 391

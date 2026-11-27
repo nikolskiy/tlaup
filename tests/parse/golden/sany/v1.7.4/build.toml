@@ -1,0 +1,6 @@
+# The jar this folder was captured with (design 01 T3). The commit is the manifest's X-Git-Revision
+# (tests/unit/data/manifests/), the SHA-256 the capture READMEs' digest.
+line = "stable"
+tag = "v1.7.4"
+commit = "5a47802b5c391f59ecdd44117981f4ff8c0656ba"
+sha256 = "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88"

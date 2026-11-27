@@ -1,0 +1,59 @@
+{
+  "tool": {
+    "version": "2.19",
+    "revision": "5a47802",
+    "date": "08 August 2024",
+    "line": "stable",
+    "raw": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "success",
+  "verdict": "no-error",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [],
+  "warnings": [],
+  "sany": [],
+  "module_files": {
+    "spec": "<repo>/tests/fixtures/research/13-override-loading/v1.7.4/cases/legacy_ok/spec.tla",
+    "Naturals": "/tmp/Naturals.tla",
+    "TLC": "/tmp/TLC.tla",
+    "Ovr": "<repo>/tests/fixtures/research/13-override-loading/v1.7.4/cases/legacy_ok/modules/Ovr.tla",
+    "Sequences": "/tmp/Sequences.tla",
+    "FiniteSets": "/tmp/FiniteSets.tla"
+  },
+  "overrides_loaded": [
+    "file:<repo>/tests/fixtures/research/13-override-loading/v1.7.4/cases/legacy_ok/classes/tlc2/module/Ovr.class.Add2"
+  ],
+  "progress": [
+    {
+      "diameter": 1,
+      "generated": 2,
+      "distinct": 1,
+      "queue": 0,
+      "at": "2026-11-14 22:26:42"
+    }
+  ],
+  "stats": {
+    "totalStates": 2,
+    "distinctStates": 1,
+    "queue": 0,
+    "stateDepth": 1,
+    "collision_probability": "5.4E-20",
+    "outdegree": "The average outdegree of the complete state graph is 0 (minimum is 0, the maximum 0 and the 95th percentile is 0)."
+  },
+  "coverage": [],
+  "output": [
+    "<<\"Inv sees\", 3, 30>>"
+  ],
+  "output_dropped": 0,
+  "unframed_lines": 13,
+  "sany_lines_used": 12,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-14 22:26:41",
+  "finished": "2026-11-14 22:26:42",
+  "duration_ms": 912
+}

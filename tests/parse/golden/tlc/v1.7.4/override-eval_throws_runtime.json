@@ -1,0 +1,105 @@
+{
+  "tool": {
+    "version": "2.19",
+    "revision": "5a47802",
+    "date": "08 August 2024",
+    "line": "stable",
+    "raw": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "errors",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "exception",
+      "name": null,
+      "message": {
+        "code": 1000,
+        "severity": 1,
+        "name": "GENERAL",
+        "body": [
+          {
+            "code": 2154,
+            "severity": 0,
+            "name": "TLC_MODULE_VALUE_JAVA_METHOD_OVERRIDE",
+            "body": [
+              "Attempted to apply the operator overridden by the Java method",
+              "public static tlc2.value.impl.Value tlc2.overrides.TLCOverrides.Add2(tlc2.value.impl.IntValue,tlc2.value.impl.IntValue),",
+              "but it produced the following error:",
+              "boom in override body"
+            ],
+            "before": "",
+            "after": "",
+            "truncated": false
+          }
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [
+        {
+          "code": 2103,
+          "severity": 1,
+          "name": "TLC_NESTED_EXPRESSION",
+          "body": [
+            "The error occurred when TLC was evaluating the nested",
+            "expressions at the following positions:",
+            "0. Line 4, column 9 to line 4, column 22 in spec",
+            "1. Line 4, column 13 to line 4, column 22 in spec",
+            "",
+            ""
+          ],
+          "before": "",
+          "after": "",
+          "truncated": false
+        }
+      ],
+      "trace": null
+    }
+  ],
+  "warnings": [],
+  "sany": [],
+  "module_files": {
+    "spec": "<repo>/tests/fixtures/research/13-override-loading/v1.7.4/cases/eval_throws_runtime/spec.tla",
+    "Naturals": "/tmp/Naturals.tla",
+    "TLC": "/tmp/TLC.tla",
+    "Ovr": "<repo>/tests/fixtures/research/13-override-loading/v1.7.4/cases/eval_throws_runtime/modules/Ovr.tla",
+    "Sequences": "/tmp/Sequences.tla",
+    "FiniteSets": "/tmp/FiniteSets.tla"
+  },
+  "overrides_loaded": [
+    "tlc2.overrides.TLCOverrides.Add2"
+  ],
+  "progress": [
+    {
+      "diameter": 1,
+      "generated": 0,
+      "distinct": 0,
+      "queue": 0,
+      "at": "2026-11-14 22:26:33"
+    }
+  ],
+  "stats": {
+    "totalStates": 0,
+    "distinctStates": 0,
+    "queue": 0,
+    "stateDepth": null,
+    "collision_probability": null,
+    "outdegree": null
+  },
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 12,
+  "sany_lines_used": 12,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-14 22:26:33",
+  "finished": "2026-11-14 22:26:33",
+  "duration_ms": 879
+}

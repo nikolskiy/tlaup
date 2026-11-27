@@ -1,6 +1,6 @@
 # 14. The PlusCal parser
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
@@ -46,20 +46,23 @@ Provides, from [10 P2](../design/10-parser.md#p2-the-tlaup_parse-package) and [2
 ```python
 # tlaup_parse/pcal.py
 class PcalParser:
-    def feed(self, line: str) -> list[Diagnostic]: ...    # one line, with or without its ending; the diagnostics it completed
-    def close(self) -> list[Diagnostic]: ...              # end of input: the diagnostic still open, if any
+    def feed(
+        self, line: str
+    ) -> list[Diagnostic]: ...  # one line, with or without its ending; the diagnostics it completed
+    def close(self) -> list[Diagnostic]: ...  # end of input: the diagnostic still open, if any
     @property
     def result(self) -> PcalResult: ...
+
 
 @dataclass
 class PcalResult:
     version: str | None
-    files_written: list[str]              # from "New file X written."
+    files_written: list[str]  # from "New file X written."
     labels_added: list[tuple[str, int, int]]
-    diagnostics: list[Diagnostic]         # tool="pcal"
-    other: list[str]                      # lines not recognised, kept
+    diagnostics: list[Diagnostic]  # tool="pcal"
+    other: list[str]  # lines not recognised, kept
 
-    def to_dict(self) -> dict[str, object]: ...     # plain JSON types, as the types of 10 P3 (S2)
+    def to_dict(self) -> dict[str, object]: ...  # plain JSON types, as the types of 10 P3 (S2)
     @classmethod
     def from_dict(cls, data: Mapping[str, object]) -> "PcalResult": ...
 ```

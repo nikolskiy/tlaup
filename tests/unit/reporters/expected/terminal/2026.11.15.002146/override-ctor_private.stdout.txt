@@ -1,0 +1,6 @@
+Error: TLC threw an unexpected exception.
+  This was probably caused by an error in the spec or model.
+  See the User Output or TLC Console for clues to what happened.
+  The exception was a java.lang.RuntimeException
+  : 
+Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify; its output above says what went wrong)

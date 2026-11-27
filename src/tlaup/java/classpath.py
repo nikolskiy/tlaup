@@ -1,16 +1,11 @@
-import os
+from collections.abc import Callable, Sequence
+from datetime import datetime
 from enum import Enum, auto
 from pathlib import Path
 
 from tlaup.config.schema import Settings
-from tlaup.versioning.paths import get_modules_dir
-
-
-class ResolveMode(Enum):
-    """Modes for classpath resolution."""
-
-    RUNTIME = auto()  # For 'java -cp ... tlc2.TLC' (classes first)
-    COMPILE = auto()  # For 'javac -cp ...' (tool jar first, no output classes)
+from tlaup.modules.registry import Registry
+from tlaup.project.core import CLASSES_DIR, LIB_DIR, MODULES_DIR
 
 
 class SubdirType(Enum):
@@ -27,13 +22,15 @@ class ClasspathResolver:
     Follows a strict Specific-to-General hierarchy: CLI > Project > Config > Global.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913 - the signature package 30 gives
         self,
         config: Settings,
         project_root: Path | None = None,
         tool_jar: Path | None = None,
         extra_libs: list[str] | None = None,
         extra_modules: list[str] | None = None,
+        *,
+        module_dirs: Sequence[Path],
     ):
         """
         Initialize the resolver.
@@ -44,154 +41,133 @@ class ClasspathResolver:
             tool_jar: Path to tla2tools.jar.
             extra_libs: Explicit library paths from CLI.
             extra_modules: Explicit module paths from CLI.
+            module_dirs: The folders of the registered modules, in the order Registry.list() gives them.
         """
         self.config = config
         self.project_root = project_root
         self.tool_jar = tool_jar
         self.extra_libs = extra_libs or []
         self.extra_modules = extra_modules or []
+        self.module_dirs = module_dirs
 
     def get_project_path(self, subdir: SubdirType) -> Path | None:
         """Helper to find a project-local directory."""
         if not self.project_root:
             return None
 
-        # 1. Try explicit workspace config mapping
-        if subdir == SubdirType.MODULES:
-            path = self.project_root / self.config.workspace.modules_dir
-            if path.is_dir():
-                return path
-        elif subdir == SubdirType.CLASSES:
-            path = self.project_root / self.config.workspace.classes_dir
-            if path.is_dir():
-                return path
-
-        # 2. Try direct subdir (new standard)
         subdir_name = {
-            SubdirType.MODULES: "modules",
-            SubdirType.CLASSES: "classes",
-            SubdirType.LIB: "lib",
+            SubdirType.MODULES: MODULES_DIR,
+            SubdirType.CLASSES: CLASSES_DIR,
+            SubdirType.LIB: LIB_DIR,
         }[subdir]
         path = self.project_root / subdir_name
         if path.is_dir():
             return path
 
-        # 3. Try legacy/nested 'lib' inside modules_dir
-        if subdir == SubdirType.LIB:
-            path = self.project_root / self.config.workspace.modules_dir / "lib"
-            if path.is_dir():
-                return path
-
         return None
 
-    def _resolve_paths(self, cli_paths: list[str], subdir: SubdirType, config_path: str | None) -> list[str]:  # noqa: PLR0912
+    def _layer_paths(self, cli_paths: list[str], subdir: SubdirType, config_path: str | None, cwd: Path) -> list[Path]:
         """
-        Resolves a set of paths following the hierarchy.
-        Deduplicates while preserving order.
+        Resolves a set of paths following the hierarchy: command line, project, config, registered modules.
+        Relative paths are read against `cwd`. Deduplicates while preserving order; a lib folder gives its jars.
         """
-        raw_paths = []
+        raw_paths: list[Path] = []
 
         # 1. CLI Arguments
-        raw_paths.extend(cli_paths)
+        raw_paths.extend(cwd / p for p in cli_paths)
 
         # 2. Project-Local
         project_path = self.get_project_path(subdir)
         if project_path:
-            raw_paths.append(str(project_path.absolute()))
+            raw_paths.append(cwd / project_path)
 
         # 3. Config
         if config_path:
-            raw_paths.append(str(Path(config_path).absolute()))
+            raw_paths.append(cwd / config_path)
 
-        # 4. Managed Modules (Global Cache)
-        managed_dir = get_modules_dir()
-        if managed_dir.is_dir():
-            # Add all subdirectories of managed_dir to raw_paths so they are expanded for JARs/TLA files
-            for item in sorted(managed_dir.iterdir()):
-                if item.is_dir():
-                    if subdir == SubdirType.LIB:
-                        mod_lib = item / "lib"
-                        if mod_lib.is_dir():
-                            raw_paths.append(str(mod_lib.absolute()))
-                        raw_paths.append(str(item.absolute()))  # Legacy fallback
-                    elif subdir == SubdirType.MODULES:
-                        mod_modules = item / "modules"
-                        if mod_modules.is_dir():
-                            raw_paths.append(str(mod_modules.absolute()))
-                        raw_paths.append(str(item.absolute()))  # Legacy fallback
+        # 4. Managed Modules: the registered modules' folders
+        for item in self.module_dirs:
+            if subdir == SubdirType.LIB:
+                mod_lib = item / "lib"
+                if mod_lib.is_dir():
+                    raw_paths.append(cwd / mod_lib)
+            elif subdir == SubdirType.MODULES:
+                mod_modules = item / "modules"
+                if mod_modules.is_dir():
+                    raw_paths.append(cwd / mod_modules)
 
-        # Deduplicate while preserving order
-        seen = set()
-        deduped = []
-        for p in raw_paths:
-            # Expand directories to include JARs if it's a lib path
-            path_obj = Path(p)
-            if path_obj.is_dir() and subdir == SubdirType.LIB:
-                for jar in sorted(path_obj.glob("*.jar")):
-                    jar_abs = str(jar.absolute())
-                    if jar_abs not in seen:
-                        seen.add(jar_abs)
-                        deduped.append(jar_abs)
+        # Expand lib folders into their jars, sorted by name
+        expanded: list[Path] = []
+        for path in raw_paths:
+            if path.is_dir() and subdir == SubdirType.LIB:
+                expanded.extend(sorted(path.glob("*.jar")))
             else:
-                p_abs = str(path_obj.absolute())
-                if p_abs not in seen:
-                    seen.add(p_abs)
-                    deduped.append(p_abs)
+                expanded.append(path)
+        return _first_places(expanded)
 
-        return deduped
-
-    def resolve(self, mode: ResolveMode) -> list[str]:
+    def runtime_classpath(self, cwd: Path) -> list[Path]:
         """
-        Resolve all necessary paths for the classpath based on the requested mode.
-        Deduplicates results while preserving the Specific-to-General order
-        and mode-specific requirements.
+        The classpath of a run (design 13 M2, "The classpath of a run"), each entry an absolute path, each once in
+        its first place: the project's classes, the TLA+ module folders, the registered modules' classes, the tool
+        jar, then the jars. A relative path in the settings is read against `cwd`.
         """
-        classpath = []
+        classpath: list[Path] = []
 
-        # In RUNTIME mode, custom classes shadow everything
-        if mode == ResolveMode.RUNTIME:
-            # Project-local classes
-            classes_dir = self.get_project_path(SubdirType.CLASSES)
-            if classes_dir:
-                classpath.append(str(classes_dir.absolute()))
+        # Project-local classes shadow everything
+        classes_dir = self.get_project_path(SubdirType.CLASSES)
+        if classes_dir:
+            classpath.append(cwd / classes_dir)
 
-            # Module source directories containing .tla files
-            modules = self._resolve_paths(self.extra_modules, SubdirType.MODULES, self.config.module_path)
-            classpath.extend(modules)
+        # Module source directories containing .tla files
+        classpath.extend(self.tla_library(cwd))
 
-        # Cached module classes are included as dependencies in all modes (RUNTIME & COMPILE)
-        managed_dir = get_modules_dir()
-        if managed_dir.is_dir():
-            for item in sorted(managed_dir.iterdir()):
-                if item.is_dir():
-                    mod_classes = item / "classes"
-                    if mod_classes.is_dir():
-                        classpath.append(str(mod_classes.absolute()))
+        # Registered modules' classes
+        for item in self.module_dirs:
+            mod_classes = item / "classes"
+            if mod_classes.is_dir():
+                classpath.append(cwd / mod_classes)
 
         # Tool JAR
         if self.tool_jar:
-            classpath.append(str(self.tool_jar.absolute()))
+            classpath.append(cwd / self.tool_jar)
 
-        # Libraries (CLI > Project > Config)
-        libs = self._resolve_paths(self.extra_libs, SubdirType.LIB, self.config.module_lib_path)
-        classpath.extend(libs)
+        # Libraries (CLI > Project > Config > registered modules)
+        classpath.extend(self._layer_paths(self.extra_libs, SubdirType.LIB, self.config.module_lib_path, cwd))
 
-        # Final deduplication (e.g. if tool_jar is also in libs)
-        seen = set()
-        final_cp = []
-        for p in classpath:
-            if p not in seen:
-                seen.add(p)
-                final_cp.append(p)
+        return _first_places(classpath)
 
-        return final_cp
+    def tla_library(self, cwd: Path) -> list[Path]:
+        """The folders of TLA+ modules, for -DTLA-Library: step 2 of the classpath, in the same order."""
+        return self._layer_paths(self.extra_modules, SubdirType.MODULES, self.config.module_path, cwd)
 
-    def get_tla_library_property(self) -> str | None:
-        """
-        Resolve paths for -DTLA-Library system property.
-        Deduplicates, orders, and joins multiple valid directories.
-        """
-        modules = self._resolve_paths(self.extra_modules, SubdirType.MODULES, self.config.module_path)
-        if not modules:
-            return None
-        return os.pathsep.join(modules)
+
+def _first_places(paths: list[Path]) -> list[Path]:
+    """Each path once, in its first place (compared as given: every path here is absolute)."""
+    seen: set[Path] = set()
+    kept: list[Path] = []
+    for path in paths:
+        if path not in seen:
+            seen.add(path)
+            kept.append(path)
+    return kept
+
+
+def run_paths(  # noqa: PLR0913 - the pieces a run's paths come from
+    settings: Settings,
+    *,
+    project_root: Path | None,
+    tool_jar: Path,
+    modules: Path,
+    now: Callable[[], datetime],
+    cwd: Path,
+) -> tuple[tuple[Path, ...], tuple[Path, ...]]:
+    """The classpath and the TLA-Library folders of a run (13 M2): the one place a TLC run and the other tools
+    that read a spec get them from. ``modules`` is ``AppPaths.modules``, whose registered modules are listed in
+    name order; ``cwd`` is the folder tlaup was started in, which a relative setting is read against."""
+    resolver = ClasspathResolver(
+        settings,
+        project_root=project_root,
+        tool_jar=tool_jar,
+        module_dirs=[module.path for module in Registry(modules, now=now).list()],
+    )
+    return tuple(resolver.runtime_classpath(cwd)), tuple(resolver.tla_library(cwd))

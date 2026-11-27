@@ -17,8 +17,8 @@ Roadmap: "A reporter interface fed by the parsed result and run events. Move the
 ```python
 # tlaup/reporters/base.py
 @dataclass(frozen=True)
-class RunInfo:                       # known before the tool starts
-    tool: str                        # "tlc"
+class RunInfo:  # known before the tool starts
+    tool: str  # "tlc"
     spec: Path
     cfg: Path | None
     build: Build
@@ -28,14 +28,16 @@ class RunInfo:                       # known before the tool starts
     override_classes: tuple[str, ...]
     command: tuple[str, ...]
 
+
 class Reporter(Protocol):
     def start(self, run: RunInfo) -> None: ...
-    def handle(self, event: Event, result: RunResult) -> None: ...   # events of 10 P3
-    def stderr_line(self, line: str) -> None: ...                    # a line the tool wrote to stderr
-    def notice(self, line: str) -> None: ...                         # a line of tlaup's own during the run (below)
-    def finish(self, outcome: RunOutcome) -> None: ...               # 11; the run ended and has an outcome
-    def close(self) -> None: ...                                     # always called last; never raises
-    write_error: OSError | None                                      # set by close when a write failed in it
+    def handle(self, event: Event, result: RunResult) -> None: ...  # events of 10 P3
+    def stderr_line(self, line: str) -> None: ...  # a line the tool wrote to stderr
+    def notice(self, line: str) -> None: ...  # a line of tlaup's own during the run (below)
+    def finish(self, outcome: RunOutcome) -> None: ...  # 11; the run ended and has an outcome
+    def close(self) -> None: ...  # always called last; never raises
+
+    write_error: OSError | None  # set by close when a write failed in it
 ```
 
 The order of calls is fixed by `run_tlc` ([11](11-runner.md)), which is the only caller in tlaup:
@@ -170,6 +172,7 @@ Rules for the content:
 - **Header** (stderr): the build from the store, Java's version, workers; then the spec and cfg relative to the working folder. A part that is not known is left out, with no placeholder: with no `--cfg` the second line names the spec alone, because tlaup does not look for `Spec.cfg` ([02 X1](02-cross-cutting.md#x1-exit-codes)) and a rolling build can read a cfg embedded in the spec, so naming one could be wrong; with `-workers` given after `--` (`RunInfo.workers` is `None`) the workers part is left out, and so is Java's version when the Java check did not give one. When TLC's own version line arrives (`VersionSeen`) and differs from what the store says, it is added, as TLC printed it (`ToolInfo.raw`), on stderr. It differs when its revision is not a prefix of the build's commit, or when the build has a CalVer and TLC's version is not that CalVer.
 - **The spec's output and unrecognised text** (`OutputLine`) go to stdout exactly as TLC printed them, at once (D9). This includes lines of SANY output the SANY parser did not use ([10 P8](10-parser.md#p8-sany-output)). SANY's own chatter that the parser did use (`Parsing file`, `Semantic processing of module`) produces no event and is not shown in the first wave; milestone 4's `--verbose` is where it would return.
 - **A message "as TLC printed it"** means `message.text_lines()` ([10 P4](10-parser.md#p4-framing-and-never-losing-output)) wherever this list says so: the message's lines in order, a nested message's lines in their place among them, with no heading or extra indent of their own. For the nested cases in the captures this is line for line what TLC prints without `-tool`. A message that was cut off (`truncated`) is printed the same way with the lines it has.
+- **No doubled prefix** (added while building 38a, 2026-11-25, a low-impact choice by the stage 5 lead). When a message's first line already starts with the word of its prefix and a colon (`Error:`, `Warning:`), the reporter leaves its own prefix off, so TLC's "Error: unrecognized option" is printed once; the prefix stays when it carries `TLC message <code>: `. This is presentation, not parsing: no fact about the run is read from the text.
 - **Unknown messages** (`UnknownMessage`: a code that is not in the table) are printed on stdout as TLC printed them, prefixed by `TLC message <code>:` so the user can report it. A message with an unknown code and severity error or warning arrives as `ErrorOpened` or `WarningFound` and is printed as an error or a warning, with the same prefix.
 - **Events that print nothing** in plain mode: `Information` (known information with no typed meaning, for example 2212), `PhaseChanged`, `ModeSeen`, `OverrideLoaded`, `CoverageAdded` and `StatsUpdated` (their content is printed after the run, below), and `CheckpointStarted`, `CheckpointWritten`, `Recovered` and `Finished`. The content of the last four reaches the user elsewhere: `Finished` gives the result line its duration, `Recovered` its `resumed from a checkpoint`, and the two checkpoint messages are TLC's information, hidden as other chatter is (P4, rule 3); the one time a checkpoint matters to the user, a first signal held while it is written, the waiting line says so (O1, `notice`). The layout uses the first three for its status panel (O4). No event is passed over by accident: the reporter's dispatch has a case for every member of `Event`, and mypy's exhaustiveness check fails the build when one is added without a case.
 - **Errors, in arrival order.** `ErrorOpened`: `Error: ` and the first line of the message as TLC printed it, further lines indented; the lines of a nested message are among them, in place. Then whatever belongs to the error is printed as it arrives, indented under it: a related message (`ErrorExtended`) as TLC printed its lines, a state (`TraceStateAdded`) as below. TLC's own lead-in ("The behavior up to this point is:", 2121; "The following behavior constitutes a counter-example:", 2264) is such a related message and serves as the heading of the trace; tlaup adds none of its own. In the `assertion-failure` captures the nested-expression positions (2103) arrive after the states, and that is where they are printed. Message and trace are both always shown (P10).
@@ -188,6 +191,9 @@ Rules for the content:
   | `no-error-bounded` | `Result: no error found in a bounded search (simulation) (TLC exit code 0) in 1 min 00 s`; `depth-first` for a `-dfid` run |
   | `not-checked` | `Result: not checked: the spec has errors (TLC exit code 150: ...)`, by the first error's kind: `parse`, or no error and a SANY diagnostic of severity `error`, `the spec has errors`; `config`, `the configuration has errors`; `usage`, `TLC refused its arguments`; `exception` or `other` opened before the initial states, `TLC failed before computing the initial states` |
   | `incomplete` | `Result: incomplete, interrupted after 2 min 13 s`; `incomplete, TLC stopped without finishing (TLC exit code 255: ...)`; `incomplete, stopped because the output was closed` |
+  | `incomplete`, TLC asked for its help | `Result: TLC printed its help (TLC exit code 1)` |
+
+  The help row applies when `RunOutcome.asked_for_help` is set (the runner sets it when TLC's arguments after `--` hold `-help`) and TLC exited with 1, and no signal or closed pipe stopped the run; it replaces the `incomplete` words. The arguments were chosen over the parser recognising TLC's usage text because they are exact, where the text is a man page with escape codes that differs between builds and that no golden case marks as a message. It tests only for the exact word `-help` among TLC's arguments, not for what it follows (an option that takes a value could in principle hold it). `-h` is not checked.
 
   A resumed run adds `; resumed from a checkpoint`, and `, state counts approximate` when `counts_approximate` is set; the statistics line then writes its numbers as `about 1,771,600`. A checkpoint that was not kept (`RunOutcome.dropped_checkpoint`, [11 R6](11-runner.md#r6-run-folders)) adds `; a checkpoint was not kept (use --keep to keep one)`, `; the checkpoint was incomplete, nothing to resume`, or `; a -dfid run cannot be resumed` (its checkpoint holds no queue; review finding TU7). One exception about the code's meaning: rolling returns 10 for a false postcondition (research 15), the manifest's meaning for 10 is "assumption failure", and that would be wrong here, so when the code is 10 and the first error's kind is `postcondition` the parenthesis reads `(TLC exit code 10: a postcondition was false)`. Why the verdict and not the code: research 22 captured TLC exiting 0 after two invariant violations (`-deadlock -continue`), so a result line built from the code would print a success for a run that found errors. When the code and the verdict disagree, the warning that names both (P3) is printed on stderr by `print_run_notes` after the reporter has closed, not by the reporter.
 - **Override hint** ([11 R7](11-runner.md#r7-override-modules-that-do-not-load)), a `hint:` line on stderr, as tlaup's own hints are ([02 X2](02-cross-cutting.md#x2-stdout-and-stderr)), written when the error opens, only when the run has override classes (`RunInfo.override_classes` is not empty), after an error of kind `exception` that happened before the initial states and has no nested message whose code has kind `config` in the code table (5006). The last condition is there because v1.7.4's `postcondition-false` capture has the same outer shape (1000 before the initial states) and is a cfg error, not an override problem; since the top-up rule of P5 such an error already has kind `config`, and the condition stays as a second guard. "Before the initial states" means the phase was still `STARTING` when the error opened. An error with code 2173 always gets the hint, in the specific form R7 gives when its text names the class-file versions.

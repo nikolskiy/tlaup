@@ -1,6 +1,6 @@
 # 27. Install, upgrade, uninstall and pin as steps
 
-Size: L as a whole, delivered as two pull requests of size M each (27a and 27b, see the end of this file). Suggested model: most capable. Status: ready. The uninstall race (question Q8) is answered by the design: re-check under the lock and remove nothing ([12 V3](../design/12-tools-and-downloads.md#v3-uninstall), finding B7).
+Size: L as a whole, delivered as two pull requests of size M each (27a and 27b, see the end of this file). Suggested model: most capable. Status: built. The uninstall race (question Q8) is answered by the design: re-check under the lock and remove nothing ([12 V3](../design/12-tools-and-downloads.md#v3-uninstall), finding B7).
 
 ## Goal
 
@@ -279,6 +279,8 @@ State of `main` when this starts: the 0.8.x commands on the old `versioning/` mo
 - Completion of installed versions: package 47.
 
 ## Risks
+
+- *The store machine is flaky against the real store as written* (found while building 23, 2026-11-25, confirmed by its reviewer). `jar_bytes` in `tests/stateful/test_tool_store.py` writes its entries with `writestr` and a string name, so zipfile stamps the current time at two-second resolution, and the same release gives different bytes across a boundary (Hypothesis `FlakyStrategyDefinition`, or a second build where the model expects the same one). Write the entries as `zipfile.ZipInfo(name, date_time=(2026, 11, 18, 10, 0, 0))`; this is a test-harness fix, not a change of a rule, step or invariant. With the real clock, builds with no build time can still be reordered by `now`'s seconds; pass a fixed clock if that shows.
 
 - From V12: for a release without a digest, "already installed" rests on the asset's size and upload time, which shows that upstream did not replace the file, not that the file on disk is undamaged; `tlaup doctor` (46) checks the jar against its SHA-256 and `--force` repairs it. Older builds of a moving tag pile up at 4.5 MB each.
 - From V3: a script that ran `tool uninstall rolling` expecting one build to go now removes every rolling build (the command's rule, 29).

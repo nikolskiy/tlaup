@@ -1,42 +1,49 @@
 [build-system]
-requires = ["setuptools>=68.0"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "tlaup"
 version = "0.8.2"
-description = "TLA+ tools: download TLC, compile custom modules, run model checker"
+description = "Install and pin TLA+ tools, compile Java overrides, and run TLC with readable output"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "typer>=0.22.0,<1.0.0",
+    "typer>=0.27.2,<1.0.0",
     "requests>=2.31.0,<3.0.0",
     "pyyaml>=6.0,<7.0",
     "platformdirs>=4.0,<5.0",
-    "pydantic>=2.12.5,<3.0.0",
+    "pydantic>=2.5.3",
     "truststore>=0.9.0,<1.0.0",
-    "rich>=13.7.0,<14.0.0",
+    "rich>=13.8.0",
+    "filelock>=4.2.1",
 ]
 authors = [
     {name = "Denis Nikolskiy", email = "nikolskiy@users.noreply.github.com"}
 ]
 license = "MIT"
+keywords = ["tla+", "tlaplus", "tlc", "model-checking", "formal-methods", "sany", "pluscal"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Operating System :: OS Independent",
-    "Topic :: Software Development :: Build Tools",
+    "Programming Language :: Python :: 3.15",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Quality Assurance",
     "Topic :: Utilities",
+    "Typing :: Typed",
 ]
 
 [project.urls]
 Homepage = "https://github.com/nikolskiy/tlaup"
 Repository = "https://github.com/nikolskiy/tlaup"
 Issues = "https://github.com/nikolskiy/tlaup/issues"
-Changelog = "https://github.com/nikolskiy/tlaup/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/nikolskiy/tlaup/releases"
 
 [project.scripts]
 tlaup = "tlaup.cli:main"
@@ -47,31 +54,54 @@ include = ["tlaup*"]
 
 [tool.setuptools.package-data]
 tlaup = ["py.typed"]
+tlaup_parse = ["py.typed"]
 "tlaup.resources" = ["*.yaml"]
+"tlaup.java" = ["lifeline.jar", "lifeline/*.java"]
 
 [dependency-groups]
 dev = [
     "pytest>=9.0.2,<10.0.0",
     "pytest-cov>=7.0.0,<8.0.0",
-    "pytest-mock>=3.15.1,<4.0.0",
     "ruff>=0.9.0,<1.0.0",
     "mypy>=1.0.0,<2.0.0",
     "types-PyYAML>=6.0.12.12,<7.0.0.0",
     "types-requests>=2.31.0.2,<3.0.0.0",
     "poethepoet>=0.24.0,<1.0.0",
     "detect-secrets>=1.5.0,<2.0.0",
-    "pre-commit>=3.5.0,<4.0.0",
+    "pre-commit>=3.5.0,<5.0.0",
     "pre-commit-hooks>=6.0.0,<7.0.0",
     "twine>=6.0.0,<7.0.0",
     "bandit>=1.9.4",
+    "pytest-bdd>=9.0.1,<10",
+    "coverage>=7.10.6",
+    "responses>=0.23.3,<1",
+    "pytest-socket>=0.8.1,<1",
+    "pyte>=0.8.2,<1",
+    "hypothesis>=6.170.17,<7",
+    "pytest-randomly>=5.1.0,<6",
 ]
 
 [tool.pytest.ini_options]
-addopts = "--cov=tlaup --cov-report=term-missing -m 'not pending'"
-testpaths = ["tests/unit", "tests/stateful"]
+addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider"
+testpaths = ["tests"]
+# ".*" keeps pytest's default for hidden folders, which a norecursedirs list replaces: Hypothesis
+# writes .hypothesis/ in the repository root and warns, an error here, when it is not excluded.
+norecursedirs = ["tests/integration", "tests/lifeline", "tests/fakes", "tests/fixtures", ".*"]
+filterwarnings = ["error"]
 markers = [
-    "pending: written before the code it tests (design 03); the work package that builds the code removes the marker",
+    "integration: needs Java and real jars (TLAUP_TEST_JARS)",
+    "lifeline: needs a real JDK; run by the lifeline job (30 I2), not the unit job",
 ]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+patch = ["subprocess"]
+source = ["tlaup", "tlaup_parse"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 95
 
 [tool.ruff]
 line-length = 120
@@ -100,11 +130,17 @@ select = [
     "ARG",    # flake8-unused-arguments: find unused function arguments
     "RET",    # flake8-return: cleaner return logic
     "TRY",    # tryceratops: prevent exception handling anti-patterns
+    "BLE",    # flake8-blind-except: no blind except (two allowed, noqa with reason)
+    "DTZ",    # flake8-datetimez: no naive datetimes
+    "T20",    # flake8-print: no print (output goes through tlaup.ui)
+    "TID251", # flake8-tidy-imports: banned APIs (below)
 ]
 ignore = [
     "PLR2004", # Magic value used in comparison
-    "PLW1510", # subprocess.run without explicit check
 ]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"unittest.mock.patch".msg = "no patching of our own code (design 01 T12 rule 2): use the fakes at the edges"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
@@ -112,40 +148,55 @@ ignore = [
     "PLR0913", # Many arguments are common in tests (fixtures)
     "PLR0917", # Many positional arguments are common in tests (fixtures)
 ]
+# Design 30 I8: scripts and the fakes are programs that print.
+"scripts/*" = ["T20"]
+"tests/fakes/*" = ["T20"]
+# Design 14 F9 (startup cost): command modules and the root import their heavy modules inside functions.
+"src/tlaup/cmd/**" = ["PLC0415"]
+"src/tlaup/cli.py" = ["PLC0415"]
 
 [tool.bandit]
-skips = ["B404", "B603", "B607"]
+skips = ["B404", "B603"]
 
 [tool.poe.tasks]
 check = "pre-commit run --all-files"
 lint = ["lint-ruff", "lint-bandit", "type-check"]
 lint-ruff = "ruff check ."
-lint-bandit = "bandit -c pyproject.toml -r src/tlaup"
+lint-bandit = "bandit -c pyproject.toml -r src/tlaup src/tlaup_parse"
 type-check = "mypy ."
 fix = ["format", "lint-fix"]
 format = "ruff format ."
 lint-fix = "ruff check --fix ."
-test = "pytest"
-install-hooks = "pre-commit install --install-hooks"
+test = "pytest --cov --cov-report=term-missing"
+test-clean = "python scripts/test_clean.py"
+test-integration = "python -m tests.integration.discovery"
+install-hooks = "pre-commit install --install-hooks -t pre-commit"
 audit = "detect-secrets audit .secrets.baseline"
 build = "uv build"
-clean = "rm -rf dist"
+build-lifeline = "python scripts/build_lifeline.py"
+docs-cli = "python scripts/gen_cli_reference.py"
+test-lifeline = "pytest tests/lifeline --no-cov -p no:randomly"
+clean = "python scripts/clean.py"
 
 twine-check = "twine check dist/*.whl dist/*.tar.gz"
+check-wheel = "python scripts/check_wheel.py"
+# uv run poe bump patch|minor|major: pyproject.toml and uv.lock together (design 30 L4).
+bump = "python scripts/bump.py"
 
 [tool.poe.tasks.check-release]
 sequence = [
-    "check",
     "clean",
     "build",
     "twine-check",
+    "check-wheel",
 ]
 
 [tool.mypy]
 python_version = "3.11"
 strict = true
 ignore_missing_imports = false
-exclude = ["build", "tests/"]
+# tests/ stays unchecked except tests/fakes/ (30 I8); the tests/ folder itself must not match, or mypy never descends.
+exclude = ["^build/", "^tests/(?!$|fakes/)"]
 
 # Per-module overrides for libraries without strict types
 [[tool.mypy.overrides]]

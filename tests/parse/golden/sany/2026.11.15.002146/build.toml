@@ -1,0 +1,8 @@
+# The jar this folder was captured with (design 01 T3). The commit is the manifest's X-Git-Revision
+# (tests/unit/data/manifests/), the SHA-256 the capture READMEs' digest.
+# The rolling and v1.8.0 assets were the same bytes when captured.
+line = "rolling"
+tag = "rolling"
+commit = "bc1b506bdcad80bb518bf3776a9161c34ff0fc4c"
+calver = "2026.11.15.002146"
+sha256 = "7e53aa636dac8a3cb0533f343115c0548e03fc0ce5edc7739becf58d3d0fb84f"

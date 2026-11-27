@@ -1,9 +1,0 @@
-$ java -cp tla2tools.jar pcal.trans Nope
-pcal.trans Version 1.11 of 31 December 2020
-
-Unrecoverable error:
- -- Command-line error: Input file Nope.pcal and Nope.tla.tla not found..
-
-[exit=255]
--- files before: Good.tla 
--- files after:  Good.tla 

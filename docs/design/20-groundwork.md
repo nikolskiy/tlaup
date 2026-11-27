@@ -80,14 +80,23 @@ The command function is then short:
 inv = resolve_tlc_invocation(request, paths=..., settings=..., env=..., cwd=..., get_build=...)
 java_inv = build_tlc_command(inv)
 if show_command:
-    ui.out.print(shlex.join(replace(java_inv, lifeline=False).argv()),           # 11 R9: no lifeline; one line,
-                 markup=False, highlight=False, soft_wrap=True); return 0      # never wrapped or read as markup (10 P11)
-for text in inv.warnings: ui.warning(text)
+    ui.out.print(
+        shlex.join(replace(java_inv, lifeline=False).argv()),  # 11 R9: no lifeline; one line,
+        markup=False,
+        highlight=False,
+        emoji=False,  # added while building 39a: a path holding ":x:" must not become an emoji
+        soft_wrap=True,
+    )
+    return 0  # never wrapped or read as markup (10 P11)
+for text in inv.warnings:
+    ui.warning(text)
 if request.raw:
-    outcome = run_tlc_raw(inv, java_inv, paths=paths, now=now, notice=ui.note)              # 11
+    outcome = run_tlc_raw(inv, java_inv, paths=paths, now=now, notice=ui.note)  # 11
 else:
-    outcome = run_tlc(inv, java_inv, reporter, paths=paths, now=now, notice=ui.note)        # 11
-print_run_notes(outcome, ui)        # 11 R6: "Checkpoint kept" and the resume command, or the dropped checkpoint, on stderr, both modes
+    outcome = run_tlc(inv, java_inv, reporter, paths=paths, now=now, notice=ui.note)  # 11
+print_run_notes(
+    outcome, ui
+)  # 11 R6: "Checkpoint kept" and the resume command, or the dropped checkpoint, on stderr, both modes
 return outcome.exit_code
 ```
 
@@ -116,12 +125,24 @@ Roadmap: "A small family of domain errors (spec not found, tool not installed, J
 ```python
 class TlaupError(Exception):
     exit_code: ClassVar[int]
+
     def __init__(self, message: str, *, hint: str | None = None, details: str | None = None): ...
 
-class UsageError(TlaupError):   exit_code = 2
-class NotSetUp(TlaupError):     exit_code = 3
-class NotFound(TlaupError):     exit_code = 4
-class Failed(TlaupError):       exit_code = 5
+
+class UsageError(TlaupError):
+    exit_code = 2
+
+
+class NotSetUp(TlaupError):
+    exit_code = 3
+
+
+class NotFound(TlaupError):
+    exit_code = 4
+
+
+class Failed(TlaupError):
+    exit_code = 5
 ```
 
 `message` is one line with no trailing full stop and no "Error:" prefix. `hint` is one line that names the next command. `details` is optional longer text (compiler output, the list of folders searched), printed after the message.

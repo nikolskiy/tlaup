@@ -1,6 +1,6 @@
 # 01. Format the tree and enforce it
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

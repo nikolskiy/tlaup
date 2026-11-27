@@ -1,0 +1,11 @@
+Warning: Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the "-XX:+UseParallelGC" property.
+Error: Deadlock reached.
+  The behavior up to this point is:
+  1: Initial predicate
+       x = 0
+  2: Next  (Deadlock.tla:5:9)
+     * x = 1
+  3: Next  (Deadlock.tla:5:9)
+     * x = 2
+3 states generated, 3 distinct, 0 left on queue; depth 3
+Result: errors found (TLC exit code 11: a reachable state has no successor) in 1.7 s

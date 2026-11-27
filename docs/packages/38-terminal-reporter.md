@@ -1,6 +1,6 @@
 # 38. The terminal reporter, plain output
 
-Size: L. Suggested model: most capable. Status: ready.
+Size: L. Suggested model: most capable. Status: built.
 
 ## Goal
 

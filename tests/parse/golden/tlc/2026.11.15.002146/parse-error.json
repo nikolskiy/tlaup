@@ -1,0 +1,87 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "parse",
+      "name": null,
+      "message": {
+        "code": 3002,
+        "severity": 1,
+        "name": "TLC_PARSING_FAILED",
+        "body": [
+          "Parsing or semantic analysis failed."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [
+    {
+      "tool": "sany",
+      "severity": "error",
+      "message": "Encountered \"Beginning of definition\" at line 6, column 1 and token \"1\"",
+      "module": "ParseError",
+      "file": "<tmp>/q01/run/ParseError.tla",
+      "location": {
+        "module": "ParseError",
+        "line": 6,
+        "column": 1,
+        "end_line": null,
+        "end_column": null
+      },
+      "details": [
+        "ExtendableExpr starting at line 5, column 14.",
+        "ExtendableExpr starting at line 5, column 9.",
+        "Expression starting at line 5, column 9.",
+        "Definition starting at line 5, column 1.",
+        "Module body starting at line 3, column 1."
+      ]
+    }
+  ],
+  "module_files": {
+    "ParseError": "<tmp>/q01/run/ParseError.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 25,
+  "sany_lines_used": 25,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-14 22:27:00",
+  "finished": "2026-11-14 22:27:00",
+  "duration_ms": 250
+}

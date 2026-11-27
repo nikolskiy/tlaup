@@ -17,21 +17,22 @@ What differs from the spec, and why:
   ``checkpoint_started`` and ``checkpoint_written``, in a parsed (streaming) run only; the
   line tlaup prints while it holds a signal is the runner's and is not checked here.
 - ``TlaupDies`` cannot be a rule: the test process is the tlaup of the spec and cannot be
-  killed and go on. It is a test of its own below, which runs a tlaup stand-in as a child
-  process, kills it with SIGKILL at a chosen step, and checks ``ChildEndsWithTlaup``. It
-  runs against the throwaway model only: the real lifeline is a Java agent, which a fake
-  ``java`` cannot carry, so for tlaup's own launcher this is G3's integration test with a
-  real JVM ("no ``java`` process is left"), not a ``pending`` test here.
+  killed and go on. The real lifeline is a Java agent, which a fake ``java`` cannot carry,
+  so ``ChildEndsWithTlaup`` is not checked here. It rests on the lifeline job's test of the
+  agent with a real JVM (package 06), the unit test that ``argv()`` puts the agent first with
+  tlaup's process id, and the integration test that a killed tlaup leaves no ``java``.
+- SIGQUIT is never recorded. The fake child notes it and carries on, as a JVM does after its
+  thread dump; a streaming run's attached child must note it (the launcher forwards it, D60),
+  a passthrough run's child must not (question Q5).
 
 Revised 2026-11-20 for decisions D51 and D52 (the spec's ``Defer`` and ``Lifeline`` both on).
 
-The machine runs against ``tlaup.java.launcher`` (marked ``pending`` until the launcher is
-built) and against the throwaway model in ``reference_launcher.py``.
+The machine runs against ``tlaup.java.launcher`` (package 21). The throwaway model it ran
+against before the launcher existed, ``reference_launcher.py``, was deleted with its tests.
 """
 
 from __future__ import annotations
 
-import contextlib
 import importlib
 import os
 import re
@@ -69,21 +70,18 @@ HELD = {"held", "checked", "spawning", "attached", "reaped", "summary"}
 ORDER = ["before", "held", "checked", "spawning", "attached", "reaped", "summary", "left"]
 
 # Stands for java: it ends with OWN_CODE when told to (SIGUSR1), and in mode "stubborn"
-# it does not end on SIGTERM but notes that it got one. Given LIFELINE_PID it ends with 143
-# once that process is gone, whatever it ignores, as the lifeline agent does (D51).
+# it does not end on SIGTERM but notes that it got one. A SIGQUIT it notes and carries on,
+# as a JVM does after its thread dump (question Q5).
 FAKE_CHILD = """#!{python}
-import os, signal, sys, threading, time
+import signal, sys, time
 from pathlib import Path
 mode, ready = sys.argv[-2], sys.argv[-1]
-lifeline = os.environ.get("LIFELINE_PID")
-if lifeline:
-    def watch(pid=int(lifeline)):
-        while os.getppid() == pid:
-            time.sleep(0.05)
-        os._exit(143)
-    threading.Thread(target=watch, daemon=True).start()
+def noted(*_):
+    with Path(ready + ".quit").open("a") as note:
+        note.write("quit\\n")
 if mode == "stubborn":
     signal.signal(signal.SIGTERM, lambda *_: Path(ready + ".term").write_text("term"))
+signal.signal(signal.SIGQUIT, noted)
 signal.signal(signal.SIGUSR1, lambda *_: sys.exit({code}))
 Path(ready).write_text("ready")
 while True:
@@ -93,17 +91,6 @@ while True:
 
 def numbers() -> dict[str, int]:
     return {"int": signal.SIGINT, "term": signal.SIGTERM, "hup": signal.SIGHUP, "quit": signal.SIGQUIT}
-
-
-def reference_impl() -> SimpleNamespace:
-    module = importlib.import_module("tests.stateful.reference_launcher")
-    return SimpleNamespace(
-        name=module.__name__,
-        signals_held=module.signals_held,
-        child_run=lambda script, mode, ready, signals, **options: module.ChildRun(
-            [str(script), mode, str(ready)], signals, **options
-        ),
-    )
 
 
 def tlaup_impl() -> SimpleNamespace:
@@ -181,9 +168,13 @@ class SignalsMachine(RuleBasedStateMachine):
 
     def teardown(self) -> None:
         try:
-            if self.run is not None and self.run.pid is not None and not gone(self.run.pid):
-                os.kill(self.run.pid, signal.SIGKILL)
-                wait_until(lambda: gone(self.run.pid), "the child has gone")
+            if self.run is not None and self.run.pid is not None:
+                if not gone(self.run.pid):
+                    os.kill(self.run.pid, signal.SIGKILL)
+                    wait_until(lambda: gone(self.run.pid), "the child has gone")
+                for _ in range(200):  # the launcher's own loop reaps the child and closes its pipe
+                    if self.run.turn(timeout=0.05):
+                        break
             if self.manager is not None and self.phase in HELD:
                 self.manager.__exit__(None, None, None)
         finally:
@@ -214,6 +205,10 @@ class SignalsMachine(RuleBasedStateMachine):
         self.streaming = streaming and not leave  # only a passthrough run leaves Ctrl-C to the child
         for name in ignored:  # nohup, or a background job of a shell script
             signal.signal(numbers()[name], signal.SIG_IGN)
+
+    def quits_noted(self) -> int:
+        note = self.root / "ready.quit"
+        return len(note.read_text(encoding="utf-8").splitlines()) if note.exists() else 0
 
     def needs_kill(self) -> bool:
         """SIGTERM does not end this child: it ignores it itself, or inherited the ignore."""
@@ -400,7 +395,14 @@ class SignalsMachine(RuleBasedStateMachine):
         else:
             ours = callable(handler) and handler is not signal.default_int_handler
             assert ours, f"NoDefaultHandler: SIG{name.upper()} would reach Python's default handler"
+        quits = self.quits_noted()
         os.kill(os.getpid(), number)  # the handler has run when this returns
+        if name == "quit" and name not in self.ignored and self.child == "running":
+            if self.streaming and self.phase == "attached":  # D60: sent on to the JVM of a parsed run
+                wait_until(lambda: self.quits_noted() == quits + 1, "SIGQUIT reached the child of a streaming run")
+            elif not self.streaming:  # the terminal has already sent it to a child in tlaup's group
+                time.sleep(0.05)
+                assert self.quits_noted() == quits, "SIGQUIT was sent on to the child of a passthrough run"
         if name in self.ignored or name == "quit" or (name == "int" and self.leave):
             return
         self.count += 1
@@ -437,11 +439,6 @@ def run_machine(impl: SimpleNamespace, base: Path) -> None:
     run_state_machine_as_test(machine, settings=settings(stateful_step_count=30))
 
 
-def test_signals_machine_against_the_reference_model(tmp_path: Path) -> None:
-    run_machine(reference_impl(), tmp_path)
-
-
-@pytest.mark.pending
 def test_signals_machine(tmp_path: Path) -> None:
     run_machine(tlaup_impl(), tmp_path)
 
@@ -483,86 +480,5 @@ def signal_from_outside_agrees(impl: SimpleNamespace, impl_name: str) -> None:
     assert other.returncode == 0, "the process did not survive a SIGTERM under signals_held"
 
 
-def test_a_signal_from_this_process_stands_for_one_from_outside_reference_model() -> None:
-    signal_from_outside_agrees(reference_impl(), "reference_impl")
-
-
-@pytest.mark.pending
 def test_a_signal_from_this_process_stands_for_one_from_outside() -> None:
     signal_from_outside_agrees(tlaup_impl(), "tlaup_impl")
-
-
-# TlaupDies (D51): a tlaup killed with SIGKILL runs no handler, and the lifeline ends its
-# child. The tlaup of the spec is a stand-in child process here, which goes as far as the
-# step the test names, says so, and waits to be killed.
-
-STAND_IN = """
-import importlib, os, sys, time
-from pathlib import Path
-sys.path.insert(0, sys.argv[1])
-tests = importlib.import_module("tests.stateful.test_signals")
-impl = getattr(tests, sys.argv[2])()
-script, ready, step, lifeline = Path(sys.argv[3]), Path(sys.argv[4]), sys.argv[5], sys.argv[6] == "on"
-with impl.signals_held() as signals:
-    run = impl.child_run(script, "stubborn", ready, signals, passthrough=False, lifeline=lifeline)
-    assert run.may_start()
-    run.spawn()
-    while not ready.exists():
-        time.sleep(0.01)
-    if step != "spawned":
-        run.attach()
-    if step == "held in a checkpoint":
-        signals.checkpoint_started()
-        os.kill(os.getpid(), 2)
-        assert signals.held
-    print(run.pid, flush=True)
-    while True:
-        time.sleep(1)
-"""
-
-
-def tlaup_dies(impl_name: str, base: Path, step: str, *, lifeline: bool) -> None:
-    script = base / "fake-java"
-    script.write_text(FAKE_CHILD.format(python=sys.executable, code=OWN_CODE), encoding="utf-8")
-    script.chmod(0o755)
-    argv = [sys.executable, "-c", STAND_IN, str(PROJECT_ROOT), impl_name, str(script), str(base / "ready"), step]
-    argv.append("on" if lifeline else "off")
-    stand_in = subprocess.Popen(argv, cwd=PROJECT_ROOT, stdout=subprocess.PIPE, text=True)
-    assert stand_in.stdout is not None
-    child = int(stand_in.stdout.readline())
-    stand_in.kill()  # SIGKILL: no handler of tlaup runs
-    stand_in.wait(timeout=30)
-
-    def alive() -> bool:
-        try:
-            os.kill(child, 0)
-            status = Path(f"/proc/{child}/status").read_text(encoding="ascii")
-        except (ProcessLookupError, FileNotFoundError):
-            return False
-        return "zombie" not in status  # an orphan that has ended waits for init to reap it
-
-    try:
-        if lifeline:
-            wait_until(lambda: not alive(), "ChildEndsWithTlaup: the child has gone", timeout=5.0)
-        else:  # the spec's no-lifeline variant: the stubborn child runs on
-            time.sleep(1.0)
-            assert alive(), "without a lifeline the child ended by itself"
-    finally:
-        if alive():
-            with contextlib.suppress(ProcessLookupError):
-                os.kill(child, signal.SIGKILL)
-
-
-STEPS = ["spawned", "attached", "held in a checkpoint"]
-
-
-@pytest.mark.skipif(not Path("/proc").is_dir(), reason="looks at the orphaned child through /proc")
-@pytest.mark.parametrize("step", STEPS)
-def test_child_ends_with_tlaup_reference_model(tmp_path: Path, step: str) -> None:
-    tlaup_dies("reference_impl", tmp_path, step, lifeline=True)
-
-
-@pytest.mark.skipif(not Path("/proc").is_dir(), reason="looks at the orphaned child through /proc")
-def test_without_the_lifeline_the_child_runs_on_reference_model(tmp_path: Path) -> None:
-    """The machine of this test can fail: the spec's Signals-no-lifeline, on real processes."""
-    tlaup_dies("reference_impl", tmp_path, "attached", lifeline=False)

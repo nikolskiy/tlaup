@@ -1,6 +1,6 @@
 # 32. Spec, cfg and project root resolution
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

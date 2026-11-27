@@ -16,6 +16,7 @@ class RunOutcome:
     resume_command: str | None        # R6; set when run_folder_kept is
     dropped_checkpoint: str | None    # R6; "not-asked", "incomplete" or "depth-first" when a checkpoint was not kept
     stopped_for_closed_pipe: bool     # R1; the reader of stdout went away and TLC was stopped (D58)
+    asked_for_help: bool              # TLC's arguments after `--` held `-help`; the result line says so (22 O3)
 
 def run_tlc(inv: TlcInvocation, java_inv: JavaInvocation, reporter: Reporter, *,
             paths: AppPaths, now, notice: Callable[[str], None]) -> RunOutcome
@@ -26,24 +27,29 @@ def run_tlc_raw(inv: TlcInvocation, java_inv: JavaInvocation, *, paths: AppPaths
 Both functions have the same frame, and only the middle differs:
 
 ```python
-with signals_held() as signals, run_folder(inv, paths, now) as folder:    # 20 G3, R6
+with signals_held() as signals, run_folder(inv, paths, now) as folder:  # 20 G3, R6
     try:
-        if folder.kept_summary.count: notice(reminder(folder.kept_summary)) # R6, "Kept folders are visible"
-        reporter.start(run_info)                                           # run_tlc only; the last thing before the child
-        process = run_streaming(..., on_held=...) or run_passthrough(...)  # the middle; starts nothing if a signal came first;
-                                                                           # on_held hands the waiting line to reporter.notice (R2)
-        settled = folder.settle(process)                                   # R6: decided before anything is printed
+        if folder.kept_summary.count:
+            notice(reminder(folder.kept_summary))  # R6, "Kept folders are visible"
+        reporter.start(run_info)  # run_tlc only; the last thing before the child
+        process = run_streaming(..., on_held=...) or run_passthrough(
+            ...
+        )  # the middle; starts nothing if a signal came first;
+        # on_held hands the waiting line to reporter.notice (R2)
+        settled = folder.settle(process)  # R6: decided before anything is printed
         outcome = RunOutcome(...)
-        reporter.finish(outcome)                                           # run_tlc only
+        reporter.finish(outcome)  # run_tlc only
     except BaseException as error:
-        settled = folder.settle(None)                                      # R6: the first decision stands if there is one
-        if settled.kept: error.add_note(...)                               # R6, "The note"
+        settled = folder.settle(None)  # R6: the first decision stands if there is one
+        if settled.kept:
+            error.add_note(...)  # R6, "The note"
         raise
     finally:
-        reporter.close()                                                   # run_tlc only; 22 O1
+        reporter.close()  # run_tlc only; 22 O1
 # leaving the block deletes or keeps the folder, releases the lock, restores the handlers
-if reporter.write_error:                                                   # run_tlc only; 22 O1: close() never raises
-    if settled.kept: reporter.write_error.add_note(...)                    # R6, "The note": the outcome is lost, the note is not
+if reporter.write_error:  # run_tlc only; 22 O1: close() never raises
+    if settled.kept:
+        reporter.write_error.add_note(...)  # R6, "The note": the outcome is lost, the note is not
     raise reporter.write_error
 return outcome
 ```
@@ -175,6 +181,7 @@ Roadmap: "A dot in the name is mangled by `with_suffix` (`Foo.v2` becomes `Foo.t
 **Design.** `resolve_spec(text: str, cwd: Path) -> Path`:
 
 1. Empty, `.` or `..`: `UsageError` ("SPEC must be a TLA+ file or its name").
+   A trailing path separator is dropped first, so `Foo/` is read as `Foo` (settled while building 32, 2026-11-25, a low-impact choice by the stage 5 lead: a shell completes a folder name with one).
 2. If `text` ends in `.tla`: that path must be a file.
 3. Otherwise try, in order, `text + ".tla"` (appended, never replacing a suffix, so `Foo.v2` looks for `Foo.v2.tla`) and `<parent>/spec/<name>.tla` (the documented `spec/` layout).
 4. A path that exists but does not end in `.tla` is never accepted: `tlaup tlc Spec.cfg` is `SpecNotFound` with the hint "did you mean Spec.tla?" when that exists. A folder is refused only here, when no candidate of step 3 exists: with both a folder `Foo/` and a file `Foo.tla`, `tlaup tlc Foo` runs `Foo.tla`; with only the folder it is a `UsageError` saying SPEC is a folder.
@@ -346,7 +353,7 @@ The visits of the sweep and of `cache clean` hold their lock only for the instan
 
   What it does not carry: the environment (`TLAUP_JAVA_OPTS`, `TLAUP_CONFIG`) and the folder the run was started in. A relative path among TLC's own arguments (`-dump out.dot`) means the same only when the command is run from the folder the first run was started in, since TLC reads every relative path but `-config` against its working folder (R4); the spec and the cfg do not depend on it. The build is whatever is pinned when the command is run; `run.json` records the build the checkpoint was written by, and `tlaup cache list` shows it.
 
-  **A resumed run's counts** (D54, top-up). TLC prints 2197 and 2198 when it recovers, and the result is marked `resumed` ([10 P3](10-parser.md#p3-result-model)). Its state counts are shown as approximate unless the run was resumed with the original `-fp` and `-seed`: tlaup knows that when `-recover` names a folder under `runs/` whose `run.json` has the values this run passed. The resume command always passes them.
+  **A resumed run's counts** (D54, top-up). TLC prints 2197 and 2198 when it recovers, and the result is marked `resumed` ([10 P3](10-parser.md#p3-result-model)). Its state counts are shown as approximate unless the run was resumed with the original `-fp` and `-seed`: tlaup knows that when `-recover` names a folder under `runs/` whose `run.json` has the values this run passed. The resume command always passes them. When a resumed run is kept in the recovered folder, settle also records `-fp` and `-seed`: a value equal to the recorded one stays, and a different one (or one where none was recorded) is written as null, so a checkpoint that holds fingerprints of two values never counts as an exact resume later (settled while building 35b, 2026-11-25, a low-impact choice by the stage 5 lead).
 - **Why keep checkpoints, when asked.** An interrupted run can be resumed only from that folder (research 17: `-recover` worked on both builds). Research 25 answered how often a folder holds one: every breadth-first run stopped after about half an hour, at sizes of up to tens of gigabytes. That is why keeping is now asked for (D53) and kept folders are visible, rather than kept by default for 30 days.
 - **The first Ctrl-C waits for a checkpoint being written** (D52, top-up). In a parsed run the parser sees 2195 ("Checkpointing of run ...") and 2196 ("Checkpointing completed ..."); a first signal that arrives between the two is recorded and held, and is sent to TLC when 2196 arrives. tlaup says that it is waiting for TLC to finish writing its checkpoint and that a second Ctrl-C stops at once (the line, and where it is shown, are [R2](#r2-signals)'s); a second signal kills at once, as before. The mechanism is the launcher's ([20 G3](20-groundwork.md#g3-java-launcher)); the runner tells it from the parser's events. On Linux and macOS this holds a Ctrl-C typed at the terminal too, since the JVM of a parsed run has a process group of its own (D60). In a raw run tlaup reads nothing, and the completeness test of "Settle" is the only protection; a SIGKILL, a crash or a second Ctrl-C can still stop TLC in the middle of a checkpoint, and the same test catches the result.
 - **`sweep`** looks at each entry of `<cache>/runs/` whose lock it can take at once; an entry whose lock is held belongs to a live run, or to the TLC of a killed one (D51), and is never touched, and that includes the locks its own process holds (a second lock object on the same file in one process is refused like any other, tried with the locked `filelock`). Taking an entry's lock creates its lock file when there is none, because the lock library opens the file with "create". So a sweep or a `cache clean` that listed an entry just before its run ended, or that meets a folder with no lock file, leaves a new, empty lock file behind; the lock-file rule below removes it an hour later (formal check, 2026-11-18). The rules (top-up, D53; the first wording removed kept folders after 30 days and unsettled ones after a day):
@@ -563,6 +570,8 @@ Roadmap: "One preflight used by every `tlaup tlc` path, checking jar, Java, spec
 
 Before those four comes a step that reads nothing from the disk: the checks that need only the command line and the environment. A mistake of that kind is a usage error whatever is installed, and reporting it first means nobody answers the first-run prompt, or waits for a download, and is then told that two of their options conflict.
 
+*Closed in package 48* (the gap found while building 40b, 2026-11-25): as built in 33 and 39a, the settings are loaded before this step (`resolve_tlc_invocation` takes them, and the step checks `TLAUP_JAVA_OPTS` against `java.opts`), so a broken config file (3) is reported before a conflict typed on the command line (2). Package 48 made the step read nothing from the disk: `check_command_line` of `tlc/invocation.py` and of `tools/invocation.py` runs first in each command, and the settings load after it (for `tlc`, the first read is `tlc.refresh_interval` when `--refresh-interval` is not given, else the settings handed to `resolve_tlc_invocation`), with scenarios in `errors.feature` for `tlc`, `sany`, `pcal` and `repl`. The preflight calls the same `check_command_line` again as its step 0, so the checks are one list, written once and run twice.
+
 | Step | Failure | Message and hint |
 | --- | --- | --- |
 | 0. The command line | Two options that conflict (the table of R8); `--workers` that is neither `auto` nor a positive integer; an unbalanced quote in `TLAUP_JAVA_OPTS` ([13 J1](13-modules-and-java.md#j1-java-options)) | `ConflictingOptions` or `UsageError`, code 2 |
@@ -582,7 +591,7 @@ So with no build installed and a missing spec, the spec is reported and the code
 
 Nothing is printed before the preflight returns: the reporter is created after it, the preflight's warnings come back in `TlcInvocation.warnings` and are printed by the command, and the first-run prompt is the one thing that may write (to stderr) during it.
 
-**Rejected.** The roadmap's order: see above; the maintainer chose spec first (D45). Checking the command line where the first revision did, after Java: the conflict of two options would be reported after a prompt and a download. Checking the default `Spec.cfg` when no `--cfg` is given: R4, step 6. A separate "check" function beside the function that builds the invocation: two lists of checks that drift.
+**Rejected.** The roadmap's order: see above; the maintainer chose spec first (D45). Checking the command line where the first revision did, after Java: the conflict of two options would be reported after a prompt and a download. Checking the default `Spec.cfg` when no `--cfg` is given: R4, step 6. A separate "check" function with its own checks beside the function that builds the invocation: two lists of checks that drift (package 48's `check_command_line` is the one list, which the preflight also calls).
 
 **Tests.** `tlc_errors.feature`, in-process: one scenario per row, except the Java check that timed out, each asserting the code, an empty stdout and exactly one `error:` line; for the spec, cfg and build rows that `java` was not started at all; for the Java rows that it was started for `-version` only and TLC was not started; for the build rows that the hint names a command. One scenario has no build and a missing spec and asserts code 4 and that nothing was asked; one has no build and conflicting `-workers` and asserts code 2 and that nothing was asked. The spec, cfg, pinned-build and Java rows are run for the parsed and `--show-command` paths with a scenario outline; the raw path is run as a real process for the spec row and the Java row, which is enough to show it goes through the same function. The timed-out Java check has no scenario: its timeout is ten seconds, and a scenario would wait that long on the real clock, which [01 T12](01-testing.md#t12-rules-for-writing-tests) rule 5 allows for one test only. The unit test of `ask_version` with a timeout of half a second ([13 J3](13-modules-and-java.md#j3-one-java-start)) stands in for the row: it shows the failure is `Failed` with the word "seconds", and the preflight maps that error as it maps the others. (Stage 4 review, 2026-11-24: finding C4.)
 

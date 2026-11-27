@@ -1,0 +1,76 @@
+{
+  "tool": {
+    "version": "2.19",
+    "revision": "5a47802",
+    "date": "08 August 2024",
+    "line": "stable",
+    "raw": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "parse",
+      "name": null,
+      "message": {
+        "code": 3002,
+        "severity": 1,
+        "name": "TLC_PARSING_FAILED",
+        "body": [
+          "Parsing or semantic analysis failed."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [
+    {
+      "tool": "sany",
+      "severity": "error",
+      "message": "Cannot find source file for module NoSuchModule imported in module MissMod.",
+      "module": null,
+      "file": null,
+      "location": null,
+      "details": []
+    }
+  ],
+  "module_files": {
+    "MissMod": "<tmp>/q22/work/v1.7.4/tool-missing-module/MissMod.tla",
+    "Naturals": "/tmp/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 13,
+  "sany_lines_used": 13,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-18 22:20:28",
+  "finished": "2026-11-18 22:20:28",
+  "duration_ms": 902
+}

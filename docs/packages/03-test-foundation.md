@@ -1,6 +1,6 @@
 # 03. Test foundation
 
-Size: L, as two pull requests of size M (03a, 03b). Suggested model: most capable. Status: ready.
+Size: L, as two pull requests of size M (03a, 03b). Suggested model: most capable. Status: built.
 
 ## Goal
 
@@ -198,7 +198,7 @@ class FakeClock:
 [tool.pytest.ini_options]
 addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider -m 'not pending'"
 testpaths = ["tests"]
-norecursedirs = ["tests/integration", "tests/lifeline", "tests/fakes", "tests/fixtures"]
+norecursedirs = ["tests/integration", "tests/lifeline", "tests/fakes", "tests/fixtures", ".*"]
 filterwarnings = ["error"]
 markers = [
     "integration: needs Java and real jars (TLAUP_TEST_JARS)",

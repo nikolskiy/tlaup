@@ -1,0 +1,5 @@
+Why: design 10 P4, interpretation rule 1, "if a message nested at any depth has severity 1 or 2, the top-level
+message is an error whatever its own severity". The 2185 (severity 0) holds a 1000 of severity 1: the run has one
+error, not two. No capture has this; nested messages there are all severity 0.
+
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). Lines 6 to 8, the nested 1000, are new.

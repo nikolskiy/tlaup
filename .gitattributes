@@ -1,0 +1,2 @@
+# Golden files are captured tool output: Git never converts their line endings.
+tests/parse/golden/** -text

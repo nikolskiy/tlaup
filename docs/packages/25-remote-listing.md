@@ -1,6 +1,6 @@
 # 25. Remote listing
 
-Size: M. Suggested model: mid-tier. Status: ready. What is cached was settled with the maintainer (question Q7): the release list as it came back, and never an error answer ([12 V8](../design/12-tools-and-downloads.md#v8-remote-listing-and-its-cache)).
+Size: M. Suggested model: mid-tier. Status: built. What is cached was settled with the maintainer (question Q7): the release list as it came back, and never an error answer ([12 V8](../design/12-tools-and-downloads.md#v8-remote-listing-and-its-cache)).
 
 ## Goal
 

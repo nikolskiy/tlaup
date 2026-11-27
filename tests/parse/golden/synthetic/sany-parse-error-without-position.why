@@ -1,0 +1,3 @@
+Why: design 10 P8, the parse-error diagnostic: with neither "at line L, column C" nor a location span in the message there is no location; and the input ends before the tail.
+
+How: written by hand in the shape of golden/sany/v1.7.4/sany-parseerr.out, with a message without a position and no tail.

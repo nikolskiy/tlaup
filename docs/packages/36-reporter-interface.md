@@ -1,6 +1,6 @@
 # 36. The reporter interface
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
@@ -43,27 +43,30 @@ Provides, from [22 O1](../design/22-reporters.md#o1-reporter-interface). Marks s
 # tlaup/reporters/base.py
 from __future__ import annotations
 
+
 @dataclass(frozen=True)
-class RunInfo:                       # known before the tool starts
-    tool: str                        # "tlc"
+class RunInfo:  # known before the tool starts
+    tool: str  # "tlc"
     spec: Path
     cfg: Path | None
-    build: Build                     # 23
-    java: JavaRuntime                # 20
+    build: Build  # 23
+    java: JavaRuntime  # 20
     workers: str | None
     project_root: Path | None
     override_classes: tuple[str, ...]
     command: tuple[str, ...]
-    cwd: Path                        # written by stage 4: the folder tlaup was started in (TlcInvocation.cwd)
+    cwd: Path  # written by stage 4: the folder tlaup was started in (TlcInvocation.cwd)
+
 
 class Reporter(Protocol):
-    write_error: OSError | None      # set by close when a write failed in it
+    write_error: OSError | None  # set by close when a write failed in it
+
     def start(self, run: RunInfo) -> None: ...
-    def handle(self, event: Event, result: RunResult) -> None: ...   # events of 10 P3
-    def stderr_line(self, line: str) -> None: ...                    # a line the tool wrote to stderr
-    def notice(self, line: str) -> None: ...                         # a line of tlaup's own during the run (Q12)
-    def finish(self, outcome: RunOutcome) -> None: ...               # 11; the run ended and has an outcome
-    def close(self) -> None: ...                                     # always called last; never raises
+    def handle(self, event: Event, result: RunResult) -> None: ...  # events of 10 P3
+    def stderr_line(self, line: str) -> None: ...  # a line the tool wrote to stderr
+    def notice(self, line: str) -> None: ...  # a line of tlaup's own during the run (Q12)
+    def finish(self, outcome: RunOutcome) -> None: ...  # 11; the run ended and has an outcome
+    def close(self) -> None: ...  # always called last; never raises
 ```
 
 **`RunInfo.cwd`** (stage 4). O3 asks for the spec and the cfg "relative to the working folder" in the header, and [21 S1](../design/21-other-tools.md#s1-sany)'s editor form, which O3 uses for diagnostics, writes a path "relative to the folder tlaup was started from when it is beneath it". The reporter could read `Path.cwd()`, but then its expected files would depend on the temporary folder a test runs in, and a reporter test with a fixed `RunInfo` could not fix it. So the folder travels in `RunInfo`, and 37 fills it from `inv.cwd`. That is one more field for 37 to fill, and 37's file fills it.
@@ -85,16 +88,17 @@ When this package merges, `tlaup/tlc/run.py` does not exist yet, and mypy strict
 
 ```python
 # tlaup/reporters/collecting.py
-class CollectingReporter:            # tests and the Python API; prints nothing
-    def __init__(self, calls: list[str] | None = None): ...   # written by stage 4: a list to share with a test
+class CollectingReporter:  # tests and the Python API; prints nothing
+    def __init__(self, calls: list[str] | None = None): ...  # written by stage 4: a list to share with a test
+
     run: RunInfo | None
     events: list[Event]
-    results: list[RunResult]         # the result object handed with each event (the same object each time)
+    results: list[RunResult]  # the result object handed with each event (the same object each time)
     stderr_lines: list[str]
-    notices: list[str]               # the lines given to notice, in order (22 O1)
-    outcome: RunOutcome | None       # `object | None` until 37 narrows it
-    calls: list[str]                 # "start", "handle", "stderr_line", "notice", "finish", "close", in order
-    write_error: OSError | None      # always None here; a test subclass may set it in close
+    notices: list[str]  # the lines given to notice, in order (22 O1)
+    outcome: RunOutcome | None  # `object | None` until 37 narrows it
+    calls: list[str]  # "start", "handle", "stderr_line", "notice", "finish", "close", in order
+    write_error: OSError | None  # always None here; a test subclass may set it in close
 ```
 
 What O1 leaves to the class, as built (stage 4's choices, all internal to tests):

@@ -1,6 +1,6 @@
 # 33. The TLC invocation: preflight and command builder
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 
@@ -170,7 +170,7 @@ def jvm_options(setting: Sequence[str], env: Mapping[str, str], flags: Sequence[
 
 **`find_recovered_run`** ([R6](../design/11-runner.md#r6-run-folders), "`-recover PATH` among TLC's arguments"). The word after `-recover`; a relative `PATH` is read against `cwd`, as TLC reads it; links are resolved as far as the path exists; when the result lies under `runs/<id>/` and that run folder exists, the function returns that run with what its `run.json` says, whether or not `PATH` itself exists (a `-recover <runs>/<id>/states` whose `states/` is missing still names the run, question Q9 as settled); and `None` otherwise (a path outside `runs/`, or under a `runs/<id>/` that has no folder). A `run.json` that is missing or cannot be read gives `keep=False` and no values; the run is still returned, because [35](35-run-folders.md) takes its lock whatever the file says. The function reads only; it takes no lock.
 
-**The classpath of a run** ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder), "The classpath of a run"; inventory rows S10 to S12). The preflight builds the resolver with `module_dirs=[m.path for m in Registry(paths.modules).list()]`, so the registered modules come in name order, and takes the lists back from the new path-returning methods. The order, most specific layer first (command line, project, config, registered modules; the command-line layer is empty in the first wave and is kept first in steps 2 and 5 for when a command passes folders):
+**The classpath of a run** ([13 M2](../design/13-modules-and-java.md#m2-build-in-a-temporary-folder), "The classpath of a run"; inventory rows S10 to S12). The preflight builds the resolver with `module_dirs=[m.path for m in Registry(paths.modules, now=...).list()]`, so the registered modules come in name order, and takes the lists back from the new path-returning methods. The order, most specific layer first (command line, project, config, registered modules; the command-line layer is empty in the first wave and is kept first in steps 2 and 5 for when a command passes folders):
 
 1. the project's `classes/`, ahead of the tools jar, so that its classes win over the jar's;
 2. the folders of TLA+ modules: the project's `modules/`, the folder `module_path` names, then each registered module's `modules/`;
@@ -230,6 +230,8 @@ Old tests: none. The old suite went in [03](03-test-foundation.md) (D62); `test_
 None. No command reaches this code. The entries that describe it are written by [39](39-tlc-command.md): R11's Fixed, R8's two Added and one Breaking, J1's Breaking and Added, R4's and R3's.
 
 ## Context for the worker
+
+**`Registry` needs a clock** (noted at the merge of 30, 2026-11-25). Every `Registry(...)` call passes `now=`, since package 30 (as `ToolStore` does): pass the UTC clock, for example `now=lambda: datetime.now(UTC)`, or the test's clock.
 
 **State of `main` when this starts.** `tlaup tlc` still runs through `src/tlaup/tlc/runner.py` and `src/tlaup/cmd/tlc.py`. Beside them exist: `tlaup/errors.py`, `tlaup/paths.py`, the new settings loader, `java/locate.py`, `java/launcher.py`, `versioning/store.py`, `modules/registry.py`, `project/spec.py`. Nothing under `tlc/` is new yet except what this package adds, so `tlc/invocation.py` and `tlc/command.py` sit beside the old `runner.py`, which has an old function also named `build_tlc_command`. Import the new one from `tlaup.tlc.command` everywhere.
 

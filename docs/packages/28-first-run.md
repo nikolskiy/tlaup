@@ -1,6 +1,6 @@
 # 28. First run: `ensure_tools` and the choice of build
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

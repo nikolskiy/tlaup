@@ -1,6 +1,6 @@
 # 29. The `tool` commands: switch to the new store
 
-Size: L as a whole, delivered as two pull requests (29a, L; 29b, M; see the end of this file). Suggested model: most capable. Status: ready. The debug filter is [24](24-github-client.md)'s `redact`, in place before this package (question Q6); the uninstall race is answered by the design (question Q8, [27](27-install-steps.md)).
+Size: L as a whole, delivered as two pull requests (29a, L; 29b, M; see the end of this file). Suggested model: most capable. Status: built. The debug filter is [24](24-github-client.md)'s `redact`, in place before this package (question Q6); the uninstall race is answered by the design (question Q8, [27](27-install-steps.md)).
 
 This is the switch package of the store track.
 
@@ -80,7 +80,7 @@ Changes:
 - 29b: `src/tlaup/versioning/__init__.py`: the docstring only. Until now it imports `requests` and the old modules whenever any `tlaup.versioning` module is imported (package 22 noted it).
 - 29b: `src/tlaup/versioning/paths.py`: delete the tool functions (`get_tools_dir`, `get_pinned_path`, `get_pinned_version_dir`, `set_pin`, `clear_pin`, `clear_cache`, and what else in it only the deleted modules call); keep `get_modules_dir`, `get_run_dir`, `get_tlc_run_dir`, which `java/classpath.py`, `cmd/modules/` and `tlc/run_cache.py` still read until packages 31 and 39.
 - 29b: `src/tlaup/tlc/compiler.py`: `get_tlc_jar_path` imports `get_pinned_version_dir`, which goes, so it gets the body under "The old `tlaup tlc` meanwhile".
-- 29a: `tests/features/errors.feature`: the scenarios of this group (Tests), and in package 18's two scenarios `tools dir` and `tools pin` become `tool dir` and `tool pin` (finding B14).
+- 29a: `tests/features/errors.feature`: the scenarios of this group (Tests), and in package 18's two scenarios `tools dir` and `tools pin` become `tool dir` and `tool pin` (finding B14); the `tool pin` scenario's `stderr contains "version"` (the old command's lower-case argument, written so by 18a) becomes the new command's argument name, `VERSION` if it is named so.
 - 29a: `tests/unit/test_handler.py` (package 17's): its relative-`TLAUP_HOME` case runs `tools dir`; it becomes `tool dir`.
 - 29a: `README.md`, the section "Toolset Management (`tlaup tools`)": the new names of the commands 29a builds; 29b the rest (`list`, `path`). Only the lines that name the old commands.
 - 29a: `docs/contributing/development.md`: the `tlaup tools list` example becomes `tlaup tool list`, if 03 has not changed the line (29b's command; the line is a doc, so it may name it ahead).
@@ -337,7 +337,7 @@ Help text: write each command's help in the words of [14 F7](../design/14-config
 ```python
 def get_tlc_jar_path() -> Path | None:
     build = ToolStore(AppPaths.from_env(os.environ), now=lambda: datetime.now(UTC)).pinned()
-    return build.jar if build is not None else None     # PinnedBuildMissing passes up to the handler (3)
+    return build.jar if build is not None else None  # PinnedBuildMissing passes up to the handler (3)
 ```
 
 That is the whole edit; no other line of the old runner or commands changes, and no test is written for it (Tests). It is also why the old `tlc` runs on the new store from here until 39, which the design accepts as a gap of D62 ([01 T11](../design/01-testing.md#t11-the-existing-tests), Risks). Between 29a and 29b the old `tlc` reads the old pin, which nothing writes any more; that is allowed, since nothing is released in between (D6). The messages of the old code that name `tlaup tools install` are left as they are; their packages (31, 39) replace them.
@@ -374,6 +374,11 @@ State of `main` when this starts: packages 01 to 28 merged (the store track comp
 - The milestone 4 `tool list` display, `--yes` for every prompt, `pin --local`: later milestones.
 
 ## Risks
+
+- *An upgrade can finish and still fail* (settled while building 27b, 2026-11-25, a low-impact choice by the stage 5 lead). When the old build cannot be removed after the new one is added and the pin moved, `upgrade()` returns its `UpgradeReport` with `failed` set and `removed` None, rather than raising. `tool upgrade` prints what was done (the pin moved) as notes and the failure as one `error:` line with its hint (F6's classification, settled at 29a's review), and exits 5, as V3 does for a failed removal.
+- *`choose_build` takes `every=`, required*: pass `store.builds()`, so the printed forms are worked out among every installed build.
+
+- *The download's progress can go back once* (noted while building 26, 2026-11-25). When the size or digest does not match, `fetch_build` downloads once more and its `progress` callback starts again from 0, so the progress display must accept a count that drops once.
 
 - From V3: a script that ran `tool uninstall rolling` expecting one build to go now removes every rolling build; the changelog says so, and an older rolling build cannot be downloaded again (research 5).
 - From V12: older builds of a moving tag pile up; `tool list --installed` shows them and `tool upgrade` or `tool uninstall` removes them.

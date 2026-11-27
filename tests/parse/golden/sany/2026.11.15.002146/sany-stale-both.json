@@ -1,0 +1,91 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "warning",
+        "message": "Both the PlusCal algorithm and its TLA+ translation in module PcalStaleBoth have changed since the last translation.",
+        "module": "PcalStaleBoth",
+        "file": "<tmp>/q22/work/v1.8.0/sany-stale-both/PcalStaleBoth.tla",
+        "location": null,
+        "details": []
+      }
+    ],
+    "module_files": {
+      "PcalStaleBoth": "<tmp>/q22/work/v1.8.0/sany-stale-both/PcalStaleBoth.tla",
+      "Naturals": "/tmp/tlc-2311578288357661588/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 17
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.8.0/sany-stale-both/PcalStaleBoth.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-2311578288357661588/Naturals.tla (jar:file:<tmp>/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "header",
+      "text": "Warnings (1) during syntax parsing of PcalStaleBoth.tla:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "In module PcalStaleBoth"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Both the PlusCal algorithm and its TLA+ translation in module PcalStaleBoth have changed since the last translation."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module PcalStaleBoth"
+    },
+    {
+      "class": "progress",
+      "text": "Linting of module PcalStaleBoth"
+    }
+  ]
+}

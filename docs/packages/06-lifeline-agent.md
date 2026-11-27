@@ -1,6 +1,6 @@
 # 06. The lifeline agent
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

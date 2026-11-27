@@ -7,8 +7,139 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- `tlaup --help` and other commands that need neither the network nor the config start faster.
+- Settings are read in layers: built-in defaults, then the user's config file, then environment variables, then command-line options. A config file is no longer created on first run; a file needs to hold only the settings that differ from the defaults.
+- Unknown keys in the config file give a warning.
+- `upgrade` compares the installed jar with the published one by SHA-256 where GitHub provides it.
+- The commit shown for a build is read from the jar itself.
+- Unencrypted addresses, and redirects to them, are refused.
+- Installing a newer build of a name that is already installed keeps the older build and leaves the pin where it is; `tlaup tool upgrade` replaces the older build and moves the pin.
+- `tool list` keeps installed builds next to their upstream release and marks one that has a newer build available.
+- `tool list` marks an installed build whose release upstream no longer lists as `installed, not upstream` (was `local only`).
+- `rolling` is listed first in `tlaup tool list`, then versions by number.
+- `module add` says when it replaced a module of the same name; it no longer copies a `test` folder.
+- `module list` shows build times in UTC.
+- The output of `tlaup tlc` is reorganised: a header naming the build and Java; the spec's own output; each error with its message and full trace, changed variables marked; SANY and parse errors as `path:line:col: error: message` (was a `file://` link), still followed by the lines of the spec around the error, now with `^` under the columns; a final result line with the meaning of TLC's exit code. Results are on stdout, progress on stderr.
+- The TLC output parser is now the import package `tlaup_parse`, shipped with tlaup. `tlaup.tlc.parser`, `tlaup.tlc.models`, `tlaup.tlc.values`, `tlaup.tlc.codes` and `tlaup.tlc.sany` are gone.
+- When the program reading tlaup's output goes away (`tlaup tlc --raw Spec | head`), TLC is stopped instead of running on unseen; not on Windows for `--raw`.
+- Each run has its own run folder, removed when the run ends, however it ends. `tlaup tlc --keep` (or the setting `tlc.keep`) keeps it when the run is interrupted or crashes and TLC has written a complete checkpoint; the size and the command to resume are printed, every `tlaup tlc` reminds you of kept folders, and `tlaup cache clean <run-id>` or `--all` removes them. tlaup never removes a kept folder on its own.
+- A first Ctrl-C while TLC is writing a checkpoint waits for the checkpoint to finish, also one typed at the terminal (Linux and macOS, not with `--raw`); a second stops at once.
+- On rolling builds tlaup passes `-noGenerateSpecTE`, so TLC no longer writes `_TTrace_` files next to the spec. Pass `-generateSpecTE` after `--` to get them.
+- Ctrl-C exits with 130.
+- Help text rewritten for `tool`, `module` and `tlc`; root help is grouped.
+- A run stopped with Ctrl-C is called 'interrupted' everywhere.
+- Error messages name what was searched and the command to run next.
+- Messages have the form `error: ...`, `warning: ...`, `hint: ...` on stderr, without symbols.
+- `JAVA_HOME` is used to find `java` and `javac` when it is set; `PATH` is the fallback.
+- A run starts Java once instead of three times; the Java version check is remembered until the Java installation changes.
+- `tlaup config edit` reads `$VISUAL` before `$EDITOR` and checks the file after editing.
+
+### Added
+- Each setting can be given as an environment variable `TLAUP_<SECTION>_<KEY>`.
+- `TLAUP_HOME` moves all of tlaup's folders; `TLAUP_CONFIG_DIR`, `TLAUP_CACHE_DIR` and `TLAUP_DATA_DIR` move one each.
+- `--debug`, and `python -m tlaup`.
+- `GITHUB_TOKEN` or `GH_TOKEN` is used for GitHub API requests, which raises the rate limit. The token is sent only to `api.github.com`, and to hosts you list in `tool.token_hosts`; it is never printed. Credentials in `.netrc` are not used.
+- Versions can be typed without the `v`, as `stable` or `rolling`, and as `tag@commit` to name one build.
+- `tlaup tool current` shows the pinned build and its jar without starting Java.
+- `tlaup cache dir` prints the cache folder; `tlaup cache clean` removes the remembered GitHub lookups and the run folders nothing will resume, and with `--all` also kept run folders and the remembered Java check. It never removes installed tools or modules.
+- `tlaup tool list --installed` lists the installed builds only, with no network.
+- `tool.token_hosts` lists extra hosts that may receive the GitHub token.
+- tlaup warns before a run when a registered Java override class will not be loaded by the pinned TLC build. On v1.7.4 only a class named `tlc2.overrides.TLCOverrides` is loaded.
+- Arguments after `--` are passed to TLC: `tlaup tlc Spec -- -deadlock -simulate num=10`.
+- `--workers N|auto`.
+- `--java-opt`.
+- tlaup passes `-fp` and `-seed` to TLC when you do not, and repeats them when you resume, so a resumed run warns less and counts correctly.
+- A hint when a spec or cfg name has non-ASCII characters and the locale is not UTF-8, which TLC cannot open.
+- With no tools installed, `tlaup tlc` (and `sany`, `pcal`, `repl`) asks whether to install the stable release or the rolling build, installs it and carries on. `--auto-install stable|rolling` or `TLAUP_AUTO_INSTALL` answers the question for scripts. The spec is checked first, and `--show-command` never asks or installs.
+- On a terminal `tlaup tlc` shows a full-screen live view while TLC runs: the build and spec, the current phase and elapsed time, the state-space progress table and the newest output. When the run ends the view closes and the complete result is printed, so it stays in the scrollback. When output is redirected or piped, output is plain as before; `--plain`, or the setting `tlc.plain`, gives plain output on a terminal too.
+- `tlaup sany SPEC` runs the SANY parser and prints its findings as `path:line:col: severity: message`, each followed by the lines of the spec around it with `^` under the columns. It exits 150 when the spec has errors.
+- `tlaup pcal SPEC` runs the PlusCal translator. It rewrites the spec in place and keeps the previous version as `SPEC.old`, as the translator does. It also writes `SPEC.cfg`, replacing an existing one without a backup; pass `-- -nocfg` to keep yours. With `-- -label -reportLabels` it prints each label the translator added as `Spec.tla:7:3: label Lbl_1 added`.
+- `tlaup repl` starts the TLA+ REPL of the pinned build (rolling builds only).
+- `tlaup config set KEY VALUE` changes one setting. It rewrites the config file and does not keep comments.
+- `tlaup config path` prints the config file's path; `tlaup config get KEY` prints one setting.
+- `tlaup completion bash|zsh|fish` prints a shell completion script. Installed versions, module names and config keys are completed. In bash, a build is completed up to its name; the part after `@` is typed.
+
 ### Breaking
-- Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tools install` and `tlaup modules add` again. The old `tla` folders are not touched and can be deleted.
+- Config settings removed: `workspace.root`, `workspace.spec_dir`, `workspace.modules_dir`, `workspace.classes_dir` (the folder names `spec`, `modules`, `classes` and `lib` are fixed), `tlc.java_class`, `tlc.overrides_class`, `tla.community_modules`. `tla.urls.tags`, `tla.urls.releases` and `tla.urls.per_page` are replaced by `tool.repository`. A config file that still has them loads with one warning on every command; earlier versions wrote all of them into the file, so delete the file or remove those lines with `tlaup config edit`.
+- Toolsets, custom modules, the run cache and the config file now live in folders named `tlaup` instead of `tla` (on Linux `~/.config/tlaup` and `~/.cache/tlaup`, was `~/.config/tla` and `~/.cache/tla`). Nothing is moved over: run `tlaup tool install` and `tlaup module add` again. The old `tla` folders are not touched and can be deleted.
+- Installed tools are stored in a new layout with a `build.json` beside each jar. They live in the cache's `tool` folder (was `tools`). Builds installed by earlier versions are not recognised: run `tlaup tool install` again. The old `tools` folder can be deleted.
+- Uninstalling the pinned build clears the pin; it no longer switches to another installed build. Pin one with `tlaup tool pin`.
+- With several installed builds of one name, `tlaup tool uninstall NAME` without a terminal, or with `--yes`, removes all of them; name one build as `NAME@COMMIT`.
+- `tlaup tool install` with no version asks which build to install (stable or rolling), or takes the answer from `TLAUP_AUTO_INSTALL`, and fails without either; it used to install the latest stable release.
+- With several builds of one tag installed, `tlaup tool path TAG` now fails and lists them (it printed the first).
+- `tlaup tools dir` is now `tlaup tool dir` and prints only the folder; use `tlaup tool list --installed` for the builds.
+- `tlaup tools install -f` and `tlaup tools uninstall -y` are now `tlaup tool install --force` and `tlaup tool uninstall --yes`.
+- `tlaup tools` and `tlaup modules` are now `tlaup tool` and `tlaup module`; every subcommand keeps its name.
+- A module name must start with a letter or digit and hold only letters, digits, `.`, `_` and `-`, at most 64 characters. `module add` refuses a folder whose name does not fit (for example one with a space); rename the folder.
+- Modules are stored in the cache's `module` folder (was `modules`), each with a `module.json`. Modules added by earlier versions are not found: run `tlaup module add` again. The old `modules` folder can be deleted.
+- `module add` compiles a module's Java sources against the TLA+ tools jar and the module's own `lib/*.jar` only. Other registered modules and the jars of `module_lib_path` are no longer on the compile classpath (they still take part in runs); a module that needs a jar to compile puts a copy in its own `lib/`.
+- Override classes are compiled with `-encoding UTF-8 --release 11`. A module whose sources use language features or library classes newer than Java 11 no longer compiles; set `java.min_version` higher to raise the release. `javac` must be version 11 or newer.
+- A folder is treated as the project root of a spec only if it is the spec's own folder, or its parent when the spec is in a folder named `spec`, `specs`, `test` or `tests`. The home folder is never a project root. A project that keeps specs in a differently named subfolder must move `modules/`, `classes/` or `lib/` beside the specs or rename the subfolder.
+- Output streams are now consistent: results go to stdout; progress, the live display and tlaup's own messages go to stderr. The verdict line moved from stderr to stdout. `--raw` no longer merges TLC's stderr into stdout.
+- TLC now runs in the folder where `tlaup` was started (was the project root, or the spec's folder). TLA+ modules in the project root but outside `modules/` are no longer found; move them beside the spec or into `modules/`. A relative `-config` given after `--` is read relative to the spec's folder, as TLC does with an absolute spec path; use `--cfg` instead. Every other relative path after `--` (`-dump`, `-userFile`, `-dumpTrace` and the rest) is read from the folder you run tlaup in. `--cfg NAME` looks only for a file ending in `.cfg`.
+- TLC now runs with `-workers auto` by default (was TLC's default of one worker). Set `tlc.workers: 1` or pass `--workers 1` for the old behaviour.
+- `JAVA_OPTS` is no longer read. Use `TLAUP_JAVA_OPTS` or `--java-opt`; both add to the configured options instead of replacing them.
+- The editor of `tlaup config edit` can no longer be given as an argument; set `VISUAL` or `EDITOR`.
+- `tlaup config list` is now `tlaup config show` and prints the settings in effect, not the file.
+- `tlaup fetch-cache clear` and `tlaup tlc --cleanup` are now `tlaup cache clean`; `tlaup cache list` shows the run folders, and `tlaup cache clean RUN_ID` removes one.
+- `tlaup check-java` is now `tlaup doctor`, which also checks the pinned build, the config and the folders.
+- The version flag is `-V` (was `-v`). `-v` is reserved for `--verbose`.
+- Exit codes changed. tlaup's own errors now return 2 (usage), 3 (not set up), 4 (not found) or 5 (failed) instead of 1; Ctrl-C returns 130 (was 143 or 130); a closed output pipe returns 141 (was 1); `tlaup tool uninstall` returns 5 when a build could not be removed (was 0).
+
+### Removed
+- `tlaup tool install <URL>`. Install by version name; installing from an address may return later.
+- Support for old storage layouts (a jar directly in the cache folder, the symlink pin, the `tlc` folder, modules without a `modules/` subfolder). The `tlaup` folders never contained them.
+- `tlaup tools meta sync` is removed; metadata is read from the jar at install.
+- `tlaup modules path` is removed; `tlaup tlc SPEC --show-command` shows the classpath in use and `tlaup module dir` the folder.
+- `tlaup tlc --version`; use `tlaup tool current`.
+
+### Fixed
+- `NO_COLOR` is honoured everywhere.
+- `tlaup --version` started `git` on every call.
+- A config file written by an older version, or missing a section, caused a traceback.
+- Several failures printed a Python traceback. tlaup now prints one `error:` line; `tlaup --debug ...` or `TLAUP_DEBUG=1` shows the traceback.
+- `tlaup tool uninstall --all` stopped after removing the pinned version.
+- A failed uninstall now exits 5 and leaves the pin alone.
+- `tlaup tool upgrade` could report 'already up to date' for up to an hour after upstream published a new build.
+- A download that was cut short, or a proxy's error page, could be recorded as an installed build. Downloads are now checked for length, for being a TLA+ tools jar, and against GitHub's SHA-256 where it provides one, before anything is installed.
+- `tool install --force` deleted the installed build before the new download had succeeded.
+- A GitHub rate limit was reported as a generic failure.
+- A non-JSON answer from GitHub (for example from a proxy) caused a traceback.
+- Two `tlaup tool install` commands running at once could leave a damaged install.
+- `tlaup tool install` printed 'Successfully installed' after 'already installed'.
+- `tlaup tool install` could treat a moving tag such as `rolling` as up to date for an hour after upstream published a new build; it now asks GitHub every time and compares the installed jar with the published one.
+- Installing tools without Java present recorded an empty version.
+- Only the first 30 tags were read from GitHub, so `rolling` would have disappeared at the next upstream release.
+- The 'Tag/SHA' column of `tool list` is now 'Build'.
+- `tlaup tool install` could offer a prerelease as the stable version when no stable release was in the first page of results.
+- A warning from `tool list` went to stdout.
+- `tlaup modules remove ../tools` deleted the tools folder. Module names are now checked.
+- A compile error in `tlaup module add` deleted the module's previous, working build.
+- `module add` could misread which classes provide overrides when a source file had `//` inside a string.
+- Errors while running TLC were all reported as "'java' not found". Each is now reported as what it is.
+- `--cfg` pointing at a file outside the project could make TLC read a different file with the same name.
+- A spec name containing a dot (`Foo.v2`) was looked up as `Foo.tla`; `tlaup tlc .` failed with a traceback; an existing file that is not a spec (such as `Spec.cfg`) was passed to TLC.
+- Running a spec could delete the run data of another spec whose name starts the same way, or of a run in progress; `tlaup module add` and `remove` deleted all run data.
+- On rolling builds an override class named `tlc2.overrides.TLCOverrides` inside a jar on the classpath stopped loading when another override module was registered.
+- `--show-command` printed a command without `-tool` and with `-coverage 1` in the wrong place, and created (and could delete) run data. It now prints exactly what would run and creates nothing in the run cache.
+- Missing Java, a missing jar, or a missing spec could print 'Starting TLC' and then a traceback. Every `tlaup tlc` path now checks the spec, the cfg, the tools and Java first and reports the first problem in one line with the command to run next.
+- Stopping `tlaup tlc` with SIGTERM (for example a CI timeout) now stops TLC too; it used to keep running.
+- A second Ctrl-C no longer loses the summary.
+- Output that is not valid UTF-8 no longer crashes tlaup.
+- If tlaup is killed, the Java tool it started stops within about two seconds.
+- TLC, SANY, PlusCal and the REPL now always write UTF-8; under a C locale non-ASCII characters were printed as `?`, and with Java 11 and v1.7.4 the PlusCal translator wrote them as `?` into the spec.
+- A Java that did not answer was reported as 'not installed'.
+- Errors with a TLC message code tlaup did not know (for example a false POSTCONDITION, code 2404) were not shown at all. Every message TLC marks as an error is now shown, and output tlaup does not recognise is printed as TLC wrote it.
+- Counterexample traces were not shown: real TLC output parsed to zero states. Traces now show every state, the action and its location, the loop-back state of a liveness counterexample, and stuttering.
+- Function values such as `(a :> 1 @@ b :> 2)` were shown as their first key; values TLC wraps over several lines were shown as one raw string.
+- A SANY error was reported twice, and TLC messages printed after it were shown as part of it.
+- The message of a violated invariant or property was hidden when a trace was shown.
+- On a terminal, TLC output containing square brackets (every TLA+ record) was printed as an empty line or made tlaup fail.
+- Runs with a lot of printed output became slower and slower and used more and more memory.
+- `--refresh-interval` and `tlc.refresh_interval` had no effect. They now set how often the live view is redrawn.
+- With a broken config file every command, including `tlaup config edit`, failed with a traceback. `config path` and `config edit` now work with a broken file; other commands stop with the file, the line and the reason.
+- `tlaup config edit` failed for an editor given with arguments (`EDITOR='code --wait'`) and on machines without vim.
 
 ## [0.8.2] - 2026-11-14
 
@@ -43,7 +174,7 @@ The project is renamed from `tlaplus-cli` to `tlaup` and moves to a new reposito
 ## [0.7.0] - 2026-06-17
 
 ### Added
-- `tla modules add <PATH>` — compiles Java overrides and copy subfolders (`lib/`, `modules/`, `test/` or `tests/`) into a global user cache directory per module.
+- `tla modules add <PATH>` — compiles Java overrides and copies subfolders (`lib/`, `modules/`, `test/` or `tests/`) into a global user cache directory per module.
 - `tla modules list` — displays a formatted table of all added modules and their built/modified times.
 - `tla modules remove <NAME>` — deletes a module and its compiled assets from the cache.
 - Automatic cleanup of the cached module directory if the Java compilation fails.
@@ -88,7 +219,7 @@ The project is renamed from `tlaplus-cli` to `tlaup` and moves to a new reposito
 - Centralized `ClasspathResolver` component for unified path management across compilation and execution.
 
 #### Experimental
-- The TLC output now parsed for errors and warnings.
+- The TLC output is now parsed for errors and warnings.
 - Model checking progress statistics are now displayed.
 
 ### Changed

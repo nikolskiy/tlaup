@@ -1,6 +1,6 @@
 # 30. The module build: registry, build in a temporary folder, class files
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 

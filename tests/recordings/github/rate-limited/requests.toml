@@ -1,0 +1,5 @@
+[[answer]]
+method = "GET"
+url = "https://api.github.com/repos/tlaplus/tlaplus/releases/latest"
+file = "response"
+scope = "host"

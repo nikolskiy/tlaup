@@ -1,6 +1,6 @@
 # 59. Closing the first wave
 
-Size: M (was S: the closing check of decision D62 walks the whole preserved-behaviour inventory). Suggested model: mid-tier. Status: ready.
+Size: M (was S: the closing check of decision D62 walks the whole preserved-behaviour inventory). Suggested model: mid-tier. Status: built.
 
 ## Goal
 

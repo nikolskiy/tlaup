@@ -1,0 +1,67 @@
+{
+  "tool": {
+    "version": "2.19",
+    "revision": "5a47802",
+    "date": "08 August 2024",
+    "line": "stable",
+    "raw": "TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "config",
+      "name": null,
+      "message": {
+        "code": 2229,
+        "severity": 1,
+        "name": "TLC_CONFIG_SPECIFIED_NOT_DEFINED",
+        "body": [
+          "The name Nope specified in the configuration file",
+          "is not defined in the specification."
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [],
+  "module_files": {
+    "BadCfg": "<tmp>/q22/work/v1.7.4/tool-badcfg/BadCfg.tla",
+    "Naturals": "/tmp/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 4,
+  "sany_lines_used": 4,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-18 22:20:19",
+  "finished": "2026-11-18 22:20:19",
+  "duration_ms": 618
+}

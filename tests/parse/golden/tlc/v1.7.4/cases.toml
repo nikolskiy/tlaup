@@ -1,0 +1,1023 @@
+# The TLC golden cases of this build, one table per <case>.out (design 01 T3, package 07).
+# Generated once from the research records named in each source; never guessed.
+
+[alias-violation]
+spec = "Alias"
+args = []
+exit = 151
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/alias-violation.out"
+
+[alias-violation-difftrace]
+spec = "Alias"
+args = ["-difftrace"]
+exit = 151
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/alias-violation-difftrace.out"
+
+[assertion-failure]
+spec = "Assertion"
+args = []
+exit = 14
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/assertion-failure.out"
+
+[big-states]
+spec = "Big"
+args = ["-workers", "4"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/big-states.out"
+
+[checkpoint-recover]
+spec = "Slow"
+args = ["-recover"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+recover_from = "checkpoint-run"
+note = "The recorded command named the folder checkpoint-run left: <tmp>/q22/meta/v1.7.4/checkpoint-run/26-11-18-22-20-58. The capture script passes the folder its own checkpoint-run left."
+source = "research 22, v1.7.4/checkpoint-recover.out"
+
+[checkpoint-recover-missing]
+spec = "Slow"
+args = ["-recover", "<metadir>/nope"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+note = "<metadir> in args stands for the case's fresh metadir folder; the run had no -metadir option."
+source = "research 22, v1.7.4/checkpoint-recover-missing.out"
+
+[checkpoint-run]
+spec = "Slow"
+args = ["-checkpoint", "1"]
+exit = 143
+java = "25.0.5"
+captured = "2026-11-18"
+stopped = "SIGTERM after 80 s"
+source = "research 22, v1.7.4/checkpoint-run.out"
+
+[coverage]
+spec = "Success"
+args = ["-coverage", "1"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/coverage.out"
+
+[deadlock]
+spec = "Deadlock"
+args = []
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/deadlock.out"
+
+[deadlock-flag]
+spec = "Deadlock"
+args = ["-deadlock"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/deadlock-flag.out"
+
+[deadlock-flag-multierror]
+spec = "MultiError"
+args = ["-deadlock", "-continue"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/deadlock-flag-multierror.out"
+
+[dfid-deadlock]
+spec = "Deadlock"
+args = ["-dfid", "2"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/dfid-deadlock.out"
+
+[dfid-success]
+spec = "Success"
+args = ["-dfid", "5"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/dfid-success.out"
+
+[dfid-success-deep]
+spec = "Success"
+args = ["-dfid", "20"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/dfid-success-deep.out"
+
+[dfid-violation]
+spec = "Violation"
+args = ["-dfid", "2"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/dfid-violation.out"
+
+[dfid-violation-deep]
+spec = "Violation"
+args = ["-dfid", "10"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/dfid-violation-deep.out"
+
+[difftrace-deadlock]
+spec = "Deadlock"
+args = ["-difftrace"]
+exit = 11
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-deadlock.out"
+
+[difftrace-liveness]
+spec = "DiffLive"
+args = ["-difftrace"]
+exit = 13
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-liveness.out"
+
+[difftrace-liveness-nodiff]
+spec = "DiffLive"
+args = []
+exit = 13
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-liveness-nodiff.out"
+
+[difftrace-liveness-q1-back-to-state]
+spec = "LiveBack"
+args = ["-difftrace"]
+exit = 13
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-liveness-q1-back-to-state.out"
+
+[difftrace-liveness-q1-stuttering]
+spec = "LiveStutter"
+args = ["-difftrace"]
+exit = 13
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-liveness-q1-stuttering.out"
+
+[difftrace-q1-violation]
+spec = "Violation"
+args = ["-difftrace"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-q1-violation.out"
+
+[difftrace-violation]
+spec = "Diff"
+args = ["-difftrace"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-violation.out"
+
+[difftrace-violation-nodiff]
+spec = "Diff"
+args = []
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-violation-nodiff.out"
+
+[difftrace-workers-4]
+spec = "Diff"
+args = ["-difftrace", "-workers", "4"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/difftrace-workers-4.out"
+
+[generate-deadlock]
+spec = "Deadlock"
+args = ["-generate"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/generate-deadlock.out"
+
+[generate-success]
+spec = "Success"
+args = ["-generate"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/generate-success.out"
+
+[generate-success-num]
+spec = "Success"
+args = ["-generate", "num=3"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/generate-success-num.out"
+
+[generate-violation]
+spec = "Violation"
+args = ["-generate"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/generate-violation.out"
+
+[generate-violation-num]
+spec = "Violation"
+args = ["-generate", "num=3"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/generate-violation-num.out"
+
+[generateSpecTE-violation]
+spec = "Violation"
+args = ["-generateSpecTE"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/generateSpecTE-violation.out"
+
+[java-override-exception]
+spec = "Boom"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-14"
+classpath = ["classes"]
+java_sources = ["java/tlc2/module/Boom.java", "java/tlc2/module/BoomTrace.java"]
+note = "Recorded with the class folder classes/v1.7.4, compiled from both sources with javac --release 11 (the research 1 README); here the folder is called classes."
+source = "research 1, 1.7.4/java-override-exception.out"
+
+[java-override-stack-trace]
+spec = "BoomTrace"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-14"
+classpath = ["classes"]
+java_sources = ["java/tlc2/module/Boom.java", "java/tlc2/module/BoomTrace.java"]
+note = "Recorded with the class folder classes/v1.7.4, compiled from both sources with javac --release 11 (the research 1 README); here the folder is called classes."
+source = "research 1, 1.7.4/java-override-stack-trace.out"
+
+[json-live]
+spec = "Live"
+args = ["-workers", "4"]
+java = "25.0.5"
+captured = "2026-11-14"
+note = "Research 2 recorded no command and no exit code. The arguments are read from the capture (4 workers in the 2187 line) and from the research 2 result, section 4."
+source = "research 2, Live.tool.1.7.4.out"
+
+[json-stut]
+spec = "Stut"
+args = ["-workers", "4"]
+java = "25.0.5"
+captured = "2026-11-14"
+note = "Research 2 recorded no command and no exit code. The arguments are read from the capture (4 workers in the 2187 line) and from the research 2 result, section 4."
+source = "research 2, Stut.tool.1.7.4.out"
+
+[liveness-back-to-state]
+spec = "LiveBack"
+args = []
+exit = 13
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/liveness-back-to-state.out"
+
+[liveness-stuttering]
+spec = "LiveStutter"
+args = []
+exit = 13
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/liveness-stuttering.out"
+
+[multi-error-continue]
+spec = "MultiError"
+args = ["-continue"]
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/multi-error-continue.out"
+
+[noGenerateSpecTE-violation]
+spec = "Violation"
+args = ["-noGenerateSpecTE"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/noGenerateSpecTE-violation.out"
+
+[override-annot_module_missing]
+spec = "overrides/annot_module_missing/spec"
+args = ["-config", "spec.cfg"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/annot_module_missing"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/annot_module_missing.txt"
+
+[override-annot_op_missing]
+spec = "overrides/annot_op_missing/spec"
+args = ["-config", "spec.cfg"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/annot_op_missing"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/annot_op_missing.txt"
+
+[override-arity_java_fewer]
+spec = "overrides/arity_java_fewer/spec"
+args = ["-config", "spec.cfg"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/arity_java_fewer"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/arity_java_fewer.txt"
+
+[override-class-too-new-index]
+args = ["-workers", "1", "-config", "spec.cfg"]
+exit = 255
+java = "11.0.33"
+captured = "2026-11-18"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+note = "Spec not kept as a file by research 28: the spec, its cfg, the module and the override sources are strings in java_matrix.py, which also compiled them (javac 25; for the listed case the index class with --release 11). The capture script skips this case."
+source = "research 28, out/ovr-javac25-default-v1.7.4-java11-tool.txt"
+
+[override-class-too-new-listed]
+args = ["-workers", "1", "-config", "spec.cfg"]
+exit = 255
+java = "11.0.33"
+captured = "2026-11-18"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+note = "Spec not kept as a file by research 28: the spec, its cfg, the module and the override sources are strings in java_matrix.py, which also compiled them (javac 25; for the listed case the index class with --release 11). The capture script skips this case."
+source = "research 28, out/ovr-mixed-index-release11-listed-javac25-default-v1.7.4-java11-tool.txt"
+
+[override-ctor_private]
+spec = "overrides/ctor_private/spec"
+args = ["-config", "spec.cfg"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/ctor_private"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/ctor_private.txt"
+
+[override-ctor_throws]
+spec = "overrides/ctor_throws/spec"
+args = ["-config", "spec.cfg"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/ctor_throws"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/ctor_throws.txt"
+
+[override-eval_throws_runtime]
+spec = "overrides/eval_throws_runtime/spec"
+args = ["-config", "spec.cfg"]
+exit = 75
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/eval_throws_runtime"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/eval_throws_runtime.txt"
+
+[override-legacy_ok]
+spec = "overrides/legacy_ok/spec"
+args = ["-config", "spec.cfg"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/module/Ovr.java"]
+cwd = "overrides/legacy_ok"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/legacy_ok.txt"
+
+[override-method_not_public]
+spec = "overrides/method_not_public/spec"
+args = ["-config", "spec.cfg"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/method_not_public"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/method_not_public.txt"
+
+[override-ok_warn_true]
+spec = "overrides/ok_warn_true/spec"
+args = ["-config", "spec.cfg"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/ok_warn_true"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/ok_warn_true.txt"
+
+[override-static_init_throws]
+spec = "overrides/static_init_throws/spec"
+args = ["-config", "spec.cfg"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+jvm_options = ["-XX:+IgnoreUnrecognizedVMOptions", "-XX:+UseParallelGC", "-DTLA-Library=modules", "-Dtlc2.overrides.TLCOverrides=tlc2.overrides.TLCOverrides"]
+classpath = ["classes", "modules"]
+java_sources = ["java/tlc2/overrides/TLCOverrides.java"]
+cwd = "overrides/static_init_throws"
+note = "Research 13 compiled the sources with javac without --release (the .javac.txt beside the capture)."
+source = "research 13, v1.7.4/out/static_init_throws.txt"
+
+[params-instance-exists-violation]
+spec = "Params"
+args = ["-config", "ParamsQ.cfg"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/params-instance-exists-violation.out"
+
+[params-instance-exists-violation-difftrace]
+spec = "Params"
+args = ["-config", "ParamsQ.cfg", "-difftrace"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/params-instance-exists-violation-difftrace.out"
+
+[params-step-violation]
+spec = "Params"
+args = ["-config", "ParamsX.cfg"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/params-step-violation.out"
+
+[params-step-violation-difftrace]
+spec = "Params"
+args = ["-config", "ParamsX.cfg", "-difftrace"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/params-step-violation-difftrace.out"
+
+[params-violation]
+spec = "Params"
+args = []
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/params-violation.out"
+
+[params-violation-difftrace]
+spec = "Params"
+args = ["-difftrace"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/params-violation-difftrace.out"
+
+[parse-error]
+spec = "ParseError"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/parse-error.out"
+
+[postcondition-false]
+spec = "Post"
+args = []
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/postcondition-false.out"
+
+[print-marker]
+spec = "PrintMarker"
+args = []
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/print-marker.out"
+
+[print-output]
+spec = "Print"
+args = ["-continue"]
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/print-output.out"
+
+[sany-semantic-error]
+spec = "SanyError"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/sany-semantic-error.out"
+
+[simulate]
+spec = "Success"
+args = ["-simulate", "num=3", "-depth", "20", "-seed", "7"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/simulate.out"
+
+[simulate-deadlock]
+spec = "Deadlock"
+args = ["-simulate", "num=3", "-depth", "20", "-seed", "7"]
+exit = 11
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/simulate-deadlock.out"
+
+[simulate-liveness]
+spec = "LiveBack"
+args = ["-simulate", "num=3", "-depth", "20", "-seed", "7"]
+exit = 13
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/simulate-liveness.out"
+
+[simulate-violation]
+spec = "Violation"
+args = ["-simulate", "num=5", "-depth", "20", "-seed", "7"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/simulate-violation.out"
+
+[simulate-violation-diff]
+spec = "Diff"
+args = ["-simulate", "num=5", "-depth", "20", "-seed", "7", "-difftrace"]
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/simulate-violation-diff.out"
+
+[stack-overflow]
+spec = "Stack"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/stack-overflow.out"
+
+[stale-alg-tool]
+spec = "v1.7.4/PcalStaleAlg"
+args = []
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/stale-alg-tool.out"
+
+[stale-both-tool]
+spec = "v1.7.4/PcalStaleBoth"
+args = []
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/stale-both-tool.out"
+
+[stale-tla-tool]
+spec = "v1.7.4/PcalStaleTla"
+args = []
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/stale-tla-tool.out"
+
+[success]
+spec = "Success"
+args = []
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/success.out"
+
+[tool-act]
+spec = "Act"
+args = []
+exit = 13
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-act.out"
+
+[tool-asrt]
+spec = "Asrt"
+args = []
+exit = 14
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-asrt.out"
+
+[tool-assum]
+spec = "Assum"
+args = []
+exit = 10
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-assum.out"
+
+[tool-badcfg]
+spec = "BadCfg"
+args = []
+exit = 151
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-badcfg.out"
+
+[tool-cfg-missing]
+spec = "Ok"
+args = ["-config", "nope.cfg"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-cfg-missing.out"
+
+[tool-cfgsyn]
+spec = "CfgSyn"
+args = []
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-cfgsyn.out"
+
+[tool-eval]
+spec = "Eval"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-eval.out"
+
+[tool-help]
+args = ["-help"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-help.out"
+
+[tool-missing-module]
+spec = "MissMod"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-18"
+stderr = "tool-missing-module.err"
+source = "research 22, v1.7.4/tool-missing-module.out"
+
+[tool-name-mismatch]
+spec = "Mismatch"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-name-mismatch.out"
+
+[tool-nexteval]
+spec = "NextEval"
+args = []
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-nexteval.out"
+
+[tool-noargs]
+args = []
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-noargs.out"
+
+[tool-nocfg]
+spec = "NoCfg"
+args = []
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-nocfg.out"
+
+[tool-nospecfile]
+args = ["NoSuchFile"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-18"
+note = "The spec named in args does not exist, on purpose."
+source = "research 22, v1.7.4/tool-nospecfile.out"
+
+[tool-oom]
+spec = "Oom"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-18"
+jvm_options = ["-Xmx64m"]
+source = "research 22, v1.7.4/tool-oom.out"
+
+[tool-workers-bad]
+spec = "Ok"
+args = ["-workers", "abc"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/tool-workers-bad.out"
+
+[version-bad-option]
+args = ["-version"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/version-bad-option.out"
+
+[violation]
+spec = "Violation"
+args = []
+exit = 12
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/violation.out"
+
+[warn4802-tool]
+spec = "Warn4802"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/warn4802-tool.out"
+
+[warnstutter-tool]
+spec = "WarnStutter"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-18"
+source = "research 22, v1.7.4/warnstutter-tool.out"
+
+[workers-4]
+spec = "Success"
+args = ["-workers", "4"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 1, 1.7.4/workers-4.out"
+
+# The plain/ captures: the same runs without -tool. Not parsed; replayed for --raw scenarios.
+
+[plain.assertion-failure]
+spec = "Assertion"
+args = []
+exit = 14
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/assertion-failure.out"
+
+[plain.big-states]
+spec = "Big"
+args = ["-workers", "4"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/big-states.out"
+
+[plain.coverage]
+spec = "Success"
+args = ["-coverage", "1"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/coverage.out"
+
+[plain.deadlock]
+spec = "Deadlock"
+args = []
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/deadlock.out"
+
+[plain.java-override-exception]
+spec = "Boom"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+classpath = ["classes"]
+java_sources = ["java/tlc2/module/Boom.java", "java/tlc2/module/BoomTrace.java"]
+note = "Recorded with the class folder classes/v1.7.4, compiled from both sources with javac --release 11 (the research 1 README); here the folder is called classes."
+source = "research 1, 1.7.4/plain/java-override-exception.out"
+
+[plain.java-override-stack-trace]
+spec = "BoomTrace"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+classpath = ["classes"]
+java_sources = ["java/tlc2/module/Boom.java", "java/tlc2/module/BoomTrace.java"]
+note = "Recorded with the class folder classes/v1.7.4, compiled from both sources with javac --release 11 (the research 1 README); here the folder is called classes."
+source = "research 1, 1.7.4/plain/java-override-stack-trace.out"
+
+[plain.liveness-back-to-state]
+spec = "LiveBack"
+args = []
+exit = 13
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/liveness-back-to-state.out"
+
+[plain.liveness-stuttering]
+spec = "LiveStutter"
+args = []
+exit = 13
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/liveness-stuttering.out"
+
+[plain.multi-error-continue]
+spec = "MultiError"
+args = ["-continue"]
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/multi-error-continue.out"
+
+[plain.parse-error]
+spec = "ParseError"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/parse-error.out"
+
+[plain.plain-violation-files]
+spec = "Violation"
+args = []
+exit = 12
+java = "25.0.5"
+captured = "2026-11-18"
+plain = true
+source = "research 22, v1.7.4/plain-violation-files.out"
+
+[plain.postcondition-false]
+spec = "Post"
+args = []
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/postcondition-false.out"
+
+[plain.print-marker]
+spec = "PrintMarker"
+args = []
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/print-marker.out"
+
+[plain.print-output]
+spec = "Print"
+args = ["-continue"]
+exit = 11
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/print-output.out"
+
+[plain.sany-semantic-error]
+spec = "SanyError"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/sany-semantic-error.out"
+
+[plain.simulate]
+spec = "Success"
+args = ["-simulate", "num=3", "-depth", "20", "-seed", "7"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/simulate.out"
+
+[plain.stack-overflow]
+spec = "Stack"
+args = []
+exit = 75
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/stack-overflow.out"
+
+[plain.stale-alg-plain]
+spec = "v1.7.4/PcalStaleAlg"
+args = []
+exit = 0
+java = "25.0.5"
+captured = "2026-11-18"
+plain = true
+source = "research 22, v1.7.4/stale-alg-plain.out"
+
+[plain.success]
+spec = "Success"
+args = []
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/success.out"
+
+[plain.version-bad-option]
+args = ["-version"]
+exit = 1
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/version-bad-option.out"
+
+[plain.violation]
+spec = "Violation"
+args = []
+exit = 12
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/violation.out"
+
+[plain.warn4802-plain]
+spec = "Warn4802"
+args = []
+exit = 150
+java = "25.0.5"
+captured = "2026-11-18"
+plain = true
+source = "research 22, v1.7.4/warn4802-plain.out"
+
+[plain.workers-4]
+spec = "Success"
+args = ["-workers", "4"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+plain = true
+source = "research 1, 1.7.4/plain/workers-4.out"

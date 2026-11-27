@@ -1,0 +1,16 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {},
+    "other": [
+      "Error: -suppressMessages: unknown message code: 1"
+    ],
+    "lines_used": 0
+  },
+  "lines": [
+    {
+      "class": "other",
+      "text": "Error: -suppressMessages: unknown message code: 1"
+    }
+  ]
+}

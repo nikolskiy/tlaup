@@ -1,6 +1,6 @@
 # 45. The `cache` commands: `dir`, `list`, `clean`
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
@@ -150,6 +150,8 @@ Added, written by stage 4 from C1's rows (they give no text for it): "`tlaup cac
 R6's Changed entry, which names `cache clean <run-id>` and `--all`, is 39's.
 
 ## Context for the worker
+
+**From 35b** (noted at its merge, 2026-11-25). `CleanReport.cannot_lock` lists the folders whose lock file could not be opened in a full clean (report them; they are not "in use"), and one id that cannot be locked is a `FileOperationError` (5); `RunRecord.cannot_lock` marks such a folder in `list_runs`, whose `in_use` is then false.
 
 **Decisions this rests on.** D49 and D53: nothing that can be resumed is removed without `--all` or its id, and a kept folder is never removed silently; `cache clean` uses the sweep's rule. D51: a held lock means a live run, or the TLC of a killed tlaup on Linux and macOS; it is never removed. D14: no `fetch-cache` alias. D29: 2 for a run id with an option, 4 for an id that names nothing, 5 for one in use. D30: the listing on stdout, notes on stderr. Review finding TU6: a run id excludes the other options.
 

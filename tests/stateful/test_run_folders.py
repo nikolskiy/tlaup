@@ -34,8 +34,7 @@ What differs from the spec, and why:
   The spec checks those behaviours; FC1 of the 2026-11-20 review was found through one, and
   its replay below reaches the same state through a kill instead.
 
-The machine runs against ``tlaup.tlc.rundirs`` (marked ``pending`` until that module is
-built) and against the throwaway model in ``reference_rundirs.py``.
+The machine runs against ``tlaup.tlc.rundirs``.
 """
 
 from __future__ import annotations
@@ -95,16 +94,6 @@ def complete(folder: Path) -> bool:
 
 def any_checkpoint(folder: Path) -> bool:
     return any(folder.rglob("*.chkpt")) or any(folder.rglob("*.tmp"))
-
-
-def reference_impl() -> SimpleNamespace:
-    module = importlib.import_module("tests.stateful.reference_rundirs")
-    return SimpleNamespace(
-        name=module.__name__,
-        rundirs=module,
-        errors=(module.FileOperationError,),
-        outcome=lambda code: module.ProcessOutcome(exit_code=code),
-    )
 
 
 def tlaup_impl() -> SimpleNamespace:
@@ -715,11 +704,6 @@ def run_machine(impl: SimpleNamespace, base: Path) -> None:
     run_state_machine_as_test(machine, settings=settings(stateful_step_count=80))
 
 
-def test_run_folders_machine_against_the_reference_model(tmp_path: Path) -> None:
-    run_machine(reference_impl(), tmp_path)
-
-
-@pytest.mark.pending
 def test_run_folders_machine(tmp_path: Path) -> None:
     run_machine(tlaup_impl(), tmp_path)
 
@@ -767,11 +751,6 @@ def second_process_agrees(impl: SimpleNamespace, runs: Path) -> None:
     second.release()
 
 
-def test_a_lock_object_stands_for_a_process_reference_model(tmp_path: Path) -> None:
-    second_process_agrees(reference_impl(), tmp_path)
-
-
-@pytest.mark.pending
 def test_a_lock_object_stands_for_a_process(tmp_path: Path) -> None:
     second_process_agrees(tlaup_impl(), tmp_path)
 
@@ -815,11 +794,6 @@ def jvm_keeps_the_lock(impl: SimpleNamespace, runs: Path) -> None:
         assert probe(), "the lock stayed held after the child ended"
 
 
-def test_a_jvm_keeps_the_run_lock_reference_model(tmp_path: Path) -> None:
-    jvm_keeps_the_lock(reference_impl(), tmp_path)
-
-
-@pytest.mark.pending
 def test_a_jvm_keeps_the_run_lock(tmp_path: Path) -> None:
     jvm_keeps_the_lock(tlaup_impl(), tmp_path)
 
@@ -867,10 +841,5 @@ def kept_folder_survives_a_second_resume(impl: SimpleNamespace, runs: Path) -> N
     assert (runs / "run0").is_dir(), "KeptSurvives: a resume without --keep deleted a kept folder"
 
 
-def test_kept_folder_survives_a_second_resume_reference_model(tmp_path: Path) -> None:
-    kept_folder_survives_a_second_resume(reference_impl(), tmp_path)
-
-
-@pytest.mark.pending
 def test_kept_folder_survives_a_second_resume(tmp_path: Path) -> None:
     kept_folder_survives_a_second_resume(tlaup_impl(), tmp_path)

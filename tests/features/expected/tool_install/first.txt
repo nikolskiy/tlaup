@@ -1,0 +1,2 @@
+Installed v1.7.4@5a47802
+Pinned v1.7.4@5a47802

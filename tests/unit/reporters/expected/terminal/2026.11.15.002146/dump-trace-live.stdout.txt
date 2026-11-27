@@ -1,0 +1,14 @@
+Error: Temporal property Bad was violated.
+
+  The following behavior constitutes a counter-example:
+
+  1: Initial predicate
+       x = 0
+  2: Next  (Live.tla:5:9)
+     * x = 1
+  3: Next  (Live.tla:5:9)
+     * x = 2
+  Back to state 1
+"CounterExample written: LiveW.json"
+4 states generated, 3 distinct, 0 left on queue; depth 3
+Result: errors found in 1.8 s

@@ -1,0 +1,5 @@
+Why: design 11 R3, output that is not UTF-8: the launcher's decoding must not fail and must not drop the line.
+
+How: a copy of tlc/v1.7.4/violation.out with two edits. Line 17, the unframed "Semantic processing of module
+Naturals", has the bytes FF FE put before "Naturals". Line 54, in trace state 2 (the value of note in log), has the
+"e" of "deliberately" replaced by the Latin-1 byte E9 (an e with an acute accent). Nothing else changed.

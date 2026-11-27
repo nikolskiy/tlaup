@@ -1,0 +1,100 @@
+name: Draft pull request
+
+# Every pushed branch gets a pull request to main, opened as a draft when it has none (design 30
+# I9). It runs no project code and checks nothing out: it only calls the GitHub API through `gh`,
+# which the runner has. A pull request opened with this workflow's token starts no pull_request
+# run; the push run of test.yml reports Test on the same commit, which is what the ruleset on main
+# matches. Opening one needs the repository setting "Allow GitHub Actions to create and approve
+# pull requests".
+#
+# Not for: main; archive/** (merged work); pkg/** (stage 5 package branches, which merge into the
+# stage's build branch, not into main); dependabot/** (Dependabot opens its own pull requests).
+# A build/** stage branch does get one: that is its pull request to main.
+on:
+  push:
+    branches-ignore:
+      - main
+      - "archive/**"
+      - "pkg/**"
+      - "dependabot/**"
+
+permissions:
+  contents: read
+
+# One run per branch at a time, so two quick pushes cannot both find no pull request and both
+# open one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    # A push that deletes a branch has nothing to open a pull request for.
+    if: ${{ !github.event.deleted }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # the comparison with main
+      pull-requests: write # opening the pull request
+    steps:
+      - name: Open a draft pull request unless the branch has one
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          open_count() {
+            gh api -X GET "repos/$REPO/pulls" -f head="$OWNER:$BRANCH" -f state=open --jq 'length'
+          }
+
+          if [ "$(open_count)" -gt 0 ]; then
+            echo "$BRANCH already has an open pull request; nothing to do."
+            exit 0
+          fi
+
+          # Closing a draft without merging it stops the drafts for that branch: a closed,
+          # unmerged pull request counts as the branch's one. A merged one does not, since a
+          # merged branch is renamed and its name may be used again.
+          closed=$(gh api -X GET "repos/$REPO/pulls" -f head="$OWNER:$BRANCH" -f state=closed -f per_page=100 \
+            --jq 'map(select(.merged_at == null)) | length')
+          if [ "$closed" -gt 0 ]; then
+            echo "$BRANCH has a pull request that was closed without merging; no new one opened."
+            exit 0
+          fi
+
+          # A branch with no commits that main lacks cannot have a pull request yet.
+          ahead=$(gh api "repos/$REPO/compare/main...$SHA" --jq '.ahead_by')
+          if [ "$ahead" -eq 0 ]; then
+            echo "$BRANCH has no commits that main lacks; no pull request opened."
+            exit 0
+          fi
+
+          # The title is the subject of the branch's first commit (the comparison lists the
+          # commits oldest first), else the branch name. The squash commit on main takes its
+          # subject from the title, so the author edits it if needed before merging.
+          title=$(gh api "repos/$REPO/compare/main...$SHA" --jq '.commits[0].commit.message | split("\n")[0]')
+          [ -n "$title" ] || title=$BRANCH
+
+          body=$(printf '%s\n' \
+            "Draft opened automatically for the branch \`$BRANCH\` by the Draft pull request workflow." \
+            "" \
+            "Before merging, the author replaces this text with the description of the change and" \
+            "marks the pull request ready for review. It is squash-merged once Test is green, and the" \
+            "commit on main takes its message from the title and this description.")
+
+          if gh api "repos/$REPO/pulls" -f title="$title" -f head="$BRANCH" -f base=main \
+            -f body="$body" -F draft=true --jq '.html_url'; then
+            exit 0
+          fi
+
+          # Opening failed. If a pull request is open now (one opened by hand in the meantime),
+          # the job's purpose is met; otherwise the failure stands.
+          if [ "$(open_count)" -gt 0 ]; then
+            echo "$BRANCH got a pull request in the meantime; nothing to do."
+            exit 0
+          fi
+          exit 1

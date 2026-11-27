@@ -1,0 +1,21 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {},
+    "other": [
+      "Invalid option: -xy",
+      "Try 'SANY -help' for more information."
+    ],
+    "lines_used": 0
+  },
+  "lines": [
+    {
+      "class": "other",
+      "text": "Invalid option: -xy"
+    },
+    {
+      "class": "other",
+      "text": "Try 'SANY -help' for more information."
+    }
+  ]
+}

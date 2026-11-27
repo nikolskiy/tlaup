@@ -1,0 +1,3 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+4,001 states generated, 4,001 distinct, 0 left on queue; depth 4,001
+Result: no error found, every state checked (TLC exit code 0) in 3 min 10 s; resumed from a checkpoint

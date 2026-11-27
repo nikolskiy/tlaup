@@ -1,6 +1,6 @@
 # 12. The SANY parser
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
@@ -46,25 +46,28 @@ Provides ([10 P2](../design/10-parser.md#p2-the-tlaup_parse-package)):
 
 ```python
 class SanyParser:
-    def feed(self, line: str) -> SanyStep: ...        # what the line was, and the diagnostics it completed
-    def close(self) -> SanyStep: ...                  # line_class is None; the diagnostic still open, if any
+    def feed(self, line: str) -> SanyStep: ...  # what the line was, and the diagnostics it completed
+    def close(self) -> SanyStep: ...  # line_class is None; the diagnostic still open, if any
     @property
     def result(self) -> SanyResult: ...
 
+
 @dataclass(frozen=True)
 class SanyStep:
-    line_class: SanyLineClass | None        # None only from close()
-    diagnostics: tuple[Diagnostic, ...]     # usually empty: a diagnostic is returned when it is complete
+    line_class: SanyLineClass | None  # None only from close()
+    diagnostics: tuple[Diagnostic, ...]  # usually empty: a diagnostic is returned when it is complete
+
 
 class SanyLineClass(Enum):
     BANNER, PROGRESS, HEADER, STRUCTURE, POSITION, MESSAGE, BLANK, OTHER
+
 
 @dataclass(frozen=True)
 class SanyResult:
     diagnostics: tuple[Diagnostic, ...]
     module_files: dict[str, str]
-    other: tuple[str, ...]          # the lines of class OTHER, in order
-    lines_used: int                 # how many input lines had another class
+    other: tuple[str, ...]  # the lines of class OTHER, in order
+    lines_used: int  # how many input lines had another class
 
     def to_dict(self) -> dict[str, object]: ...
     @classmethod

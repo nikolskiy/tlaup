@@ -1,6 +1,6 @@
 # 53. The test workflow
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

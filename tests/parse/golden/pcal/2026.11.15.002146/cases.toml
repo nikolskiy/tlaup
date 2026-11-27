@@ -1,0 +1,176 @@
+# The PlusCal golden cases of this build, one table per <case>.out (design 01 T3, package 07).
+# Generated once from the research records named in each source; never guessed.
+# Here args is the whole argument list after the main class, file names included (unlike TLC's args).
+
+[pcal-badopt]
+spec = "Pcal"
+args = ["-bogus", "Pcal.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["Pcal.tla"]
+files_after = ["Pcal.tla"]
+source = "research 12, v1.8.0/outputs/pcal-badopt.txt"
+
+[pcal-err]
+spec = "PcalErr"
+args = ["PcalErr.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalErr.tla"]
+files_after = ["PcalErr.cfg", "PcalErr.old", "PcalErr.tla"]
+source = "research 12, v1.8.0/outputs/pcal-err.txt"
+
+[pcal-good]
+spec = "Pcal"
+args = ["Pcal.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/pcal-good.txt"
+
+[pcal-help]
+args = ["-help"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/pcal-help.txt"
+
+[pcal-label]
+spec = "PcalNoLabel"
+args = ["-label", "-reportLabels", "PcalNoLabel.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalNoLabel.tla"]
+files_after = ["PcalNoLabel.cfg", "PcalNoLabel.old", "PcalNoLabel.tla"]
+source = "research 12, v1.8.0/outputs/pcal-label.txt"
+
+[pcal-noalg]
+spec = "PcalNoAlg"
+args = ["PcalNoAlg.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalNoAlg.tla"]
+files_after = ["PcalNoAlg.tla"]
+source = "research 12, v1.8.0/outputs/pcal-noalg.txt"
+
+[pcal-noargs]
+args = []
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+source = "research 12, v1.8.0/outputs/pcal-noargs.txt"
+
+[pcal-nocfg]
+spec = "Pcal"
+args = ["-nocfg", "Pcal.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["Pcal.tla"]
+files_after = ["Pcal.old", "Pcal.tla"]
+source = "research 12, v1.8.0/outputs/pcal-nocfg.txt"
+
+[pcal-noext]
+spec = "Pcal"
+args = ["Pcal"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["Pcal.tla"]
+files_after = ["Pcal.cfg", "Pcal.old", "Pcal.tla"]
+source = "research 12, v1.8.0/outputs/pcal-noext.txt"
+
+[pcal-nofile]
+spec = "Good"
+args = ["Nope"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["Good.tla"]
+files_after = ["Good.tla"]
+note = "The file named in args does not exist, on purpose."
+source = "research 12, v1.8.0/outputs/pcal-nofile.txt"
+
+[pcal-nolabel]
+spec = "PcalNoLabel"
+args = ["PcalNoLabel.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalNoLabel.tla"]
+files_after = ["PcalNoLabel.tla"]
+source = "research 12, v1.8.0/outputs/pcal-nolabel.txt"
+
+[pcal-proc-wf]
+spec = "PcalProc"
+args = ["-wf", "PcalProc.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalProc.tla"]
+files_after = ["PcalProc.cfg", "PcalProc.old", "PcalProc.tla"]
+source = "research 12, v1.8.0/outputs/pcal-proc-wf.txt"
+
+[pcal-semerr]
+spec = "PcalSemErr"
+args = ["PcalSemErr.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalSemErr.tla"]
+files_after = ["PcalSemErr.tla"]
+source = "research 12, v1.8.0/outputs/pcal-semerr.txt"
+
+[pcal-spec]
+spec = "PcalProc"
+args = ["-spec", "Foo", "PcalProc.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalProc.tla"]
+files_after = ["AST.tla", "PcalProc.tla"]
+source = "research 12, v1.8.0/outputs/pcal-spec.txt"
+
+[pcal-syntaxerr]
+spec = "PcalSyn"
+args = ["PcalSyn.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalSyn.tla"]
+files_after = ["PcalSyn.tla"]
+source = "research 12, v1.8.0/outputs/pcal-syntaxerr.txt"
+
+[pcal-termination]
+spec = "Pcal"
+args = ["-termination", "Pcal.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["Pcal.tla"]
+files_after = ["Pcal.cfg", "Pcal.old", "Pcal.tla"]
+source = "research 12, v1.8.0/outputs/pcal-termination.txt"
+
+[pcal-wf]
+spec = "Pcal"
+args = ["-wf", "Pcal.tla"]
+exit = 0
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["Pcal.tla"]
+files_after = ["Pcal.cfg", "Pcal.old", "Pcal.tla"]
+source = "research 12, v1.8.0/outputs/pcal-wf.txt"
+
+[pcal-writeast]
+spec = "PcalProc"
+args = ["-writeAST", "PcalProc.tla"]
+exit = 255
+java = "25.0.5"
+captured = "2026-11-14"
+files_before = ["PcalProc.tla"]
+files_after = ["AST.tla", "PcalProc.tla"]
+source = "research 12, v1.8.0/outputs/pcal-writeast.txt"

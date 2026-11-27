@@ -1,0 +1,65 @@
+name: Archive merged branch
+
+# After a pull request from a branch of this repository is merged into main, its branch is
+# renamed to archive/<name> (design 30 I9), so the list of live branches holds only work in
+# progress. The archive is a convenience for bisecting the steps a squash merge folded into one
+# commit: GitHub keeps a pull request's commits, reachable from the pull request page and from
+# refs/pull/<number>/head, even when its branch is renamed or deleted. Nothing is checked out and
+# no project code runs.
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  archive:
+    # Merged, from this repository and not a fork, and not already an archived branch.
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !startsWith(github.event.pull_request.head.ref, 'archive/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # renaming a branch
+    steps:
+      - name: Rename the branch to archive/<name>
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          # The rename endpoint takes the branch name as one path segment, so a slash is encoded.
+          encode() { jq -rn --arg s "$1" '$s | @uri'; }
+
+          # A branch deleted (or renamed) since the merge has nothing left to archive. The refs
+          # endpoint takes the name with its slashes as they are.
+          if ! err=$(gh api "repos/$REPO/git/ref/heads/$BRANCH" --silent 2>&1); then
+            case "$err" in
+              *"HTTP 404"*)
+                echo "$BRANCH no longer exists; nothing to archive."
+                exit 0
+                ;;
+            esac
+            echo "$err" >&2
+            exit 1
+          fi
+
+          rename() {
+            gh api -X POST "repos/$REPO/branches/$(encode "$BRANCH")/rename" -f new_name="$1" --jq '.name'
+          }
+
+          target="archive/$BRANCH"
+          if ! rename "$target"; then
+            # The name is taken (a branch name used twice) or refused: one retry with a flat name
+            # that names the pull request, so it cannot collide with another archive.
+            target="archive/pr$NUMBER-${BRANCH//\//-}"
+            rename "$target"
+          fi
+          echo "renamed $BRANCH to $target"

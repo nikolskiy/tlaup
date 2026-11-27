@@ -1,6 +1,6 @@
 # 51. The generated CLI reference and its drift test
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 

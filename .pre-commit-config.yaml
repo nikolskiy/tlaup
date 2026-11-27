@@ -1,3 +1,8 @@
+# Every hook runs at commit only. The tests run on GitHub CI for every pushed branch, not in a
+# hook, and nothing runs at push: a pre-push hook left from an older install finds no hook to run
+# (remove it with `uv run pre-commit uninstall -t pre-push`).
+default_stages: [pre-commit]
+
 repos:
   - repo: local
     hooks:
@@ -90,6 +95,41 @@ repos:
             | \.claude/settings\.local\.json             # personal Claude Code settings
           )$
 
+      # The mechanical checks of the test rules (docs/design/01-testing.md, T12).
+      - id: no-patching-own-code
+        name: No patching of our own code in tests (T12 rule 2)
+        # monkeypatch stays for the environment and the working folder; setattr,
+        # setitem and delattr patch code. The conftests are covered by review.
+        # One exception, the standard library's fcntl.flock in
+        # tests/unit/tlc/test_rundirs_locks.py: it runs a holder's removal and
+        # release between a waiter's open and its flock, to reach the second
+        # look of the run folders' locks (11 R6, K1-2); it patches no tlaup code.
+        language: pygrep
+        entry: 'monkeypatch\.(setattr|setitem|delattr)\b(?!\(fcntl, "flock",)'
+        files: ^tests/.*\.py$
+        exclude: (^|/)conftest\.py$|^tests/fixtures/research/
+
+      - id: no-typed-tool-output
+        name: No typed tool output in tests (T12 rule 3)
+        # Tool output comes from captured files under tests/parse/golden/. An
+        # exception is named here by exact path, with its reason.
+        language: pygrep
+        entry: '@!@!@STARTMSG'
+        files: ^tests/.*\.(py|feature)$
+        # tests/fixtures/research/: evidence; two capture scripts there hold the marker.
+        # tests/parse/test_framing_props.py: its Hypothesis strategy writes the marker,
+        # which 01 T12 rule 3 exempts.
+        exclude: ^(tests/fixtures/research/|tests/parse/test_framing_props\.py$)
+
+      # Every message goes through tlaup.ui or a reporter (14 F6, 30 I8). A type
+      # annotation `Console` without a call does not match.
+      - id: no-direct-output
+        name: No typer.echo or Console( outside ui.py and the reporters (14 F6)
+        language: pygrep
+        entry: '\btyper\.echo\b|\bConsole\('
+        files: ^src/.*\.py$
+        exclude: ^src/tlaup/(ui\.py|reporters/)
+
       - id: check-added-large-files
         name: Check for added large files
         entry: uv run check-added-large-files
@@ -146,24 +186,24 @@ repos:
         types: [python]
         require_serial: true
 
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --check --force-exclude
+        language: system
+        types_or: [python, pyi, markdown]
+        require_serial: true
+
       - id: bandit
         name: bandit
-        entry: uv run bandit -c pyproject.toml -r src/tlaup
+        entry: uv run bandit -c pyproject.toml -r src/tlaup src/tlaup_parse
         language: system
         types: [python]
         pass_filenames: false
 
       - id: mypy
         name: mypy
-        entry: uv run mypy
+        entry: uv run mypy .
         language: system
         types: [python]
-        require_serial: true
-        exclude: ^tests/
-
-      - id: pytest
-        name: pytest
-        entry: uv run pytest
-        language: system
         pass_filenames: false
-        always_run: true
+        require_serial: true

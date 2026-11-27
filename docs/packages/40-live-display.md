@@ -1,6 +1,6 @@
 # 40. The live display
 
-Size: L. Suggested model: most capable. Status: ready. Delivered as two pull requests, 40a and 40b (see the end).
+Size: L. Suggested model: most capable. Status: built. Delivered as two pull requests, 40a and 40b (see the end).
 
 ## Goal
 

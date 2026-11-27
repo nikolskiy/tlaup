@@ -1,6 +1,6 @@
 # 21. The Java launcher
 
-Size: L. Suggested model: most capable. Status: ready. The one edit of `tests/stateful/test_signals.py` that D60 needs was settled with the maintainer (question Q5; see "Context for the worker", "The SIGQUIT edit").
+Size: L. Suggested model: most capable. Status: built. The one edit of `tests/stateful/test_signals.py` that D60 needs was settled with the maintainer (question Q5; see "Context for the worker", "The SIGQUIT edit").
 
 ## Goal
 

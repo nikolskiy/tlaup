@@ -1,6 +1,6 @@
 # 10. Framing and the code table
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built.
 
 ## Goal
 
@@ -52,19 +52,23 @@ Provides ([10 P2](../design/10-parser.md#p2-the-tlaup_parse-package), [P4](../de
 
 ```python
 @dataclass(frozen=True)
-class Unframed:                 # a line outside every message; written by stage 4 from "Unframed(line)" in P4
-    line: str                   # without its line ending
+class Unframed:  # a line outside every message; written by stage 4 from "Unframed(line)" in P4
+    line: str  # without its line ending
+
 
 class Framer:
-    def feed(self, line: str) -> list[Unframed | TlcMessage]: ...   # one line, with or without its line ending;
-    def close(self) -> list[Unframed | TlcMessage]: ...             # only top-level items are returned
+    def feed(self, line: str) -> list[Unframed | TlcMessage]: ...  # one line, with or without its line ending;
+    def close(self) -> list[Unframed | TlcMessage]: ...  # only top-level items are returned
 
-def render_framed(item: Unframed | TlcMessage) -> list[str]: ...    # the input lines the item was built from
+
+def render_framed(item: Unframed | TlcMessage) -> list[str]: ...  # the input lines the item was built from
+
 
 @dataclass(frozen=True)
-class CodeInfo:                 # written by stage 4 from "a plain table CODES: dict[int, CodeInfo] with name and an optional kind"
-    name: str                   # the upstream constant's name
+class CodeInfo:  # written by stage 4 from "a plain table CODES: dict[int, CodeInfo] with name and an optional kind"
+    name: str  # the upstream constant's name
     kind: ErrorKind | None = None
+
 
 CODES: dict[int, CodeInfo]
 ```

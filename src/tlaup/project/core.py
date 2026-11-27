@@ -1,31 +1,44 @@
-"""Project root discovery utilities."""
+"""Project root discovery (design 11 R10) and the folder names it uses."""
 
 from pathlib import Path
 
+SPEC_DIR = "spec"
+MODULES_DIR = "modules"
+CLASSES_DIR = "classes"
+LIB_DIR = "lib"
 
-def _is_project_root(directory: Path, modules_dir: Path | str, classes_dir: Path | str, lib_dir: Path | str) -> bool:
-    """Return True if directory contains at least one project structure marker."""
-    return (directory / classes_dir).is_dir() or (directory / modules_dir).is_dir() or (directory / lib_dir).is_dir()
+# A spec in a folder with one of these names may have its project root in the parent folder.
+SPEC_FOLDER_NAMES = (SPEC_DIR, "specs", "test", "tests")
 
 
-def find_project_root(
-    spec_file: Path,
-    *,
-    modules_dir: Path | str,
-    classes_dir: Path | str,
-    lib_dir: Path | str = "lib",
-) -> Path | None:
-    """Resolve the project root relative to a .tla spec file.
+def _has_marker(directory: Path) -> bool:
+    return any((directory / name).is_dir() for name in (MODULES_DIR, CLASSES_DIR, LIB_DIR))
 
-    Resolution strategy (in order):
-    1. Check the spec file's own directory.
-    2. Check the parent of the spec file's directory (handles spec/ and tests/ subdirs).
-    3. Return None if neither directory qualifies.
+
+def _is_home_or_filesystem_root(directory: Path, home: Path) -> bool:
+    # By file identity, so that a home folder reached through a link is still refused.
+    if directory.parent == directory or directory.resolve().parent == directory.resolve():
+        return True
+    try:
+        return directory.samefile(home)
+    except OSError:
+        return directory == home
+
+
+def find_project_root(spec: Path, home: Path) -> Path | None:
+    """Return the project root of a spec, or None.
+
+    1. The spec's own folder, if it holds `modules/`, `classes/` or `lib/`.
+    2. Otherwise its parent folder, if that holds one of them and the spec's folder is named `spec`, `specs`,
+       `test` or `tests`.
+    3. Never the home folder or a filesystem root.
+    The folder returned is the absolute form of the path as given; no link is resolved.
     """
-    spec_dir = spec_file.parent.resolve()
-
-    for candidate in (spec_dir, spec_dir.parent):
-        if _is_project_root(candidate, modules_dir, classes_dir, lib_dir):
+    folder = spec.absolute().parent  # a relative spec is read against the working folder; no link is resolved
+    candidates = [folder]
+    if folder.name in SPEC_FOLDER_NAMES:
+        candidates.append(folder.parent)
+    for candidate in candidates:
+        if _has_marker(candidate) and not _is_home_or_filesystem_root(candidate, home):
             return candidate
-
     return None

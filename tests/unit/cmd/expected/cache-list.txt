@@ -1,0 +1,6 @@
+20261118T010000Z-dddddddd  -                  -                                             changed 2026-11-18 01:00 UTC      0 B  no run.json
+20261119T120000Z-cccccccc  Spec.tla Spec.cfg  v1.7.4@5a47802  started 2026-11-19 12:00 UTC  changed 2026-11-20 09:30 UTC  52.0 MB  kept: unsettled after a kill, checkpoint complete
+20261120T090500Z-aaaaaaaa  Spec.tla Spec.cfg  v1.7.4@5a47802  started 2026-11-20 09:05 UTC  changed 2026-11-20 09:30 UTC   1.2 MB  kept: TLC crashed (exit 255), checkpoint complete
+20261121T080000Z-bbbbbbbb  Spec.tla Spec.cfg  v1.7.4@5a47802  started 2026-11-21 08:00 UTC  changed 2026-11-20 09:30 UTC    900 B  in use, not kept, checkpoint incomplete
+20261122T000000Z-eeeeeeee  Spec.tla           v1.7.4@5a47802  started 2026-11-22 00:00 UTC  changed 2026-11-20 09:30 UTC   3.0 GB  kept: interrupted, checkpoint complete
+3 kept run folders hold 3.1 GB

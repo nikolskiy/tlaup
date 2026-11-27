@@ -1,0 +1,70 @@
+{
+  "result": {
+    "diagnostics": [],
+    "module_files": {
+      "Good": "<tmp>/q12/work-v1.8.0/Good.tla",
+      "Naturals": "/tmp/tlc-16920160630342686426/Naturals.tla",
+      "Two": "<tmp>/q12/work-v1.8.0/Two.tla"
+    },
+    "other": [],
+    "lines_used": 14
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/Good.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-16920160630342686426/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Good"
+    },
+    {
+      "class": "progress",
+      "text": "Linting of module Good"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.8.0/Two.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Two"
+    },
+    {
+      "class": "progress",
+      "text": "Linting of module Two"
+    }
+  ]
+}

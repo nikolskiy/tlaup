@@ -1,0 +1,4 @@
+TLC rolling@bc1b506 (2026.11.15.002146), Java 25.0.5, workers auto
+Violation.tla  cfg: Violation.cfg
+10 states generated, diameter 3
+10 states generated, diameter 3

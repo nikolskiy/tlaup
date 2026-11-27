@@ -1,0 +1,132 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "[] followed by action not of form [A]_v.",
+        "module": "Warn",
+        "file": "<tmp>/q12/work-v1.7.4/Warn.tla",
+        "location": {
+          "module": "Warn",
+          "line": 6,
+          "column": 9,
+          "end_line": 6,
+          "end_column": 22
+        },
+        "details": []
+      },
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "<> followed by action not of form <<A>>_v.",
+        "module": "Warn",
+        "file": "<tmp>/q12/work-v1.7.4/Warn.tla",
+        "location": {
+          "module": "Warn",
+          "line": 7,
+          "column": 10,
+          "end_line": 7,
+          "end_column": 19
+        },
+        "details": []
+      }
+    ],
+    "module_files": {
+      "Warn": "<tmp>/q12/work-v1.7.4/Warn.tla",
+      "Naturals": "/tmp/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 22
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q12/work-v1.7.4/Warn.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/Naturals.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Warn"
+    },
+    {
+      "class": "header",
+      "text": "Semantic errors:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 2"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 6, col 9 to line 6, col 22 of module Warn"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "[] followed by action not of form [A]_v."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 7, col 10 to line 7, col 19 of module Warn"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "<> followed by action not of form <<A>>_v."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+
+****** SANY2 Version 2.2 created 08 July 2020
+
+Parsing file <tmp>/q12/work-v1.8.0/SemErr.tla
+Parsing file /tmp/tlc-14645010757599648378/Naturals.tla (jar:file:<tmp>/q12/jar-v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)
+Semantic processing of module Naturals
+Semantic processing of module SemErr
+Semantic errors:
+
+*** Errors: 2
+
+line 4, col 13 to line 4, col 13 of module SemErr
+
+Unknown operator: `y'.
+
+
+line 5, col 22 to line 5, col 24 of module SemErr
+
+Unknown operator: `Foo'.
+
+

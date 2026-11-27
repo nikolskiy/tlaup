@@ -1,0 +1,3 @@
+[31merror:[0m cannot read it
+  first line
+  second line

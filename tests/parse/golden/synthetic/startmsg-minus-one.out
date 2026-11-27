@@ -1,0 +1,9 @@
+@!@!@STARTMSG 2262:0 @!@!@
+TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802)
+@!@!@ENDMSG 2262 @!@!@
+@!@!@STARTMSG -1:0 @!@!@
+a line after a start marker with code -1
+@!@!@ENDMSG -1 @!@!@
+@!@!@STARTMSG 2186:0 @!@!@
+Finished in 621ms at (2026-11-14 22:25:54)
+@!@!@ENDMSG 2186 @!@!@

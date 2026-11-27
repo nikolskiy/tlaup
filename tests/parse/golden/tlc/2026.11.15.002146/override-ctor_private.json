@@ -1,0 +1,72 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "failure",
+  "verdict": "not-checked",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [
+    {
+      "kind": "exception",
+      "name": null,
+      "message": {
+        "code": 1000,
+        "severity": 1,
+        "name": "GENERAL",
+        "body": [
+          "TLC threw an unexpected exception.",
+          "This was probably caused by an error in the spec or model.",
+          "See the User Output or TLC Console for clues to what happened.",
+          "The exception was a java.lang.RuntimeException",
+          {
+            "code": 1000,
+            "severity": 0,
+            "name": "GENERAL",
+            "body": [
+              ""
+            ],
+            "before": ": ",
+            "after": "",
+            "truncated": false
+          }
+        ],
+        "before": "",
+        "after": "",
+        "truncated": false
+      },
+      "related": [],
+      "trace": null
+    }
+  ],
+  "warnings": [],
+  "sany": [],
+  "module_files": {
+    "spec": "<repo>/tests/fixtures/research/13-override-loading/v1.8.0/cases/ctor_private/spec.tla",
+    "Naturals": "/tmp/tlc-4132407164635371478/Naturals.tla",
+    "TLC": "/tmp/tlc-4132407164635371478/TLC.tla",
+    "Ovr": "<repo>/tests/fixtures/research/13-override-loading/v1.8.0/cases/ctor_private/modules/Ovr.tla",
+    "Sequences": "/tmp/tlc-4132407164635371478/Sequences.tla",
+    "FiniteSets": "/tmp/tlc-4132407164635371478/FiniteSets.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [],
+  "stats": null,
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 14,
+  "sany_lines_used": 14,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-14 22:26:20",
+  "finished": "2026-11-14 22:26:20",
+  "duration_ms": 631
+}

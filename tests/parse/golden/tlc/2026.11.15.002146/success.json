@@ -1,0 +1,63 @@
+{
+  "tool": {
+    "version": "2026.11.15.002146",
+    "revision": "bc1b506",
+    "date": null,
+    "line": "rolling",
+    "raw": "TLC2 Version 2026.11.15.002146 (rev: bc1b506)"
+  },
+  "mode": "exhaustive search",
+  "workers": 1,
+  "phase": "finished",
+  "status": "success",
+  "verdict": "no-error",
+  "resumed": false,
+  "counts_approximate": false,
+  "errors": [],
+  "warnings": [
+    {
+      "code": 2401,
+      "severity": 3,
+      "name": "TLC_ENVIRONMENT_JVM_GC",
+      "body": [
+        "Please run the Java VM, which executes TLC with a throughput optimized garbage collector, by passing the \"-XX:+UseParallelGC\" property."
+      ],
+      "before": "",
+      "after": "",
+      "truncated": false
+    }
+  ],
+  "sany": [],
+  "module_files": {
+    "Success": "<tmp>/q01/run/Success.tla",
+    "Naturals": "/tmp/tlc-11472206317603010597/Naturals.tla"
+  },
+  "overrides_loaded": [],
+  "progress": [
+    {
+      "diameter": 7,
+      "generated": 26,
+      "distinct": 16,
+      "queue": 0,
+      "at": "2026-11-14 22:26:51"
+    }
+  ],
+  "stats": {
+    "totalStates": 26,
+    "distinctStates": 16,
+    "queue": 0,
+    "stateDepth": 7,
+    "collision_probability": "8.7E-18",
+    "outdegree": "The average outdegree of the complete state graph is 1 (minimum is 0, the maximum 2 and the 95th percentile is 2)."
+  },
+  "coverage": [],
+  "output": [],
+  "output_dropped": 0,
+  "unframed_lines": 5,
+  "sany_lines_used": 5,
+  "unknown_messages": [],
+  "info": [],
+  "started": "2026-11-14 22:26:50",
+  "finished": "2026-11-14 22:26:51",
+  "duration_ms": 468
+}

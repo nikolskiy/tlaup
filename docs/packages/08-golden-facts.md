@@ -1,6 +1,6 @@
 # 08. Golden facts
 
-Size: L, as two pull requests of size M (08a, 08b). Suggested model: most capable. Status: ready.
+Size: L, as two pull requests of size M (08a, 08b). Suggested model: most capable. Status: built.
 
 ## Goal
 
@@ -83,7 +83,7 @@ A registering decorator in `facts.py` (`@fact("violation", "errors", "one-invari
 **Pending markers sit on each fact**, not on a module or a case. `test_facts.py` holds one constant:
 
 ```python
-PENDING: tuple[str, ...] = ("*",)   # fnmatch patterns over Fact.id; a fact whose id matches one is marked pending
+PENDING: tuple[str, ...] = ("*",)  # fnmatch patterns over Fact.id; a fact whose id matches one is marked pending
 ```
 
 Each parametrised test gets `pytest.mark.pending` exactly when its fact's id matches a pattern. A parser package narrows the tuple as its first commit: package 13's first pull request could leave `("*:traces:*",)`, its second `()`. A pattern may name one case (`"tool-oom:*"`) when a capture shows a fact to be unreachable for a reason the package states. When the tuple is empty the constant stays, empty, until package [59](59-closing.md) removes the marker and its `-m` option.

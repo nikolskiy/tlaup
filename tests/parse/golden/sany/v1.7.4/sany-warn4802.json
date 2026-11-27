@@ -1,0 +1,97 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Non-unique fields in constructor.",
+        "module": "Warn4802",
+        "file": "<tmp>/q22/work/v1.7.4/sany-warn4802/Warn4802.tla",
+        "location": {
+          "module": "Warn4802",
+          "line": 4,
+          "column": 16,
+          "end_line": 4,
+          "end_column": 16
+        },
+        "details": []
+      }
+    ],
+    "module_files": {
+      "Warn4802": "<tmp>/q22/work/v1.7.4/sany-warn4802/Warn4802.tla",
+      "Naturals": "/tmp/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 17
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.1 created 24 February 2014"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.7.4/sany-warn4802/Warn4802.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/Naturals.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Warn4802"
+    },
+    {
+      "class": "header",
+      "text": "Semantic errors:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 1"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 4, col 16 to line 4, col 16 of module Warn4802"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Non-unique fields in constructor."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

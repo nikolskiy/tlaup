@@ -12,3 +12,5 @@ Made on 2026-11-19 (UTC) from one Linux machine with `curl` and no token. `recor
 
 `date` and `x-ratelimit-reset` are real values of that day; a test that serves these files must not depend on them
 being current. Headers are stored as sent over HTTP/2: lower-case names, one `name: value` per line.
+
+Moved on 2026-11-25 (package 05): `releases-paged/` and `rate-limited/` went with `git mv` to `tests/recordings/github/`, so their rows above describe files that are no longer here. `releases-paged` was recorded again in place with the assets' `created_at` and `updated_at`; `rate-limited` is unchanged. `tags-paged/` stays: the client never calls the tags endpoint.

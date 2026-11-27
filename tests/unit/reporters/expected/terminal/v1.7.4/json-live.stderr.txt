@@ -1,0 +1,4 @@
+TLC v1.7.4@5a47802, Java 25.0.5
+Live.tla  cfg: Live.cfg
+4 states generated, 3 distinct, 0 on queue, diameter 3
+4 states generated, 3 distinct, 0 on queue, diameter 3

@@ -1,6 +1,6 @@
 # 02. Errors, paths and the context skeleton
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built.
 
 ## Goal
 
@@ -52,12 +52,24 @@ Provides.
 ```python
 class TlaupError(Exception):
     exit_code: ClassVar[int]
+
     def __init__(self, message: str, *, hint: str | None = None, details: str | None = None): ...
 
-class UsageError(TlaupError):   exit_code = 2
-class NotSetUp(TlaupError):     exit_code = 3
-class NotFound(TlaupError):     exit_code = 4
-class Failed(TlaupError):       exit_code = 5
+
+class UsageError(TlaupError):
+    exit_code = 2
+
+
+class NotSetUp(TlaupError):
+    exit_code = 3
+
+
+class NotFound(TlaupError):
+    exit_code = 4
+
+
+class Failed(TlaupError):
+    exit_code = 5
 ```
 
 `message`, `hint` and `details` are readable attributes of the same names (package 17's handler prints them); `str(error)` is the message.

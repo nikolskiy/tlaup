@@ -1,0 +1,6 @@
+Why: design 10 P3, Tests: a run cut off inside a message and before the finish message 2186 has status RUNNING and
+verdict incomplete after close(), and the open message is closed truncated (P4).
+
+How: the first 45 lines of tlc/v1.7.4/success.out, cut after "The average outdegree of the complete state graph
+is ..." inside message 2268, the message before the 2186. Everything after that line, the 2268 end marker and the
+2186, was left out. Nothing else changed. The run has no error, so nothing but the cut decides its status.

@@ -1,0 +1,5 @@
+Why: design 01 T3, "an end whose code does not match", and design 10 P4, "If it matches nothing open, it is plain
+text". Line 4 is an end marker for 2193 with no message open: one plain line. Line 7 is the same end marker while a
+2185 is open: a body line of that 2185, which line 8 closes.
+
+How: Written by hand (TLC did not produce this shape; research 1 tried). The messages around it are copied from tlc/v1.7.4/success.out: 2262 (version), 2185 (start) and 2186 (finish). Lines 4 and 7 are new.

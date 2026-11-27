@@ -1,43 +1,369 @@
 name: Test
 
+# Every pushed branch runs, main included (the release script reads Test on main's HEAD); an
+# archived branch does not (design 30 I9). The push run is the one that reports Test on a branch's
+# head commit: a pull request opened by pull-request.yml's token starts no pull_request run. A
+# pull request from a branch of this repository runs twice per push, as push and as pull_request
+# (which tests the merge with main); the duplicate is accepted, since skipping it by a job
+# condition would leave a skipped Test, which counts as passed, on the same commit (I9).
 on:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - "archive/**"
   pull_request:
+  schedule:
+    - cron: "17 4 * * 1" # Mondays 04:17 UTC: the weekly run (design 30 I1, I3)
 
+permissions:
+  contents: read
+
+# A newer push to a branch or a pull request cancels its older run. The cancelled run's Test job
+# still runs (if: always(), below) and fails, so the superseded commit shows a red Test; the
+# required check reads the head commit, so that is harmless. On main a running run is never
+# cancelled, but a group keeps only one pending run, so a newer run replaces an older one that is
+# still waiting.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  # The number in every jar cache key of the jobs below. Raise it by hand to abandon every stored
+  # entry (for example after a damaged one, which a cache cannot replace under its own key).
+  TOOLS_CACHE_NUMBER: "1"
+
+# Every action is pinned by commit hash with its release in a comment. The hashes are the ones
+# research 29 found on 2026-11-19; Dependabot (package 56) moves them.
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - run: uv sync --locked
+
+      - run: uv run poe lint
+
+      - run: uv run ruff format --check .
+
+      - run: shellcheck scripts/*.sh
+
+      - name: Pre-commit hooks
+        run: uv run pre-commit run --all-files
+
+  unit:
+    name: unit (${{ matrix.os }}, ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    # The suite takes about 5.5 minutes under CI=1 on a desktop machine; the hosted runners and
+    # macOS are slower, so the limit is 25 and not the 15 of the design.
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.15"
+          - os: macos-latest
+            python: "3.15"
+    env:
+      # Every uv command of the job, the sync and each run, uses this Python.
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          python-version-file: "pyproject.toml"
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - run: uv sync --locked
+
+      - run: uv run poe test
+
+      # The tests must leave no tlaup folder in the real home (design 01 T2, 30 I2).
+      - name: Check that the home folder stays clean
+        run: uv run python scripts/test_clean.py --home "$HOME"
+
+  lifeline:
+    name: lifeline (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up the oldest supported Java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "11"
+
+      # Ubuntu's AppArmor keeps unprivileged user namespaces from processes, so the reused-id test could make no
+      # process-id namespace (it fails on CI rather than skip). The runner is thrown away after the job.
+      - name: Allow unprivileged user namespaces
+        if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - run: uv sync --locked
+
+      # Set here and not in the job's env, where the runner context is not available.
+      - name: Keep the tlaup store in the runner's temporary folder
+        run: echo "TLAUP_HOME=$RUNNER_TEMP/tlaup" >> "$GITHUB_ENV"
+
+      # The cache key: the digest GitHub publishes for the rolling jar, so a new upstream build misses
+      # the cache. An empty digest fails here, so that a change in the release API is seen at once and
+      # not as one shared key. A rolling build published between this read and the install is accepted:
+      # the entry then holds the newer jar.
+      - name: Work out the jar cache key
+        id: key
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          digest=$(gh api repos/tlaplus/tlaplus/releases/tags/rolling --jq '.assets[] | select(.name == "tla2tools.jar") | .digest')
+          if [ -z "$digest" ] || [ "$digest" = null ]; then
+            echo "the rolling release lists no digest for tla2tools.jar"
+            exit 1
+          fi
+          if [ "$(printf '%s\n' "$digest" | wc -l)" -ne 1 ]; then
+            echo "the rolling release lists more than one digest for tla2tools.jar"
+            exit 1
+          fi
+          echo "key=tools-${TOOLS_CACHE_NUMBER}-rolling-${digest}" >> "$GITHUB_OUTPUT"
+
+      # Restore before the install, so a restored cache is used (design 30 I1).
+      - name: Restore the jar cache
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/tlaup/cache/tool
+          key: ${{ steps.key.outputs.key }}
+
+      - name: Install the TLC build with tlaup
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run tlaup tool install rolling
+
+      # `doctor` compares each jar with its recorded SHA-256; a damaged cache entry is repaired for this
+      # run, and replaced for good only when the number in the keys is raised.
+      - name: Check the jar, repair it if needed, and record the build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.key.outputs.key }}
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          if ! uv run tlaup doctor; then
+            if [ "$CACHE_HIT" = true ]; then
+              {
+                echo "**Warning:** \`tlaup doctor\` failed on the restored jar cache, so the jar was installed again."
+                echo "A stored cache entry cannot be saved again under its key. Raise TOOLS_CACHE_NUMBER in the workflow file to abandon \`$KEY\`."
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "\`tlaup doctor\` failed after a fresh install, so the jar was installed again." >> "$GITHUB_STEP_SUMMARY"
+            fi
+            uv run tlaup tool install --force rolling
+            uv run tlaup doctor
+          fi
+          {
+            echo '### Installed build'
+            echo '```'
+            uv run tlaup tool current
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Rolling, because v1.7.4 has no REPL. The key is the integration job's, so both share one entry.
+      - run: uv run poe test-lifeline -rs
+        env:
+          TLAUP_TEST_JARS: ${{ runner.temp }}/tlaup/cache/tool
+
+  integration:
+    name: integration (${{ matrix.os }}, java ${{ matrix.java }}, ${{ matrix.tools }})
+    runs-on: ${{ matrix.os }}
+    # Locally the tests take about 6.5 minutes, 3 of them the resume test on rolling; the hosted runners are slower.
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        # macos-latest is macOS 26 on arm64. Its image has Temurin 11.0.32 preinstalled, which setup-java
+        # may take instead of downloading 11.0.33+10; either is fine (design 30 I1).
+        java: ["11", "25"]
+        tools: [v1.7.4, rolling]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - run: uv sync --locked
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
-          distribution: "temurin"
-          java-version: "17"
+          distribution: temurin
+          java-version: ${{ matrix.java }}
 
-      - name: Install dependencies
-        run: uv sync --all-extras --dev
+      # The store is job-local, outside the home folder. It is set here and not in the job's env,
+      # where the runner context is not available.
+      - name: Keep the tlaup store in the runner's temporary folder
+        run: echo "TLAUP_HOME=$RUNNER_TEMP/tlaup" >> "$GITHUB_ENV"
 
-      - name: Run linting
-        run: uv run poe lint
+      # The cache key: the SHA-256 of the v1.7.4 jar (research 18), or for rolling the digest GitHub
+      # publishes for its jar, so a new upstream build misses the cache. An empty digest fails here,
+      # so that a change in the release API is seen at once and not as one shared key. A rolling build
+      # published between this read and the install is accepted: the entry then holds the newer jar.
+      - name: Work out the jar cache key
+        id: key
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOOLS: ${{ matrix.tools }}
+        run: |
+          if [ "$TOOLS" = rolling ]; then
+            digest=$(gh api repos/tlaplus/tlaplus/releases/tags/rolling --jq '.assets[] | select(.name == "tla2tools.jar") | .digest')
+            if [ -z "$digest" ] || [ "$digest" = null ]; then
+              echo "the rolling release lists no digest for tla2tools.jar"
+              exit 1
+            fi
+            if [ "$(printf '%s\n' "$digest" | wc -l)" -ne 1 ]; then
+              echo "the rolling release lists more than one digest for tla2tools.jar"
+              exit 1
+            fi
+          else
+            digest=936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
+          fi
+          echo "key=tools-${TOOLS_CACHE_NUMBER}-${TOOLS}-${digest}" >> "$GITHUB_OUTPUT"
 
-      # Running tests requires a TLC
-      - name: Download tla2tools.jar
-        run: uv run tlaup tools install
+      # Restore before the install, so a restored cache is used (design 30 I1).
+      - name: Restore the jar cache
+        id: cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/tlaup/cache/tool
+          key: ${{ steps.key.outputs.key }}
 
-      - name: Run tests
-        run: uv run poe test
+      - name: Install the TLC build with tlaup
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run tlaup tool install ${{ matrix.tools }}
+
+      # `doctor` compares each jar with its recorded SHA-256; a damaged cache entry is repaired for this
+      # run, and replaced for good only when the number in the keys is raised.
+      - name: Check the jar, repair it if needed, and record the build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.key.outputs.key }}
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
+        run: |
+          if ! uv run tlaup doctor; then
+            if [ "$CACHE_HIT" = true ]; then
+              {
+                echo "**Warning:** \`tlaup doctor\` failed on the restored jar cache, so the jar was installed again."
+                echo "A stored cache entry cannot be saved again under its key. Raise TOOLS_CACHE_NUMBER in the workflow file to abandon \`$KEY\`."
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "\`tlaup doctor\` failed after a fresh install, so the jar was installed again." >> "$GITHUB_STEP_SUMMARY"
+            fi
+            uv run tlaup tool install --force ${{ matrix.tools }}
+            uv run tlaup doctor
+          fi
+          {
+            echo '### Installed build'
+            echo '```'
+            uv run tlaup tool current
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # No token here: the tests use no network.
+      - name: Integration tests
+        id: tests
+        env:
+          TLAUP_TEST_JARS: ${{ runner.temp }}/tlaup/cache/tool
+        run: uv run poe test-integration
+
+      # The last step, and it runs after a failed test run too: nothing may appear in the real home,
+      # `~/.tlaplus` included (design 01 T2, T9).
+      - name: Check that the home folder stays clean
+        if: always() && steps.tests.outcome != 'skipped'
+        run: uv run python scripts/test_clean.py --home "$HOME"
+
+  # Not required: it may be red on any day a dependency releases something new (design 30 I3).
+  deps-newest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25 # the whole unit suite, as the unit cells: 9 to 11 minutes on the first runs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+
+      # The one sync without --locked: it resolves again to the newest versions the ranges
+      # allow. The changed uv.lock is not committed.
+      - run: uv sync --upgrade
+
+      - run: uv run --no-sync poe test
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - run: uv sync --locked
+
+      - run: uv run poe check-release
+
+  # The one check the ruleset on main requires. `if: always()` keeps it from being skipped
+  # when a job it needs fails (a skipped required check counts as passed); the step fails
+  # unless every needed job succeeded (design 30 I5). deps-newest is not needed on purpose.
+  Test:
+    name: Test
+    needs: [lint, unit, lifeline, integration, build]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for r in $RESULTS; do
+            if [ "$r" != success ]; then echo "a required job ended with: $r"; exit 1; fi
+          done

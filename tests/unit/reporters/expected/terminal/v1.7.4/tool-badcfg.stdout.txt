@@ -1,0 +1,4 @@
+Warning: Please run the Java VM which executes TLC with a throughput optimized garbage collector by passing the "-XX:+UseParallelGC" property.
+Error: The name Nope specified in the configuration file
+  is not defined in the specification.
+Result: not checked: the configuration has errors (TLC exit code 151: the cfg file is missing or wrong)

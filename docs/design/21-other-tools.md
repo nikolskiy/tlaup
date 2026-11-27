@@ -136,12 +136,12 @@ Roadmap: "`pcal` command: run the PlusCal translator; passthrough for its flags.
    @dataclass
    class PcalResult:
        version: str | None
-       files_written: list[str]              # from "New file X written."
-       labels_added: list[tuple[str, int, int]]   # (name, line, column), in the translator's order
-       diagnostics: list[Diagnostic]         # tool="pcal"
-       other: list[str]                      # lines not recognised, kept
+       files_written: list[str]  # from "New file X written."
+       labels_added: list[tuple[str, int, int]]  # (name, line, column), in the translator's order
+       diagnostics: list[Diagnostic]  # tool="pcal"
+       other: list[str]  # lines not recognised, kept
 
-       def to_dict(self) -> dict[str, object]: ...   # plain JSON types, as the types of 10 P3; from_dict beside it
+       def to_dict(self) -> dict[str, object]: ...  # plain JSON types, as the types of 10 P3; from_dict beside it
    ```
 
    Recognised: the banner; `Parsing completed.`; `Translation completed.`; `New file X written.`; `Unrecoverable error:` followed by ` -- <message>` and optionally `line L, column C.` or `at line L, column C.`; `The following label was added:` or `The following labels were added:`, and under it one line per label, `  <name> at line L, column C` (only the singular was captured, by research 12's `pcal-label`; the plural is the translator's other text, read from its classes in the rolling jar of research 22).

@@ -38,56 +38,73 @@ The whole public surface:
 ```python
 class TlcParser:
     def __init__(self, *, max_output_lines: int = 10_000): ...
-    def feed(self, line: str) -> list[Event]: ...     # one line, with or without its newline
-    def close(self) -> list[Event]: ...               # end of input: flush anything still open
+    def feed(self, line: str) -> list[Event]: ...  # one line, with or without its newline
+    def close(self) -> list[Event]: ...  # end of input: flush anything still open
     @property
     def result(self) -> RunResult: ...
 
-class SanyParser:                                     # P8
-    def feed(self, line: str) -> SanyStep: ...        # what the line was, and the diagnostics it completed
-    def close(self) -> SanyStep: ...                  # line_class is None; the diagnostic still open, if any
+
+class SanyParser:  # P8
+    def feed(self, line: str) -> SanyStep: ...  # what the line was, and the diagnostics it completed
+    def close(self) -> SanyStep: ...  # line_class is None; the diagnostic still open, if any
     @property
     def result(self) -> SanyResult: ...
 
-class PcalParser:                                     # 21 S2
+
+class PcalParser:  # 21 S2
     def feed(self, line: str) -> list[Diagnostic]: ...
     def close(self) -> list[Diagnostic]: ...
     @property
     def result(self) -> PcalResult: ...
 
-class Framer:                                         # P4; public so the "nothing is lost" property can be tested
-    def feed(self, line: str) -> list[Unframed | TlcMessage]: ...   # only items at the top level; a nested
-    def close(self) -> list[Unframed | TlcMessage]: ...             # message arrives inside its parent
 
-def render_framed(item: Unframed | TlcMessage) -> list[str]: ...    # the input lines the item was built from (P4)
+class Framer:  # P4; public so the "nothing is lost" property can be tested
+    def feed(self, line: str) -> list[Unframed | TlcMessage]: ...  # only items at the top level; a nested
+    def close(self) -> list[Unframed | TlcMessage]: ...  # message arrives inside its parent
+
+
+def render_framed(item: Unframed | TlcMessage) -> list[str]: ...  # the input lines the item was built from (P4)
+
 
 def parse_value(text: str) -> Value: ...
 def describe_exit_status(code: int) -> ExitStatus: ...
 
+
 @dataclass(frozen=True)
-class ExitStatus:                                     # 02 X1 holds the table of codes, words and meanings
+class ExitStatus:  # 02 X1 holds the table of codes, words and meanings
     code: int
-    word: str            # X1's word for the code: "success", "safety failure", "parse error", ... A "failure"
-                         # means TLC checked the model and found it wrong, an "error" that it could not check (D63).
-                         # The JSON of milestone 4 carries it (40)
-    meaning: str         # one sentence, "an invariant was violated"; the result line of 22 O3 shows it beside the verdict
-    known: bool          # False for a code X1's table does not hold; word is then "error" (X1, settled 2026-11-24),
-                         # and meaning "TLC returned a code it does not document"
+    word: str  # X1's word for the code: "success", "safety failure", "parse error", ... A "failure"
+    # means TLC checked the model and found it wrong, an "error" that it could not check (D63).
+    # The JSON of milestone 4 carries it (40)
+    meaning: str  # one sentence, "an invariant was violated"; the result line of 22 O3 shows it beside the verdict
+    known: bool  # False for a code X1's table does not hold; word is then "error" (X1, settled 2026-11-24),
+    # and meaning "TLC ended with a code tlaup does not know", or "Java was stopped by a signal (...)" from 129 to 255
+
 
 @dataclass(frozen=True)
 class SanyStep:
-    line_class: SanyLineClass | None        # None only from close()
-    diagnostics: tuple[Diagnostic, ...]     # usually empty: a diagnostic is returned when it is complete
+    line_class: SanyLineClass | None  # None only from close()
+    diagnostics: tuple[Diagnostic, ...]  # usually empty: a diagnostic is returned when it is complete
 
-class SanyLineClass(Enum):                  # what the parser used the line as; the table is in P8
+
+class SanyLineClass(Enum):  # what the parser used the line as; the table is in P8
     BANNER, PROGRESS, HEADER, STRUCTURE, POSITION, MESSAGE, BLANK, OTHER
+
 
 @dataclass(frozen=True)
 class SanyResult:
     diagnostics: tuple[Diagnostic, ...]
     module_files: dict[str, str]
-    other: tuple[str, ...]          # the lines of class OTHER, in order (P8)
-    lines_used: int                 # how many input lines had another class; `RunResult.sany_lines_used` repeats it (P4)
+    other: tuple[str, ...]  # the lines of class OTHER, in order (P8)
+    lines_used: int  # how many input lines had another class; `RunResult.sany_lines_used` repeats it (P4)
+
+
+# Added while building 38a (2026-11-25, a low-impact choice by the stage 5 lead): the reporter's override hint
+# asks the code table for a code's kind, so the table is public, read-only.
+CODES: Mapping[int, CodeInfo]  # MappingProxyType over the code table (P5)
+
+
+class CodeInfo: ...  # name, kind
 ```
 
 `Unframed` is the framer's name for a line outside every message. It is not called `Text`, because the reporters use Rich's `Text` for something else ([22 O3](22-reporters.md#o3-terminal-reporter)).
@@ -113,148 +130,194 @@ Not a roadmap item of its own; it is the "parsed result" that decision D8 says c
 ```python
 @dataclass
 class RunResult:
-    tool: ToolInfo | None            # from message 2262 (P9)
-    mode: str | None                 # "exhaustive search" (2187), "simulate" (2188, also -generate): the Examples
-                                     # manifest's words (research 10); "depth-first" (2271, -dfid), tlaup's word,
-                                     # since the manifest has none (top-up, research 22). None for another shape.
-    workers: int | None              # from 2187 "with N worker(s)"
-    phase: Phase                     # where the run is: see below
-    status: Status                   # "running", "success", "failure"; the runner may set "interrupted"
-    verdict: Verdict                 # top-up, D54: what the run found, from TLC's messages; see below
-    resumed: bool                    # top-up, D54: TLC recovered from a checkpoint (2197, 2198)
-    counts_approximate: bool         # top-up, D54: resumed, and not with the original -fp and -seed (set by the runner)
+    tool: ToolInfo | None  # from message 2262 (P9)
+    mode: str | None  # "exhaustive search" (2187), "simulate" (2188, also -generate): the Examples
+    # manifest's words (research 10); "depth-first" (2271, -dfid), tlaup's word,
+    # since the manifest has none (top-up, research 22). None for another shape.
+    workers: int | None  # from 2187, 2188 or 2271 "with N worker(s)"
+    phase: Phase  # where the run is: see below
+    status: Status  # "running", "success", "failure"; the runner may set "interrupted"
+    verdict: Verdict  # top-up, D54: what the run found, from TLC's messages; see below
+    resumed: bool  # top-up, D54: TLC recovered from a checkpoint (2197, 2198)
+    counts_approximate: bool  # top-up, D54: resumed, and not with the original -fp and -seed (set by the runner)
     errors: list[TlcError]
     warnings: list[TlcMessage]
-    sany: list[Diagnostic]           # P8
-    module_files: dict[str, str]     # module name -> path, from SANY's "Parsing file" lines
-    overrides_loaded: list[str]      # from 2168 (11 R7)
-    progress: list[Progress]         # one per 2200 / 2209 message
-    stats: FinalStats | None         # 2199, 2194, 2268, 2193
+    sany: list[Diagnostic]  # P8
+    module_files: dict[str, str]  # module name -> path, from SANY's "Parsing file" lines
+    overrides_loaded: list[str]  # from 2168 (11 R7)
+    progress: list[Progress]  # one per 2200 / 2209 message
+    stats: FinalStats | None  # 2199, 2194, 2268, 2193
     coverage: list[CoverageItem]
-    output: list[str]                # the spec's own output and unrecognised text, newest max_output_lines
-    output_dropped: int              # how many older lines are no longer in `output`
-    unframed_lines: int              # text found outside messages: `Unframed` items plus non-empty top-level `before`/`after` (P4)
-    sany_lines_used: int             # `SanyResult.lines_used`, or 0 when there was no SANY window (P4)
-    unknown_messages: list[TlcMessage]   # codes that are not in codes.py
-    info: list[TlcMessage]           # severity 0, in codes.py, with no typed meaning (2212, 2269, ...); see P4
-    started: str | None              # as TLC printed it, "2026-11-14 22:26:52"; local time, no zone
+    output: list[str]  # the spec's own output and unrecognised text, newest max_output_lines
+    output_dropped: int  # how many older lines are no longer in `output`
+    unframed_lines: int  # text found outside messages: `Unframed` items plus non-empty top-level `before`/`after` (P4)
+    sany_lines_used: int  # `SanyResult.lines_used`, or 0 when there was no SANY window (P4)
+    unknown_messages: list[TlcMessage]  # codes that are not in codes.py
+    info: list[TlcMessage]  # severity 0, in codes.py, with no typed meaning (2212, 2269, ...); see P4
+    started: str | None  # as TLC printed it, "2026-11-14 22:26:52"; local time, no zone
     finished: str | None
     duration_ms: int | None
 
-class Phase(Enum):  NOT_STARTED, PARSING, STARTING, INITIAL_STATES, CHECKING, LIVENESS, FINISHED
-class Status(Enum): RUNNING, SUCCESS, FAILURE, INTERRUPTED
-class Verdict(Enum): ERRORS, NO_ERROR, NO_ERROR_BOUNDED, INCOMPLETE, NOT_CHECKED
-                     # dictionary values: "errors", "no-error", "no-error-bounded", "incomplete", "not-checked"
+
+class Phase(Enum):
+    NOT_STARTED, PARSING, STARTING, INITIAL_STATES, CHECKING, LIVENESS, FINISHED
+
+
+class Status(Enum):
+    RUNNING, SUCCESS, FAILURE, INTERRUPTED
+
+
+class Verdict(Enum):
+    ERRORS, NO_ERROR, NO_ERROR_BOUNDED, INCOMPLETE, NOT_CHECKED
+    # dictionary values: "errors", "no-error", "no-error-bounded", "incomplete", "not-checked"
+
 
 @dataclass(frozen=True)
 class ToolInfo:
-    version: str                     # "2.19" or "2026.11.15.002146"
-    revision: str | None             # "5a47802"
-    date: str | None                 # "08 August 2024" on 2.x builds, as printed; None on rolling builds
-    line: str                        # "stable" (a numbered version) or "rolling" (a CalVer): the two words
-                                     # `build.toml` uses for a golden folder (01 T3)
-    raw: str                         # the whole line
+    version: str  # "2.19" or "2026.11.15.002146"
+    revision: str | None  # "5a47802"
+    date: str | None  # "08 August 2024" on 2.x builds, as printed; None on rolling builds
+    line: str  # "stable" (a numbered version) or "rolling" (a CalVer): the two words
+    # `build.toml` uses for a golden folder (01 T3)
+    raw: str  # the whole line
+
 
 @dataclass(frozen=True)
 class TlcMessage:
     code: int
-    severity: int                    # the number in the marker: 0 info, 1 error, 2 TLC bug, 3 warning, 4 state
-    name: str | None                 # from codes.py, None if the code is not in the table
-    body: tuple["str | TlcMessage", ...]   # in input order: a line exactly as printed, without its newline,
-                                     # or a message that started inside this one (research 1)
-    before: str = ""                 # text on the start marker's line in front of the marker (": " in the captures)
-    after: str = ""                  # text on the end marker's line behind the marker ("," in one capture)
-    truncated: bool = False          # closed without an end marker of its own: by an outer end marker,
-                                     # or by the end of the input (P4)
+    severity: int  # the number in the marker: 0 info, 1 error, 2 TLC bug, 3 warning, 4 state
+    name: str | None  # from codes.py, None if the code is not in the table
+    body: tuple["str | TlcMessage", ...]  # in input order: a line exactly as printed, without its newline,
+    # or a message that started inside this one (research 1)
+    before: str = ""  # text on the start marker's line in front of the marker (": " in the captures)
+    after: str = ""  # text on the end marker's line behind the marker ("," in one capture)
+    truncated: bool = False  # closed without an end marker of its own: by an outer end marker,
+    # or by the end of the input (P4)
 
     @property
-    def lines(self) -> tuple[str, ...]: ...           # the message's own lines: the str items of body
+    def lines(self) -> tuple[str, ...]: ...  # the message's own lines: the str items of body
     @property
-    def nested(self) -> tuple["TlcMessage", ...]: ... # the message items of body
-    def text_lines(self) -> tuple[str, ...]: ...      # the whole text as it reads with the markers taken out (P4)
+    def nested(self) -> tuple["TlcMessage", ...]: ...  # the message items of body
+    def text_lines(self) -> tuple[str, ...]: ...  # the whole text as it reads with the markers taken out (P4)
+
 
 @dataclass
 class TlcError:
-    kind: ErrorKind                  # "invariant", "deadlock", "property", "assertion", "assumption",
-                                     # "postcondition", "evaluation", "config", "parse", "exception", "usage",
-                                     # "other"; the table from code to kind is in P5
-    name: str | None                 # the invariant or property name, where the message has one
-    message: TlcMessage              # the message that opened the error
-    related: list[TlcMessage]        # later error-severity messages that belong to it (2103, 2121, 2264),
-                                     # in the order they arrived
+    kind: ErrorKind  # "invariant", "deadlock", "property", "assertion", "assumption",
+    # "postcondition", "evaluation", "config", "parse", "exception", "usage",
+    # "other"; the table from code to kind is in P5
+    name: str | None  # the invariant or property name, where the message has one
+    message: TlcMessage  # the message that opened the error
+    related: list[TlcMessage]  # later error-severity messages that belong to it (2103, 2121, 2264),
+    # in the order they arrived
     trace: Trace | None
+
 
 @dataclass
 class Trace:
     states: list[TraceState]
-    loop_to: int | None              # state index the behaviour returns to (2122)
-    stuttering: bool                 # the behaviour ends by stuttering (2218)
+    loop_to: int | None  # state index the behaviour returns to (2122)
+    stuttering: bool  # the behaviour ends by stuttering (2218)
+
 
 @dataclass(frozen=True)
 class TraceState:
     index: int
-    action: str | None               # "Next"; None for the initial state
-    location: Location | None        # where the action is defined; None for the initial state
-    header: str                      # the header line as printed
+    action: str | None  # "Next"; None for the initial state
+    location: Location | None  # where the action is defined; None for the initial state
+    header: str  # the text inside the header's angle brackets, as printed (P5's `inner`); "" for a -dfid header (settled while building 13b)
     variables: tuple[Variable, ...]
-    lines: tuple[str, ...]           # the whole message body as printed, blank lines included
+    lines: tuple[str, ...]  # the whole message body as printed, blank lines included
+
 
 @dataclass(frozen=True)
 class Variable:
     name: str
-    value: Value                     # P7
-    raw: str                         # the text TLC printed, lines joined with "\n"; for a variable carried
-                                     # forward (P5, -difftrace), the text of the state it came from
-    printed: bool = True             # top-up: False when TLC left it out of this state and the parser carried it
+    value: Value  # P7
+    raw: str  # the text TLC printed, lines joined with "\n"; for a variable carried
+    # forward (P5, -difftrace), the text of the state it came from
+    printed: bool = True  # top-up: False when TLC left it out of this state and the parser carried it
+
 
 @dataclass(frozen=True)
 class Location:
     module: str
-    line: int; column: int; end_line: int | None; end_column: int | None
+    line: int
+    column: int
+    end_line: int | None
+    end_column: int | None
+
 
 @dataclass(frozen=True)
 class Progress:
-    diameter: int; generated: int; distinct: int; queue: int    # -1 kept as -1 (simulation, research 1)
+    diameter: int
+    generated: int
+    distinct: int
+    queue: int  # -1 kept as -1 (simulation, research 1)
     at: str
+
 
 @dataclass(frozen=True)
 class FinalStats:
-    total_states: int | None; distinct_states: int | None; queue: int | None
-    state_depth: int | None; collision_probability: str | None
-    outdegree: str | None            # the 2268 line as printed ("The average outdegree ... is 1 (minimum is 0, ...)")
+    total_states: int | None
+    distinct_states: int | None
+    queue: int | None
+    state_depth: int | None
+    collision_probability: str | None
+    outdegree: str | None  # the 2268 line as printed ("The average outdegree ... is 1 (minimum is 0, ...)")
     # dictionary keys: totalStates, distinctStates, stateDepth, as in the Examples manifest
+
 
 @dataclass(frozen=True)
 class CoverageItem:
-    kind: str                        # by code: 2773 "init", 2772 "action", 2774 "property", 2779 "variable"
-                                     # (rolling only), 2221 "expression"
-    name: str | None                 # the name inside the angle brackets; None for an expression
+    kind: str  # by code: 2773 "init", 2772 "action", 2774 "property", 2779 "variable"
+    # (rolling only), 2221 "expression"
+    name: str | None  # the name inside the angle brackets; None for an expression
     location: Location
-    sub_location: Location | None    # 2772 only: the second span, printed as "(6 12 6 40)"; it is what tells
-                                     # several rows of one action apart
-    count: int | None                # after the colon; for "D:G" forms this is G; None for 2774, which has none
-    distinct: int | None             # D of "D:G" (2772, 2773); None otherwise
-    depth: int                       # 2221 only: the number of "|" before "line"; 0 otherwise
+    sub_location: Location | None  # 2772 only: the second span, printed as "(6 12 6 40)"; it is what tells
+    # several rows of one action apart
+    count: int | None  # after the colon; for "D:G" forms this is G; None for 2774, which has none
+    distinct: int | None  # D of "D:G" (2772, 2773); None otherwise
+    depth: int  # 2221 only: the number of "|" before "line"; 0 otherwise
+
 
 @dataclass(frozen=True)
 class Diagnostic:
-    tool: str                        # "sany" or "pcal"
-    severity: str                    # "error" or "warning"
+    tool: str  # "sany" or "pcal"
+    severity: str  # "error" or "warning"
     message: str
     module: str | None
-    file: str | None                 # from the "Parsing file" lines; None if not seen
+    file: str | None  # from the "Parsing file" lines; None if not seen
     location: Location | None
-    details: tuple[str, ...] = ()    # lines that belong to the diagnostic but are not its message
-                                     # (the residual stack of a parse error, P8)
+    details: tuple[str, ...] = ()  # lines that belong to the diagnostic but are not its message
+    # (the residual stack of a parse error, P8)
 ```
 
 Events are what the reporter receives as the run goes:
 
 ```python
-Event = (VersionSeen | ModeSeen | PhaseChanged | ProgressMade | OutputLine | DiagnosticFound | ErrorOpened
-         | ErrorExtended | TraceStateAdded | TraceClosed | WarningFound | OverrideLoaded | CoverageAdded
-         | StatsUpdated | CheckpointStarted | CheckpointWritten | Recovered | Information | UnknownMessage
-         | Finished)
+Event = (
+    VersionSeen
+    | ModeSeen
+    | PhaseChanged
+    | ProgressMade
+    | OutputLine
+    | DiagnosticFound
+    | ErrorOpened
+    | ErrorExtended
+    | TraceStateAdded
+    | TraceClosed
+    | WarningFound
+    | OverrideLoaded
+    | CoverageAdded
+    | StatsUpdated
+    | CheckpointStarted
+    | CheckpointWritten
+    | Recovered
+    | Information
+    | UnknownMessage
+    | Finished
+)
 ```
 
 Each is a small frozen dataclass. Every event that comes from a framed message carries that message (`message: TlcMessage`, the top-level one, with its nested messages inside it), so a reporter can always fall back to TLC's own text. The fields besides `message`, and what makes the parser emit each:
@@ -423,14 +486,14 @@ A blank line ends each state's body. With `-continue`, each error is followed by
 - **Error name**: for 2110 `Invariant (?P<name>\S+) is violated\.`, for 2116 `Temporal property (?P<name>\S+) was violated\.`, for 2404 `Postcondition (?P<name>\S+) `. No match leaves the name `None`; the message text is always kept. v1.7.4's liveness message has no name (`Temporal properties were violated.`).
 - **Related messages.** An error-severity message that arrives while an error is open and is one of the continuation codes (2103, 2121, 2264) is appended to that error's `related` and announced with `ErrorExtended`; it does not open a new error. In the `assertion-failure` captures the order is 2132, 2121, three states, then 2103, so related messages can come after the trace; the model keeps arrival order and the reporter prints in it.
 - **Kind** by code, for the codes the captures show: 2110 invariant; 2114 deadlock; 2116 property; 2112 property (an action property: a trace with no loop line, which the trace itself shows); 2132 assertion; 2104 assumption (a false `ASSUME`, no trace); 2179 evaluation (at the top level, with a trace, when it happens in `Next`); 2404, 2405 postcondition; 5001, 5003, 5006 and 2229 config; 1000, 1005, 2147 (a fingerprint failure after running out of memory), 2154 (the outer error of `override-method_not_public`: a Java override that could not be called) and 2173 (an override class that cannot be read, [11 R7](11-runner.md#r7-override-modules-that-do-not-load)) exception; 3002 parse; 1102 usage (TLC rejected its own command line, case `version-bad-option`). Top-up: 2104, 2112, 2147, 2173, 2179, 5001, 5003 and 2229 come from research 22 and 28, which captured each in `-tool` mode on both builds.
-- **A 1000 that holds one message with a kind of its own takes that kind** (top-up). v1.7.4 reports a cfg error as a 1000 with 5001 or 5003 nested at severity 0, and an evaluation error in an invariant as a 1000 with 2179 nested, where rolling prints the inner code at the top level. So when a top-level 1000 holds exactly one nested message and that message's code has a kind other than `exception` or `other`, the error takes the nested message's kind: the JSON result is then the same on both builds. The reporter still prints the whole message. With more than one nested message, or none, the kind stays `exception`. v1.7.4's `postcondition-false` becomes `config` by this rule, which is what it is: v1.7.4 does not know the `POSTCONDITION` keyword and reports a cfg error ("It was expecting a keyword") as a 1000 holding a 5006. The override hint keeps its condition on the nested `config` message ([22 O3](22-reporters.md#o3-terminal-reporter)). With these, every error-severity code at the top level of the adopted cases has a kind of its own. Any other error-severity code is `other`, shown in full, which rule 1 of P4 guarantees.
+- **A 1000 that holds one message with a kind of its own takes that kind** (top-up). v1.7.4 reports a cfg error as a 1000 with 5001 or 5003 nested at severity 0, where rolling prints the inner code at the top level; an evaluation error in an invariant is a 1000 with 2179 nested on both builds (`tool-eval`; corrected while building 08b, the rule is unchanged). So when a top-level 1000 holds exactly one nested message and that message's code has a kind other than `exception` or `other`, the error takes the nested message's kind: the JSON result is then the same on both builds. The reporter still prints the whole message. With more than one nested message, or none, the kind stays `exception`. v1.7.4's `postcondition-false` becomes `config` by this rule, which is what it is: v1.7.4 does not know the `POSTCONDITION` keyword and reports a cfg error ("It was expecting a keyword") as a 1000 holding a 5006. The override hint keeps its condition on the nested `config` message ([22 O3](22-reporters.md#o3-terminal-reporter)). With these, every error-severity code at the top level of the adopted cases has a kind of its own. Any other error-severity code is `other`, shown in full, which rule 1 of P4 guarantees.
 - **Information and warnings the top-up captures added**: all have severity 0 except 2285. Of these, 2195 to 2198 (checkpoint and recovery), 2271 (the mode of a `-dfid` run) and 2204 (its statistics), and 2210 (the statistics of a simulation) have a typed meaning and their own events (P3's table, P4 rule 2); 2205 to 2208 (`-dfid`'s other lines) and 2501 (rolling's path of a trace spec written with `-generateSpecTE`) have none and are `Information`. 2285 (rolling: a `-recover` with other settings than the checkpoint's, naming the flags to repeat) is a warning, shown as one; its upstream name is `TLC_CHECKPOINT_RECOVER_SETTINGS_MISMATCH` (read from `tlc2.output.EC` in the rolling jar of research 22 with `javap -constants`, 2026-11-24), which is the name `codes.py` gives it. A `-generateSpecTE` run on v1.7.4 prints four `1000:0` messages: severity 0, so information, by the severity-first rule of P4.
 
 **`-difftrace`** (top-up, D54; [research 22](../research/22-more-tool-captures.md)). With `-difftrace` TLC prints the first state in full and, after it, only the variables that changed; in a model-checking run the last state is printed in full anyway, in `-simulate` and `-generate` it is not. Carrying every variable a state leaves out forward from the state before rebuilds exactly the trace of the same run without `-difftrace` (10 of 10 pairs, both builds). So the parser does that: a state's missing variables are taken from the previous state, in that state's order, with `printed=False`; the state's `lines` stay as printed. The changed-variable display of the reporter then works with and without the option, and the first design's fallback (print states as TLC printed them when `-difftrace` is among the arguments) goes. With `ALIAS` (rolling only; v1.7.4 reads it as an invariant name and fails with 2229) the variables are the alias record's fields, and the rule is the same. A state that names a variable the previous state did not have is taken as printed; this has not been seen.
 
 **Rejected.** Reading traces from `-dumpTrace json` (P6). Guessing a variable start from `name = ` on any line: a string value containing ` = ` at the start of a wrapped line would split a variable.
 
-**Tests.** Facts for `violation` (4 states, the values above), `deadlock`, `assertion-failure` (one error with 3 states and two related messages, 2121 before the states and 2103 after), `liveness-back-to-state` (3 states, `loop_to == 1`), `liveness-stuttering` (2 states, `stuttering`), `multi-error-continue` (3 errors, each with its own trace), `print-output` (the spec's printed lines are output, not states). Full expected results for all. Top-up, from research 22's captures on both builds: each `-difftrace` capture gives the same variables, values and order as its plain twin (the ten pairs of `verify-difftrace.txt`), with `printed` false exactly where TLC left a variable out; the `dfid-violation` capture gives a trace of states with no action; the simulation and `-generate` violations give their traces; `Step(1)` is kept as the action of the parameterised case; the false `ASSUME` is one `assumption` error with no trace; the evaluation error in `Next` is `evaluation` with a trace, and the one in an invariant is `evaluation` on both builds (a 1000 holding a 2179 on v1.7.4); the action-property violation is `property` with no loop; the three cfg errors are `config` on both builds; the 2285 warning is a warning.
+**Tests.** Facts for `violation` (4 states, the values above), `deadlock`, `assertion-failure` (one error with 3 states and two related messages, 2121 before the states and 2103 after), `liveness-back-to-state` (3 states, `loop_to == 1`), `liveness-stuttering` (2 states, `stuttering`), `multi-error-continue` (3 errors, each with its own trace), `print-output` (the spec's printed lines are output, not states). Full expected results for all. Top-up, from research 22's captures on both builds: each `-difftrace` capture gives the same variables, values and order as its plain twin (the ten pairs of `verify-difftrace.txt`), with `printed` false exactly where TLC left a variable out; the `dfid-violation-deep` capture (`-dfid 10`) gives a trace of states with no action (`dfid-violation`, `-dfid 2`, finds no error; corrected while building 08b); the simulation and `-generate` violations give their traces; `Step(1)` is kept as the action of the parameterised case; the false `ASSUME` is one `assumption` error with no trace; the evaluation error in `Next` is `evaluation` with a trace, and the one in an invariant is `evaluation` on both builds (a 1000 holding a 2179 on v1.7.4); the action-property violation is `property` with no loop; the three cfg errors are `config` on both builds; the 2285 warning is a warning.
 
 **Changelog.** Fixed: "Counterexample traces were not shown: real TLC output parsed to zero states. Traces now show every state, the action and its location, the loop-back state of a liveness counterexample, and stuttering."
 
@@ -482,7 +545,7 @@ Grammar (whitespace, including newlines, is allowed between any two tokens):
 value    = int | bool | string | interval | set | seq | record | function | model
 int      = ["-"] digits
 bool     = "TRUE" | "FALSE"
-string   = '"' ( any character except '"' and '\' | '\' any character )* '"'
+string   = '"' ( any character except '"' and '\' | '\"' | '\\' )* '"'   (any other escape: the whole value is raw; settled while building 11)
 interval = int ".." int
 set      = "{" [ value { "," value } ] "}"
 seq      = "<<" [ value { "," value } ] ">>"
@@ -584,7 +647,7 @@ SANY's text gives a module name, never a file name; warnings of level WARNING ar
   | Any other line (an ordinary line) | With a diagnostic open: appended to its details in `parse_stack`, to its message otherwise. With none open: not used, class `OTHER`. |
 
   `close()` completes.
-- **The parse-error diagnostic.** Its message is the lines between `***Parse Error***` and `Residual stack trace follows:`, joined with newlines. Its location is the first `at line L, column C` in the message; failing that, the first `line L, col C to line L2, col C2 of module M` inside it (the precedence-conflict message of the `sany-level` capture has only this form); failing both, none. The residual stack lines are its `details`. Its module comes from the tail's `Could not parse module` line, which is where the two builds differ: v1.7.4 prints the exception name, `*** Abort messages: 1`, `In module M` and the line once; rolling prints `In module M` and the line, then `*** Errors: 1` and both again. In `parse_tail` all of these are structure, so the tail gives the module and no second diagnostic on either build. If the input ends before the tail, `close()` returns the diagnostic without a module.
+- **The parse-error diagnostic.** Its message is the lines between `***Parse Error***` and `Residual stack trace follows:`, joined with newlines. Its location is the first `at line L, column C` in the message; failing that, the first `line L, col C to line L2, col C2 of module M` inside it (the precedence-conflict message of the `sany-level` capture has only this form); failing both, none. A location found through `at line L, column C` carries no module of its own: its `module` is the one the tail's `Could not parse` line names, or `""` when the output ends first (settled while building 12, 2026-11-24, a low-impact choice by the stage 5 lead). The residual stack lines are its `details`. Its module comes from the tail's `Could not parse module` line, which is where the two builds differ: v1.7.4 prints the exception name, `*** Abort messages: 1`, `In module M` and the line once; rolling prints `In module M` and the line, then `*** Errors: 1` and both again. In `parse_tail` all of these are structure, so the tail gives the module and no second diagnostic on either build. If the input ends before the tail, `close()` returns the diagnostic without a module.
 - **A diagnostic equal to one already returned is not returned again** (same severity, module, location and message). This is the whole rule for rolling's repeated abort block: the copy after `*** Errors: 1` is recognised and dropped. Two real errors cannot be equal in all four, since SANY reports a position once.
 - **Severity** (decision D55, top-up; [research 22](../research/22-more-tool-captures.md)). Every diagnostic SANY prints under "Semantic errors", and every diagnostic of an abort block, is an `error`. Only the diagnostics of a warning block and the `!! WARNING` line are warnings; in the captures those are exactly PlusCal's "changed since its last translation" messages, which TLC treats as warnings too (it checks the model and exits 0). The first design kept a table of texts known to be warnings, starting with message 4802 ("Non-unique fields in constructor."), because research 12 read SANY's message table as calling it one. Research 22 found that TLC refuses a spec whose only SANY message is 4802 with 3002 and exit 150, on both builds, and the same for the two stuttering lints (`[] followed by action not of form [A]_v`): SANY prints all three under `Semantic errors:` with `*** Errors: 1`, the frame of a real error. Calling them warnings would make `tlaup sany` exit 0 for a spec `tlaup tlc` refuses with 150, which D29 says must not happen. So the table goes, and 4802 is an error in `tlaup sany` and in `tlaup tlc` alike. (The walk-through notes of 2026-11-20 first recorded the opposite for standalone SANY; the maintainer reversed it after the review.) `tlaup sany` relies on this for its exit code ([21 S1](21-other-tools.md#s1-sany)).
 - **The warning forms** (top-up, research 22 captured each on its own). v1.7.4 prints one line, `!! WARNING: <text>`, directly under `Parsing file`; rolling prints a block, `Warnings (1) during syntax parsing of <F>:`, then `In module M` and the text, each separated by blank lines, ended by the next `Semantic processing` line. `<F>` is `PcalStaleAlg.tla` in SANY alone and `PcalStaleAlg`, with no extension, inside TLC, so the parser takes no file from the block header; the file comes from the `Parsing file` lines as for every diagnostic. There are three texts (the algorithm changed, the translation changed, both); v1.7.4's text for "both" is misspelt, and every text is kept as printed.

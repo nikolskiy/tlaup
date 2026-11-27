@@ -1,0 +1,136 @@
+{
+  "result": {
+    "diagnostics": [
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Level error in applying operator ':\nThe level of argument 1 exceeds the maximum level allowed by the operator.",
+        "module": "LevelErr",
+        "file": "<tmp>/q22/work/v1.8.0/sany-levelerr-174/LevelErr.tla",
+        "location": {
+          "module": "LevelErr",
+          "line": 6,
+          "column": 8,
+          "end_line": 6,
+          "end_column": 10
+        },
+        "details": []
+      },
+      {
+        "tool": "sany",
+        "severity": "error",
+        "message": "Level error: assumptions must be level 0 (Constant),\nbut this one has level 1.",
+        "module": "LevelErr",
+        "file": "<tmp>/q22/work/v1.8.0/sany-levelerr-174/LevelErr.tla",
+        "location": {
+          "module": "LevelErr",
+          "line": 4,
+          "column": 1,
+          "end_line": 4,
+          "end_column": 12
+        },
+        "details": []
+      }
+    ],
+    "module_files": {
+      "LevelErr": "<tmp>/q22/work/v1.8.0/sany-levelerr-174/LevelErr.tla",
+      "Naturals": "/tmp/tlc-11912808608835587302/Naturals.tla"
+    },
+    "other": [],
+    "lines_used": 23
+  },
+  "lines": [
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "banner",
+      "text": "****** SANY2 Version 2.2 created 08 July 2020"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file <tmp>/q22/work/v1.8.0/sany-levelerr-174/LevelErr.tla"
+    },
+    {
+      "class": "progress",
+      "text": "Parsing file /tmp/tlc-11912808608835587302/Naturals.tla (jar:file:<tmp>/jars/v1.8.0/tla2tools.jar!/tla2sany/StandardModules/Naturals.tla)"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module Naturals"
+    },
+    {
+      "class": "progress",
+      "text": "Semantic processing of module LevelErr"
+    },
+    {
+      "class": "header",
+      "text": "Semantic errors:"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "structure",
+      "text": "*** Errors: 2"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 6, col 8 to line 6, col 10 of module LevelErr"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Level error in applying operator ':"
+    },
+    {
+      "class": "message",
+      "text": "The level of argument 1 exceeds the maximum level allowed by the operator."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "position",
+      "text": "line 4, col 1 to line 4, col 12 of module LevelErr"
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "message",
+      "text": "Level error: assumptions must be level 0 (Constant), "
+    },
+    {
+      "class": "message",
+      "text": "but this one has level 1."
+    },
+    {
+      "class": "blank",
+      "text": ""
+    },
+    {
+      "class": "blank",
+      "text": ""
+    }
+  ]
+}

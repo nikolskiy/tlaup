@@ -1,62 +1,142 @@
+"""The integration tests' harness: real Java and real jars (design 01 T9, T2; package 52).
+
+At collection, before any fixture runs: every test here is skipped with the reason when ``TLAUP_TEST_JARS`` is unset
+or names no jar, or when no ``java`` is found (``JAVA_HOME``, then ``PATH``); a jar that matches no golden folder
+fails collection, naming it. Every item here is marked ``integration``. The ``isolated`` fixture replaces the root
+one for this folder: the real ``PATH`` and ``JAVA_HOME`` stay, and the JVM's own folders move too. ``live_build``
+copies one of the found jars into the test's store and pins it; every test that asks for it runs once per jar.
+"""
+
+from __future__ import annotations
+
 import os
-import subprocess
+import shlex
+import time
+from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-from tlaup.cmd.modules.add import find_override_classes
-from tlaup.java.classpath import ClasspathResolver, ResolveMode
-from tlaup.tlc.compiler import get_tlc_jar_path
+import tlaup.context
+from tests.integration.discovery import REMOVED_VARIABLES, VARIABLE, TestJar, find_test_jars, install, missing
+from tests.integration.live import Reaper
+from tlaup.paths import AppPaths
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from tlaup.versioning.store import Build
+
+
+def _discover() -> tuple[str | None, list[TestJar], str | None]:
+    """At collection (this conftest is imported then): why the folder is skipped, the jars, a jar matching nothing."""
+    reason = missing(os.environ)
+    if reason is not None:
+        return reason, [], None
+    try:
+        return None, find_test_jars(Path(os.environ[VARIABLE])), None
+    except ValueError as error:
+        return None, [], str(error)
+
+
+# Read once, before any fixture runs: the isolation fixture removes every TLAUP_* variable.
+_REASON, JARS, _NO_MATCH = _discover()
+
+
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Every item here is marked ``integration``, and skipped with the reason when the tests cannot run (T9).
+
+    ``pytest.skip(allow_module_level=True)`` at the top of this file would be the shorter form, but pytest 9 stops
+    with an internal error when the conftest of a folder named on the command line raises it, so the skip is a
+    marker on every item, put first so that its reason is the one shown.
+    """
+    if _NO_MATCH is not None:
+        raise pytest.UsageError(_NO_MATCH)
+    here = Path(__file__).parent
+    for item in items:
+        if here in Path(str(item.path)).parents:
+            item.add_marker(pytest.mark.integration)
+            if _REASON is not None:
+                reason = f"integration tests skipped: {_REASON} (see docs/contributing/development.md)"
+                item.add_marker(pytest.mark.skip(reason=reason), append=False)
+
+
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
+    """``test_jar`` (and so ``live_build``) once per jar found, with the build's name as the id; ``live_case``
+    once per jar and per case the test module's ``live_cases`` gives for the jar's golden folder."""
+    if "live_case" in metafunc.fixturenames:
+        pairs = [(jar, case) for jar in JARS for case in metafunc.module.live_cases(jar.golden)]
+        metafunc.parametrize("live_case", pairs, ids=[f"{jar.build}/{case}" for jar, case in pairs])
+    elif "test_jar" in metafunc.fixturenames:
+        metafunc.parametrize("test_jar", JARS, ids=[jar.build for jar in JARS])
+
+
+@dataclass(frozen=True)
+class Isolated:
+    home: Path  # tmp_path / "home"; HOME and USERPROFILE
+    work: Path  # tmp_path / "work"; the working folder, created
+    paths: AppPaths  # AppPaths.from_env(os.environ) after the fixture's changes
+    tmp: Path  # tmp_path / "jvm" / "tmp"; the JVM's java.io.tmpdir
+    user_home: Path  # tmp_path / "jvm" / "home"; the JVM's user.home, apart from HOME so a test can tell them apart
+
+
+@pytest.fixture(autouse=True)
+def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Isolated:
+    """The root fixture's isolation, with the real PATH and JAVA_HOME and the JVM's own folders moved (T2, T9)."""
+    home = tmp_path / "home"
+    work = tmp_path / "work"
+    jvm_tmp = tmp_path / "jvm" / "tmp"
+    user_home = tmp_path / "jvm" / "home"
+    for folder in (home, work, jvm_tmp, user_home):
+        folder.mkdir(parents=True)
+    for name in list(os.environ):
+        if name.startswith("TLAUP_"):
+            monkeypatch.delenv(name)
+    for name in REMOVED_VARIABLES:
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("TLAUP_HOME", str(home / "tlaup"))  # moves config, cache and data (D25)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    monkeypatch.setenv("TZ", "UTC")
+    if hasattr(time, "tzset"):
+        time.tzset()
+    monkeypatch.setenv("NO_COLOR", "1")
+    monkeypatch.setenv("TERM", "dumb")
+    monkeypatch.setenv("COLUMNS", "100")
+    monkeypatch.setenv("LINES", "40")
+    # The JVM takes user.home from the system, not from HOME; TLC and SANY write into java.io.tmpdir (T9, 13 J1).
+    options = [f"-Duser.home={user_home}", f"-Djava.io.tmpdir={jvm_tmp}"]
+    monkeypatch.setenv("TLAUP_JAVA_OPTS", shlex.join(options))
+    monkeypatch.setenv(
+        "TLAUP_TOOL_REPOSITORY",  # a closed local port: no test uses the network (T4, Network)
+        "https://127.0.0.1:9/repos/tlaplus/tlaplus",
+    )
+    monkeypatch.chdir(work)
+    tlaup.context.reset()  # the one process-wide cache
+    return Isolated(home=home, work=work, paths=AppPaths.from_env(os.environ), tmp=jvm_tmp, user_home=user_home)
 
 
 @pytest.fixture
-def setup_naming_env_fixture(mocker):
-    """Fixture providing the setup_naming_env helper."""
-
-    def _setup(tmp_path, mocker_local, base_settings, fixture_dir):
-        """Configures environment for naming tests."""
-        classes_dir = tmp_path / "classes"
-        classes_dir.mkdir(exist_ok=True)
-
-        settings = base_settings.model_copy(deep=True)
-        settings.workspace.root = fixture_dir
-        settings.workspace.modules_dir = "modules"
-        settings.workspace.spec_dir = "spec"
-        settings.workspace.classes_dir = str(classes_dir)
-
-        mocker_local.patch("tlaup.tlc.runner.load_config", return_value=settings)
-
-    return _setup
+def test_jar(request: pytest.FixtureRequest) -> TestJar:
+    """One of the jars found under TLAUP_TEST_JARS (parametrised by ``pytest_generate_tests``)."""
+    jar: TestJar = request.param
+    return jar
 
 
 @pytest.fixture
-def compile_test_modules_fixture():
-    """Fixture to manually compile Java modules for tests without using 'modules build' command."""
+def live_build(test_jar: TestJar, isolated: Isolated) -> Build:
+    """``test_jar`` copied into the test's store and pinned (12 V1); no network."""
+    return install(isolated.paths, test_jar)
 
-    def _compile(fixture_dir, classes_dir, settings):
-        classes_dir.mkdir(parents=True, exist_ok=True)
-        # Find java files
-        java_files = list((fixture_dir / "modules" / "tlc2" / "overrides").rglob("*.java"))
-        if not java_files:
-            java_files = list((fixture_dir / "tlc2" / "overrides").rglob("*.java"))
 
-        tool_jar = get_tlc_jar_path()
-        resolver = ClasspathResolver(settings, project_root=fixture_dir, tool_jar=tool_jar)
-        classpath = os.pathsep.join(resolver.resolve(ResolveMode.COMPILE))
-
-        cmd = ["javac", "-cp", classpath, "-d", str(classes_dir), *[str(f) for f in java_files]]
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
-
-        # Write service file
-        meta_inf = classes_dir / "META-INF" / "services"
-        meta_inf.mkdir(parents=True, exist_ok=True)
-        service_file = meta_inf / "tlc2.overrides.ITLCOverrides"
-
-        override_classes = find_override_classes(java_files)
-        if not override_classes:
-            override_classes = [settings.tlc.overrides_class]
-
-        with service_file.open("w") as f:
-            for cls in override_classes:
-                f.write(f"{cls}\n")
-
-    return _compile
+@pytest.fixture
+def reaper() -> Iterator[Reaper]:
+    """Starts tlaup as a real process; at teardown, whatever the outcome, kills by process id every tlaup still
+    alive with the JVM it started (found before tlaup is killed), and every JVM the test noted, so a failing
+    assertion never leaves TLC running."""
+    started = Reaper()
+    try:
+        yield started
+    finally:
+        started.reap()

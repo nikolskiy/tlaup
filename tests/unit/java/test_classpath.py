@@ -1,199 +1,103 @@
-import os
+"""The classpath of a run (design 13 M2; inventory rows S10 to S12, M17, M18, C6), with module_dirs (package 30).
 
-from tlaup.java.classpath import ClasspathResolver, ResolveMode, SubdirType
+The path-returning methods of package 33 are the ones tested; the string forms go with the old runner (39).
+"""
 
+from __future__ import annotations
 
-def test_resolve_runtime_order(base_settings, tmp_path):
-    """Test that RUNTIME mode puts classes first."""
-    project_root = tmp_path / "project"
-    project_root.mkdir()
-    classes_dir = project_root / "classes"
-    classes_dir.mkdir()
+from pathlib import Path
+from typing import TYPE_CHECKING
 
-    # Mock tool jar
-    tool_jar = tmp_path / "tla2tools.jar"
-    tool_jar.touch()
+from tests.clock import FakeClock
+from tlaup.config.loader import load_settings
+from tlaup.java.classpath import ClasspathResolver
+from tlaup.modules.registry import RegisteredModule, Registry, write_record
 
-    resolver = ClasspathResolver(base_settings, project_root=project_root, tool_jar=tool_jar)
-    cp = resolver.resolve(ResolveMode.RUNTIME)
-
-    # classes should be before tool_jar
-    assert str(classes_dir.absolute()) in cp
-    assert str(tool_jar.absolute()) in cp
-    assert cp.index(str(classes_dir.absolute())) < cp.index(str(tool_jar.absolute()))
+if TYPE_CHECKING:
+    from tests.conftest import Isolated
 
 
-def test_resolve_compile_order(base_settings, tmp_path):
-    """Test that COMPILE mode excludes classes and prioritizes tool jar."""
-    project_root = tmp_path / "project"
-    project_root.mkdir()
-    classes_dir = project_root / "classes"
-    classes_dir.mkdir()
-
-    tool_jar = tmp_path / "tla2tools.jar"
-    tool_jar.touch()
-
-    resolver = ClasspathResolver(base_settings, project_root=project_root, tool_jar=tool_jar)
-    cp = resolver.resolve(ResolveMode.COMPILE)
-
-    assert str(classes_dir.absolute()) not in cp
-    assert str(tool_jar.absolute()) in cp
+def touch(path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b"jar")
+    return path
 
 
-def test_hierarchy_priority(base_settings, tmp_path):
-    """Test CLI > Project > Config hierarchy."""
-    project_root = tmp_path / "project"
-    project_root.mkdir()
-
-    project_lib = project_root / "lib"
-    project_lib.mkdir()
-    project_jar = project_lib / "project.jar"
-    project_jar.touch()
-
-    config_lib_path = tmp_path / "config_lib"
-    config_lib_path.mkdir()
-    config_jar = config_lib_path / "config.jar"
-    config_jar.touch()
-
-    base_settings.module_lib_path = str(config_lib_path)
-
-    cli_jar = tmp_path / "cli.jar"
-    cli_jar.touch()
-
-    resolver = ClasspathResolver(base_settings, project_root=project_root, extra_libs=[str(cli_jar)])
-    cp = resolver.resolve(ResolveMode.RUNTIME)
-
-    # CLI > Project > Config
-    assert str(cli_jar.absolute()) in cp
-    assert str(project_jar.absolute()) in cp
-    assert str(config_jar.absolute()) in cp
-
-    assert cp.index(str(cli_jar.absolute())) < cp.index(str(project_jar.absolute()))
-    assert cp.index(str(project_jar.absolute())) < cp.index(str(config_jar.absolute()))
+def register(registry: Registry, name: str, jar: str) -> Path:
+    folder = registry.root / name
+    (folder / "modules").mkdir(parents=True)
+    (folder / "classes").mkdir()
+    touch(folder / "lib" / jar)
+    write_record(folder, RegisteredModule(name, folder, "2026-11-15T00:00:00Z", "/src", None, None, None, ()))
+    return folder
 
 
-def test_deduplication(base_settings, tmp_path):
-    """Test that redundant paths are removed."""
-    project_root = tmp_path / "project"
-    project_root.mkdir()
-
-    lib_dir = project_root / "lib"
-    lib_dir.mkdir()
-    jar = lib_dir / "foo.jar"
-    jar.touch()
-
-    # Same jar via CLI and via Project discovery
-    resolver = ClasspathResolver(base_settings, project_root=project_root, extra_libs=[str(jar)])
-    cp = resolver.resolve(ResolveMode.RUNTIME)
-
-    assert cp.count(str(jar.absolute())) == 1
-
-
-def test_tla_library_property(base_settings, tmp_path):
-    """Test multi-path merging for -DTLA-Library."""
-    project_root = tmp_path / "project"
-    project_root.mkdir()
-    project_modules = project_root / "modules"
-    project_modules.mkdir()
-
-    config_modules = tmp_path / "config_modules"
-    config_modules.mkdir()
-    base_settings.module_path = str(config_modules)
-
-    cli_modules = tmp_path / "cli_modules"
-    cli_modules.mkdir()
-
-    resolver = ClasspathResolver(base_settings, project_root=project_root, extra_modules=[str(cli_modules)])
-    tla_library = resolver.get_tla_library_property()
-
-    paths = tla_library.split(os.pathsep)
-
-    assert str(cli_modules.absolute()) in paths
-    assert str(project_modules.absolute()) in paths
-    assert str(config_modules.absolute()) in paths
-
-    # Order: CLI > Project > Config
-    assert paths.index(str(cli_modules.absolute())) < paths.index(str(project_modules.absolute()))
-    assert paths.index(str(project_modules.absolute())) < paths.index(str(config_modules.absolute()))
+def make_resolver(isolated: Isolated, tmp_path: Path) -> tuple[ClasspathResolver, Path]:
+    project = tmp_path / "project"
+    (project / "classes").mkdir(parents=True)
+    (project / "modules").mkdir()
+    touch(project / "lib" / "b.jar")  # reverse name order
+    touch(project / "lib" / "a.jar")
+    shared = tmp_path / "shared-modules"
+    shared.mkdir()
+    settings = load_settings(isolated.paths, {}).settings.model_copy(
+        update={"module_path": str(shared), "module_lib_path": str(project / "lib")}
+    )
+    registry = Registry(isolated.paths.modules, now=FakeClock().now)
+    register(registry, "beta", "y.jar")  # the reverse of name order
+    register(registry, "alpha", "x.jar")
+    # A module in the old cache, which the resolver never reads: it takes the folders it is given.
+    old = isolated.paths.cache / "modules" / "Old"
+    (old / "classes").mkdir(parents=True)
+    (old / "modules").mkdir()
+    touch(old / "lib" / "old.jar")
+    tool_jar = touch(tmp_path / "store" / "tla2tools.jar")
+    resolver = ClasspathResolver(
+        settings,
+        project_root=project,
+        tool_jar=tool_jar,
+        module_dirs=[module.path for module in registry.list()],
+    )
+    return resolver, tmp_path
 
 
-def test_get_project_path(base_settings, tmp_path):
-    """Test get_project_path with SubdirType."""
-    project_root = tmp_path / "project"
-    project_root.mkdir()
+def test_the_runtime_classpath_in_the_five_steps(isolated: Isolated, tmp_path: Path) -> None:
+    resolver, t = make_resolver(isolated, tmp_path)
+    modules = isolated.paths.modules
+    expected = [
+        # 1. the project's classes
+        t / "project" / "classes",
+        # 2. the folders of TLA+ modules: the project's, module_path's, each registered module's, by name
+        t / "project" / "modules",
+        t / "shared-modules",
+        modules / "alpha" / "modules",
+        modules / "beta" / "modules",
+        # 3. each registered module's classes, by name
+        modules / "alpha" / "classes",
+        modules / "beta" / "classes",
+        # 4. the tool jar
+        t / "store" / "tla2tools.jar",
+        # 5. the jars: the project's lib/ (module_lib_path names it again: each once), then the modules', by name
+        t / "project" / "lib" / "a.jar",
+        t / "project" / "lib" / "b.jar",
+        modules / "alpha" / "lib" / "x.jar",
+        modules / "beta" / "lib" / "y.jar",
+    ]
+    classpath = resolver.runtime_classpath(isolated.work)
+    assert classpath == expected
+    assert resolver.tla_library(isolated.work) == expected[1:5]
+    assert not any("Old" in entry.parts for entry in classpath)
 
-    modules_dir = project_root / "modules"
-    modules_dir.mkdir()
 
-    classes_dir = project_root / "classes"
-    classes_dir.mkdir()
-
-    lib_dir = project_root / "lib"
-    lib_dir.mkdir()
-
-    resolver = ClasspathResolver(base_settings, project_root=project_root)
-
-    assert resolver.get_project_path(SubdirType.MODULES) == modules_dir
-    assert resolver.get_project_path(SubdirType.CLASSES) == classes_dir
-    assert resolver.get_project_path(SubdirType.LIB) == lib_dir
-
-
-def test_cached_modules_resolved(base_settings, tmp_path, mocker):
-    """Test that ClasspathResolver scans the global cache and includes cached modules."""
-    # Mock get_modules_dir to point to our tmp_path / "modules"
-    modules_cache_dir = tmp_path / "modules"
-    modules_cache_dir.mkdir(parents=True, exist_ok=True)
-    mocker.patch("tlaup.java.classpath.get_modules_dir", return_value=modules_cache_dir)
-
-    # Set up mock module 'module-a'
-    mod_a = modules_cache_dir / "module-a"
-    mod_a.mkdir()
-    (mod_a / "classes").mkdir()
-    (mod_a / "classes" / "SomeClass.class").touch()
-    (mod_a / "lib").mkdir()
-    (mod_a / "lib" / "dep.jar").touch()
-    (mod_a / "modules").mkdir()
-    (mod_a / "modules" / "ModuleA.tla").touch()
-
-    # Set up mock module 'module-b'
-    mod_b = modules_cache_dir / "module-b"
-    mod_b.mkdir()
-    (mod_b / "classes").mkdir()
-    (mod_b / "lib").mkdir()
-    (mod_b / "lib" / "dep2.jar").touch()
-    (mod_b / "modules").mkdir()
-
-    # Setup resolver
-    tool_jar = tmp_path / "tla2tools.jar"
-    tool_jar.touch()
-    resolver = ClasspathResolver(base_settings, project_root=None, tool_jar=tool_jar)
-
-    # 1. Test classpath in RUNTIME mode
-    cp = resolver.resolve(ResolveMode.RUNTIME)
-
-    # Should contain tool_jar
-    assert str(tool_jar.absolute()) in cp
-    # Should contain classes dirs of cached modules
-    assert str((mod_a / "classes").absolute()) in cp
-    assert str((mod_b / "classes").absolute()) in cp
-    # Should contain lib jars of cached modules
-    assert str((mod_a / "lib" / "dep.jar").absolute()) in cp
-    assert str((mod_b / "lib" / "dep2.jar").absolute()) in cp
-
-    # Verify sorting or ordering - classes should generally shadow tool_jar
-    assert cp.index(str((mod_a / "classes").absolute())) < cp.index(str(tool_jar.absolute()))
-
-    # 2. Test classpath in COMPILE mode
-    cp_compile = resolver.resolve(ResolveMode.COMPILE)
-    assert str(tool_jar.absolute()) in cp_compile
-    assert str((mod_a / "classes").absolute()) in cp_compile
-    assert str((mod_b / "classes").absolute()) in cp_compile
-    assert str((mod_a / "lib" / "dep.jar").absolute()) in cp_compile
-    assert str((mod_b / "lib" / "dep2.jar").absolute()) in cp_compile
-
-    # 3. Test TLA-Library paths
-    tla_library = resolver.get_tla_library_property()
-    paths = tla_library.split(os.pathsep) if tla_library else []
-
-    assert str((mod_a / "modules").absolute()) in paths
-    assert str((mod_b / "modules").absolute()) in paths
+def test_relative_module_paths_are_read_against_cwd_row_c6(isolated: Isolated, tmp_path: Path) -> None:
+    cwd = tmp_path / "started-here"
+    (cwd / "mods").mkdir(parents=True)
+    touch(cwd / "jars" / "j.jar")
+    settings = load_settings(isolated.paths, {}).settings.model_copy(
+        update={"module_path": "mods", "module_lib_path": "jars"}
+    )
+    resolver = ClasspathResolver(settings, tool_jar=tmp_path / "tla2tools.jar", module_dirs=[])
+    # The process's working folder is another one: only the cwd given counts.
+    assert Path.cwd() != cwd
+    assert resolver.tla_library(cwd) == [cwd / "mods"]
+    assert resolver.runtime_classpath(cwd) == [cwd / "mods", tmp_path / "tla2tools.jar", cwd / "jars" / "j.jar"]
