@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Print one version's section of CHANGELOG.md (design 30 L1, L2, L3).
 
     scripts/changelog_section.py X.Y.Z

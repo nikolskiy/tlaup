@@ -43,7 +43,8 @@ BRANCH=$(git symbolic-ref --quiet --short HEAD || true)
 step 2 "on main, working tree clean"
 
 # 3. HEAD is what origin has.
-git fetch --quiet origin main --tags || fail "git fetch origin main --tags failed. Check the network and the remote."
+git fetch --quiet origin main --tags ||
+  fail "git fetch origin main --tags failed (git's message above says why). Fix that and run this again."
 SHA=$(git rev-parse HEAD)
 REMOTE_SHA=$(git rev-parse origin/main)
 [ "$SHA" = "$REMOTE_SHA" ] ||
@@ -51,13 +52,13 @@ REMOTE_SHA=$(git rev-parse origin/main)
 step 3 "HEAD equals origin/main ($SHA)"
 
 # 4. The tag exists nowhere yet.
-if git rev-parse --quiet --verify "refs/tags/$TAG" >/dev/null; then
-  fail "the tag $TAG already exists locally. Tags cannot be moved: bump the version (uv run poe bump <part>)."
-fi
 REMOTE_TAGS=$(git ls-remote --tags origin "refs/tags/$TAG") ||
-  fail "git ls-remote --tags origin failed. Check the network and the remote."
+  fail "git ls-remote --tags origin failed (git's message above says why). Fix that and run this again."
 [ -z "$REMOTE_TAGS" ] ||
   fail "the tag $TAG already exists on origin. Tags cannot be moved: bump the version (uv run poe bump <part>)."
+if git rev-parse --quiet --verify "refs/tags/$TAG" >/dev/null; then
+  fail "the tag $TAG exists locally but not on origin. If it is left from an earlier run, delete it: git tag -d $TAG."
+fi
 step 4 "tag $TAG is free locally and on origin"
 
 # 5. The lock file is current and names the same version.
@@ -81,9 +82,14 @@ command -v gh >/dev/null ||
   fail "gh (the GitHub CLI) is not installed; it is needed to see that CI is green. Install it; this check is never skipped."
 gh auth status >/dev/null 2>&1 ||
   fail "gh is not logged in; it is needed to see that CI is green. Run gh auth login; this check is never skipped."
-RUNS=$(gh api "repos/{owner}/{repo}/commits/$SHA/check-runs?check_name=Test" \
+# The repository is origin's, not whichever remote gh would pick.
+ORIGIN_URL=$(git remote get-url origin)
+REPO=$(printf '%s\n' "$ORIGIN_URL" | sed -E 's#^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)##; s#\.git$##; s#/$##')
+[[ "$REPO" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] ||
+  fail "origin ($ORIGIN_URL) is not a GitHub repository address; step 7 reads its check runs from GitHub."
+RUNS=$(gh api "repos/$REPO/commits/$SHA/check-runs?check_name=Test" \
   --jq '.check_runs[] | select(.app.slug == "github-actions") | "\(.status) \(.conclusion)"') ||
-  fail "could not read the check runs of $SHA from GitHub."
+  fail "could not read the check runs of $SHA in $REPO from GitHub."
 [ -n "$RUNS" ] || fail "no check run named Test for $SHA. Wait for the Test workflow to start, then run this again."
 while read -r STATUS CONCLUSION; do
   [ "$STATUS" = completed ] ||
@@ -102,15 +108,20 @@ if [ "$CHECK_ONLY" = 1 ]; then
   exit 0
 fi
 
-# 9. An annotated tag (decision D21).
+# 9. An annotated tag (decision D21). Until the push succeeds, an interruption deletes it again.
+drop_tag() {
+  git tag -d "$TAG" >/dev/null 2>&1 || true
+}
+trap 'drop_tag; echo "release: interrupted; the local tag $TAG was deleted." >&2; exit 130' INT TERM HUP
 git tag -a "$TAG" -m "tlaup $VERSION" || fail "git tag -a $TAG failed."
 step 9 "tagged $TAG"
 
 # 10. main and the tag in one atomic push; the local tag goes if the push fails.
 if ! git push --atomic origin main "$TAG"; then
-  git tag -d "$TAG" >/dev/null
+  drop_tag
   fail "git push --atomic origin main $TAG failed; the local tag $TAG was deleted. Fix the cause and run this again."
 fi
+trap - INT TERM HUP
 step 10 "pushed main and $TAG"
 
 echo "Released $TAG. The release workflow builds it, waits for approval in the pypi environment, publishes and creates the release page."
