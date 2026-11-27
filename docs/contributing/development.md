@@ -16,14 +16,14 @@ uv run poe format              # ruff format, Python files and Python blocks in 
 uv run poe build-lifeline      # rebuild src/tlaup/java/lifeline.jar from its source (needs a JDK)
 uv run poe test-lifeline       # tests/lifeline: the agent with a real JVM (needs a JDK; not part of poe test)
 uv run poe docs-cli            # rewrite docs/reference/cli.md from the help strings; run it after changing any help string (the drift test fails otherwise)
-uv run poe install-hooks       # install the pre-commit and pre-push hooks (the tests run at `git push`)
+uv run poe install-hooks       # install the pre-commit hook (the linters and the fast checks; no tests)
 uv run poe check               # all pre-commit hooks on all files
 uv run poe check-release       # clean, build, twine check, then scripts/check_wheel.py (the hooks are `poe check`)
 ```
 
 A single test runs without coverage: `uv run pytest tests/unit/test_fakes.py::test_java_exit_code`. `pytest-randomly` prints the seed of each run; `--randomly-seed=<n>` repeats an order, and `-p no:randomly` switches it off.
 
-Run `uv run poe lint` and `uv run poe test` before committing.
+Run `uv run poe lint` before committing; the pre-commit hook runs the same linters, `ruff format --check`, the checks against personal and machine data and the T12 checks, and no tests. The test suite runs on GitHub CI for every pushed branch ([below](#ci)); run `uv run poe test`, or the tests you touched, when you want the answer before pushing. A pre-push hook from an older install runs nothing now; `uv run pre-commit uninstall -t pre-push` removes it.
 
 Local development uses Python 3.11, the lowest supported version (`.python-version` names it): it catches the use of newer syntax and standard library functions before CI does. `uv` downloads it on a machine that lacks it. `tests/unit/test_python_versions.py` keeps `.python-version`, the ruff and mypy targets, the classifiers and the CI matrix in agreement.
 
@@ -50,11 +50,23 @@ The task refuses to run, with exit 1, when the variable is unset (it then prints
 
 `src/tlaup/java/lifeline/Lifeline.java` is the source of the agent that ends a JVM when tlaup is gone ([design 20 G3](../design/20-groundwork.md#g3-java-launcher)); `src/tlaup/java/lifeline.jar` is built from it and checked in, and both are package data of `tlaup.java`. After changing the source, run `uv run poe build-lifeline` and commit the source and the jar together. Build with the JDK the lifeline job uses (Temurin 11): two JDKs need not write the same class-file bytes, and `tests/lifeline/test_jar_matches_source.py` compares them. `uv run poe test-lifeline` needs a JDK on `PATH` or in `JAVA_HOME`; a missing JDK is an error. The reused-process-id test needs `unshare --pid --fork --mount-proc` to work (root, or `--user --map-root-user`); it skips with a reason where it cannot, and fails instead when `CI` is set. `tests/unit/java/test_lifeline_jar.py` checks the jar without Java in `uv run poe test`.
 
+## Branches and pull requests
+
+Changes reach `main` only through a pull request ([design 30 I9](../design/30-ci-and-release.md#i9-branch-flow)); `main` takes no direct push.
+
+1. **Work on a branch and push freely.** Incomplete work may be pushed. Every push to a branch runs CI (below), so pushing is how the tests are run.
+2. **A draft pull request is opened for you.** On the first push of a branch with commits `main` lacks, `.github/workflows/pull-request.yml` opens a draft pull request to `main`, titled with the subject of the branch's first commit. It does nothing when the branch already has an open pull request.
+3. **Write the description.** When the work is done, give the pull request a Conventional Commits title and replace the placeholder text with the description of the change, then mark it ready for review.
+4. **Squash-merge when `Test` is green.** Squash is the only merge method. The commit on `main` takes its subject from the pull request's title and its message from the description, so those are what the history keeps.
+5. **The branch is archived.** After the merge, `.github/workflows/archive-branch.yml` renames the branch to `archive/<name>` (`archive/<name>-pr<number>` when that name is taken). The pull request keeps its commits either way; the archive is there for bisecting the steps of a squashed change. Pushes to `archive/**` run nothing; start new work on a new branch.
+
+A push to a branch with an open pull request runs `test.yml` twice, once as the push and once as the pull request (which tests the merge with `main`); that is accepted ([I9](../design/30-ci-and-release.md#i9-branch-flow) says why).
+
 ## CI
 
-`.github/workflows/test.yml` runs on every push to `main` and to a `build/**` branch (a stage's build branch runs CI before its pull request), on every pull request, and every Monday at 04:17 UTC. It is read-only (`contents: read`), every job has a timeout, and every action is pinned by commit hash with its release in a comment. The pinned hashes are research 29's values of 2026-11-19; Dependabot moves them.
+`.github/workflows/test.yml` runs on every push to a branch other than `archive/**`, `main` included, on every pull request, and every Monday at 04:17 UTC. A newer push cancels the older run on the same branch or pull request, except on `main`. It is read-only (`contents: read`), every job has a timeout, and every action is pinned by commit hash with its release in a comment. The pinned hashes are research 29's values of 2026-11-19; Dependabot moves them.
 
-- `lint`: `uv run poe lint`, `uv run ruff format --check .`, `shellcheck scripts/*.sh`, and the pre-commit hooks (`--hook-stage pre-commit`, which leave out the test hook: it runs at `git push`).
+- `lint`: `uv run poe lint`, `uv run ruff format --check .`, `shellcheck scripts/*.sh`, and the pre-commit hooks on all files.
 - `unit`: `uv run poe test` on Python 3.11 and 3.15 on Linux and on 3.15 on macOS, the Python chosen through `uv` (`UV_PYTHON`), without Java and without a jar; each cell ends by checking that no tlaup folder or `.tlaplus` was left in the runner's home (`scripts/test_clean.py --home`).
 - `lifeline`: `uv run poe test-lifeline` with Temurin 11, on Linux and macOS.
 - `integration`: the integration tests ([above](#the-integration-tests)) on Linux and macOS, with Java 11 and 25 and the tools `v1.7.4` and `rolling`, eight cells. Each gets its jar with `tlaup tool install` through `actions/cache`, restored before the install; the key is `tools-<N>-<build>-<digest>` (for rolling, the digest GitHub publishes), and a step runs `tlaup doctor` and records `tlaup tool current` in the job summary. To abandon every stored jar, raise `TOOLS_CACHE_NUMBER` at the top of the workflow file. The `lifeline` job gets its rolling jar the same way, under the same key. The job ends with the clean-home check.

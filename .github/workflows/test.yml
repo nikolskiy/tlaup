@@ -1,11 +1,15 @@
 name: Test
 
+# Every pushed branch runs, main included (the release script reads Test on main's HEAD); an
+# archived branch does not (design 30 I9). The push run is the one that reports Test on a branch's
+# head commit: a pull request opened by pull-request.yml's token starts no pull_request run. A
+# pull request from a branch of this repository runs twice per push, as push and as pull_request
+# (which tests the merge with main); the duplicate is accepted, since skipping it by a job
+# condition would leave a skipped Test, which counts as passed, on the same commit (I9).
 on:
   push:
-    branches:
-      - main
-      # A stage build branch runs CI before its pull request is opened.
-      - "build/**"
+    branches-ignore:
+      - "archive/**"
   pull_request:
   schedule:
     - cron: "17 4 * * 1" # Mondays 04:17 UTC: the weekly run (design 30 I1, I3)
@@ -13,9 +17,10 @@ on:
 permissions:
   contents: read
 
+# A newer push to a branch or a pull request cancels the older run; on main every run finishes.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   # The number in every jar cache key of the jobs below. Raise it by hand to abandon every stored
@@ -47,9 +52,8 @@ jobs:
 
       - run: shellcheck scripts/*.sh
 
-      # The test hook is a pre-push hook, so this stage leaves it out; the unit job runs the suite.
       - name: Pre-commit hooks
-        run: uv run pre-commit run --all-files --hook-stage pre-commit
+        run: uv run pre-commit run --all-files
 
   unit:
     name: unit (${{ matrix.os }}, ${{ matrix.python }})

@@ -2,9 +2,9 @@
 
 A release is cut from `main` in this order. Each step says what it checks; stop at the first one that fails.
 
-1. **Refresh the lock file.** Run `uv lock --upgrade`, commit, push (through a pull request once the ruleset on `main` is set), and wait for CI to be green. The weekly `deps-newest` run has usually shown already whether the newest versions work.
+1. **Refresh the lock file.** On a branch, run `uv lock --upgrade`, commit, push, and squash-merge the pull request once `Test` is green ([branches and pull requests](development.md#branches-and-pull-requests)). The weekly `deps-newest` run has usually shown already whether the newest versions work.
 2. **Bump the version.** Choose the part by the version rule in [conventions](conventions.md#compatibility-and-versions): from 0.9.0 on, a minor version carries breaking changes and features, a patch version only fixes. Run `uv run poe bump patch`, `minor` or `major`. It moves the version in `pyproject.toml` and `uv.lock` together and prints the new version; it does not touch the changelog and does not commit.
-3. **Date the changelog.** Rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`, with today's date; an empty `## [Unreleased]` heading above it may stay. `uv run python scripts/changelog_section.py X.Y.Z` prints the section the release page will show. Commit, push, and wait for CI to be green.
+3. **Date the changelog.** Rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`, with today's date; an empty `## [Unreleased]` heading above it may stay. `uv run python scripts/changelog_section.py X.Y.Z` prints the section the release page will show. Commit on a branch, push, and squash-merge the pull request once `Test` is green. Steps 2 and 3 may share one branch and one pull request. Then switch to `main` and pull, so that `HEAD` is the merged commit; the push of that commit to `main` starts the `Test` run that step 4 checks.
 4. **Tag.** Run `scripts/release.sh --check`, then `scripts/release.sh`. Both need `gh` logged in. The script stops at the first check that fails and says what to do:
    1. reads the version with `uv version --short`;
    2. the branch is `main` and the working tree is clean;
@@ -15,7 +15,7 @@ A release is cut from `main` in this order. Each step says what it checks; stop 
    7. the check `Test` of GitHub Actions completed with success on `HEAD`;
    8. `uv run poe check-release` passes;
    9. it makes the annotated tag `vX.Y.Z`;
-   10. it pushes `main` and the tag in one atomic push, and deletes the local tag if the push fails.
+   10. it pushes `main` and the tag in one atomic push, and deletes the local tag if the push fails. Since `HEAD` is `origin/main` (step 3), only the tag is sent; `main` itself changes only through pull requests.
 
    `--check` runs steps 1 to 8 and tags nothing.
 5. **Publish.** The tag starts `.github/workflows/release.yml`, in three jobs:
@@ -33,5 +33,5 @@ Optional, after the first release made this way: give the older release pages th
 
 Once the maintainer has set them:
 
-- The ruleset on `main` takes changes only through pull requests whose `Test` check passed; the maintainer can bypass it.
+- The ruleset on `main` takes changes only through pull requests whose `Test` check passed, squash-merged; nobody can bypass it, the maintainer included.
 - The `pypi` environment has the maintainer as its required reviewer, with administrator bypass off, so a pushed tag does not publish until the maintainer approves the `publish` job.

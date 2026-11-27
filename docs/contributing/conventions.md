@@ -7,7 +7,8 @@ Rules for commits, the changelog, code and what may be committed. They apply to 
 - Commits follow Conventional Commits: `feat:`, `fix:`, `docs(scope):`, `chore(deps):`, `test:`, `refactor:`; `!` marks a breaking change.
 - No AI attribution or co-author trailers in commit messages or pull request descriptions.
 - Commit and push only when the maintainer asks.
-- Run `uv run poe lint` and `uv run poe test` before committing ([development](development.md#environment-and-commands)).
+- Run `uv run poe lint` before committing; the tests run on GitHub CI for every pushed branch ([development](development.md#environment-and-commands)).
+- Commits reach `main` only through a pull request, squash-merged once `Test` is green; the pull request's title, a Conventional Commits subject, and its description become the commit on `main` ([development](development.md#branches-and-pull-requests)).
 - Commits use the GitHub noreply address `nikolskiy@users.noreply.github.com`. GitHub rejects pushes that expose a private email.
 
 ## Changelog
