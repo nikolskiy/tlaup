@@ -67,7 +67,7 @@ def _guarded(completer: Callable[[str], list[str]]) -> Callable[[str], list[str]
     def guarded(incomplete: str) -> list[str]:
         try:
             return completer(incomplete)
-        except Exception:  # noqa: BLE001, RUF100 - the second blind except 30 I8 allows; C3: no error is printed
+        except Exception:  # noqa: BLE001 - the second blind except 30 I8 allows; C3: no error is printed
             return []
 
     return guarded

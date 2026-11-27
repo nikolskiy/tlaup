@@ -120,7 +120,7 @@ def test_two_installs_of_one_build_at_once_end_with_one_build(
             client = make_client()
             remote = Remote(client, tmp_path / "remote-cache", now=clock.now)
             reports.append(install(store, remote, client, parse_version_spec("rolling")))
-        except Exception as error:  # noqa: BLE001, RUF100 - a thread's error, asserted below; RUF100 until 58
+        except Exception as error:  # noqa: BLE001 - a thread's error, collected and asserted below
             errors.append(error)
             barrier.abort()
 
