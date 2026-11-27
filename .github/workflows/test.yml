@@ -17,7 +17,11 @@ on:
 permissions:
   contents: read
 
-# A newer push to a branch or a pull request cancels the older run; on main every run finishes.
+# A newer push to a branch or a pull request cancels its older run. The cancelled run's Test job
+# still runs (if: always(), below) and fails, so the superseded commit shows a red Test; the
+# required check reads the head commit, so that is harmless. On main a running run is never
+# cancelled, but a group keeps only one pending run, so a newer run replaces an older one that is
+# still waiting.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}

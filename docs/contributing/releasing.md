@@ -33,5 +33,9 @@ Optional, after the first release made this way: give the older release pages th
 
 Once the maintainer has set them:
 
-- The ruleset on `main` takes changes only through pull requests whose `Test` check passed, squash-merged; nobody can bypass it, the maintainer included.
+- The ruleset on `main` takes changes only through pull requests whose `Test` check passed (the check of GitHub Actions), squash-merged; force pushes and deletion are blocked; nobody can bypass it, the maintainer included.
+- The repository allows squash merging only (merge commits and rebase merging off); the squash commit's default message is the pull request's title and description (`PR_TITLE`, `PR_BODY`); "Automatically delete head branches" is off, so the archive workflow can rename the merged branch.
+- Actions' workflow permissions are read-only by default, with "Allow GitHub Actions to create and approve pull requests" on, so the draft pull request workflow can open its pull requests.
+
+These are the maintainer actions of [design 30 I7](../design/30-ci-and-release.md#i7-ruleset-on-main).
 - The `pypi` environment has the maintainer as its required reviewer, with administrator bypass off, so a pushed tag does not publish until the maintainer approves the `publish` job.

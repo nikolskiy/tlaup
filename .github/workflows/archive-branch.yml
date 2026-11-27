@@ -12,7 +12,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write # renaming a branch
+  contents: read
 
 jobs:
   archive:
@@ -23,6 +23,8 @@ jobs:
       !startsWith(github.event.pull_request.head.ref, 'archive/')
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write # renaming a branch
     steps:
       - name: Rename the branch to archive/<name>
         env:
@@ -33,14 +35,31 @@ jobs:
         run: |
           set -euo pipefail
 
-          # A branch name may hold slashes; in the URL it is one path segment.
+          # The rename endpoint takes the branch name as one path segment, so a slash is encoded.
           encode() { jq -rn --arg s "$1" '$s | @uri'; }
 
-          # A name used before already has its archive; this one is told apart by its pull request.
-          target="archive/$BRANCH"
-          if gh api "repos/$REPO/branches/$(encode "$target")" --silent 2>/dev/null; then
-            target="archive/$BRANCH-pr$NUMBER"
+          # A branch deleted (or renamed) since the merge has nothing left to archive. The refs
+          # endpoint takes the name with its slashes as they are.
+          if ! err=$(gh api "repos/$REPO/git/ref/heads/$BRANCH" --silent 2>&1); then
+            case "$err" in
+              *"HTTP 404"*)
+                echo "$BRANCH no longer exists; nothing to archive."
+                exit 0
+                ;;
+            esac
+            echo "$err" >&2
+            exit 1
           fi
 
-          gh api -X POST "repos/$REPO/branches/$(encode "$BRANCH")/rename" -f new_name="$target" --jq '.name'
+          rename() {
+            gh api -X POST "repos/$REPO/branches/$(encode "$BRANCH")/rename" -f new_name="$1" --jq '.name'
+          }
+
+          target="archive/$BRANCH"
+          if ! rename "$target"; then
+            # The name is taken (a branch name used twice) or refused: one retry with a flat name
+            # that names the pull request, so it cannot collide with another archive.
+            target="archive/pr$NUMBER-${BRANCH//\//-}"
+            rename "$target"
+          fi
           echo "renamed $BRANCH to $target"

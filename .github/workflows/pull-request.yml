@@ -1,19 +1,25 @@
 name: Draft pull request
 
-# Every pushed branch gets a pull request to main, opened as a draft when it has none open
-# (design 30 I9). It runs no project code and checks nothing out: it only calls the GitHub API
-# through `gh`, which the runner has. A pull request opened with this workflow's token starts no
-# pull_request run; the push run of test.yml reports Test on the same commit, which is what the
-# ruleset on main matches.
+# Every pushed branch gets a pull request to main, opened as a draft when it has none (design 30
+# I9). It runs no project code and checks nothing out: it only calls the GitHub API through `gh`,
+# which the runner has. A pull request opened with this workflow's token starts no pull_request
+# run; the push run of test.yml reports Test on the same commit, which is what the ruleset on main
+# matches. Opening one needs the repository setting "Allow GitHub Actions to create and approve
+# pull requests".
+#
+# Not for: main; archive/** (merged work); pkg/** (stage 5 package branches, which merge into the
+# stage's build branch, not into main); dependabot/** (Dependabot opens its own pull requests).
+# A build/** stage branch does get one: that is its pull request to main.
 on:
   push:
     branches-ignore:
       - main
       - "archive/**"
+      - "pkg/**"
+      - "dependabot/**"
 
 permissions:
-  contents: read # the comparison with main
-  pull-requests: write # opening the pull request
+  contents: read
 
 # One run per branch at a time, so two quick pushes cannot both find no pull request and both
 # open one.
@@ -27,8 +33,11 @@ jobs:
     if: ${{ !github.event.deleted }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read # the comparison with main
+      pull-requests: write # opening the pull request
     steps:
-      - name: Open a draft pull request unless one is open
+      - name: Open a draft pull request unless the branch has one
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -44,6 +53,16 @@ jobs:
 
           if [ "$(open_count)" -gt 0 ]; then
             echo "$BRANCH already has an open pull request; nothing to do."
+            exit 0
+          fi
+
+          # Closing a draft without merging it stops the drafts for that branch: a closed,
+          # unmerged pull request counts as the branch's one. A merged one does not, since a
+          # merged branch is renamed and its name may be used again.
+          closed=$(gh api -X GET "repos/$REPO/pulls" -f head="$OWNER:$BRANCH" -f state=closed -f per_page=100 \
+            --jq 'map(select(.merged_at == null)) | length')
+          if [ "$closed" -gt 0 ]; then
+            echo "$BRANCH has a pull request that was closed without merging; no new one opened."
             exit 0
           fi
 
