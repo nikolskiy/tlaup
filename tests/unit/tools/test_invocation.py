@@ -248,6 +248,39 @@ def test_repl_has_no_spec_no_folder_and_the_paths_of_a_run_with_no_project_root(
     assert inv.classpath == (alpha / "modules", alpha / "classes", world.build.jar)
 
 
+def test_sany_with_a_spec_with_no_project_root_adds_nothing_of_the_working_folders_row_s13(world: World) -> None:
+    """S13 (11 R10 rule 4) for SANY; pcal takes the tool jar alone whatever the folders hold, `loose` is no root."""
+    (world.cwd / "classes").mkdir()
+    (world.cwd / "lib").mkdir()
+    (world.cwd / "lib" / "leak.jar").write_bytes(b"jar")
+    (world.cwd / "modules").mkdir()
+    (world.cwd / "loose").mkdir()
+    (world.cwd / "loose" / "Spec.tla").write_text(SPEC_TEXT, encoding="utf-8")
+    for tool in ("sany", "pcal"):
+        inv = world.resolve(tool, "loose/Spec")
+        assert inv.classpath == (world.build.jar,)
+        assert inv.tla_library == ()
+        assert build_tool_command(inv).system_properties == ()
+
+
+def test_sany_with_the_spec_in_spec_takes_the_working_folders_row_s13_control(world: World) -> None:
+    """The control of S13: with the spec in `spec/` the working folder is the root, so the test above can fail."""
+    (world.cwd / "classes").mkdir()
+    (world.cwd / "lib").mkdir()
+    (world.cwd / "lib" / "leak.jar").write_bytes(b"jar")
+    (world.cwd / "modules").mkdir()
+    (world.cwd / "spec").mkdir()
+    (world.cwd / "spec" / "Spec.tla").write_text(SPEC_TEXT, encoding="utf-8")
+    inv = world.resolve("sany", "spec/Spec")
+    assert inv.classpath == (
+        world.cwd / "classes",
+        world.cwd / "modules",
+        world.build.jar,
+        world.cwd / "lib" / "leak.jar",
+    )
+    assert inv.tla_library == (world.cwd / "modules",)
+
+
 # --- build_tool_command -------------------------------------------------------------------------------------------
 
 
