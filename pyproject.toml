@@ -82,7 +82,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider -m 'not pending'"
+addopts = "--strict-markers --strict-config --disable-socket -p no:cacheprovider"
 testpaths = ["tests"]
 # ".*" keeps pytest's default for hidden folders, which a norecursedirs list replaces: Hypothesis
 # writes .hypothesis/ in the repository root and warns, an error here, when it is not excluded.
@@ -91,7 +91,6 @@ filterwarnings = ["error"]
 markers = [
     "integration: needs Java and real jars (TLAUP_TEST_JARS)",
     "lifeline: needs a real JDK; run by the lifeline job (30 I2), not the unit job",
-    "pending: written before the code it tests (03); the work package that builds the code removes the marker",
 ]
 
 [tool.coverage.run]
@@ -102,7 +101,7 @@ source = ["tlaup", "tlaup_parse"]
 
 [tool.coverage.report]
 show_missing = true
-# fail_under: set by the last milestone 2 package, see below
+fail_under = 95
 
 [tool.ruff]
 line-length = 120
