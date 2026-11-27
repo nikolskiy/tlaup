@@ -12,6 +12,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -25,7 +26,13 @@ def _pyproject() -> dict[str, Any]:
 
 def _matrix_versions(workflow: dict[str, Any]) -> set[str]:
     cells = workflow["jobs"]["unit"]["strategy"]["matrix"]["include"]
-    return {str(cell["python"]) for cell in cells}
+    versions = [cell["python"] for cell in cells]
+    for version in versions:
+        assert isinstance(version, str), (
+            f"a unit matrix cell in .github/workflows/test.yml has python: {version!r}, which YAML read as "
+            f'{type(version).__name__}; quote the version (python: "3.10"), or 3.10 reads as 3.1'
+        )
+    return set(versions)
 
 
 def _classifier_versions(pyproject: dict[str, Any]) -> set[str]:
@@ -77,3 +84,24 @@ def test_a_matrix_cell_without_a_classifier_is_reported() -> None:
     problem = _compare_sets(_classifier_versions(_pyproject()), matrix)
     assert problem is not None
     assert "disagree" in problem
+
+
+def test_a_classifier_without_a_matrix_cell_is_reported() -> None:
+    classifiers = _classifier_versions(_pyproject()) | {"3.13"}
+    problem = _compare_sets(classifiers, _matrix_versions(_workflow()))
+    assert problem is not None
+    assert "disagree" in problem
+
+
+def test_a_lowest_version_other_than_the_target_is_reported() -> None:
+    versions = {"3.12", "3.15"}
+    problem = _compare_sets(versions, versions)
+    assert problem is not None
+    assert "3.12" in problem
+    assert LOWEST in problem
+
+
+def test_an_unquoted_matrix_version_is_reported() -> None:
+    workflow = yaml.safe_load("jobs: {unit: {strategy: {matrix: {include: [{python: 3.10}]}}}}")
+    with pytest.raises(AssertionError, match="quote the version"):
+        _matrix_versions(workflow)
