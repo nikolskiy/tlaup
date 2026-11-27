@@ -1,6 +1,6 @@
 # 54. The integration job
 
-Size: M. Suggested model: mid-tier. Status: ready.
+Size: M. Suggested model: mid-tier. Status: built, not yet proven on CI.
 
 ## Goal
 

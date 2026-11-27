@@ -129,10 +129,10 @@ jobs:
       - name: Keep the tlaup store in the runner's temporary folder
         run: echo "TLAUP_HOME=$RUNNER_TEMP/tlaup" >> "$GITHUB_ENV"
 
-      # The cache key: the SHA-256 of the v1.7.4 jar (research 18), or for rolling the digest GitHub
-      # publishes for its jar, so a new upstream build misses the cache. An empty digest fails here,
-      # so that a change in the release API is seen at once and not as one shared key. A rolling build
-      # published between this read and the install is accepted: the entry then holds the newer jar.
+      # The cache key: the digest GitHub publishes for the rolling jar, so a new upstream build misses
+      # the cache. An empty digest fails here, so that a change in the release API is seen at once and
+      # not as one shared key. A rolling build published between this read and the install is accepted:
+      # the entry then holds the newer jar.
       - name: Work out the jar cache key
         id: key
         env:
