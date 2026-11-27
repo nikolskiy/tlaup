@@ -12,7 +12,6 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -53,10 +52,6 @@ def _compare_sets(classifiers: set[str], matrix: set[str]) -> str | None:
     return None
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="waits for .python-version 3.11 (needs the cp311 wheels; the maintainer's decision)",
-)
 def test_python_version_file_names_the_lowest_version() -> None:
     text = (ROOT / ".python-version").read_text(encoding="utf-8").strip()
     assert text == LOWEST, f".python-version says {text} but pyproject.toml's requires-python starts at {LOWEST}"

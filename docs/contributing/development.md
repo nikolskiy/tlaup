@@ -25,7 +25,7 @@ A single test runs without coverage: `uv run pytest tests/unit/test_fakes.py::te
 
 Run `uv run poe lint` and `uv run poe test` before committing.
 
-Local development should use Python 3.11, the lowest supported version (`.python-version`): it catches the use of newer syntax and standard library functions before CI does. `uv` downloads it on a machine that lacks it. `tests/unit/test_python_versions.py` keeps `.python-version`, the ruff and mypy targets, the classifiers and the CI matrix in agreement.
+Local development uses Python 3.11, the lowest supported version (`.python-version` names it): it catches the use of newer syntax and standard library functions before CI does. `uv` downloads it on a machine that lacks it. `tests/unit/test_python_versions.py` keeps `.python-version`, the ruff and mypy targets, the classifiers and the CI matrix in agreement.
 
 ## The integration tests
 
