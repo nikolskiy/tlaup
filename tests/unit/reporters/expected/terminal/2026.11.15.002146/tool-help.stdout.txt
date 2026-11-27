@@ -208,4 +208,4 @@
 
 	When using more than one worker, the reported depth might differ across runs. For small models, use a single worker. For large models, the diameter will almost always appear deterministic.
 
-Result: incomplete, TLC stopped without finishing (TLC exit code 1: TLC rejected its command line, or the JVM could not start it for an option it does not accept or a main class it cannot find)
+Result: TLC printed its help (TLC exit code 1)

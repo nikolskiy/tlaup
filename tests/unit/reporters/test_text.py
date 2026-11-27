@@ -323,7 +323,7 @@ def test_result_line_falls_back_to_the_reporters_clock() -> None:
         (
             ErrorKind.CONFIG,
             151,
-            "the configuration has errors (TLC exit code 151: the cfg file is wrong, or on rolling missing)",
+            "the configuration has errors (TLC exit code 151: the cfg file is missing or wrong)",
         ),
         (
             ErrorKind.USAGE,
@@ -335,13 +335,13 @@ def test_result_line_falls_back_to_the_reporters_clock() -> None:
             ErrorKind.EXCEPTION,
             255,
             "TLC failed before computing the initial states (TLC exit code 255: TLC stopped on "
-            "an error it does not classify, for example a missing cfg on v1.7.4)",
+            "an error it does not classify; its output above says what went wrong)",
         ),
         (
             ErrorKind.OTHER,
             255,
             "TLC failed before computing the initial states (TLC exit code 255: TLC stopped on "
-            "an error it does not classify, for example a missing cfg on v1.7.4)",
+            "an error it does not classify; its output above says what went wrong)",
         ),
     ],
 )
@@ -365,15 +365,40 @@ def test_result_line_incomplete() -> None:
     )
     assert result_line(_outcome(255), result, 3.0) == (
         "Result: incomplete, TLC stopped without finishing (TLC exit code 255: TLC stopped on an error it does not "
-        "classify, for example a missing cfg on v1.7.4)"
+        "classify; its output above says what went wrong)"
     )
 
 
 def test_result_line_of_a_code_x1_does_not_document() -> None:
     result = _result(Verdict.INCOMPLETE)
     assert result_line(_outcome(99), result, 1.0) == (
-        "Result: incomplete, TLC stopped without finishing (TLC exit code 99: TLC returned a code it does not document)"
+        "Result: incomplete, TLC stopped without finishing "
+        "(TLC exit code 99: TLC ended with a code tlaup does not know)"
     )
+
+
+@pytest.mark.parametrize(("code", "name"), [(130, "SIGINT"), (137, "SIGKILL"), (143, "SIGTERM"), (200, "72")])
+def test_result_line_of_a_code_above_128_names_the_signal(code: int, name: str) -> None:
+    result = _result(Verdict.INCOMPLETE)
+    assert result_line(_outcome(code), result, 1.0) == (
+        f"Result: incomplete, TLC stopped without finishing (TLC exit code {code}: Java was stopped by a signal "
+        f"({name}))"
+    )
+
+
+def test_result_line_when_tlc_was_asked_for_its_help() -> None:
+    result = _result(Verdict.INCOMPLETE)
+    assert (
+        result_line(_outcome(1, asked_for_help=True), result, 1.0) == "Result: TLC printed its help (TLC exit code 1)"
+    )
+    # Not when TLC exited with another code, nor when a signal or a closed pipe stopped the run, nor unasked.
+    assert result_line(_outcome(1), result, 1.0).startswith("Result: incomplete, TLC stopped without finishing")
+    assert result_line(_outcome(255, asked_for_help=True), result, 1.0).startswith("Result: incomplete, TLC stopped")
+    assert result_line(_outcome(130, asked_for_help=True, stopped_by="int"), result, 3.0) == (
+        "Result: incomplete, interrupted after 3.0 s"
+    )
+    closed = _outcome(1, asked_for_help=True, stopped_for_closed_pipe=True)
+    assert result_line(closed, result, 3.0) == "Result: incomplete, stopped because the output was closed"
 
 
 def test_result_line_of_a_false_postcondition() -> None:
@@ -382,9 +407,7 @@ def test_result_line_of_a_false_postcondition() -> None:
         "Result: errors found (TLC exit code 10: a postcondition was false) in 0.1 s"
     )
     assumption = _result(Verdict.ERRORS, duration_ms=100, errors=[_error(ErrorKind.ASSUMPTION)])
-    assert "(TLC exit code 10: an assumption of the spec is false; on rolling also a postcondition)" in result_line(
-        _outcome(10), assumption, 1.0
-    )
+    assert "(TLC exit code 10: an assumption in the spec is false)" in result_line(_outcome(10), assumption, 1.0)
 
 
 def test_result_line_suffixes() -> None:

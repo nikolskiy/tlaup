@@ -1034,4 +1034,4 @@ Error: TLC threw an unexpected exception.
       The error call stack is empty.
 
 1 states generated, 1 distinct, 0 left on queue
-Result: errors found (TLC exit code 75: evaluating the spec failed, for example while computing the initial states, or Java ran out of memory) in 0.8 s
+Result: errors found (TLC exit code 75: TLC could not evaluate part of the spec, or Java ran out of memory) in 0.8 s

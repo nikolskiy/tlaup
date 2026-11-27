@@ -44,8 +44,10 @@ class RunOutcome:
     dropped_checkpoint: str | None  # R6; "not-asked", "incomplete" or "depth-first" when a checkpoint was not kept
     stopped_for_closed_pipe: bool  # R1; the reader of stdout went away and TLC was stopped (D58)
     kept: Kept | None  # R6; the whole kept value, for the note that 39's print_run_notes prints (kept_note)
+    asked_for_help: bool = False  # TLC's arguments after `--` held `-help` (22 O3's help row)
 
 
+_HELP_FLAG = "-help"
 _WAITING = "waiting for TLC to finish writing its checkpoint"
 
 
@@ -71,6 +73,7 @@ def _outcome(process: ProcessOutcome, settled: Settled, inv: TlcInvocation, resu
         dropped_checkpoint=settled.dropped,
         stopped_for_closed_pipe=process.stopped_for_closed_pipe,
         kept=kept,
+        asked_for_help=_HELP_FLAG in inv.extra_args,
     )
 
 

@@ -78,7 +78,7 @@ class ExitStatus:  # 02 X1 holds the table of codes, words and meanings
     # The JSON of milestone 4 carries it (40)
     meaning: str  # one sentence, "an invariant was violated"; the result line of 22 O3 shows it beside the verdict
     known: bool  # False for a code X1's table does not hold; word is then "error" (X1, settled 2026-11-24),
-    # and meaning "TLC returned a code it does not document"
+    # and meaning "TLC ended with a code tlaup does not know", or "Java was stopped by a signal (...)" from 129 to 255
 
 
 @dataclass(frozen=True)

@@ -189,6 +189,7 @@ def make_outcome(case: Case, result: RunResult, **changes: Any) -> RunOutcome:
         "dropped_checkpoint": None,
         "stopped_for_closed_pipe": False,
         "kept": None,
+        "asked_for_help": "-help" in [str(arg) for arg in case.table.get("args", [])],
     }
     values.update(changes)
     return RunOutcome(**values)

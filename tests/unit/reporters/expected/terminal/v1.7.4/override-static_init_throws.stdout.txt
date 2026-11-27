@@ -26,4 +26,4 @@ Error: TLC threw an unexpected exception.
   	at tlc2.overrides.TLCOverrides.<clinit>(TLCOverrides.java:6)
   	... 19 more
 
-Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify, for example a missing cfg on v1.7.4)
+Result: not checked: TLC failed before computing the initial states (TLC exit code 255: TLC stopped on an error it does not classify; its output above says what went wrong)
