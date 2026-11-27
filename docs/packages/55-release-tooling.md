@@ -1,6 +1,6 @@
 # 55. Release script, release workflow and version bump
 
-Size: M. Suggested model: most capable. Status: ready.
+Size: M. Suggested model: most capable. Status: built, not yet proven on CI.
 
 ## Goal
 
