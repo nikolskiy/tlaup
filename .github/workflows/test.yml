@@ -125,31 +125,33 @@ jobs:
 
       - run: uv sync --locked
 
+      # Set here and not in the job's env, where the runner context is not available.
       - name: Keep the tlaup store in the runner's temporary folder
         run: echo "TLAUP_HOME=$RUNNER_TEMP/tlaup" >> "$GITHUB_ENV"
 
       # The cache key: the SHA-256 of the v1.7.4 jar (research 18), or for rolling the digest GitHub
       # publishes for its jar, so a new upstream build misses the cache. An empty digest fails here,
-      # so that a change in the release API is seen at once and not as one shared key.
+      # so that a change in the release API is seen at once and not as one shared key. A rolling build
+      # published between this read and the install is accepted: the entry then holds the newer jar.
       - name: Work out the jar cache key
         id: key
         env:
           GH_TOKEN: ${{ github.token }}
-          TOOLS: rolling
         run: |
-          if [ "$TOOLS" = rolling ]; then
-            digest=$(gh api repos/tlaplus/tlaplus/releases/tags/rolling --jq '.assets[] | select(.name == "tla2tools.jar") | .digest')
-            if [ -z "$digest" ] || [ "$digest" = null ]; then
-              echo "the rolling release lists no digest for tla2tools.jar"
-              exit 1
-            fi
-          else
-            digest=936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
+          digest=$(gh api repos/tlaplus/tlaplus/releases/tags/rolling --jq '.assets[] | select(.name == "tla2tools.jar") | .digest')
+          if [ -z "$digest" ] || [ "$digest" = null ]; then
+            echo "the rolling release lists no digest for tla2tools.jar"
+            exit 1
           fi
-          echo "key=tools-${TOOLS_CACHE_NUMBER}-${TOOLS}-${digest}" >> "$GITHUB_OUTPUT"
+          if [ "$(printf '%s\n' "$digest" | wc -l)" -ne 1 ]; then
+            echo "the rolling release lists more than one digest for tla2tools.jar"
+            exit 1
+          fi
+          echo "key=tools-${TOOLS_CACHE_NUMBER}-rolling-${digest}" >> "$GITHUB_OUTPUT"
 
       # Restore before the install, so a restored cache is used (design 30 I1).
       - name: Restore the jar cache
+        id: cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/tlaup/cache/tool
@@ -166,12 +168,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           KEY: ${{ steps.key.outputs.key }}
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
         run: |
           if ! uv run tlaup doctor; then
-            {
-              echo "**Warning:** \`tlaup doctor\` failed on the restored jar cache, so the jar was installed again."
-              echo "A stored cache entry cannot be saved again under its key. Raise TOOLS_CACHE_NUMBER in the workflow file to abandon \`$KEY\`."
-            } >> "$GITHUB_STEP_SUMMARY"
+            if [ "$CACHE_HIT" = true ]; then
+              {
+                echo "**Warning:** \`tlaup doctor\` failed on the restored jar cache, so the jar was installed again."
+                echo "A stored cache entry cannot be saved again under its key. Raise TOOLS_CACHE_NUMBER in the workflow file to abandon \`$KEY\`."
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "\`tlaup doctor\` failed after a fresh install, so the jar was installed again." >> "$GITHUB_STEP_SUMMARY"
+            fi
             uv run tlaup tool install --force rolling
             uv run tlaup doctor
           fi
@@ -183,7 +190,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # Rolling, because v1.7.4 has no REPL. The key is the integration job's, so both share one entry.
-      - run: uv run poe test-lifeline
+      - run: uv run poe test-lifeline -rs
         env:
           TLAUP_TEST_JARS: ${{ runner.temp }}/tlaup/cache/tool
 
@@ -226,7 +233,8 @@ jobs:
 
       # The cache key: the SHA-256 of the v1.7.4 jar (research 18), or for rolling the digest GitHub
       # publishes for its jar, so a new upstream build misses the cache. An empty digest fails here,
-      # so that a change in the release API is seen at once and not as one shared key.
+      # so that a change in the release API is seen at once and not as one shared key. A rolling build
+      # published between this read and the install is accepted: the entry then holds the newer jar.
       - name: Work out the jar cache key
         id: key
         env:
@@ -239,6 +247,10 @@ jobs:
               echo "the rolling release lists no digest for tla2tools.jar"
               exit 1
             fi
+            if [ "$(printf '%s\n' "$digest" | wc -l)" -ne 1 ]; then
+              echo "the rolling release lists more than one digest for tla2tools.jar"
+              exit 1
+            fi
           else
             digest=936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88
           fi
@@ -246,6 +258,7 @@ jobs:
 
       # Restore before the install, so a restored cache is used (design 30 I1).
       - name: Restore the jar cache
+        id: cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/tlaup/cache/tool
@@ -262,12 +275,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           KEY: ${{ steps.key.outputs.key }}
+          CACHE_HIT: ${{ steps.cache.outputs.cache-hit }}
         run: |
           if ! uv run tlaup doctor; then
-            {
-              echo "**Warning:** \`tlaup doctor\` failed on the restored jar cache, so the jar was installed again."
-              echo "A stored cache entry cannot be saved again under its key. Raise TOOLS_CACHE_NUMBER in the workflow file to abandon \`$KEY\`."
-            } >> "$GITHUB_STEP_SUMMARY"
+            if [ "$CACHE_HIT" = true ]; then
+              {
+                echo "**Warning:** \`tlaup doctor\` failed on the restored jar cache, so the jar was installed again."
+                echo "A stored cache entry cannot be saved again under its key. Raise TOOLS_CACHE_NUMBER in the workflow file to abandon \`$KEY\`."
+              } >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "\`tlaup doctor\` failed after a fresh install, so the jar was installed again." >> "$GITHUB_STEP_SUMMARY"
+            fi
             uv run tlaup tool install --force ${{ matrix.tools }}
             uv run tlaup doctor
           fi
@@ -280,6 +298,7 @@ jobs:
 
       # No token here: the tests use no network.
       - name: Integration tests
+        id: tests
         env:
           TLAUP_TEST_JARS: ${{ runner.temp }}/tlaup/cache/tool
         run: uv run poe test-integration
@@ -287,7 +306,7 @@ jobs:
       # The last step, and it runs after a failed test run too: nothing may appear in the real home,
       # `~/.tlaplus` included (design 01 T2, T9).
       - name: Check that the home folder stays clean
-        if: always()
+        if: always() && steps.tests.outcome != 'skipped'
         run: uv run python scripts/test_clean.py --home "$HOME"
 
   # Not required: it may be red on any day a dependency releases something new (design 30 I3).
