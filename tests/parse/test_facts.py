@@ -1,13 +1,10 @@
 """Every fact of ``facts.py`` on every TLC build folder whose line it holds for (design 01 T3, 10 P1; package 08).
 
-``test_fact`` is the one test per fact and build; it is marked ``pending`` while the parser does not exist, by
-the patterns of ``PENDING``, and the parser packages narrow them (13a to ``("*:traces:*",)``, 13b to ``()``).
-The other four tests check the facts themselves and pass now.
+``test_fact`` is the one test per fact and build; the other three tests check the facts themselves.
 """
 
 from __future__ import annotations
 
-import fnmatch
 from collections import Counter
 from typing import TYPE_CHECKING
 
@@ -21,13 +18,6 @@ if TYPE_CHECKING:
 
     from tests.parse.facts import Fact
 
-# fnmatch patterns over Fact.id; a fact whose id matches one is marked pending
-PENDING: tuple[str, ...] = ()
-
-
-def _is_pending(fact: Fact) -> bool:
-    return any(fnmatch.fnmatchcase(fact.id, pattern) for pattern in PENDING)
-
 
 def _fact_params() -> list[object]:
     params: list[object] = []
@@ -35,8 +25,7 @@ def _fact_params() -> list[object]:
         line = line_of(folder)
         for case in cases_of(folder):
             for fact in facts_for(case, line):
-                marks = [pytest.mark.pending] if _is_pending(fact) else []
-                params.append(pytest.param(folder, fact, id=f"{folder.name}/{fact.id}", marks=marks))
+                params.append(pytest.param(folder, fact, id=f"{folder.name}/{fact.id}"))
     return params
 
 
@@ -70,8 +59,3 @@ def test_every_fact_names_a_case_of_every_line_it_holds_for() -> None:
 def test_fact_ids_are_unique() -> None:
     counts = Counter(fact.id for fact in FACTS)
     assert sorted(i for i, n in counts.items() if n > 1) == []
-
-
-def test_every_pending_pattern_matches_a_fact() -> None:
-    stale = [pattern for pattern in PENDING if not any(fnmatch.fnmatchcase(fact.id, pattern) for fact in FACTS)]
-    assert stale == []
