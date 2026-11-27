@@ -157,7 +157,7 @@ ignore = [
 "src/tlaup/cli.py" = ["PLC0415"]
 
 [tool.bandit]
-skips = ["B404", "B603", "B607"]
+skips = ["B404", "B603"]
 
 [tool.poe.tasks]
 check = "pre-commit run --all-files"
