@@ -1,6 +1,6 @@
 # 56. Dependabot, build fixes and package metadata
 
-Size: S. Suggested model: mid-tier. Status: ready.
+Size: S. Suggested model: mid-tier. Status: built, not yet proven on CI.
 
 ## Goal
 

@@ -30,13 +30,19 @@ Command-line tool for working with TLA+ specifications and the TLC model checker
 * `tlaup module remove <name>`: Remove a registered module.
 * `tlaup module dir`: Print the folder that holds the registered modules.
 
-For complete, runnable specifications and Java module examples, see [docs/examples](docs/examples/).
+For complete, runnable specifications and Java module examples, see [docs/examples](https://github.com/nikolskiy/tlaup/tree/main/docs/examples).
 
 ## Quick Installation
 
 ### Via `uv tool`
 ```bash
 uv tool install tlaup
+```
+
+### Via `pipx` or `uvx`
+```bash
+pipx install tlaup
+uvx tlaup --help
 ```
 
 If you installed the old package, remove it first:
