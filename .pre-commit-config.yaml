@@ -1,3 +1,8 @@
+# Every hook runs at commit only. The tests run on GitHub CI for every pushed branch, not in a
+# hook, and nothing runs at push: a pre-push hook left from an older install finds no hook to run
+# (remove it with `uv run pre-commit uninstall -t pre-push`).
+default_stages: [pre-commit]
+
 repos:
   - repo: local
     hooks:
@@ -202,11 +207,3 @@ repos:
         types: [python]
         pass_filenames: false
         require_serial: true
-
-      - id: pytest
-        name: pytest
-        entry: uv run pytest
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-push]

@@ -27,7 +27,7 @@ Eight jobs; `fail-fast: false`. Steps, in this order:
 5. **Check, repair and record the build**: `uv run tlaup doctor`, which compares the jar with its recorded SHA-256 and so catches a damaged cache entry. Step 4 cannot catch one: for v1.7.4, which has no digest, "already installed" rests on the recorded size and upload time, not on the bytes on disk ([12 V12](12-tools-and-downloads.md#v12-install)). If `doctor` fails, the step runs `uv run tlaup tool install --force <tools>`, which downloads, verifies and repairs in place, then `doctor` again, and writes a warning to the job summary naming the cache key. The run is healed; the stored entry is not, because an entry cannot be saved again under a key that exists, so every later run would restore the damaged entry and repair it again, at one download each. The warning therefore says to raise the number in the keys (step 3), which makes the next run save a fresh entry. Then `uv run tlaup tool current` is written to the job summary. For rolling this is the only record of which build a given run used.
 6. `TLAUP_TEST_JARS=<store> uv run poe test-integration` ([01 T9](01-testing.md#t9-integration-tests)).
 
-Triggers: every push to `main`, every pull request, and **a weekly schedule**. The schedule is a design addition: a rolling build can change TLC's output between two pushes, and a weekly run turns "the next unrelated pull request fails mysteriously" into "the scheduled run failed on Monday". A failed scheduled run opens nothing by itself; GitHub notifies the maintainer.
+Triggers: every push to a branch other than an `archive/**` one, `main` included, every pull request, and **a weekly schedule** (the branch flow of I9 since 2026-11-27; before it, pushes to `main` and to `build/**` branches). The schedule is a design addition: a rolling build can change TLC's output between two pushes, and a weekly run turns "the next unrelated pull request fails mysteriously" into "the scheduled run failed on Monday". A failed scheduled run opens nothing by itself; GitHub notifies the maintainer.
 
 When the rolling job fails because upstream changed its output, the fix is a new capture ([01 T3](01-testing.md#t3-golden-files)) and whatever parser change it needs. The rolling jobs are **required** checks like the others: a tool that claims to support the current rolling build (D19) should not merge while it does not.
 
@@ -89,7 +89,7 @@ Roadmap: "Enforce `ruff format --check`; `uv sync --locked`; an explicit read-on
 - Every `uv sync` in a workflow has `--locked`.
 - Every workflow starts with `permissions: contents: read`; a job that needs more says so itself (L2).
 - Every job has `timeout-minutes` (10 for lint and build, 15 for unit, 30 for integration).
-- `concurrency: group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true` for pull requests and false for `main`.
+- `concurrency: group: ${{ github.workflow }}-${{ github.ref }}` with `cancel-in-progress: true` for every ref but `main` (pull requests, and since I9 every pushed branch) and false for `main`.
 - `shellcheck scripts/*.sh` in the `lint` job (it is on the hosted Linux runners).
 - A final job `Test` that `needs` every required job (`lint`, `unit`, `lifeline`, `integration`, `build`; not `deps-newest`, I3). It has `if: always()`, and its one step fails unless every entry of `needs.*.result` is `success`. Both parts matter: without `if: always()` the job is skipped when a job it needs fails, and a required check that was skipped counts as passed, so a failing matrix would let a pull request merge. The ruleset (I7) requires only this one check name, so the matrix can change without touching the ruleset. Stated from knowledge of the platform, not tried; I7's hand-over to the maintainer includes opening a pull request with a deliberately failing test and seeing that it cannot merge.
 
@@ -99,13 +99,19 @@ Roadmap: "Enforce `ruff format --check`; `uv sync --locked`; an explicit read-on
 
 Roadmap: "Run the pre-commit hooks in CI, without the test hook, so the secret, YAML, TOML and large-file checks do not depend on a local install."
 
-**Design.** In the `lint` job: `uv run pre-commit run --all-files --hook-stage pre-commit`. After H1 moves the test hook to the pre-push stage, that excludes it without a skip list. The `no-*` hooks against personal and machine data run here too, which is the point: they hold for every contributor and agent.
+**Design.** In the `lint` job: `uv run pre-commit run --all-files`. Since 2026-11-27 there is no test hook (H1), so no stage or skip list is needed to leave the suite out. The `no-*` hooks against personal and machine data run here too, which is the point: they hold for every contributor and agent.
 
 ## I7 Ruleset on main
 
 Roadmap: "Ruleset on `main`: changes arrive by pull request with the Test check passing; the maintainer can bypass (decision D21). Set once the check names are stable."
 
-**Design.** A maintainer action, done once I5's `Test` job exists. The ruleset: target the default branch; require a pull request (no approvals required, since review by a separate agent stays a convention); require the status check `Test`; block force pushes and deletion (already so); bypass list: the repository admin role, "always". The design gives the settings; the worker writes them as a `gh api` command in the pull request description for the maintainer to run, and does not run it. Before relying on it the maintainer checks it once: a pull request with one failing unit test must show `Test` as failed and be blocked (I5).
+**Design.** A maintainer action, done once I5's `Test` job exists. The ruleset: target the default branch; require a pull request (no approvals required, since review by a separate agent stays a convention), with squash as the only allowed merge method; require the status check `Test`; block force pushes and deletion (already so); bypass list: empty. The maintainer's change of 2026-11-27, with the branch flow of I9, replaces the admin bypass the first version had (decision D21 named one): every change, the maintainer's and the release commits included, now reaches `main` through a pull request, and the release script's push of `main` updates nothing on `main` (L1 checks that `HEAD` is `origin/main`). The required check `Test` is tied to the GitHub Actions app (`integration_id` 15368), so no other app can report a check of that name. The design gives the settings; the worker writes them as `gh api` commands in the pull request description for the maintainer to run, and does not run them. Before relying on it the maintainer checks it once: a pull request with one failing unit test must show `Test` as failed and be blocked (I5).
+
+**Maintainer actions** (since 2026-11-27; the flow of I9 does not work without them):
+
+1. The ruleset above.
+2. Repository settings, pull requests: allow squash merging only, with merge commits and rebase merging off; the squash commit's default message is the pull request's title and description (`squash_merge_commit_title: PR_TITLE`, `squash_merge_commit_message: PR_BODY`); "Automatically delete head branches" off, since I9's archive renames the branch after the merge and finds nothing to rename if GitHub deleted it.
+3. Actions settings, workflow permissions: read repository contents by default (each workflow asks for more itself), and "Allow GitHub Actions to create and approve pull requests" on, without which I9's draft pull request cannot be opened.
 
 **Depends on.** I5.
 
@@ -128,6 +134,28 @@ Roadmap: "Lint rules: enable ruff's blind-except, naive-datetime and print rule 
 | mypy on tests | Stays off for `tests/` in this wave (roadmap, milestone 5 housekeeping); `tests/fakes/` and `scripts/` are checked. |
 
 Each rule group is switched on in the pull request that fixes what it flags, not in one sweep, so no pull request carries unrelated fixes: one pull request for each row of the table that switches something on. (Stage 4 review, 2026-11-24: the completers' guard is the second allowed blind except; `git` and the editor are found with `shutil.which`; one pull request per rule group, review finding D15 (not decision D15); index, "Clerical" and "Readings to confirm".)
+
+## I9 Branch flow
+
+Not a roadmap item: the maintainer's change of 2026-11-27. It replaces the trunk-only flow of decision D2 for changes; the `v*` tags stay as they are. It needs the maintainer actions of I7.
+
+**Design.**
+
+- **Work happens on short-lived branches**, and incomplete work may be pushed. Every push to a branch other than `archive/**` runs `test.yml` (I1). A new branch is cut from `main`, after the last merge.
+- **A draft pull request is opened automatically.** `.github/workflows/pull-request.yml`, on a push to a branch other than `main`, `archive/**`, `pkg/**` (stage 5's package branches, which merge into the stage's build branch) and `dependabot/**` (Dependabot opens its own), opens a draft pull request to `main` when the branch has none open, has no pull request that was closed without merging (so closing a draft stops the drafts for that branch), and has commits `main` lacks. It is idempotent, and one run per branch at a time. Its title is the subject of the branch's first commit, its text says it was opened automatically and that the author writes the description before merging. The workflow holds `contents: read`; its job adds `pull-requests: write`. It checks nothing out and calls only the GitHub API through `gh`. A pull request opened with a workflow's token starts no `pull_request` run, so the push run reports `Test` on the head commit; the required check matches by commit, which is enough.
+- **Squash merge, the description as the message.** When the work is done and `Test` is green, the author writes the pull request's title (a Conventional Commits subject) and description, marks it ready, and squash-merges it. The repository's squash default (I7) takes the commit message from the pull request's title and description, so the description is what `main`'s history keeps.
+- **The branch is archived.** `.github/workflows/archive-branch.yml`, on a pull request closed as merged into `main` from a branch of this repository, renames the branch to `archive/<name>` through the REST API. If that rename fails (the name is taken, for a branch name used twice), it retries once with the flat name `archive/pr<number>-<name with each / replaced by ->`. A branch that no longer exists ends the job with a message and success. The workflow holds `contents: read`; its job adds `contents: write`. GitHub keeps a pull request's commits even when the branch goes, so the archive is a convenience for bisecting the steps a squash folded together. Pushes to `archive/**` run nothing.
+- **Duplicate runs, accepted.** A push to a branch that has a pull request runs `test.yml` twice, as `push` and as `pull_request` (the second tests the merge with `main`). Skipping the second for branches of this repository by a job condition would leave a skipped `Test` on the same commit, and a skipped required check counts as passed, so a pull request could merge while the push run is still going. The cost is runner time.
+- **Cancelled runs show red.** A newer push to a branch cancels the older run (I5). Its `Test` job still runs, because of `if: always()`, and fails on the cancelled jobs, so the superseded commit shows a red `Test`. That is harmless: the required check reads the pull request's head commit. `if: always()` stays, since without it a failing job would leave `Test` skipped, which counts as passed.
+
+**Not proven offline.** The first pushes and merges show each of these:
+
+- That a workflow-opened pull request starts no `pull_request` run while later pushes start `synchronize` runs, and that the push run's `Test` satisfies the ruleset.
+- That opening the draft works with the workflow's token once "Allow GitHub Actions to create and approve pull requests" is on, and fails without it.
+- That the squash default (`PR_TITLE`, `PR_BODY`) puts the title and description into the commit on `main`.
+- That the rename endpoint takes a branch name with a slash encoded as `%2F` (if not, the flat retry fails too and the job is red).
+- That a deleted or renamed branch starts no `test.yml` run. After the first merge, look in the Actions tab for a `Test` run on the old branch name with a failed checkout; if one appears, `test.yml` needs a guard against deleted refs. Any such guard must not leave a `Test` on `main`'s `HEAD` that is not a success, because the release script (L1, step 7) reads that check.
+- Whether a failed `pull_request` run blocks the merge while the push run on the same commit passed, that is, which of two `Test` check runs on one commit the ruleset reads. Until that is seen, both must be green before merging.
 
 ## L1 Release script
 
@@ -244,7 +272,9 @@ The rewrite, when it comes, keeps both. GitHub topics are a maintainer action (`
 
 Roadmap: "Pre-commit: move the test hook to pre-push; add a format hook; run mypy on the whole project instead of on staged files."
 
-**Design.** In `.pre-commit-config.yaml`: the `pytest` hook gets `stages: [pre-push]`; a `ruff-format` hook (`uv run ruff format --check --force-exclude`) is added after `ruff`, with `types_or: [python, pyi, markdown]`, so that a staged Markdown file is checked as I5's check checks it (Stage 4 review, 2026-11-24: question Q1); the `mypy` hook gets `pass_filenames: false` and runs `uv run mypy .`. `poe install-hooks` installs both hook types (`pre-commit install --install-hooks -t pre-commit -t pre-push`). A new local hook `no-typed-tool-output` fails on `@!@!@STARTMSG` in `tests/**/*.py` and `tests/**/*.feature` ([01 T12](01-testing.md#t12-rules-for-writing-tests), rule 3).
+**Design.** In `.pre-commit-config.yaml`: the `pytest` hook gets `stages: [pre-push]` (superseded 2026-11-27, below); a `ruff-format` hook (`uv run ruff format --check --force-exclude`) is added after `ruff`, with `types_or: [python, pyi, markdown]`, so that a staged Markdown file is checked as I5's check checks it (Stage 4 review, 2026-11-24: question Q1); the `mypy` hook gets `pass_filenames: false` and runs `uv run mypy .`. `poe install-hooks` installs both hook types (`pre-commit install --install-hooks -t pre-commit -t pre-push`). A new local hook `no-typed-tool-output` fails on `@!@!@STARTMSG` in `tests/**/*.py` and `tests/**/*.feature` ([01 T12](01-testing.md#t12-rules-for-writing-tests), rule 3).
+
+**Changed 2026-11-27 (the maintainer, with the branch flow of I9).** Every test run moved to GitHub CI, which runs on every pushed branch. The `pytest` hook is gone and nothing runs at push: `default_stages: [pre-commit]` at the top of the file keeps every hook at commit, so a pre-push hook left from an older install runs nothing, and `poe install-hooks` installs the pre-commit type only (`pre-commit install --install-hooks -t pre-commit`). The hooks are the fast checks: ruff, ruff format, bandit, mypy, the `no-*` hooks against personal and machine data, the T12 hooks, and the file checks. Fast smoke tests at commit may come later.
 
 ## H2 Clean task and gitignore
 
