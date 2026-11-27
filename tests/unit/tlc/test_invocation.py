@@ -598,6 +598,46 @@ def test_a_relative_module_path_is_read_against_cwd_row_c6(world: World) -> None
     assert str(started / "jars" / "j.jar") in classpath
 
 
+def working_folder_with_every_marker(world: World, spec_folder: str) -> Path:
+    """`classes/`, `modules/` and `lib/` (with a jar) in the working folder, and a spec in `spec_folder` under it."""
+    (world.cwd / "classes").mkdir()
+    (world.cwd / "modules").mkdir()
+    (world.cwd / "lib").mkdir()
+    (world.cwd / "lib" / "leak.jar").write_bytes(b"jar")
+    folder = world.cwd / spec_folder
+    folder.mkdir()
+    (folder / "Spec.tla").write_text("---- MODULE Spec ----\n====\n", encoding="utf-8")
+    return folder
+
+
+def test_a_spec_with_no_project_root_adds_nothing_of_the_working_folders_row_s13(world: World) -> None:
+    """S13 (11 R10 rule 4): `loose` is not one of the four folder names, so the working folder is not its root."""
+    working_folder_with_every_marker(world, "loose")
+    inv = world.resolve(spec="loose/Spec")
+    assert inv.project_root is None
+    assert inv.tla_library == ()
+    assert inv.classpath == (world.build.jar,)
+    java_inv = build_tlc_command(inv)
+    assert "TLA-Library" not in dict(java_inv.system_properties)
+    argv = java_inv.argv()
+    assert argv[argv.index("-cp") + 1].split(os.pathsep) == [str(world.build.jar)]
+
+
+def test_the_same_working_folder_is_taken_when_the_spec_has_a_project_root_row_s13_control(world: World) -> None:
+    """The control of S13: the tree of the test above with the spec in `spec/` has a root, so that test can fail."""
+    working_folder_with_every_marker(world, "spec")
+    inv = world.resolve(spec="spec/Spec")
+    assert inv.project_root == world.cwd
+    assert inv.tla_library == (world.cwd / "modules",)
+    assert inv.classpath == (
+        world.cwd / "classes",
+        world.cwd / "modules",
+        world.build.jar,
+        world.cwd / "lib" / "leak.jar",
+    )
+    assert dict(build_tlc_command(inv).system_properties)["TLA-Library"] == str(world.cwd / "modules")
+
+
 # --- override classes and their check (11 R7, package 34) ----------------------------------------------------------
 
 
