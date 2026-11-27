@@ -185,7 +185,7 @@ def mapped(
             failed.__cause__ = e
             raise typer.Exit(reported(5, report, failed, ctx, args)) from None
         raise typer.Exit(reported(5, report_internal_error, e, ctx, args)) from None
-    except Exception as e:  # noqa: BLE001, RUF100 - the one allowed blind except (30 I8); RUF100 until 58 turns BLE on
+    except Exception as e:  # noqa: BLE001 - the one allowed blind except (30 I8): any other error is internal, code 5
         raise typer.Exit(reported(5, report_internal_error, e, ctx, args)) from None
 
 

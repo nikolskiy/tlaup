@@ -131,6 +131,7 @@ select = [
     "ARG",    # flake8-unused-arguments: find unused function arguments
     "RET",    # flake8-return: cleaner return logic
     "TRY",    # tryceratops: prevent exception handling anti-patterns
+    "BLE",    # flake8-blind-except: no blind except (two allowed, noqa with reason)
     "TID251", # flake8-tidy-imports: banned APIs (below)
 ]
 ignore = [
