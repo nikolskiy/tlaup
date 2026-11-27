@@ -10,7 +10,7 @@ import yaml
 
 from tests.conftest import Isolated
 from tlaup import context
-from tlaup.config.loader import Layer, load_config, load_settings, merge_layers
+from tlaup.config.loader import Layer, load_settings, merge_layers
 from tlaup.config.schema import Settings, setting_keys
 from tlaup.errors import ConfigInvalid
 
@@ -348,13 +348,6 @@ def test_a_broken_file_raises_each_time_the_settings_are_asked_for(isolated: Iso
     for _ in range(2):
         with pytest.raises(ConfigInvalid):
             _ = ctx.settings
-
-
-def test_load_config_hands_over_the_contexts_settings(isolated: Isolated) -> None:
-    user_file(isolated, "tlc:\n  workers: 6\n")
-    context.reset()
-    assert load_config().tlc.workers == 6
-    assert load_config() is context.get_context().settings
 
 
 def test_a_non_string_key_inside_a_section(isolated: Isolated) -> None:

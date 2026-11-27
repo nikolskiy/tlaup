@@ -14,7 +14,6 @@ from pydantic import ValidationError
 
 from tlaup.config import schema
 from tlaup.config.schema import REMOVED, Settings
-from tlaup.context import get_context
 from tlaup.errors import ConfigInvalid, FileOperationError
 from tlaup.paths import AppPaths
 
@@ -271,20 +270,11 @@ def write_user_setting(paths: AppPaths, key: str, value: object) -> None:
                 Path(temporary).unlink()
 
 
-# --- for the old commands (goes with its last caller) ----------------------------------------------------------
-
-
-def load_config() -> Settings:
-    """The settings, for the old commands only; new code reads `get_context().settings`."""
-    return get_context().settings
-
-
 __all__ = [
     "CONFIG_HEADER",
     "EDIT_HINT",
     "Layer",
     "LoadedSettings",
-    "load_config",
     "load_settings",
     "merge_layers",
     "parse_setting_text",
