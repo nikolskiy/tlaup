@@ -133,6 +133,7 @@ select = [
     "TRY",    # tryceratops: prevent exception handling anti-patterns
     "BLE",    # flake8-blind-except: no blind except (two allowed, noqa with reason)
     "DTZ",    # flake8-datetimez: no naive datetimes
+    "T20",    # flake8-print: no print (output goes through tlaup.ui)
     "TID251", # flake8-tidy-imports: banned APIs (below)
 ]
 ignore = [
@@ -149,6 +150,9 @@ ignore = [
     "PLR0913", # Many arguments are common in tests (fixtures)
     "PLR0917", # Many positional arguments are common in tests (fixtures)
 ]
+# Design 30 I8: scripts and the fakes are programs that print.
+"scripts/*" = ["T20"]
+"tests/fakes/*" = ["T20"]
 # Design 14 F9 (startup cost): command modules and the root import their heavy modules inside functions.
 "src/tlaup/cmd/**" = ["PLC0415"]
 "src/tlaup/cli.py" = ["PLC0415"]
