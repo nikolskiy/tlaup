@@ -47,11 +47,8 @@ jobs:
 
       - run: shellcheck scripts/*.sh
 
-      # The test hook is left out: the unit job runs the suite. Package 57 removes this SKIP
-      # when it moves the test hook to pre-push (design 30 I6).
+      # The test hook is a pre-push hook, so this stage leaves it out; the unit job runs the suite.
       - name: Pre-commit hooks
-        env:
-          SKIP: pytest
         run: uv run pre-commit run --all-files --hook-stage pre-commit
 
   unit:
