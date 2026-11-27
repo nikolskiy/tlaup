@@ -54,9 +54,10 @@ The task refuses to run, with exit 1, when the variable is unset (it then prints
 - `lint`: `uv run poe lint`, `uv run ruff format --check .`, `shellcheck scripts/*.sh`, and the pre-commit hooks (`--hook-stage pre-commit`, with the test hook skipped through `SKIP: pytest` until it moves to `pre-push`).
 - `unit`: `uv run poe test` on Python 3.11 and 3.15 on Linux and on 3.15 on macOS, the Python chosen through `uv` (`UV_PYTHON`), without Java and without a jar; each cell ends by checking that no tlaup folder or `.tlaplus` was left in the runner's home (`scripts/test_clean.py --home`).
 - `lifeline`: `uv run poe test-lifeline` with Temurin 11, on Linux and macOS.
+- `integration`: the integration tests ([above](#the-integration-tests)) on Linux and macOS, with Java 11 and 25 and the tools `v1.7.4` and `rolling`, eight cells. Each gets its jar with `tlaup tool install` through `actions/cache`, restored before the install; the key is `tools-<N>-<build>-<digest>` (for rolling, the digest GitHub publishes), and a step runs `tlaup doctor` and records `tlaup tool current` in the job summary. To abandon every stored jar, raise `TOOLS_CACHE_NUMBER` at the top of the workflow file. The `lifeline` job gets its rolling jar the same way, under the same key. The job ends with the clean-home check.
 - `build`: `uv run poe check-release`: build, `twine check`, and `scripts/check_wheel.py`, which checks the files in the wheel and installs it into a new environment to run `tlaup --version`, `--help`, `tool dir` and `import tlaup_parse`.
 - `deps-newest`: `uv sync --upgrade`, then the suite, to see what the newest versions the ranges allow do. It is not required and may be red.
-- `Test`: waits for `lint`, `unit`, `lifeline` and `build` and fails unless all succeeded. It is the one status check the ruleset on `main` requires, so a new required job is added to its `needs`.
+- `Test`: waits for `lint`, `unit`, `lifeline`, `integration` and `build` and fails unless all succeeded. It is the one status check the ruleset on `main` requires, so a new required job is added to its `needs`.
 
 ## Code map
 
