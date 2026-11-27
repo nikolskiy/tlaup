@@ -47,7 +47,7 @@ def test_a_code_the_table_does_not_hold(code: int) -> None:
 
 @pytest.mark.parametrize(
     ("code", "name"),
-    [(130, "SIGINT"), (137, "SIGKILL"), (143, "SIGTERM"), (139, "SIGSEGV")],
+    [(129, "SIGHUP"), (130, "SIGINT"), (137, "SIGKILL"), (143, "SIGTERM"), (139, "SIGSEGV")],
 )
 def test_a_code_above_128_the_table_does_not_hold_is_a_signal(code: int, name: str) -> None:
     assert describe_exit_status(code) == ExitStatus(
@@ -55,11 +55,16 @@ def test_a_code_above_128_the_table_does_not_hold_is_a_signal(code: int, name: s
     )
 
 
-@pytest.mark.parametrize("code", [200, 1000])
+@pytest.mark.parametrize("code", [200, 254])
 def test_a_code_above_128_that_is_no_known_signal_gives_its_number(code: int) -> None:
     status = describe_exit_status(code)
     assert (status.word, status.known) == ("error", False)
     assert status.meaning == f"Java was stopped by a signal ({code - 128})."
+
+
+@pytest.mark.parametrize("code", [256, 1000, 3221225477])
+def test_a_code_above_255_is_no_signal(code: int) -> None:
+    assert describe_exit_status(code) == ExitStatus(code=code, word="error", meaning=UNKNOWN_MEANING, known=False)
 
 
 @given(st.integers())

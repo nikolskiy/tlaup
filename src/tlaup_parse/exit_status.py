@@ -47,6 +47,7 @@ _TABLE: dict[int, tuple[str, str]] = {
 # X1's last two rows: nobody can say of an undocumented code that something was checked and found wrong.
 _UNKNOWN_WORD = "error"
 _UNKNOWN_MEANING = "TLC ended with a code tlaup does not know."
+_MAX_CODE = 255  # a larger code (a Windows crash code such as 3221225477) is no signal
 _SIGNAL_BASE = 128  # a shell reports a process killed by signal N as 128 + N; so does Java's launcher
 
 
@@ -61,11 +62,11 @@ def _signal_meaning(number: int) -> str:
 def describe_exit_status(code: int) -> ExitStatus:
     """The word and meaning X1 gives TLC's exit code ``code``; never raises.
 
-    A code above 128 that the table does not hold means Java was stopped by signal ``code - 128``; the name comes
+    A code from 129 to 255 that the table does not hold means Java was stopped by signal ``code - 128``; the name comes
     from the platform's ``signal.Signals`` (numbers differ between systems, such as 7 and 10 for SIGBUS).
     """
     row = _TABLE.get(code)
     if row is not None:
         return ExitStatus(code=code, word=row[0], meaning=row[1], known=True)
-    meaning = _signal_meaning(code - _SIGNAL_BASE) if code > _SIGNAL_BASE else _UNKNOWN_MEANING
+    meaning = _signal_meaning(code - _SIGNAL_BASE) if _SIGNAL_BASE < code <= _MAX_CODE else _UNKNOWN_MEANING
     return ExitStatus(code=code, word=_UNKNOWN_WORD, meaning=meaning, known=False)
