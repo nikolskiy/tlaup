@@ -168,9 +168,19 @@ def _changes() -> str:
     return run("git", "diff", "HEAD", "--", *FILES)
 
 
+def changed_paths(git: Callable[..., str] = run) -> set[str]:
+    """Every file that differs from HEAD, staged or not, and every untracked one.
+
+    Names only: ``git status --porcelain`` starts its first line with a space when that file is
+    unstaged, and ``run`` strips it, which once cut the first name short.
+    """
+    tracked = git("git", "diff", "--name-only", "HEAD")
+    untracked = git("git", "ls-files", "--others", "--exclude-standard")
+    return {name for name in (tracked + "\n" + untracked).splitlines() if name}
+
+
 def _only_release_files_changed() -> bool:
-    changed = {line[3:] for line in run("git", "status", "--porcelain").splitlines()}
-    return changed <= set(FILES)
+    return changed_paths() <= set(FILES)
 
 
 class Local:
