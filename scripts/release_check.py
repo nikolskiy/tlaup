@@ -104,6 +104,7 @@ def pypi_has(version: str, urlopen: Callable[..., Any] = urllib.request.urlopen)
             status = response.status
     except urllib.error.HTTPError as error:
         status = error.code
+        error.close()  # it holds the response; Python 3.15 warns when one is left open
     except (urllib.error.URLError, TimeoutError, OSError) as error:
         message = f"could not ask PyPI about {version} ({url}): {error}"
         raise CheckError(message) from error
