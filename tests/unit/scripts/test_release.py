@@ -122,3 +122,19 @@ def test_undo_of_a_pushed_branch_says_what_is_left_and_runs_nothing(script: Modu
     said = local.undo()
     assert "release/v0.9.0 is pushed already" in said
     assert "git push origin --delete release/v0.9.0" in said
+
+
+def test_the_changed_files_are_the_tracked_changes_and_the_untracked_files(script: ModuleType) -> None:
+    said = {
+        ("git", "diff", "--name-only", "HEAD"): "CHANGELOG.md\npyproject.toml\nuv.lock",
+        ("git", "ls-files", "--others", "--exclude-standard"): "notes.txt",
+    }
+    assert script.changed_paths(lambda *args: said[args]) == {*script.FILES, "notes.txt"}
+
+
+def test_a_tree_with_only_the_release_files_changed_names_each_one_whole(script: ModuleType) -> None:
+    said = {
+        ("git", "diff", "--name-only", "HEAD"): "CHANGELOG.md\npyproject.toml\nuv.lock",
+        ("git", "ls-files", "--others", "--exclude-standard"): "",
+    }
+    assert script.changed_paths(lambda *args: said[args]) == set(script.FILES)
