@@ -11,5 +11,6 @@ Read [`docs/README.md`](docs/README.md) next. It lists every part of the documen
 - Use `uv` for everything; never `pip` or a global Python.
 - Commit and push only when the maintainer asks. Before committing, read [`docs/contributing/conventions.md`](docs/contributing/conventions.md).
 - No AI attribution or co-author trailers in commits or pull requests.
+- Never release: do not run `uv run poe release`, merge into `main`, or change the version. A merge that leaves `main` with an untagged version publishes it to PyPI ([releasing](docs/contributing/releasing.md)).
 - Never commit personal or machine-specific data such as home folder paths or email addresses.
 - This file stays short on purpose: put detail in the docs, link it from the index above it, and do not add it here. `CLAUDE.md` only includes this file; add nothing there either ([documentation conventions](docs/contributing/conventions.md#documentation)).

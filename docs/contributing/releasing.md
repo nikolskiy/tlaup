@@ -1,41 +1,63 @@
 # Releasing
 
-A release is cut from `main` in this order. Each step says what it checks; stop at the first one that fails.
+A release is a pull request. When its tests pass it merges by itself, the merge publishes the version to PyPI, and the commit gets its `v*` tag only after the upload succeeded, so every tag names a commit whose build is on PyPI ([design 30 L8](../design/30-ci-and-release.md#l8-release-by-pull-request)).
 
-1. **Refresh the lock file.** On a branch, run `uv lock --upgrade`, commit, push, and squash-merge the pull request once `Test` is green ([branches and pull requests](development.md#branches-and-pull-requests)). The weekly `deps-newest` run has usually shown already whether the newest versions work.
-2. **Bump the version.** Choose the part by the version rule in [conventions](conventions.md#compatibility-and-versions): from 0.9.0 on, a minor version carries breaking changes and features, a patch version only fixes. Run `uv run poe bump patch`, `minor` or `major`. It moves the version in `pyproject.toml` and `uv.lock` together and prints the new version; it does not touch the changelog and does not commit.
-3. **Date the changelog.** Rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`, with today's date; an empty `## [Unreleased]` heading above it may stay. `uv run python scripts/changelog_section.py X.Y.Z` prints the section the release page will show. Commit on a branch, push, and squash-merge the pull request once `Test` is green. Steps 2 and 3 may share one branch and one pull request. Then switch to `main` and pull, so that `HEAD` is the merged commit. The merge starts no `Test` run on `main`: step 4 reads the one on the pull request's head, which has the same tree.
-4. **Tag.** Run `scripts/release.sh --check`, then `scripts/release.sh`. Both need `gh` logged in. The script stops at the first check that fails and says what to do:
-   1. reads the version with `uv version --short`;
-   2. the branch is `main` and the working tree is clean;
-   3. after `git fetch origin main --tags`, `HEAD` is `origin/main`;
-   4. the tag `vX.Y.Z` exists neither locally nor on `origin`;
-   5. `uv lock --check` passes and `uv.lock` has the same version;
-   6. `CHANGELOG.md` has a dated section for the version, and nothing is left under `## [Unreleased]`;
-   7. the check `Test` of GitHub Actions completed with success on `HEAD`'s tree: on `HEAD` itself if it has the check (the weekly run, or one started with `gh workflow run test.yml --ref main`), otherwise on the head of the pull request whose squash merge `HEAD` is, when that head has the same tree. The newest `Test` counts, so a run by hand or a re-run replaces a failed one; a run still going on `HEAD` is waited for;
-   8. `uv run poe check-release` passes;
-   9. it makes the annotated tag `vX.Y.Z`;
-   10. it pushes `main` and the tag in one atomic push, and deletes the local tag if the push fails. Since `HEAD` is `origin/main` (step 3), only the tag is sent; `main` itself changes only through pull requests.
+## Making a release
 
-   `--check` runs steps 1 to 8 and tags nothing.
-5. **Publish.** The tag starts `.github/workflows/release.yml`, in three jobs:
-   - `build`, with read access only, fails unless the tag is `v` plus the project version and the commit is on `main`; then lint, the unit tests, `poe check-release`, and the changelog section written to `release-notes.md`. It uploads the wheel and the sdist (and nothing else) and the notes.
-   - `publish` waits for the maintainer's approval in the `pypi` environment, then publishes the wheel and the sdist to PyPI by trusted publishing. It holds only the id-token permission and runs no project code.
-   - `release-page` then creates the GitHub release page, with the changelog section as its text and the wheel and the sdist as its files. It runs no project code either.
+On your machine, on an up-to-date `main` with a clean tree, with git, uv and a logged-in `gh`, run:
 
-   Watch the run. If `build` fails, nothing was published: fix `main` and release the next version, since the tag cannot be moved or deleted. If `publish` succeeded and `release-page` failed, the version is on PyPI; re-run the failed job.
+```bash
+uv run poe release
+```
+
+It asks two questions, then for a go-ahead:
+
+1. **Which part of the version to bump.** It shows what patch, minor and major would each give. The version rule is in [conventions](conventions.md#compatibility-and-versions): from 0.9.0 on, a minor version carries breaking changes and features, a patch version only fixes.
+2. **Whether to refresh `uv.lock`** (`uv lock --upgrade`, yes by default). The weekly `deps-newest` run has usually shown already whether the newest versions work.
+3. **Whether to go ahead.** Before asking, it has made the release commit's changes on a branch `release/vX.Y.Z`: the version in `pyproject.toml` and `uv.lock`, and `## [Unreleased]` in `CHANGELOG.md` renamed to `## [X.Y.Z] - <today>`, with an empty `## [Unreleased]` above it. It has also run the release check (below). It shows the changelog section and the changed files. A no puts `main` back as it was; nothing has been pushed.
+
+On a yes it pushes the branch, opens the pull request `chore(release): X.Y.Z` and turns on auto-merge. From there nothing needs you:
+
+- The push runs the tests. When `Test` is green, GitHub squash-merges the pull request; its text, which is the changelog section, becomes the commit's message on `main`.
+- The merge starts the "Release" workflow. `build` runs lint, the unit tests and `poe check-release`; `publish` uploads the wheel and the sdist to PyPI by trusted publishing; `tag-and-page` checks that PyPI holds exactly those files, then creates the annotated tag `vX.Y.Z` on the merged commit and the release page.
+
+The script follows both and ends by printing the PyPI page, or what failed. Ctrl-C stops only the following; the release goes on.
+
+It refuses to start when you are not on a clean `main` equal to `origin/main`, when Unreleased has no entries, or when a release pull request is already open.
+
+## The release check
+
+`scripts/release_check.py` decides, for any commit, whether it is a release: it is one when its version has no `v*` tag. For such a commit it fails unless all of these hold:
+
+- the version is higher than every tag;
+- `uv.lock` has the same version;
+- the changelog has a dated section for it with nothing under Unreleased;
+- PyPI does not have it yet.
+
+It runs in the release script before anything is pushed, as the `release-check` job inside `Test` (so a release pull request cannot merge while it fails), and as the first job of "Release". Any pull request that changes the version is a release pull request, however it was made, and merging it publishes with no further approval.
+
+## When something fails
+
+- **Before the merge:** the pull request waits. Push a fix to its branch, like any other; auto-merge stays on. If `main` moved on, update the branch.
+- **After the merge but before the upload** (for example a flaky test in `build`): re-run the failed jobs of the "Release" run. After a fix merged into `main`, the next push starts a new "Release" run, since the version is still untagged; "Run workflow" on "Release" does the same by hand. The fix's own `release-check` sees that untagged version too, so give the fix no new Unreleased entry: describe it in the dated section of the release, or not at all.
+- **After the upload, if `tag-and-page` failed:** re-run that job. A tag or page it already made on the same commit is kept.
+- **If an upload stopped half way:** re-run `publish`; it sends only the files PyPI does not have yet.
+
+PyPI never takes a version number twice, so a version that reached PyPI broken is fixed by the next patch release.
+
+**While a release is unfinished,** that is, merged but not yet tagged, `main`'s version is untagged, so every commit on `main` is still that release. The next merge into `main` would start the release again and publish that newer commit, with changes the dated changelog section does not list. Feature branches cut from `main` meanwhile fail their `release-check`, because their Unreleased section has entries again. Finish the release before merging other work.
 
 Optional, after the first release made this way: give the older release pages their changelog sections, one command per tag that has a page, for example `gh release edit vX.Y.Z --notes-file <(uv run python scripts/changelog_section.py X.Y.Z)`. Which older tags have pages, and whether those without get one, is the maintainer's choice.
 
 ## Repository rules
 
-`main` cannot be deleted or force-pushed; `v*` tags cannot be moved or deleted by anyone, so a bad tag means a new version number; the `pypi` environment deploys only from `v*` tags.
+`main` cannot be deleted or force-pushed; `v*` tags cannot be moved or deleted by anyone, so a bad tag means a new version number.
 
 Once the maintainer has set them:
 
-- The ruleset on `main` takes changes only through pull requests whose `Test` check passed (the check of GitHub Actions), squash-merged; force pushes and deletion are blocked; nobody can bypass it, the maintainer included.
-- The repository allows squash merging only (merge commits and rebase merging off); the squash commit's default message is the pull request's title and description (`PR_TITLE`, `PR_BODY`); "Automatically delete head branches" is off, so the archive workflow can rename the merged branch.
+- The ruleset on `main` takes changes only through pull requests whose `Test` check passed (the check of GitHub Actions), squash-merged, from a branch that is up to date with `main`; force pushes and deletion are blocked; nobody can bypass it, the maintainer included.
+- The repository allows squash merging only (merge commits and rebase merging off) and allows auto-merge; the squash commit's default message is the pull request's title and description (`PR_TITLE`, `PR_BODY`); "Automatically delete head branches" is off, so the archive workflow can rename the merged branch.
 - Actions' workflow permissions are read-only by default, with "Allow GitHub Actions to create and approve pull requests" on, so the draft pull request workflow can open its pull requests.
+- The `pypi` environment deploys only from the branch `main` and has no required reviewer: the go-ahead is the release script's question and the green `Test` that the merge needs.
 
-These are the maintainer actions of [design 30 I7](../design/30-ci-and-release.md#i7-ruleset-on-main).
-- The `pypi` environment has the maintainer as its required reviewer, with administrator bypass off, so a pushed tag does not publish until the maintainer approves the `publish` job.
+These are the maintainer actions of [design 30 I7](../design/30-ci-and-release.md#i7-ruleset-on-main), [L5](../design/30-ci-and-release.md#l5-pypi-environment) and [L8](../design/30-ci-and-release.md#l8-release-by-pull-request).

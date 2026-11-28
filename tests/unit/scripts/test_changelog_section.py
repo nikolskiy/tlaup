@@ -155,7 +155,7 @@ def test_the_wrong_number_of_arguments_is_refused(script: ModuleType, capsys: py
 
 
 def test_as_a_child_process_it_reads_the_repository_changelog() -> None:
-    """Run from its path, as release.sh and the workflow run it. 0.0.0 has no section, so the
+    """Run from its path, as the release workflow runs it. 0.0.0 has no section, so the
     script fails on the repository's own CHANGELOG.md whatever state its Unreleased section is in."""
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "0.0.0"], capture_output=True, text=True, check=False, encoding="utf-8"
