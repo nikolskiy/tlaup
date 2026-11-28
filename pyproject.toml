@@ -182,6 +182,8 @@ twine-check = "twine check dist/*.whl dist/*.tar.gz"
 check-wheel = "python scripts/check_wheel.py"
 # uv run poe bump patch|minor|major: pyproject.toml and uv.lock together (design 30 L4).
 bump = "python scripts/bump.py"
+# uv run poe release: start a release and follow it to PyPI (design 30 L8; docs/contributing/releasing.md).
+release = "python scripts/release.py"
 
 [tool.poe.tasks.check-release]
 sequence = [

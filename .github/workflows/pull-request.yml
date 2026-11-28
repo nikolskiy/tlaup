@@ -7,7 +7,8 @@ name: Draft pull request
 # repository setting "Allow GitHub Actions to create and approve pull requests".
 #
 # Not for: main; archive/** (merged work); pkg/** (stage 5 package branches, which merge into the
-# stage's build branch, not into main); dependabot/** (Dependabot opens its own pull requests).
+# stage's build branch, not into main); dependabot/** (Dependabot opens its own pull requests);
+# release/** (scripts/release.py opens the release pull request itself, design 30 L8).
 # A build/** stage branch does get one: that is its pull request to main.
 on:
   push:
@@ -16,6 +17,7 @@ on:
       - "archive/**"
       - "pkg/**"
       - "dependabot/**"
+      - "release/**"
 
 permissions:
   contents: read

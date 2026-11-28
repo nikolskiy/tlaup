@@ -1,34 +1,62 @@
 name: Release
 
-# A pushed v* tag, made by scripts/release.sh (design 30 L1, L2; docs/contributing/releasing.md).
+# Every push to main runs this, and its first job decides (design 30 L8): a commit whose project
+# version has no v* tag is a release. Normally the version is tagged already and the run ends
+# there. A release is built, published to PyPI, and only then gets its tag and release page, so
+# each v* tag names exactly the commit whose build is on PyPI. A release pull request is opened by
+# scripts/release.py (uv run poe release; docs/contributing/releasing.md) and auto-merged once
+# Test is green, so the merge is the go-ahead and the upload waits for no approval. After a
+# failure, re-run the failed jobs; a later push to main tries again too, since the version is
+# still untagged, and so does running this by hand on main. The file name and the pypi
+# environment are what PyPI's trusted publisher names.
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 
-# Every action is pinned by commit hash with its release in a comment. The hashes are the ones
-# research 29 found on 2026-11-19; Dependabot (package 56) moves them.
-# Only build runs project code, and it holds read access only. publish holds only the id-token
-# permission and release-page only contents: write; neither checks out or runs the project.
+# Every action is pinned by commit hash with its release in a comment; Dependabot moves them.
+# build runs project code and holds read access only; check runs only the standard-library
+# release check, also with read access. publish holds only the id-token permission and
+# tag-and-page only contents: write; neither checks out or runs the project.
 jobs:
+  check:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      release: ${{ steps.check.outputs.release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Is this commit a release, and is it releasable?
+        id: check
+        run: |
+          git ls-remote --tags --refs origin > "$RUNNER_TEMP/tags.txt"
+          python3 scripts/release_check.py --tags "$RUNNER_TEMP/tags.txt" --mode publish
+
   build:
+    needs: check
+    if: needs.check.outputs.release == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
     steps:
-      # Full history, so that origin/main is there for the ancestry check.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
 
       # No cache: a cache restored here could have been written by another run, and a release
       # runs a few times a year. No Java: the lifeline jar is checked in.
@@ -36,18 +64,6 @@ jobs:
         uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
-
-      - name: Check that the tag is the project version, on main
-        run: |
-          VERSION=$(uv version --short)
-          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::The tag $GITHUB_REF_NAME is not the project version v$VERSION."
-            exit 1
-          fi
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::The tagged commit $GITHUB_SHA is not on main."
-            exit 1
-          fi
 
       - run: uv sync --locked
 
@@ -59,7 +75,9 @@ jobs:
       - run: uv run poe check-release
 
       - name: Write the release notes from the changelog
-        run: uv run python scripts/changelog_section.py "${GITHUB_REF_NAME#v}" > release-notes.md
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: uv run python scripts/changelog_section.py "$VERSION" > release-notes.md
 
       # Exactly the wheel and the sdist; the wheel check has seen one of each.
       - name: Upload dist
@@ -78,7 +96,7 @@ jobs:
           path: release-notes.md
           if-no-files-found: error
 
-  # Waits for the maintainer's approval in the pypi environment (design 30 L5).
+  # The pypi environment deploys only from main and has no required reviewer (design 30 L5, L8).
   publish:
     needs: build
     runs-on: ubuntu-latest
@@ -95,12 +113,16 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        # A re-run after an upload that stopped half way sends the files PyPI does not have yet;
+        # they are this run's own artifacts, and check refused a version PyPI had before the run.
         with:
           verbose: true
+          skip-existing: true
 
-  # After publish, so that a page never announces a version that is not on PyPI.
-  release-page:
-    needs: publish
+  # After publish, so that a tag or a page never announces a version that is not on PyPI. A tag or
+  # page left by an earlier try of this run is kept when it names this commit, so a re-run is safe.
+  tag-and-page:
+    needs: [check, publish]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -118,13 +140,63 @@ jobs:
           name: release-notes
           path: .
 
-      # No checkout, so gh is told the repository.
+      # The tag says this commit's build is on PyPI, so PyPI must hold exactly these files. A
+      # publish that skipped every file (skip-existing) could otherwise tag a commit whose files
+      # another run uploaded. PyPI's JSON can lag the upload by a little, so it is asked again.
+      - name: Check that PyPI has exactly these files
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          (cd dist && sha256sum -- *.whl *.tar.gz) | sort > "$RUNNER_TEMP/ours.txt"
+          for try in 1 2 3 4 5 6; do
+            if curl -fsS "https://pypi.org/pypi/tlaup/$VERSION/json" \
+              | jq -r '.urls[] | "\(.digests.sha256)  \(.filename)"' | sort > "$RUNNER_TEMP/pypi.txt" \
+              && cmp -s "$RUNNER_TEMP/ours.txt" "$RUNNER_TEMP/pypi.txt"; then
+              echo "PyPI has exactly this run's files for $VERSION."
+              exit 0
+            fi
+            echo "PyPI does not show this run's files for $VERSION yet (try $try)."
+            sleep 30
+          done
+          echo "::error::PyPI's files for $VERSION are not this run's. Ours:"
+          cat "$RUNNER_TEMP/ours.txt"
+          echo "PyPI's:"
+          cat "$RUNNER_TEMP/pypi.txt" || true
+          exit 1
+
+      # No checkout, so gh is told the repository. An annotated tag is a tag object and a ref to
+      # it (decision D21).
+      - name: Tag the commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          TAG="v$VERSION"
+          if TAGGED=$(gh api "repos/$GH_REPO/commits/$TAG" --jq .sha 2>/dev/null); then
+            if [ "$TAGGED" != "$GITHUB_SHA" ]; then
+              echo "::error::$TAG exists already on $TAGGED, not on this commit $GITHUB_SHA."
+              exit 1
+            fi
+            echo "$TAG is on this commit already."
+          else
+            OBJECT=$(gh api "repos/$GH_REPO/git/tags" -f tag="$TAG" -f message="tlaup $VERSION" \
+              -f object="$GITHUB_SHA" -f type=commit --jq .sha)
+            gh api "repos/$GH_REPO/git/refs" -f ref="refs/tags/$TAG" -f sha="$OBJECT" >/dev/null
+            echo "Tagged $GITHUB_SHA as $TAG."
+          fi
+
       - name: Create the release page
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.check.outputs.version }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.whl dist/*.tar.gz \
-            --title "tlaup ${GITHUB_REF_NAME#v}" \
-            --notes-file release-notes.md \
-            --verify-tag
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "The release page of v$VERSION exists already."
+          else
+            gh release create "v$VERSION" dist/*.whl dist/*.tar.gz \
+              --title "tlaup $VERSION" \
+              --notes-file release-notes.md \
+              --verify-tag
+          fi

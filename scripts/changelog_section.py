@@ -8,8 +8,8 @@ to stdout, without the heading, and exits 0. Fails with a message on stderr and 
 heading is missing or malformed, when the section is empty, or when ``## [Unreleased]`` still has
 entries. An ``## [Unreleased]`` heading with nothing under it is allowed.
 
-Used by ``scripts/release.sh`` before tagging, by the release workflow for the release page's text,
-and by hand to backfill old release pages. Standard library only.
+Used by ``scripts/release_check.py`` and ``scripts/prepare_release.py`` (design 30 L8), by the
+release workflow for the release page's text, and by hand to backfill old release pages. Standard library only.
 """
 
 from __future__ import annotations
